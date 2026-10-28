@@ -1,0 +1,213 @@
+{
+  "extResources": [
+    {
+      "id": "flagBR",
+      "uuid": "373f5561-ef76-4c4a-8ba1-f371dc723b3b"
+    },
+    {
+      "id": "flagGB",
+      "uuid": "01f981ba-9e6a-42c1-b4ae-c51aad339944"
+    },
+    {
+      "id": "flagES",
+      "uuid": "9e66af1e-8459-4e7a-9177-5a05ada58c38"
+    },
+    {
+      "id": "./App%20Instrutor.dc.html",
+      "uuid": "5b5db932-5453-41a1-9862-dec4a7f7f454"
+    },
+    {
+      "id": "https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap",
+      "uuid": "28d7d752-47be-454b-a0bf-fa04523a1564"
+    },
+    {
+      "id": "https://unpkg.com/react@18.3.1/umd/react.production.min.js",
+      "uuid": "786af6c3-54de-418f-8e21-67e0987e934c"
+    },
+    {
+      "id": "https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js",
+      "uuid": "cc12d1cb-ab2a-4786-926e-00ed32f22e62"
+    },
+    {
+      "id": "https://unpkg.com/@babel/standalone@7.29.0/babel.min.js",
+      "uuid": "436ffdfc-b431-4eb1-8669-e6be79c07be6"
+    }
+  ],
+  "pageOrder": [],
+  "assets": [
+    {
+      "uuid": "373f5561-ef76-4c4a-8ba1-f371dc723b3b",
+      "file": "_shared/flagBR.png",
+      "mime": "image/png",
+      "compressed": false
+    },
+    {
+      "uuid": "01f981ba-9e6a-42c1-b4ae-c51aad339944",
+      "file": "_shared/flagGB.png",
+      "mime": "image/png",
+      "compressed": false
+    },
+    {
+      "uuid": "9e66af1e-8459-4e7a-9177-5a05ada58c38",
+      "file": "_shared/flagES.png",
+      "mime": "image/png",
+      "compressed": false
+    },
+    {
+      "uuid": "4e4fd0d6-d7df-41bb-a4d5-df3320d79788",
+      "file": "_shared/icons.js",
+      "mime": "application/javascript",
+      "compressed": true
+    },
+    {
+      "uuid": "eaa8300f-e2f4-4686-a16a-1ff7281aad10",
+      "file": "_shared/dc-runtime.js",
+      "mime": "text/javascript",
+      "compressed": true
+    },
+    {
+      "uuid": "3502b304-768c-4ed6-bbb4-bec644243b40",
+      "file": "_shared/ios-frame.jsx",
+      "mime": "text/jsx",
+      "compressed": true
+    },
+    {
+      "uuid": "092383e5-7c70-453d-bb0c-22c4ec99162e",
+      "file": "_shared/android-frame.jsx",
+      "mime": "text/jsx",
+      "compressed": true
+    },
+    {
+      "uuid": "5b5db932-5453-41a1-9862-dec4a7f7f454",
+      "file": "instructor-app/App Instrutor.dc.html",
+      "mime": "text/html",
+      "compressed": true
+    },
+    {
+      "uuid": "28d7d752-47be-454b-a0bf-fa04523a1564",
+      "file": "_shared/fonts.css",
+      "mime": "text/css",
+      "compressed": true
+    },
+    {
+      "uuid": "786af6c3-54de-418f-8e21-67e0987e934c",
+      "file": "_shared/react.production.min.js",
+      "mime": "text/javascript",
+      "compressed": true
+    },
+    {
+      "uuid": "cc12d1cb-ab2a-4786-926e-00ed32f22e62",
+      "file": "_shared/react-dom.production.min.js",
+      "mime": "text/javascript",
+      "compressed": true
+    },
+    {
+      "uuid": "436ffdfc-b431-4eb1-8669-e6be79c07be6",
+      "file": "_shared/babel.min.js",
+      "mime": "text/javascript",
+      "compressed": true
+    },
+    {
+      "uuid": "0b419d16-b297-4eaf-a59f-b9cc46716661",
+      "file": "_shared/font-bc42ba6f.woff2",
+      "mime": "font/woff2",
+      "compressed": false
+    },
+    {
+      "uuid": "18f02741-4f1d-45cc-80c9-5336820bd5ab",
+      "file": "_shared/font-ed8618e8.woff2",
+      "mime": "font/woff2",
+      "compressed": false
+    },
+    {
+      "uuid": "0f9f597d-2b39-453c-a367-42376893ddf8",
+      "file": "_shared/font-0e2a4081.woff2",
+      "mime": "font/woff2",
+      "compressed": false
+    },
+    {
+      "uuid": "b1179f6e-262a-4d3b-8137-b17d9baeb481",
+      "file": "_shared/font-864c709d.woff2",
+      "mime": "font/woff2",
+      "compressed": false
+    },
+    {
+      "uuid": "7d4bb1f5-cc35-4ac1-8942-18b6f6bd9ce4",
+      "file": "_shared/font-f8ec026d.woff2",
+      "mime": "font/woff2",
+      "compressed": false
+    },
+    {
+      "uuid": "c4e4e3d2-0cb8-49bb-9f68-4391eceb2907",
+      "file": "_shared/font-31ff5e6e.woff2",
+      "mime": "font/woff2",
+      "compressed": false
+    },
+    {
+      "uuid": "ed7cc9b0-829c-40e7-a762-553ce840758b",
+      "file": "_shared/font-50c25f32.woff2",
+      "mime": "font/woff2",
+      "compressed": false
+    },
+    {
+      "uuid": "2eac0b45-c143-4aae-a6f5-8cafd9551dd8",
+      "file": "_shared/font-a2f92ada.woff2",
+      "mime": "font/woff2",
+      "compressed": false
+    },
+    {
+      "uuid": "0a249f97-9b46-4223-93af-797b1f582cbb",
+      "file": "_shared/font-5bc49d41.woff2",
+      "mime": "font/woff2",
+      "compressed": false
+    },
+    {
+      "uuid": "166992d7-50fe-49cd-9126-6d48950a5507",
+      "file": "_shared/font-960aaed3.woff2",
+      "mime": "font/woff2",
+      "compressed": false
+    },
+    {
+      "uuid": "6a7027ae-87dd-4ae1-91d9-54c29e4ff74d",
+      "file": "_shared/font-0c165565.woff2",
+      "mime": "font/woff2",
+      "compressed": false
+    },
+    {
+      "uuid": "5bc0c143-67f7-4492-a118-ec1f103b7376",
+      "file": "_shared/font-e3e520cb.woff2",
+      "mime": "font/woff2",
+      "compressed": false
+    },
+    {
+      "uuid": "0baa7951-ae1c-4c54-b0ae-8c9a1c4516cf",
+      "file": "_shared/font-2d06f2c3.woff2",
+      "mime": "font/woff2",
+      "compressed": false
+    },
+    {
+      "uuid": "c0bb95ad-25c7-4021-800a-1e3ef93d2c93",
+      "file": "_shared/font-b63651df.woff2",
+      "mime": "font/woff2",
+      "compressed": false
+    },
+    {
+      "uuid": "5e5556ad-a67c-49a7-b968-86f58f0c24fd",
+      "file": "_shared/font-d107f726.woff2",
+      "mime": "font/woff2",
+      "compressed": false
+    },
+    {
+      "uuid": "5a410ac1-c224-4e24-acc9-1846ae54eb60",
+      "file": "_shared/font-511ce967.woff2",
+      "mime": "font/woff2",
+      "compressed": false
+    },
+    {
+      "uuid": "0f1898f7-11e9-4862-9e5f-ba13616edfd7",
+      "file": "_shared/font-20fc9b6f.woff2",
+      "mime": "font/woff2",
+      "compressed": false
+    }
+  ]
+}

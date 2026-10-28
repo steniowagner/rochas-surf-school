@@ -1,0 +1,141 @@
+{
+  "extResources": [
+    {
+      "id": "https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js",
+      "uuid": "aa0ae5ca-1d54-4aba-a268-7cf8cdb2d0cb"
+    },
+    {
+      "id": "https://unpkg.com/react@18.3.1/umd/react.production.min.js",
+      "uuid": "2087a9ea-3af5-47ae-98c1-68c906f03bb0"
+    }
+  ],
+  "pageOrder": [],
+  "assets": [
+    {
+      "uuid": "ba115a30-78c6-45ce-893a-85b676dac41c",
+      "file": "empty-and-error-states/icons.js",
+      "mime": "application/javascript",
+      "compressed": true
+    },
+    {
+      "uuid": "69e565de-90d4-47fc-a1fe-524d7498ed03",
+      "file": "_shared/dc-runtime.js",
+      "mime": "text/javascript",
+      "compressed": true
+    },
+    {
+      "uuid": "aa0ae5ca-1d54-4aba-a268-7cf8cdb2d0cb",
+      "file": "_shared/react-dom.production.min.js",
+      "mime": "text/javascript",
+      "compressed": true
+    },
+    {
+      "uuid": "2087a9ea-3af5-47ae-98c1-68c906f03bb0",
+      "file": "_shared/react.production.min.js",
+      "mime": "text/javascript",
+      "compressed": true
+    },
+    {
+      "uuid": "fe334932-dd72-4a61-88ec-f9c8320c5bde",
+      "file": "_shared/font-bc42ba6f.woff2",
+      "mime": "font/woff2",
+      "compressed": false
+    },
+    {
+      "uuid": "356e9b5b-6f99-4b42-a3c8-e8c69f437a88",
+      "file": "_shared/font-ed8618e8.woff2",
+      "mime": "font/woff2",
+      "compressed": false
+    },
+    {
+      "uuid": "51e37c47-5e0e-4c33-bb5c-4ce8d46c3cd4",
+      "file": "_shared/font-0e2a4081.woff2",
+      "mime": "font/woff2",
+      "compressed": false
+    },
+    {
+      "uuid": "3a06ba11-05f7-4ca0-b06c-b75df4e56dee",
+      "file": "_shared/font-864c709d.woff2",
+      "mime": "font/woff2",
+      "compressed": false
+    },
+    {
+      "uuid": "1b91942b-4b60-4801-8fc9-787ecf8eb4ba",
+      "file": "_shared/font-f8ec026d.woff2",
+      "mime": "font/woff2",
+      "compressed": false
+    },
+    {
+      "uuid": "193acf69-d6da-4d82-8b86-a87e2f52f438",
+      "file": "_shared/font-31ff5e6e.woff2",
+      "mime": "font/woff2",
+      "compressed": false
+    },
+    {
+      "uuid": "a0689968-b79b-4686-90c6-444b3ff894ed",
+      "file": "_shared/font-50c25f32.woff2",
+      "mime": "font/woff2",
+      "compressed": false
+    },
+    {
+      "uuid": "a3df369e-5e40-4cd2-bd9a-bcdff0daec4d",
+      "file": "_shared/font-a2f92ada.woff2",
+      "mime": "font/woff2",
+      "compressed": false
+    },
+    {
+      "uuid": "127543de-6fe3-4dbf-af2b-47afb869efff",
+      "file": "_shared/font-5bc49d41.woff2",
+      "mime": "font/woff2",
+      "compressed": false
+    },
+    {
+      "uuid": "ecd575fc-d979-4edd-8061-d0e99139f93b",
+      "file": "_shared/font-960aaed3.woff2",
+      "mime": "font/woff2",
+      "compressed": false
+    },
+    {
+      "uuid": "46bd86d8-b0b9-494f-886c-5acf92451ffb",
+      "file": "_shared/font-0c165565.woff2",
+      "mime": "font/woff2",
+      "compressed": false
+    },
+    {
+      "uuid": "1ce52cf6-85ef-48cc-9277-9dcaa480e81a",
+      "file": "_shared/font-e3e520cb.woff2",
+      "mime": "font/woff2",
+      "compressed": false
+    },
+    {
+      "uuid": "440acbcc-fb4f-4930-8f06-d240383e6327",
+      "file": "_shared/font-2d06f2c3.woff2",
+      "mime": "font/woff2",
+      "compressed": false
+    },
+    {
+      "uuid": "47cd5c75-5956-4454-9df7-347d41d12e37",
+      "file": "_shared/font-b63651df.woff2",
+      "mime": "font/woff2",
+      "compressed": false
+    },
+    {
+      "uuid": "4e7fb464-eee8-4665-b387-ebd12b368d8a",
+      "file": "_shared/font-d107f726.woff2",
+      "mime": "font/woff2",
+      "compressed": false
+    },
+    {
+      "uuid": "42a27821-17df-45b6-9079-5c72991ebbbd",
+      "file": "_shared/font-511ce967.woff2",
+      "mime": "font/woff2",
+      "compressed": false
+    },
+    {
+      "uuid": "cfc202ec-fc2f-454d-b3e5-6afc6322b0fa",
+      "file": "_shared/font-20fc9b6f.woff2",
+      "mime": "font/woff2",
+      "compressed": false
+    }
+  ]
+}

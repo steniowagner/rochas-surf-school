@@ -1,0 +1,1945 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="./icons.js"></script>
+<style>
+body{margin:0;background:#EFE7DC;-webkit-font-smoothing:antialiased}
+[data-theme]{
+--page:#FDF8F3;--surface:#FEFCF9;--dim:rgba(245,230,211,.45);--sand:#F5E6D3;
+--ink:#3D2E1F;--ink2:#6B5744;--ink3:#B8A99A;
+--grape:#4B2A63;--sun:#F0742B;--sun-2:#D95F1B;--lagoon:#21837F;--sky:#7BA7BC;--tan:#D4A574;
+--line:rgba(212,165,116,.28);--input:#FFFFFF;--input-line:#E3D3BC;
+--ok:#4CAF7D;--ok-t:rgba(76,175,125,.15);--bad:#D4574A;--bad-t:rgba(212,87,74,.14);
+--warn:#E8B44A;--warn-t:rgba(232,180,74,.16);--info-t:rgba(33,131,127,.13);
+--shadow:rgba(61,46,31,.10);--shadow-sun:rgba(240,116,43,.28);
+--band:#F3E7D6;--band-line:rgba(212,165,116,.35);
+}
+[data-theme="dark"]{
+--page:#161B27;--surface:#212736;--dim:rgba(46,52,68,.55);--sand:#2E3444;
+--ink:#F0E6D8;--ink2:#9B8E7E;--ink3:#5A5248;
+--grape:#7A4E9B;--sun:#F58A45;--sun-2:#E07330;--lagoon:#3FA6A0;--sky:#8BB8CC;--tan:#C49A6C;
+--line:rgba(196,154,108,.14);--input:#1B2130;--input-line:#3E4555;
+--ok:#5BC48A;--ok-t:rgba(91,196,138,.16);--bad:#E8706A;--bad-t:rgba(232,112,106,.16);
+--warn:#F0C45A;--warn-t:rgba(240,196,90,.16);--info-t:rgba(63,166,160,.16);
+--shadow:rgba(0,0,0,.4);--shadow-sun:rgba(245,138,69,.3);
+--band:#101520;--band-line:rgba(196,154,108,.16);
+}
+@keyframes swell{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:inherit;transform:none}}
+@keyframes riseT{from{transform:translateY(14px)}to{transform:none}}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+</style>
+</helmet>
+
+<div data-theme="{{ theme }}" style="min-height:{{ pageMinH }};background:{{ pageBg }};color:var(--ink);font-family:'Nunito',system-ui,sans-serif;padding:{{ pagePad }};box-sizing:border-box">
+
+<sc-if value="{{ notBare }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;align-items:flex-end;justify-content:space-between;gap:28px;flex-wrap:wrap;margin-bottom:26px">
+<div>
+<div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:var(--ink2)">Rocha's Surf School · protótipo</div>
+<h1 style="font-family:'Barlow Condensed',sans-serif;font-size:52px;font-weight:700;text-transform:uppercase;letter-spacing:-.005em;line-height:1;margin:8px 0 0">Percurso do aluno</h1>
+<p style="margin:12px 0 0;max-width:560px;font-size:14.5px;line-height:1.6;color:var(--ink2)">Fluxo completo, em português: ver a semana → detalhe da aula → pedir para entrar ou lista de espera → acompanhar o estado → avaliar. Use os comandos à direita para trocar de plataforma, tema e variante de layout.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:10px;min-width:290px">{{ controls }}</div>
+</div>
+</sc-if>
+
+<div style="display:flex;gap:44px;align-items:flex-start;flex-wrap:wrap">
+<div style="position:relative">
+<sc-if value="{{ notBare }}" hint-placeholder-val="{{ true }}"><div style="position:absolute;top:-30px;left:0;font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink2)">{{ frameLabel }} · {{ screenLabel }}</div></sc-if>
+<x-import component-from-global-scope="{{ frameComp }}" from="./ios-frame.jsx ./android-frame.jsx" dark="{{ isDark }}" hint-size="402px,874px">
+<div data-theme="{{ theme }}" style="position:relative;height:100%;min-height:100%;display:flex;flex-direction:column;overflow:hidden;background:var(--page);color:var(--ink);font-family:'Nunito',system-ui,sans-serif">
+
+<div style="flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column">
+{{ topInset }}
+<sc-if value="{{ isAgenda }}" hint-placeholder-val="{{ true }}">
+<div style="animation:fadein .3s ease">
+<div style="background:var(--band);border-bottom:1px solid var(--band-line);margin-bottom:18px;position:relative">
+<div style="padding:18px 8px 14px;display:flex;align-items:center;gap:9px">
+<div style="width:44px;height:44px;border-radius:9999px;overflow:hidden;flex:none;background:var(--sky);border:2px solid var(--surface);box-shadow:0 2px 8px var(--shadow)"><img src="https://i.pravatar.cc/160?img=47" alt="Ana Silva" style="width:100%;height:100%;object-fit:cover;display:block"></div>
+<div style="flex:1"><div style="font-size:12px;color:var(--ink2)">Bom dia,</div><div style="font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:700;text-transform:uppercase;line-height:1">Ana Silva</div></div>
+<div style="position:relative;width:44px;height:44px;border-radius:9999px;background:var(--surface);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer" onClick="{{ goAlertas }}"><i data-lucide="bell" width="21" height="21"></i><span style="position:absolute;top:4px;right:5px;min-width:16px;height:16px;padding:0 4px;box-sizing:border-box;border-radius:9999px;background:var(--bad);color:#fff;font-size:9.5px;font-weight:800;display:flex;align-items:center;justify-content:center;border:2px solid var(--band)">{{ unread }}</span></div>
+</div>
+
+<sc-if value="{{ isHeadA }}" hint-placeholder-val="{{ true }}">
+<div style="padding:0 8px 16px">{{ heroCard }}</div>
+</sc-if>
+<div style="padding:0 0 16px">{{ dayStrip }}</div>
+{{ calToggle }}
+</div>
+
+
+
+<div style="padding:0 8px 24px;display:flex;flex-direction:column;gap:12px">{{ classList }}</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isDetalhe }}" hint-placeholder-val="{{ false }}">{{ detalhe }}</sc-if>
+<sc-if value="{{ isAvaliar }}" hint-placeholder-val="{{ false }}">{{ avaliar }}</sc-if>
+<sc-if value="{{ isFotos }}" hint-placeholder-val="{{ false }}">{{ fotosEcra }}</sc-if>
+<sc-if value="{{ isMinhas }}" hint-placeholder-val="{{ false }}">{{ minhas }}</sc-if>
+<sc-if value="{{ isAlertas }}" hint-placeholder-val="{{ false }}">{{ alertas }}</sc-if>
+<sc-if value="{{ isPerfil }}" hint-placeholder-val="{{ false }}">{{ perfil }}</sc-if>
+<sc-if value="{{ isWhats }}" hint-placeholder-val="{{ false }}">{{ whatsapp }}</sc-if>
+<sc-if value="{{ isHist }}" hint-placeholder-val="{{ false }}">{{ historico }}</sc-if>
+<sc-if value="{{ isRegrasLer }}" hint-placeholder-val="{{ false }}">{{ regrasLer }}</sc-if>
+<sc-if value="{{ isEscola }}" hint-placeholder-val="{{ false }}">{{ escola }}</sc-if>
+</div>
+
+{{ fab }}
+{{ sheet }}
+{{ toast }}
+{{ tabBar }}
+{{ pessoa }}
+{{ fotoViewer }}
+</div>
+</x-import>
+</div>
+
+<sc-if value="{{ notBare }}" hint-placeholder-val="{{ true }}">
+<div style="flex:1;min-width:330px;max-width:430px;display:flex;flex-direction:column;gap:18px">
+<div style="padding:18px 20px;border-radius:20px;background:var(--surface);border:1px solid var(--line)">
+<div style="font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink2);margin-bottom:12px">Percurso</div>
+<div style="font-size:13.5px;line-height:1.75;color:var(--ink2)">
+<strong style="color:var(--ink)">1.</strong> Agenda da semana — dia a dia, surf ou skate.<br>
+<strong style="color:var(--ink)">2.</strong> Detalhe da aula — instrutor, local, vagas, alunos confirmados.<br>
+<strong style="color:var(--ink)">3.</strong> Pedir para entrar — folha de confirmação com a regra de cancelamento da modalidade. Turma cheia → lista de espera.<br>
+<strong style="color:var(--ink)">4.</strong> Estado do pedido — pendente, na lista de espera, aprovado, recusado, anulado, cancelado, retirado, expirado ou aula cancelada, filtrável em “As minhas aulas”.<br>
+<strong style="color:var(--ink)">5.</strong> Depois da aula — avaliar, comentar e juntar fotos.
+</div>
+</div>
+
+<div style="padding:18px 20px;border-radius:20px;background:var(--surface);border:1px solid var(--line)">
+<div style="font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink2);margin-bottom:6px">Variantes</div>
+<p style="margin:0 0 12px;font-size:13px;color:var(--ink2);line-height:1.55">Troque em cima e compare no mesmo ecrã.</p>
+<div style="display:flex;flex-direction:column;gap:12px;font-size:13px;line-height:1.55;color:var(--ink2)">
+<div><strong style="color:var(--ink)">Cabeçalho “Herói”</strong><br>Saudação, cartão da próxima sessão e a barra de dias.</div>
+<div><strong style="color:var(--ink)">Cabeçalho “Semana” (atual)</strong><br>Só o seletor de data: semana com setas; tocar na legenda abre o mês. Escolher um dia no mês volta à semana.</div>
+<div><strong style="color:var(--ink)">Filtro de modalidade</strong><br>Botão flutuante no canto inferior direito da lista: abre “Todas · Surf · Skate”. Para limpar, reabre-se o botão e escolhe-se “Todas”.</div>
+<div><strong style="color:var(--ink)">Agenda A — Cartões</strong><br>Lista vertical de cartões por dia, com barra de dias. Legível, muita informação por aula.</div>
+<div><strong style="color:var(--ink)">Agenda B — Horário</strong><br>Linha do tempo com as horas à esquerda: lê-se o dia inteiro de relance, mais calmo.</div>
+<div><strong style="color:var(--ink)">Detalhe da aula</strong><br>Intervalo de horas em destaque, local no mapa, instrutores em chips, lotação e alunos confirmados.</div>
+
+</div>
+</div>
+
+<div style="padding:18px 20px;border-radius:20px;background:var(--dim);border:1px solid var(--line)">
+<div style="font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--sun);margin-bottom:10px">A seguir</div>
+<div style="font-size:13px;line-height:1.7;color:var(--ink2)">Percurso do instrutor · painel do admin (construtor da semana, aprovações, regras de cancelamento) · onboarding e sala de espera de aprovação.</div>
+</div>
+</div>
+</sc-if>
+</div>
+
+<sc-if value="{{ notBare }}" hint-placeholder-val="{{ true }}">
+<div style="margin-top:52px">
+<div style="display:flex;align-items:baseline;gap:16px;margin-bottom:20px"><h2 style="font-family:'Barlow Condensed',sans-serif;font-size:30px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin:0">Casos limite</h2><div style="flex:1;height:1px;background:var(--line)"></div></div>
+<div style="display:flex;gap:20px;flex-wrap:wrap">
+
+<div style="width:320px;display:flex;flex-direction:column;gap:9px">
+<div style="font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink2)">Turma cheia</div>
+<div style="border-radius:22px;border:1px solid var(--line);background:var(--surface);padding:18px">
+<div style="display:flex;gap:7px;margin-bottom:11px"><span style="display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:9999px;background:var(--tan);color:#fff;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase"><i data-lucide="disc" width="12" height="12"></i>Skate</span><span style="display:inline-flex;padding:5px 10px;border-radius:9999px;background:var(--bad-t);color:var(--bad);font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase">Sem vagas</span></div>
+<div style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:700;line-height:1">11:00 - 12:00</div>
+<div style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink2);margin:8px 0 12px"><i data-lucide="map-pin" width="14" height="14"></i>Parque da Vila</div>
+<div style="display:flex;justify-content:space-between;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);margin-bottom:6px"><span>Lotação</span><span>6 / 6</span></div>
+<div style="height:6px;border-radius:9999px;background:var(--sand);overflow:hidden;margin-bottom:14px"><div style="height:100%;width:100%;background:var(--bad);border-radius:9999px"></div></div>
+<button style="width:100%;height:46px;border:none;border-radius:15px;background:var(--grape);color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;cursor:pointer">Entrar na lista de espera</button>
+</div>
+</div>
+
+<div style="width:320px;display:flex;flex-direction:column;gap:9px">
+<div style="font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink2)">Cancelamento fora do prazo</div>
+<div style="border-radius:22px;border:1px solid var(--line);background:var(--surface);padding:18px">
+<div style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:700;line-height:1">09:00 - 10:00</div>
+<div style="font-size:12.5px;color:var(--ink2);margin:8px 0 14px">Começa daqui a 4 h · inscrição aprovada</div>
+<div style="padding:13px 15px;border-radius:14px;background:var(--warn-t);border-left:4px solid var(--warn);font-size:13px;line-height:1.55;margin-bottom:14px">O cancelamento fecha 12 h antes da aula. Fala com o Rocha se for mesmo preciso.</div>
+<button disabled="disabled" style="width:100%;height:46px;border:none;border-radius:15px;background:var(--sand);color:var(--ink3);font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;cursor:not-allowed">Cancelar inscrição</button>
+<button style="width:100%;height:44px;margin-top:9px;border:none;border-radius:15px;background:transparent;color:var(--lagoon);font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;cursor:pointer">Contactar a escola</button>
+</div>
+</div>
+
+<div style="width:320px;display:flex;flex-direction:column;gap:9px">
+<div style="font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink2)">Pedido recusado</div>
+<div style="border-radius:22px;border:1px solid var(--line);background:var(--surface);padding:18px">
+<div style="display:flex;gap:7px;margin-bottom:11px"><span style="display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:9999px;background:var(--bad-t);color:var(--bad);font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase"><i data-lucide="x-circle" width="12" height="12"></i>Recusado</span></div>
+<div style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:700;line-height:1">19:00 - 20:00</div>
+<div style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink2);margin:8px 0 14px"><i data-lucide="map-pin" width="14" height="14"></i>Praia do Norte · nível Expert</div>
+<div style="font-size:13px;line-height:1.6;color:var(--ink2);padding:13px 15px;border-radius:14px;background:var(--dim);margin-bottom:14px">“Esta sessão é para quem já apanha ondas na linha. Vemo-nos na Ondas da Manhã?” <span style="color:var(--ink);font-weight:700">— Rocha</span></div>
+<button style="width:100%;height:46px;border:none;border-radius:15px;background:var(--sun);color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;cursor:pointer">Pedir novamente</button>
+<button style="width:100%;height:44px;margin-top:9px;border:none;border-radius:15px;background:transparent;color:var(--lagoon);font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;cursor:pointer">Ver aulas de iniciante</button>
+</div>
+</div>
+
+<div style="width:320px;display:flex;flex-direction:column;gap:9px">
+<div style="font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink2)">Semana sem aulas</div>
+<div style="border-radius:22px;border:1px solid var(--line);background:var(--surface);padding:34px 18px;text-align:center">
+<div style="width:52px;height:52px;margin:0 auto 14px;border-radius:9999px;background:var(--info-t);color:var(--lagoon);display:flex;align-items:center;justify-content:center"><i data-lucide="waves" width="26" height="26"></i></div>
+<div style="font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:700;text-transform:uppercase">Mar chão</div>
+<div style="font-size:13px;color:var(--ink2);margin-top:6px;line-height:1.55">Ainda não há aulas marcadas para esta semana. O Rocha publica o horário ao domingo.</div>
+<button style="margin-top:16px;height:44px;padding:0 20px;border:1px solid var(--line);border-radius:15px;background:transparent;color:var(--ink);font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;cursor:pointer">Ver semana passada</button>
+</div>
+</div>
+</div>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:1100}}">
+const BC = "'Barlow Condensed', sans-serif";
+const resSrc = src => {
+  const R = window.__resources; if (!R || typeof src !== 'string') return src;
+  let m = /pravatar\.cc\/\d+\?img=(\d+)/.exec(src); if (m && R['av' + m[1]]) return R['av' + m[1]];
+  m = /picsum\.photos\/id\/(\d+)\//.exec(src); if (m && R['ph' + m[1]]) return R['ph' + m[1]];
+  m = /flagcdn\.com\/w80\/(\w+)\.png/.exec(src); if (m && R['flag' + m[1].toUpperCase()]) return R['flag' + m[1].toUpperCase()];
+  return src;
+};
+const h = function (type, props) {
+  if (props && typeof props.src === 'string') { const s = resSrc(props.src); if (s !== props.src) props = Object.assign({}, props, { src: s }); }
+  return React.createElement.apply(React, [type, props].concat(Array.prototype.slice.call(arguments, 2)));
+};
+
+
+
+const MES_NOMES = ['Maio', 'Junho', 'Julho', 'Agosto'];
+const MES_AB = ['Mai', 'Jun', 'Jul', 'Ago'];
+
+const METEO_BASE = [
+  { cond: 'Sol aberto', icon: 'sun', temp: 22, agua: 19, hum: '78%', vento: '10 km/h NO', onda: '0,8 m', periodo: '9 s', mare: 'Vazante · baixa 10:40', nota: 'Manhã limpa e ondulação pequena — bom para iniciantes.', notaSkate: 'Manhã fresca e piso seco — bom para começar.', qual: 3 },
+  { cond: 'Nuvens altas', icon: 'cloud', temp: 25, agua: 20, hum: '65%', vento: '16 km/h O', onda: '0,6 m', periodo: '7 s', mare: 'Baixa 11:20', nota: 'Vento a entrar a meio da manhã, mar mais mexido.', notaSkate: 'Vento a entrar a meio da manhã, nuvens a dar sombra.', qual: 2 },
+  { cond: 'Céu limpo', icon: 'sun', temp: 27, agua: 21, hum: '55%', vento: '18 km/h O', onda: '1,0 m', periodo: '9 s', mare: 'Enchente · cheia 16:10', nota: 'Calor e nortada — ondulação curta a meio da tarde.', notaSkate: 'Calor forte e rampas ao sol — trazer água e boné.', qual: 2 },
+  { cond: 'Céu limpo', icon: 'sun', temp: 24, agua: 20, hum: '70%', vento: '8 km/h N', onda: '1,2 m', periodo: '11 s', mare: 'Enchente · cheia 19:50', nota: 'Vento fraco ao fim do dia, ondulação com forma.', notaSkate: 'Vento fraco ao fim do dia, parque à sombra.', qual: 4 }
+];
+
+function meteoDe(c) {
+  const hora = Number(String(c.hora).slice(0, 2));
+  const faixa = hora < 11 ? 0 : hora < 15 ? 1 : hora < 18 ? 2 : 3;
+  const m = METEO_BASE[faixa];
+  const seed = String(c.id).split('').reduce((t, ch) => t + ch.charCodeAt(0), 0);
+  const chuva = seed % 7 === 0;
+  return chuva
+    ? Object.assign({}, m, { cond: 'Aguaceiros', icon: 'cloud-rain', temp: m.temp - 3, vento: '22 km/h SO', onda: '1,8 m', periodo: '13 s', nota: 'Mar grande com vento onshore. Pode haver alteração.', qual: 1 })
+    : m;
+}
+
+const REGRAS_ESCOLA = [
+  { t: 'Cancela com 24 h', d: 'Se não puderes ir, cancela na app até 24 horas antes para libertar a vaga.' },
+  { t: 'Chega 15 min antes', d: 'Tempo para vestir o fato, aquecer e ouvir o briefing.' },
+  { t: 'O mar manda', d: 'O instrutor pode adiar ou mudar o local se as condições não forem seguras.' },
+  { t: 'Sabe nadar', d: 'Tens de saber nadar e avisar a equipa de qualquer problema de saúde.' },
+  { t: 'Cuida do material', d: 'Pranchas e fatos são de todos — lava-os e arruma-os no fim.' },
+  { t: 'Respeita o spot', d: 'Segue as prioridades na água e deixa a praia como a encontraste.' }
+];
+
+const IDIOMAS = [
+  { id: 'pt', nome: 'Português', flag: 'https://flagcdn.com/w80/br.png' },
+  { id: 'es', nome: 'Español', flag: 'https://flagcdn.com/w80/es.png' },
+  { id: 'en', nome: 'English', flag: 'https://flagcdn.com/w80/gb.png' }
+];
+
+const ALUNOS = [
+  { ini: 'AS', n: 'Ana Silva', img: 47, wa: '+351 912 345 678' },
+  { ini: 'JP', n: 'João Pinto', img: 15, wa: '+351 913 552 401', pub: true },
+  { ini: 'MC', n: 'Marta Costa', img: 26, wa: '+351 914 887 903' },
+  { ini: 'RL', n: 'Rui Leal', img: 51, wa: '+351 915 220 764', pub: true },
+  { ini: 'TF', n: 'Tiago Faria', img: 60, wa: '+351 916 445 018' },
+  { ini: 'BN', n: 'Beatriz Nunes', img: 31, wa: '+351 917 309 552', pub: true },
+  { ini: 'DC', n: 'Diogo Cruz', img: 68, wa: '+351 918 774 236' },
+  { ini: 'HP', n: 'Helena Prata', img: 24, wa: '+351 919 601 890' }
+];
+
+const PESSOAS = [
+  { id: 'p1', n: 'Ana Silva', img: 47, papel: 'Aluno', aulas: 6, desde: 'jul 2026', wa: '+351 912 345 678' },
+  { id: 'p2', n: 'João Pinto', img: 15, papel: 'Aluno', aulas: 12, desde: 'mai 2026', wa: '+351 913 552 401', pub: true },
+  { id: 'p3', n: 'Marta Costa', img: 26, papel: 'Aluno', aulas: 9, desde: 'jun 2026', wa: '+351 914 887 903' },
+  { id: 'p4', n: 'Sofia Rocha', img: 45, papel: 'Instrutor', aulas: 48, desde: 'jan 2026', wa: '+351 966 200 118' },
+  { id: 'p5', n: 'Miguel Rocha', img: 12, papel: 'Instrutor', aulas: 51, desde: 'jan 2026', wa: '+351 966 200 204', pub: true },
+  { id: 'p6', n: 'Tó Marques', img: 33, papel: 'Instrutor', aulas: 22, desde: 'mar 2026', wa: '+351 967 118 540', pub: true },
+  { id: 'p7', n: 'Rui Leal', img: 51, papel: 'Aluno', aulas: 3, desde: 'ago 2026', wa: '+351 915 220 764', pub: true },
+  { id: 'p8', n: 'Rocha', img: 68, papel: 'Admin', aulas: 0, desde: 'jan 2026', wa: '+351 961 000 222', pub: true }
+];
+
+const COMENTARIOS = [
+  { n: 'Marta Costa', img: 26, nota: 5, quando: 'há 2 horas', txt: 'Mar perfeito para iniciantes e muito boa energia no grupo.' },
+  { n: 'João Pinto', img: 15, nota: 4, quando: 'há 3 horas', txt: 'Boas correções na remada. Senti falta de mais tempo individual.' },
+  { n: 'Rui Leal', img: 51, nota: 5, quando: 'há 5 horas', txt: 'Dois instrutores fazem toda a diferença — sempre alguém a ver-nos.' },
+  { n: 'Beatriz Nunes', img: 31, nota: 4, quando: 'ontem', txt: '' },
+  { n: 'Tiago Faria', img: 60, nota: 3, quando: 'ontem', txt: 'Ondas fracas ao fim do dia. Talvez valesse a pena mudar para de manhã.' }
+];
+const FOTO_IDS = [1011, 1015, 1016, 1018, 1019, 1036, 1039, 1041, 1043, 1044, 1050, 1053, 1056, 1057, 1067, 1069];
+const pad2 = n => String(n).padStart(2, '0');
+function comentariosDe(c) {
+  const seed = String(c.id).split('').reduce((t, ch) => t + ch.charCodeAt(0), 0);
+  const n = Math.min(COMENTARIOS.length, 2 + seed % 4);
+  const i0 = (c.eq || [])[0];
+  const inst = i0 ? [{ n: i0.n, img: i0.img, inst: true, quando: 'há 1 hora', txt: 'Grande evolução na remada e no take-off. Na próxima, foco em escolher melhor as ondas.' }] : [];
+  return inst.concat(COMENTARIOS.slice(0, n));
+}
+const REGRA_CANCEL = {
+  Surf: "Podes cancelar sem penalização até 12 horas antes do início da aula.\n\nEntre 12 e 2 horas antes, o cancelamento é aceite mas conta como aula usada.\n\nA menos de 2 horas do início, ou depois de a aula começar, já não é possível cancelar.\n\nExceção: se a escola avisou de mau tempo, o cancelamento é sempre aceite sem penalização.",
+  Skate: "Podes cancelar sem penalização até 6 horas antes do início da aula.\n\nA menos de 6 horas do início, ou depois de a aula começar, já não é possível cancelar.\n\nExceção: com chuva o parque fecha e a escola cancela a aula — não perdes nada."
+};
+const REGRA_HORAS = { Surf: 12, Skate: 6 };
+const EST_FIXOS = ['cancelada', 'recusado', 'anulado', 'canceladoEu', 'retirado', 'expirado'];
+
+const EQ = {
+  MR: { n: 'Miguel Rocha', img: 12, wa: '+351 966 200 204', pub: true }, SR: { n: 'Sofia Rocha', img: 45, wa: '+351 966 200 118' }, TM: { n: 'Tó Marques', img: 33, wa: '+351 967 118 540', pub: true },
+  RL: { n: 'Rita Lopes', img: 20, wa: '+351 968 330 112' }, JP: { n: 'João Pires', img: 60, wa: '+351 969 404 771', pub: true }, AB: { n: 'Ana Beleza', img: 26, wa: '+351 962 515 390' }
+};
+
+const HIST = [
+  { id: 'h1', mes: 'Agosto 2026', dia: '14', disc: 'Surf', nivel: 'Iniciante', hora: '09:00', dur: '1 h', local: 'Praia do Norte', vagas: 8, ocup: 6, est: 'passada', eq: [EQ.SR] },
+  { id: 'h2', mes: 'Agosto 2026', dia: '11', disc: 'Surf', nivel: 'Intermédio', hora: '19:00', dur: '1 h', local: 'Praia do Norte', vagas: 8, ocup: 7, est: 'passada', eq: [EQ.MR] },
+  { id: 'h3', mes: 'Agosto 2026', dia: '07', disc: 'Skate', nivel: 'Iniciante', hora: '11:00', dur: '1 h', local: 'Parque da Vila', vagas: 6, ocup: 5, est: 'passada', eq: [EQ.TM] },
+  { id: 'h4', mes: 'Agosto 2026', dia: '04', disc: 'Surf', nivel: 'Iniciante', hora: '09:00', dur: '1 h', local: 'Praia do Norte', vagas: 8, ocup: 8, est: 'passada', eq: [EQ.SR, EQ.MR] },
+  { id: 'h5', mes: 'Julho 2026', dia: '28', disc: 'Surf', nivel: 'Iniciante', hora: '19:00', dur: '1 h', local: 'Praia do Norte', vagas: 8, ocup: 4, est: 'passada', eq: [EQ.RL] },
+  { id: 'h6', mes: 'Julho 2026', dia: '21', disc: 'Skate', nivel: 'Iniciante', hora: '11:00', dur: '1 h', local: 'Parque da Vila', vagas: 6, ocup: 6, est: 'passada', eq: [EQ.TM] },
+  { id: 'h7', mes: 'Julho 2026', dia: '10', disc: 'Surf', nivel: 'Iniciante', hora: '09:00', dur: '1 h', local: 'Praia do Norte', vagas: 8, ocup: 5, est: 'passada', eq: [EQ.SR] }
+];
+const CLASSES = [
+  { id: 'c1', nome: 'Aula do Amanhecer', disc: 'Surf', nivel: 'Iniciante', hora: '06:00', dia: 2, local: 'Praia do Norte', inst: 'Miguel Rocha', ini: 'MR', vagas: 8, ocup: 4, dur: '1 h 30', eq: [EQ.MR, EQ.SR] },
+  { id: 'c2', notas: 'Ponto de encontro junto à torre do nadador-salvador. Os fatos e as pranchas estão na carrinha — chega 10 min antes para te equipares.', nome: 'Ondas da Manhã', disc: 'Surf', nivel: 'Iniciante', hora: '09:00', dia: 2, local: 'Praia do Norte', inst: 'Sofia Rocha', ini: 'SR', vagas: 8, ocup: 5, conv: 1, dur: '1 h', eq: [EQ.SR] },
+  { id: 'c3', nome: 'Skate no Parque', disc: 'Skate', nivel: 'Avançado', hora: '11:00', dia: 2, local: 'Parque da Vila', inst: 'Tó Marques', ini: 'TM', vagas: 6, ocup: 6, dur: '1 h', eq: [EQ.TM, EQ.AB] },
+  { id: 'c4', nome: 'Surf da Tarde', disc: 'Surf', nivel: 'Avançado', hora: '16:00', dia: 3, local: 'Praia do Sul', inst: 'Miguel Rocha', ini: 'MR', vagas: 8, ocup: 3, conv: 1, dur: '2 h', eq: [EQ.MR, EQ.RL, EQ.JP] },
+  { id: 'c5', nome: 'Sunset Session', disc: 'Surf', nivel: 'Expert', hora: '19:00', dia: 2, local: 'Praia do Norte', inst: 'Sofia Rocha', ini: 'SR', vagas: 8, ocup: 2, dur: '1 h', eq: [EQ.SR, EQ.MR, EQ.TM, EQ.RL], motivo: 'A turma passou a ser só para quem já fez o nível Avançado. Fala comigo para marcarmos uma avaliação.' },
+  { id: 'c8', nome: 'Sessão Recusada', disc: 'Surf', nivel: 'Expert', hora: '07:30', dia: 2, local: 'Praia do Norte', inst: 'Sofia Rocha', ini: 'SR', vagas: 8, ocup: 3, dur: '1 h', eq: [EQ.SR, EQ.MR, EQ.TM], est: 'recusado' },
+  { id: 'c9', nome: 'Skate Cancelado', disc: 'Skate', nivel: 'Iniciante', hora: '10:00', dia: 2, local: 'Parque da Vila', inst: 'Tó Marques', ini: 'TM', vagas: 6, ocup: 4, dur: '1 h', eq: [EQ.TM], est: 'cancelada', msgAdmin: 'O parque está fechado para manutenção. Remarcámos para sábado à mesma hora.' },
+  { id: 'c10', nome: 'Aula Dada', disc: 'Surf', nivel: 'Iniciante', hora: '10:30', dia: 2, local: 'Praia do Sul', inst: 'Miguel Rocha', ini: 'MR', vagas: 8, ocup: 8, dur: '30 min', eq: [EQ.MR, EQ.RL], est: 'passada' },
+  { id: 'c11', nome: 'Já a Seguir', disc: 'Surf', nivel: 'Avançado', hora: '18:00', dia: 2, local: 'Praia do Norte', inst: 'Miguel Rocha', ini: 'MR', vagas: 10, ocup: 7, dur: '1 h', eq: [EQ.MR, EQ.SR, EQ.RL, EQ.JP], est: 'agora' },
+  { id: 'c6', nome: 'Ondas da Manhã', disc: 'Surf', nivel: 'Iniciante', hora: '09:00', dia: 3, local: 'Praia do Norte', inst: 'Sofia Rocha', ini: 'SR', vagas: 8, ocup: 8, conv: 1, dur: '1 h', eq: [EQ.SR] },
+  { id: 'c12', nome: 'Surf Intermédio', disc: 'Surf', nivel: 'Intermédio', hora: '11:00', dia: 3, local: 'Praia do Norte', inst: 'Miguel Rocha', ini: 'MR', vagas: 8, ocup: 8, dur: '1 h', eq: [EQ.MR], esperaOff: true },
+  { id: 'c13', nome: 'Skate Avançado', disc: 'Skate', nivel: 'Avançado', hora: '15:00', dia: 3, local: 'Parque da Vila', inst: 'Tó Marques', ini: 'TM', vagas: 6, ocup: 3, dur: '1 h', eq: [EQ.TM] },
+  { id: 'c14', nome: 'Sunset Surf', disc: 'Surf', nivel: 'Intermédio', hora: '19:30', dia: 3, local: 'Praia do Sul', inst: 'Rita Lopes', ini: 'RL', vagas: 8, ocup: 5, dur: '1 h', eq: [EQ.RL] },
+  { id: 'c15', nome: 'Ondas Cedo', disc: 'Surf', nivel: 'Iniciante', hora: '08:00', dia: 4, local: 'Praia do Norte', inst: 'Sofia Rocha', ini: 'SR', vagas: 8, ocup: 8, dur: '1 h', eq: [EQ.SR] },
+  { id: 'c7', notas: 'Traz capacete e proteções. Há material para emprestar, mas é limitado — avisa na véspera se precisares.', nome: 'Skate Iniciados', disc: 'Skate', nivel: 'Iniciante', hora: '17:00', dia: 3, local: 'Parque da Vila', inst: 'Tó Marques', ini: 'TM', vagas: 6, ocup: 1, dur: '1 h', eq: [EQ.TM] }
+];
+const DIAS = [['Seg', 15], ['Ter', 16], ['Qua', 17], ['Qui', 18], ['Sex', 19], ['Sáb', 20], ['Dom', 21]];
+const DIA_LONGO = ['Segunda 14 Set', 'Terça 15 Set', 'Quarta 16 Set', 'Quinta 17 Set', 'Sexta 18 Set', 'Sábado 19 Set', 'Domingo 20 Set'];
+const A_BASE = new Date(2026, 8, 14);
+const A_HOJE = new Date(2026, 8, 16);
+const PK_MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+const PK_MES_C = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+const PK_DOW = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+function pkAdd(d, n) { return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n); }
+function pkSame(a, b) { return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate(); }
+function pkIni(d) { return pkAdd(d, -((d.getDay() + 6) % 7)); }
+function pkSemana(d) { return Math.round((pkIni(d) - A_BASE) / 86400000 / 7); }
+
+function alunoInit(p) {
+  p = p || {}; const o = {};
+  ['theme', 'platform', 'screen', 'sheet', 'aula', 'filtro', 'fotoPapel'].forEach(k => { if (p[k] != null && p[k] !== '') o[k] = p[k]; });
+  if (p.fab) o.aberto = true;
+  if (p.mes) o.pk = { mode: 'mes', ref: new Date(A_HOJE.getFullYear(), A_HOJE.getMonth(), 1), sel: A_HOJE };
+  if (p.pessoa) { const x = PESSOAS.filter(q => q.n === p.pessoa)[0]; if (x) o.pessoa = { nome: x.n, img: x.img, role: x.papel, wa: x.pub ? x.wa : null }; }
+  return o;
+}
+
+class Component extends DCLogic {
+  state = Object.assign({
+    theme: 'light', platform: 'ios', homeVar: 'A', detVar: 'A', headVar: 'B', semana: 0, calAberto: false, mes: 0,
+    screen: 'agenda', dia: 2, disc: 'Todas', aula: 'c2',
+    calMes: 7, diaSel: null, fotos: {},
+    waNumero: '+351 912 345 678', waVisivel: false, idioma: 'pt', temaPref: 'auto', push: true,
+    sheet: null, sheetFrom: null, aceiteCancel: false, aceiteEscola: false, toast: null, experimental: false, aberto: false,
+    estados: { c4: 'aprovado', c6: 'espera', c7: 'pendente', c5: 'retirado', c1: 'expirado', c13: 'canceladoEu', c14: 'anulado', c15: 'expirado' }, viaEspera: {},
+    filtro: 'Todos', rating: 0, comentario: '',
+    lidas: {}, busca: '', filtroPessoas: 'Todos'
+  }, alunoInit(this.props));
+
+  componentDidMount() { this.icons(0); }
+  componentDidUpdate(prev) {
+    this.icons(0);
+    const p = this.props || {};
+    if (prev && p.platform && prev.platform !== p.platform) this.setState({ platform: p.platform });
+    if (prev && p.theme && prev.theme !== p.theme) this.setState({ theme: p.theme });
+  }
+  icons(n) {
+    const t = n || 0;
+    if (window.lucide) { try { window.lucide.createIcons(); } catch (e) {} }
+    else if (t < 40) setTimeout(() => this.icons(t + 1), 150);
+  }
+
+  ic(name, size, color) { return h('i', { 'data-lucide': name, width: size || 18, height: size || 18, style: color ? { color } : null }); }
+
+  go(screen, extra) { this.setState(Object.assign({ screen }, extra || {})); }
+  flash(msg, tone) {
+    this.setState({ toast: { msg, tone: tone || 'ok' } });
+    clearTimeout(this._t); this._t = setTimeout(() => this.setState({ toast: null }), 2600);
+  }
+
+  estVis(c) {
+    const est = this.state.estados[c.id] || c.est;
+    if (c.mes || c.est === 'passada' || EST_FIXOS.indexOf(est) >= 0) return est;
+    if (c.dia > 2) return est;
+    if (c.dia < 2) return est === 'pendente' || est === 'espera' ? 'expirado' : 'passada';
+    const [hh, mm] = c.hora.split(':').map(Number);
+    const [fh, fm] = this.intervalo(c).split(' - ')[1].split(':').map(Number);
+    const ini = hh * 60 + mm, fim = fh * 60 + fm, AG = 11 * 60;
+    if (ini <= AG && (est === 'pendente' || est === 'espera')) return 'expirado';
+    if (fim <= AG) return 'passada';
+    if (ini <= AG) return 'decorrer';
+    return est;
+  }
+  alunosDe(c) {
+    const conv = c.conv || 0;
+    return ALUNOS.slice(0, Math.max(0, c.ocup - conv)).concat(Array.from({ length: conv }).map(() => ({ n: 'Trial', trial: true, img: 0 })));
+  }
+  prazoCancel(c) {
+    const [hh, mm] = c.hora.split(':').map(Number);
+    const d = new Date(2026, 8, 14 + c.dia, hh, mm);
+    d.setHours(d.getHours() - (REGRA_HORAS[c.disc] || 12));
+    return PK_DOW[d.getDay()].toLowerCase() + ' ' + d.getDate() + ' ' + PK_MES_C[d.getMonth()] + ' às ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+  }
+
+  discColor(d) { return d === 'Surf' ? 'var(--lagoon)' : 'var(--tan)'; }
+
+  intervalo(c) {
+    const [hh, mm] = c.hora.split(':').map(Number);
+    const dur = c.dur || '1 h';
+    const m = /(\d+)\s*h(?:\s*(\d+))?/.exec(dur) || [];
+    const mm2 = /^(\d+)\s*min/.exec(dur);
+    const mins = mm2 ? Number(mm2[1]) : (Number(m[1]) || 1) * 60 + (Number(m[2]) || 0);
+    const fim = (hh * 60 + mm + mins) % 1440;
+    const p = n => String(n).padStart(2, '0');
+    return c.hora + ' - ' + p(Math.floor(fim / 60)) + ':' + p(fim % 60);
+  }
+
+  alunosRodape(c, passada) {
+    const pool = ALUNOS;
+    const n = c.ocup || 0;
+    const ini = String(c.id).split('').reduce((t, ch) => t + ch.charCodeAt(0), 0) % pool.length;
+    const lista = Array.from({ length: Math.min(n, pool.length) }).map((_, i) => pool[(ini + i) % pool.length]);
+    const vis = lista.slice(0, 4), extra = n - vis.length;
+    const pn = p => p.n.split(' ')[0];
+    const nomes = n === 0 ? 'Ainda sem alunos' : n <= 2 ? lista.map(pn).join(' · ') : pn(lista[0]) + ' · ' + pn(lista[1]) + ' +' + (n - 2);
+    return h('div', { style: { display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderTop: '1px solid var(--line)', background: 'var(--dim)' } },
+      n ? h('div', { style: { display: 'flex', flex: 'none' } }, vis.map((p, i) => h('img', {
+        key: i, src: 'https://i.pravatar.cc/120?img=' + p.img, alt: p.n, title: p.n,
+        style: { width: 26, height: 26, borderRadius: 9999, objectFit: 'cover', flex: 'none', marginLeft: i ? -8 : 0, border: '2px solid var(--surface)', background: 'var(--sky)' }
+      })).concat(extra > 0 ? [h('div', { key: 'x', style: { width: 26, height: 26, borderRadius: 9999, marginLeft: -8, border: '2px solid var(--surface)', background: 'var(--sand)', color: 'var(--ink2)', fontSize: 10, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' } }, '+' + extra)] : [])) : null,
+      h('div', { style: { minWidth: 0, flex: 1 } },
+        h('div', { style: { fontSize: 10.5, color: 'var(--ink2)', letterSpacing: '.08em', textTransform: 'uppercase', fontWeight: 800 } }, n === 0 ? 'Ainda sem alunos' : n === 1 ? (passada ? '1 aluno presente' : '1 aluno confirmado') : n + (passada ? ' alunos presentes' : ' alunos confirmados'))));
+  }
+
+  equipa(c) { return this.alunosRodape(c, c.est === 'passada'); }
+
+  fabView() {
+    const s = this.state;
+    if (s.screen !== 'agenda') return null;
+    const open = s.aberto;
+    const opts = [['Todas', 'calendar-days', 'var(--grape)'], ['Surf', 'waves', 'var(--grape)'], ['Skate', 'disc', 'var(--grape)']];
+    return h('div', null,
+      open ? h('div', {
+        onClick: () => this.setState({ aberto: false }),
+        style: { position: 'absolute', inset: 0, zIndex: 17, background: 'rgba(24,16,10,.28)', animation: 'fadein .18s ease' }
+      }) : null,
+      h('div', { style: { position: 'absolute', right: 18, bottom: 102, zIndex: 18, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 10 } },
+        open ? opts.map(([v, icon, cor], i) => {
+          const on = s.disc === v;
+          return h('button', {
+            key: v, onClick: () => this.setState({ disc: v, aberto: false }),
+            style: {
+              display: 'inline-flex', alignItems: 'center', gap: 9, height: 44, padding: '0 16px', borderRadius: 16, cursor: 'pointer',
+              border: '1px solid ' + (on ? cor : 'var(--line)'),
+              background: on ? cor : 'var(--surface)', color: on ? '#fff' : 'var(--ink)',
+              boxShadow: '0 8px 22px var(--shadow)',
+              fontFamily: "'Nunito',sans-serif", fontSize: 12, fontWeight: 800, letterSpacing: '.1em', textTransform: 'uppercase',
+              animation: 'rise .22s cubic-bezier(.32,.72,0,1) ' + (i * 40) + 'ms both'
+            }
+          }, this.ic(icon, 16), v);
+        }) : null,
+        h('button', {
+          onClick: () => this.setState({ aberto: !open }),
+          style: {
+            width: 56, height: 56, borderRadius: 20, border: 'none', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'var(--grape)', color: '#fff',
+            boxShadow: '0 12px 26px rgba(75,42,99,.34)',
+            transition: 'transform .2s cubic-bezier(.32,.72,0,1), background .2s ease',
+            transform: open ? 'rotate(-90deg)' : 'none'
+          }
+        }, this.ic(open ? 'x' : 'filter', 24))));
+  }
+
+  chip(label, opts) {
+    const o = opts || {};
+    return h('span', { key: o.key || label, style: Object.assign({
+      display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 9999,
+      fontSize: 10, fontWeight: 800, letterSpacing: '.1em', textTransform: 'uppercase', whiteSpace: 'nowrap'
+    }, o.style) }, o.icon ? this.ic(o.icon, 12) : null, label);
+  }
+
+  estadoChip(est) {
+    if (est === 'pendente') return this.chip('Pendente', { icon: 'clock', style: { background: 'var(--warn-t)', color: 'var(--warn)' } });
+    if (est === 'aprovado') return this.chip('Aprovado', { icon: 'check-circle', style: { background: 'var(--ok-t)', color: 'var(--ok)' } });
+    if (est === 'recusado') return this.chip('Recusado', { icon: 'x-circle', style: { background: 'var(--bad-t)', color: 'var(--bad)' } });
+    if (est === 'cancelada') return this.chip('Aula cancelada', { icon: 'x-circle', style: { background: 'var(--bad-t)', color: 'var(--bad)' } });
+    if (est === 'espera') return this.chip('Na lista de espera', { icon: 'clock', style: { background: 'var(--info-t)', color: 'var(--lagoon)' } });
+    if (est === 'decorrer') return this.chip('A decorrer', { icon: 'clock', style: { background: 'var(--sun)', color: '#fff' } });
+    if (est === 'anulado') return this.chip('Anulado', { icon: 'x', style: { background: 'var(--dim)', color: 'var(--ink2)' } });
+    if (est === 'canceladoEu') return this.chip('Cancelaste', { icon: 'calendar-x', style: { background: 'var(--dim)', color: 'var(--ink2)' } });
+    if (est === 'retirado') return this.chip('Retirado', { icon: 'user-minus', style: { background: 'var(--bad-t)', color: 'var(--bad)' } });
+    if (est === 'expirado') return this.chip('Expirado', { icon: 'clock', style: { background: 'var(--dim)', color: 'var(--ink2)' } });
+    if (est === 'agora') return this.chip('Já a seguir', { icon: 'clock', style: { background: 'var(--sun)', color: '#fff' } });
+    if (est === 'passada') return this.chip('Aula finalizada', { icon: 'check', style: { background: 'var(--dim)', color: 'var(--ink2)' } });
+    return null;
+  }
+
+  btn(label, onClick, kind, disabled) {
+    const styles = {
+      primary: { background: 'var(--sun)', color: '#fff', boxShadow: '0 10px 22px var(--shadow-sun)' },
+      ghost: { background: 'transparent', color: 'var(--lagoon)' },
+      outline: { background: 'transparent', color: 'var(--sun)', border: '2px solid var(--sun)' },
+      dark: { background: 'var(--grape)', color: '#fff' },
+      danger: { background: 'var(--bad)', color: '#fff' },
+      off: { background: 'var(--sand)', color: 'var(--ink3)', cursor: 'not-allowed' }
+    };
+    return h('button', {
+      onClick: disabled ? null : onClick, disabled: !!disabled,
+      style: Object.assign({
+        width: '100%', height: 50, border: 'none', borderRadius: 16, cursor: 'pointer',
+        fontFamily: BC, fontSize: 19, fontWeight: 600, letterSpacing: '.1em', textTransform: 'uppercase',
+        transition: 'transform .15s cubic-bezier(.32,.72,0,1)'
+      }, styles[disabled ? 'off' : (kind || 'primary')])
+    }, label);
+  }
+
+  wave(color, height, dur) {
+    const d = 'M0,40 C120,12 240,68 360,40 C480,12 600,68 720,40 L720,80 L0,80 Z';
+    return h('div', { style: { position: 'absolute', left: 0, right: 0, bottom: 0, height: height, overflow: 'hidden', pointerEvents: 'none' } },
+      h('div', { style: { display: 'flex', width: '200%', height: '100%', animation: 'swell ' + (dur || 12) + 's linear infinite' } },
+        [0, 1].map(k => h('svg', { key: k, viewBox: '0 0 720 80', preserveAspectRatio: 'none', style: { width: '50%', height: '100%' } },
+          h('path', { d: d, fill: color })))));
+  }
+
+  segControl(items, value, onPick, small) {
+    return h('div', { style: { display: 'flex', gap: 4, padding: 4, borderRadius: 9999, background: 'var(--dim)', border: '1px solid var(--line)' } },
+      items.map(it => h('button', {
+        key: it, onClick: () => onPick(it),
+        style: {
+          flex: 1, height: small ? 34 : 40, border: 'none', borderRadius: 9999, cursor: 'pointer',
+          fontFamily: BC, fontSize: small ? 15 : 17, fontWeight: 600, letterSpacing: '.12em', textTransform: 'uppercase',
+          transition: 'all .25s cubic-bezier(.32,.72,0,1)',
+          background: value === it ? 'var(--grape)' : 'transparent',
+          color: value === it ? '#fff' : 'var(--ink2)'
+        }
+      }, it)));
+  }
+
+  // ── Agenda ───────────────────────────────────────────
+  classCard(c, semFade) {
+    const est = this.estVis(c);
+    const cheia = c.ocup >= c.vagas;
+    const pct = Math.round(c.ocup / c.vagas * 100);
+    const cancelada = est === 'cancelada', passada = est === 'passada';
+    return h('div', {
+      key: c.id, onClick: () => this.go('detalhe', { aula: c.id }),
+      style: {
+        borderRadius: 20, overflow: 'hidden', background: 'var(--surface)',
+        border: '1px solid ' + (est === 'agora' || est === 'decorrer' ? 'var(--sun)' : 'var(--line)'),
+        boxShadow: est === 'agora' || est === 'decorrer' ? '0 6px 20px rgba(240,116,43,.26)' : '0 3px 12px var(--shadow)',
+        opacity: semFade ? 1 : cancelada ? .78 : passada ? .55 : 1,
+        cursor: 'pointer', animation: 'riseT .35s cubic-bezier(.32,.72,0,1) both'
+      }
+    },
+      h('div', { style: { padding: '13px 14px 14px' } },
+        h('div', { style: { display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 10 } },
+          this.chip(c.disc, { icon: c.disc === 'Surf' ? 'waves' : 'disc', style: { background: this.discColor(c.disc), color: '#fff' } }),
+          this.chip(c.nivel, { style: { background: 'var(--info-t)', color: 'var(--lagoon)' } }),
+          h('span', { style: { marginLeft: 'auto' } }, est ? this.estadoChip(est) : (cheia ? this.chip('Sem vagas', { style: { background: 'var(--bad-t)', color: 'var(--bad)' } }) : null))),
+        h('div', { style: { fontFamily: BC, fontSize: 38, fontWeight: 700, lineHeight: 1, marginBottom: 11, textDecoration: cancelada ? 'line-through' : 'none', color: cancelada ? 'var(--ink2)' : 'var(--ink)' } }, this.intervalo(c)),
+        h('div', { style: { marginBottom: 11, display: 'flex' } },
+          h('span', { style: { display: 'inline-flex', alignItems: 'center', gap: 7, padding: '7px 13px', borderRadius: 9999, background: 'var(--dim)', border: '1px solid var(--line)', fontSize: 12.5, color: 'var(--ink2)' } }, this.ic('map-pin', 14), c.local)),
+        cancelada || passada ? null
+          : h('div', { style: { display: 'flex', alignItems: 'center', gap: 10 } },
+              h('div', { style: { flex: 1, height: 6, borderRadius: 9999, background: 'var(--sand)', overflow: 'hidden' } },
+                h('div', { style: { height: '100%', width: pct + '%', borderRadius: 9999, background: cheia ? 'var(--bad)' : (pct > 80 ? 'var(--sun)' : this.discColor(c.disc)) } })),
+              h('span', { style: { fontSize: 11, fontWeight: 800, letterSpacing: '.06em', color: cheia ? 'var(--bad)' : 'var(--ink2)', whiteSpace: 'nowrap' } }, c.ocup + '/' + c.vagas + ' vagas'))),
+      this.equipa(c));
+  }
+
+  timelineRow(c) {
+    const est = this.estVis(c);
+    const cheia = c.ocup >= c.vagas;
+    return h('div', {
+      key: c.id, onClick: () => this.go('detalhe', { aula: c.id }),
+      style: { display: 'flex', gap: 14, cursor: 'pointer', animation: 'riseT .35s cubic-bezier(.32,.72,0,1) both' }
+    },
+      h('div', { style: { width: 52, flex: 'none', textAlign: 'right', paddingTop: 12 } },
+        h('div', { style: { fontFamily: BC, fontSize: 21, fontWeight: 700, lineHeight: 1 } }, c.hora)),
+      h('div', { style: { width: 2, background: 'var(--line)', position: 'relative', flex: 'none' } },
+        h('div', { style: { position: 'absolute', top: 16, left: -4, width: 10, height: 10, borderRadius: 9999, background: this.discColor(c.disc), border: '2px solid var(--page)' } })),
+      h('div', {
+        style: {
+          flex: 1, minWidth: 0, margin: '4px 0', padding: '13px 15px', borderRadius: 18,
+          background: est === 'aprovado' ? 'var(--ok-t)' : 'var(--surface)',
+          border: '1px solid ' + (est === 'agora' ? 'var(--sun)' : est === 'aprovado' ? 'var(--ok)' : 'var(--line)'),
+          opacity: est === 'cancelada' || est === 'passada' ? .78 : (cheia && !est ? .62 : 1)
+        }
+      },
+        h('div', { style: { fontFamily: BC, fontSize: 22, fontWeight: 700, lineHeight: 1.05, textDecoration: est === 'cancelada' ? 'line-through' : 'none', color: est === 'cancelada' ? 'var(--ink2)' : 'var(--ink)' } }, this.intervalo(c)),
+        h('div', { style: { display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--ink2)', margin: '6px 0 10px' } },
+          this.ic('map-pin', 14), c.local),
+        h('div', { style: { display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' } },
+          this.chip(c.disc, { icon: c.disc === 'Surf' ? 'waves' : 'disc', style: { background: this.discColor(c.disc), color: '#fff' } }),
+          est === 'cancelada' ? null : this.chip(est === 'passada' ? c.ocup + ' presentes' : cheia ? 'Sem vagas' : c.ocup + '/' + c.vagas + ' vagas', { style: { background: cheia && est !== 'passada' ? 'var(--bad-t)' : 'var(--dim)', color: cheia && est !== 'passada' ? 'var(--bad)' : 'var(--ink2)' } }),
+          est ? this.estadoChip(est) : null),
+        h('div', { style: { display: 'flex', alignItems: 'center', gap: 8, marginTop: 10 } },
+          h('div', { style: { display: 'flex' } }, (c.eq || []).map((p, i) => h('img', {
+            key: p.n, src: 'https://i.pravatar.cc/120?img=' + p.img, alt: p.n, title: p.n,
+            style: { width: 24, height: 24, borderRadius: 9999, objectFit: 'cover', flex: 'none', marginLeft: i ? -8 : 0, border: '2px solid var(--surface)', background: 'var(--sky)' }
+          }))),
+          h('span', { style: { fontSize: 11.5, color: 'var(--ink2)', minWidth: 0, flex: 1, lineHeight: 1.35, textWrap: 'pretty' } },
+            (c.eq || []).length <= 2 ? (c.eq || []).map(p => p.n).join(' · ') : c.eq[0].n + ' · ' + c.eq[1].n + ' +' + (c.eq.length - 2)))));
+  }
+
+  // ── Detalhe ──────────────────────────────────────────
+  sectionTitle(label, right) {
+    return h('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 9 } },
+      h('span', { style: { fontSize: 11, fontWeight: 800, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--ink2)' } }, label),
+      right || null);
+  }
+
+  estBanner(est) {
+    const map = {
+      pendente: ['warn', 'clock', 'Pedido pendente', 'Pedido enviado. O Rocha confirma normalmente no próprio dia.'],
+      aprovado: ['ok', 'check-circle', 'Inscrição aprovada', 'Estás dentro. Chega 15 min antes para o briefing na areia.'],
+      recusado: ['bad', 'x-circle', 'Pedido recusado', 'O Rocha deixou uma explicação. Toca para ver o motivo.'],
+      cancelada: ['bad', 'x-circle', 'Aula cancelada', 'A escola cancelou esta sessão. Não há qualquer penalização.'],
+      agora: ['sun', 'clock', 'A começar', 'Já a seguir — a sessão começa em breve.'],
+      passada: ['ink2', 'check', 'Aula finalizada', 'Já foi dada. Avalia a sessão e junta as tuas fotos.']
+    };
+    const m = map[est];
+    if (!m) return null;
+    const tone = m[0], icon = m[1], title = m[2], txt = m[3];
+    const bg = tone === 'sun' ? 'var(--sun)' : tone === 'ink2' ? 'var(--dim)' : 'var(--' + tone + '-t)';
+    const fg = tone === 'sun' ? '#fff' : 'var(--' + tone + ')';
+    const textColor = tone === 'sun' ? '#fff' : 'var(--ink)';
+    const clicavel = est === 'recusado';
+    return h('div', { onClick: clicavel ? () => this.setState({ sheet: 'motivo' }) : null, style: { marginTop: 18, padding: '14px 15px', borderRadius: 18, background: bg, display: 'flex', gap: 12, alignItems: clicavel ? 'center' : 'flex-start', cursor: clicavel ? 'pointer' : 'default' } },
+      h('div', { style: { width: 34, height: 34, borderRadius: 9999, background: tone === 'sun' ? 'rgba(255,255,255,.25)' : 'var(--surface)', color: fg, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' } }, this.ic(icon, 17)),
+      h('div', { style: { flex: 1 } },
+        h('div', { style: { fontSize: 14, fontWeight: 800, color: textColor, marginBottom: 2 } }, title),
+        h('div', { style: { fontSize: 12.5, lineHeight: 1.5, color: tone === 'sun' ? 'rgba(255,255,255,.92)' : 'var(--ink2)' } }, txt)),
+      clicavel ? h('span', { style: { color: fg, display: 'flex', flex: 'none' } }, this.ic('chevron-right', 18)) : null);
+  }
+
+  mapView(c, height) {
+    const hh = height || 128;
+    return h('div', { style: { position: 'relative', height: hh, borderRadius: 18, overflow: 'hidden', background: 'linear-gradient(135deg,var(--sand),var(--dim))', border: '1px solid var(--line)' } },
+      h('svg', { width: '100%', height: '100%', viewBox: '0 0 400 ' + hh, preserveAspectRatio: 'none', style: { position: 'absolute', inset: 0, opacity: .55 } },
+        h('path', { d: 'M0 ' + (hh * .35) + ' H400', stroke: 'var(--line)', strokeWidth: 2 }),
+        h('path', { d: 'M0 ' + (hh * .72) + ' H400', stroke: 'var(--line)', strokeWidth: 2 }),
+        h('path', { d: 'M110 0 V' + hh, stroke: 'var(--line)', strokeWidth: 2 }),
+        h('path', { d: 'M280 0 V' + hh, stroke: 'var(--line)', strokeWidth: 2 }),
+        h('path', { d: 'M0 ' + (hh * .85) + ' C120 ' + (hh * .5) + ', 220 ' + hh + ', 400 ' + (hh * .4), stroke: 'var(--lagoon)', strokeWidth: 3, fill: 'none', strokeDasharray: '2 9', strokeLinecap: 'round', opacity: .7 })),
+      h('div', { style: { position: 'absolute', left: '50%', top: '42%', transform: 'translate(-50%,-100%)' } },
+        h('div', { style: { width: 38, height: 38, borderRadius: 9999, background: 'var(--sun)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 18px var(--shadow-sun)' } }, this.ic('map-pin', 19))),
+      h('div', { style: { position: 'absolute', left: 0, right: 0, bottom: 0, padding: '10px 14px', background: 'var(--surface)', borderTop: '1px solid var(--line)', display: 'flex', alignItems: 'center', gap: 8 } },
+        h('span', { style: { color: 'var(--lagoon)', display: 'flex', flex: 'none' } }, this.ic('map-pin', 15)),
+        h('span', { style: { fontSize: 13.5, fontWeight: 700 } }, c.local)));
+  }
+
+  weatherSection(c, passada) {
+    const m = meteoDe(c);
+    const skate = c.disc !== 'Surf';
+    const qualLabel = ['Fraco', 'Fraco', 'Razoável', 'Bom', 'Muito bom'][m.qual];
+    const qualCor = m.qual >= 4 ? 'var(--ok)' : m.qual >= 3 ? 'var(--lagoon)' : m.qual >= 2 ? 'var(--warn)' : 'var(--bad)';
+    const metric = (icon, valor, label) => h('div', { key: label, style: { flex: 1, minWidth: 0 } },
+      h('span', { style: { color: 'var(--ink2)', display: 'flex' } }, this.ic(icon, 15)),
+      h('div', { style: { fontFamily: BC, fontSize: 21, fontWeight: 700, lineHeight: 1, marginTop: 6, whiteSpace: 'nowrap' } }, valor),
+      h('div', { style: { fontSize: 10.5, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--ink2)', marginTop: 3 } }, label));
+
+    return h('div', { style: { marginTop: 18 } },
+      this.sectionTitle(passada ? 'Condições nesse dia' : 'Condições à hora da aula', h('span', { style: { fontSize: 11, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', color: qualCor } }, skate ? (m.cond === 'Aguaceiros' ? 'Piso molhado' : 'Piso seco') : qualLabel)),
+      h('div', { style: { borderRadius: 20, background: 'var(--surface)', border: '1px solid var(--line)', overflow: 'hidden' } },
+        h('div', { style: { display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px 12px' } },
+          h('div', { style: { width: 44, height: 44, borderRadius: 14, flex: 'none', background: 'var(--info-t)', color: 'var(--lagoon)', display: 'flex', alignItems: 'center', justifyContent: 'center' } }, this.ic(m.icon, 22)),
+          h('div', { style: { flex: 1, minWidth: 0 } },
+            h('div', { style: { display: 'flex', alignItems: 'baseline', gap: 7 } },
+              h('span', { style: { fontFamily: BC, fontSize: 32, fontWeight: 700, lineHeight: 1 } }, m.temp + '°'),
+              h('span', { style: { fontSize: 12.5, color: 'var(--ink2)' } }, m.cond)),
+            h('div', { style: { fontSize: 11.5, color: 'var(--ink2)', marginTop: 3 } }, this.intervalo(c) + ' · ' + c.local))),
+        h('div', { style: { display: 'flex', gap: 10, padding: '4px 16px 14px' } },
+          skate
+            ? [metric('wind', m.vento, 'vento'), metric('droplets', m.hum, 'humidade'), metric('sun', m.cond === 'Aguaceiros' ? 'Baixo' : m.qual >= 3 ? 'Alto' : 'Médio', 'índice uv')]
+            : [metric('waves', m.onda, 'ondulação'), metric('wind', m.vento, 'vento'), metric('thermometer', m.agua + '°', 'água')]),
+        h('div', { style: { display: 'flex', gap: 10, alignItems: 'flex-start', padding: '11px 16px 13px', borderTop: '1px solid var(--line)', background: 'var(--dim)' } },
+          h('span', { style: { color: 'var(--lagoon)', display: 'flex', marginTop: 1, flex: 'none' } }, this.ic(skate ? 'info' : 'clock', 15)),
+          h('div', null,
+            h('div', { style: { fontSize: 12.5, lineHeight: 1.5, color: 'var(--ink2)' } }, skate ? m.notaSkate : m.nota),
+            skate ? null : h('div', { style: { fontSize: 11.5, fontWeight: 700, color: 'var(--ink2)', marginTop: 4 } }, 'Maré: ' + m.mare + ' · período ' + m.periodo)))));
+  }
+
+  locationSection(c, height) {
+    return h('div', { style: { marginTop: 18 } }, this.sectionTitle('Local'), this.mapView(c, height));
+  }
+
+  instructorsSection(c) {
+    const eq = c.eq || [{ n: c.inst, img: 12 }];
+    return h('div', { style: { marginTop: 18 } },
+      this.sectionTitle(eq.length > 1 ? 'Instrutores' : 'Instrutor'),
+      h('div', { style: { display: 'flex', flexWrap: 'wrap', gap: 8 } },
+        eq.map(p => h('div', { key: p.n, onClick: () => this.openPerfil({ nome: p.n, img: p.img, role: 'Instrutor', wa: p.pub ? p.wa : null }), style: { display: 'flex', alignItems: 'center', gap: 8, padding: '4px 14px 4px 4px', borderRadius: 9999, background: 'var(--surface)', border: '1px solid var(--line)', cursor: 'pointer' } },
+          h('img', { src: 'https://i.pravatar.cc/120?img=' + p.img, alt: p.n, style: { width: 32, height: 32, borderRadius: 9999, objectFit: 'cover', flex: 'none', background: 'var(--sky)' } }),
+          h('span', { style: { fontSize: 14, fontWeight: 600, whiteSpace: 'nowrap' } }, p.n)))));
+  }
+
+  capacitySection(c) {
+    const cheia = c.ocup >= c.vagas, livres = c.vagas - c.ocup;
+    return h('div', { style: { marginTop: 18 } },
+      this.sectionTitle('Máx. ' + c.vagas + ' alunos', h('span', { style: { fontSize: 11, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', color: cheia ? 'var(--bad)' : 'var(--ink2)' } }, cheia ? 'Esgotado' : livres + ' vagas livres')),
+      h('div', { style: { height: 8, borderRadius: 9999, background: 'var(--sand)', overflow: 'hidden' } },
+        h('div', { style: { height: '100%', width: (c.ocup / c.vagas * 100) + '%', borderRadius: 9999, background: cheia ? 'var(--bad)' : this.discColor(c.disc) } })));
+  }
+
+  studentsSection(c) {
+    const alunos = ALUNOS.slice(0, c.ocup);
+    return h('div', { style: { marginTop: 18 } },
+      this.sectionTitle(c.ocup + ' alunos confirmados'),
+      alunos.length ? h('div', { style: { borderRadius: 20, background: 'var(--surface)', border: '1px solid var(--line)', overflow: 'hidden' } },
+        alunos.map((a, i) => h('div', {
+          key: a.ini, onClick: () => this.setState({ pessoa: { nome: a.n, img: a.img, role: 'Aluno', wa: a.pub ? a.wa : null } }),
+          style: { display: 'flex', alignItems: 'center', gap: 11, padding: '11px 14px', borderTop: i ? '1px solid var(--line)' : 'none', cursor: 'pointer' }
+        },
+          h('img', { src: 'https://i.pravatar.cc/120?img=' + a.img, alt: a.n, style: { width: 34, height: 34, borderRadius: 9999, objectFit: 'cover', flex: 'none', background: 'var(--sky)' } }),
+          h('span', { style: { flex: 1, fontSize: 14, fontWeight: 700 } }, a.n),
+          h('span', { style: { color: 'var(--ink3)', display: 'flex' } }, this.ic('chevron-right', 17)))))
+        : h('div', { style: { fontSize: 12.5, color: 'var(--ink2)' } }, 'Ainda ninguém confirmado.'));
+  }
+
+  experimentalRow() {
+    const s = this.state;
+    return h('div', {
+      onClick: () => this.setState({ experimental: !s.experimental }),
+      style: { display: 'flex', gap: 12, alignItems: 'center', padding: 14, marginTop: 18, borderRadius: 18, border: '1px solid ' + (s.experimental ? 'var(--sun)' : 'var(--line)'), background: s.experimental ? 'rgba(240,116,43,.08)' : 'transparent', cursor: 'pointer' }
+    },
+      h('div', { style: { width: 26, height: 26, borderRadius: 9, flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid ' + (s.experimental ? 'var(--sun)' : 'var(--input-line)'), background: s.experimental ? 'var(--sun)' : 'transparent', color: '#fff' } }, s.experimental ? this.ic('check', 15) : null),
+      h('div', null,
+        h('div', { style: { fontSize: 14, fontWeight: 700 } }, 'É a minha primeira vez'),
+        h('div', { style: { fontSize: 12.5, color: 'var(--ink2)', marginTop: 2 } }, 'Marcar como aula experimental.')));
+  }
+
+  // ── Detalhe da aula (variante 2c) ────────────────────
+  dLabel(t) { return h('div', { style: { fontSize: 11, fontWeight: 800, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--ink2)', marginBottom: 9 } }, t); }
+  dTone(t) { return { bg: t === 'ink2' ? 'var(--dim)' : t === 'sun' ? 'var(--sun)' : t === 'lagoon' ? 'var(--info-t)' : 'var(--' + t + '-t)', fg: t === 'ink2' ? 'var(--ink2)' : t === 'sun' ? '#fff' : 'var(--' + t + ')' }; }
+  dFaixa(info) {
+    if (!info) return null;
+    const c = this.dTone(info.tone), sun = info.tone === 'sun';
+    return h('div', { onClick: info.onClick || null, style: { display: 'flex', gap: 10, alignItems: 'center', padding: '11px 13px', borderRadius: 16, marginTop: 14, background: c.bg, cursor: info.onClick ? 'pointer' : 'default' } },
+      h('span', { style: { color: c.fg, display: 'flex', flex: 'none' } }, this.ic(info.icon, 18)),
+      h('div', { style: { flex: 1, minWidth: 0 } }, h('div', { style: { fontSize: 13.5, fontWeight: 800, color: sun ? '#fff' : 'var(--ink)' } }, info.t), h('div', { style: { fontSize: 12, color: sun ? 'rgba(255,255,255,.92)' : 'var(--ink2)', marginTop: 1, lineHeight: 1.4 } }, info.d)),
+      info.onClick ? h('span', { style: { color: c.fg, display: 'flex' } }, this.ic('chevron-right', 17)) : null);
+  }
+  dRow(id, icon, titulo, valor, o) {
+    o = o || {};
+    const on = !o.onOpen && this.state.dAberto === id;
+    const t = o.tone ? this.dTone(o.tone) : null;
+    return h('div', { key: id, style: { borderTop: '1px solid var(--line)' } },
+      h('div', { onClick: o.onOpen || (o.conteudo ? () => this.setState({ dAberto: on ? null : id }) : null), style: { display: 'flex', alignItems: 'center', gap: 12, padding: '13px 14px', cursor: o.onOpen || o.conteudo ? 'pointer' : 'default' } },
+        h('span', { style: { width: 34, height: 34, borderRadius: 11, background: t ? t.bg : 'var(--dim)', color: t ? t.fg : 'var(--lagoon)', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' } }, this.ic(icon, 17)),
+        h('div', { style: { flex: 1, minWidth: 0 } }, h('div', { style: { fontSize: 11, fontWeight: 800, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--ink2)' } }, titulo), h('div', { style: { fontSize: 14, fontWeight: 700, marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } }, valor)),
+        o.onOpen || o.conteudo ? h('span', { style: { color: 'var(--ink3)', display: 'flex', transform: on ? 'rotate(90deg)' : 'none', transition: 'transform .2s ease' } }, this.ic('chevron-right', 17)) : null),
+      on ? h('div', { style: { padding: '0 14px 14px 60px', animation: 'fadein .2s ease' } }, o.conteudo) : null);
+  }
+  dGrupo(titulo, kids) {
+    return h('div', { key: titulo, style: { marginTop: 18 } }, this.dLabel(titulo),
+      h('div', { style: { borderRadius: 20, background: 'var(--surface)', border: '1px solid var(--line)', overflow: 'hidden' } }, h('div', { style: { marginTop: -1 } }, kids)));
+  }
+  dAvatar(p, sz, i, ring) {
+    if (p.trial) return h('div', { key: 'trial' + i, title: 'Trial', style: { width: sz, height: sz, boxSizing: 'border-box', borderRadius: 9999, flex: 'none', background: 'var(--sand)', color: 'var(--ink2)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginLeft: i ? -Math.round(sz * .3) : 0, border: ring ? '2px solid var(--surface)' : 'none' } }, this.ic('user', Math.round(sz * .5)));
+    return h('img', { key: (p.n || p.nome) + i, src: 'https://i.pravatar.cc/120?img=' + p.img, alt: p.n || p.nome, style: { width: sz, height: sz, borderRadius: 9999, objectFit: 'cover', flex: 'none', background: 'var(--sky)', marginLeft: i ? -Math.round(sz * .3) : 0, border: ring ? '2px solid var(--surface)' : 'none' } }); }
+  dComQuem(eq, alunos, passada, o) {
+    o = o || {};
+    const aberto = !!this.state.dLista;
+    return h('div', { style: { borderRadius: 20, background: 'var(--surface)', border: '1px solid var(--line)', overflow: 'hidden' } },
+      h('div', { style: { padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8, background: 'var(--dim)' } },
+        h('span', { style: { fontSize: 10.5, fontWeight: 800, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--ink2)' } }, eq.length > 1 ? 'Instrutores' : 'Instrutor'),
+        h('div', { style: { display: 'flex', flexWrap: 'wrap', gap: 8 } }, eq.map(p => {
+          const eu = o.eu && (p.n || p.nome) === o.eu;
+          return h('div', { key: p.n || p.nome, onClick: () => o.abrirInst && o.abrirInst(p), style: { display: 'flex', alignItems: 'center', gap: 8, padding: '4px 14px 4px 4px', borderRadius: 9999, background: 'var(--surface)', border: '1px solid ' + (eu ? 'var(--lagoon)' : 'var(--line)'), cursor: 'pointer' } },
+            this.dAvatar(p, 32), h('span', { style: { fontSize: 14, fontWeight: 600, whiteSpace: 'nowrap' } }, eu ? 'Eu' : (p.n || p.nome)));
+        }))),
+      h('div', { onClick: alunos.length ? () => this.setState({ dLista: !aberto }) : null, style: { display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', borderTop: '1px solid var(--line)', cursor: alunos.length ? 'pointer' : 'default' } },
+        alunos.length ? h('div', { style: { display: 'flex' } }, alunos.slice(0, 5).map((p, i) => this.dAvatar(p, 30, i, true))) : null,
+        h('span', { style: { flex: 1, fontSize: 13, fontWeight: 800, color: alunos.length ? 'var(--ink)' : 'var(--ink2)' } }, alunos.length ? alunos.length + (passada ? ' alunos presentes' : ' alunos confirmados') : 'Ainda ninguém confirmado'),
+        alunos.length ? h('span', { style: { color: 'var(--ink3)', display: 'flex' } }, this.ic(aberto ? 'chevron-up' : 'chevron-down', 17)) : null),
+      aberto ? h('div', { style: { borderTop: '1px solid var(--line)' } }, alunos.map((a, i) => h('div', { key: a.n + i, onClick: a.trial ? null : () => o.abrirAluno && o.abrirAluno(a), style: { display: 'flex', alignItems: 'center', gap: 11, padding: '10px 14px', borderTop: i ? '1px solid var(--line)' : 'none', cursor: a.trial ? 'default' : 'pointer' } },
+        this.dAvatar(a, 32), a.trial ? h('span', { style: { flex: 1, display: 'flex' } }, this.chip('Trial', { style: { background: 'var(--sand)', color: 'var(--ink)' } })) : h('span', { style: { flex: 1, fontSize: 14, fontWeight: 700 } }, a.n),
+        a.novo ? h('span', { style: { padding: '3px 8px', borderRadius: 9999, background: 'var(--warn-t)', color: 'var(--ink)', fontSize: 10.5, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase' } }, '1ª vez') : null,
+        a.trial ? null : h('span', { style: { color: 'var(--ink3)', display: 'flex' } }, this.ic('chevron-right', 16))))) : null);
+  }
+  dMapaLocal(c) {
+    const hh = 96;
+    return h('div', null,
+      h('div', { style: { position: 'relative', height: hh, background: 'linear-gradient(135deg,var(--sand),var(--dim))' } },
+        h('svg', { width: '100%', height: '100%', viewBox: '0 0 400 ' + hh, preserveAspectRatio: 'none', style: { position: 'absolute', inset: 0, opacity: .55 } },
+          h('path', { d: 'M0 ' + (hh * .35) + ' H400 M0 ' + (hh * .72) + ' H400 M110 0 V' + hh + ' M280 0 V' + hh, stroke: 'var(--line)', strokeWidth: 2 }),
+          h('path', { d: 'M0 ' + (hh * .85) + ' C120 ' + (hh * .5) + ', 220 ' + hh + ', 400 ' + (hh * .4), stroke: 'var(--lagoon)', strokeWidth: 3, fill: 'none', strokeDasharray: '2 9', strokeLinecap: 'round', opacity: .7 })),
+        h('div', { style: { position: 'absolute', left: '50%', top: '46%', transform: 'translate(-50%,-100%)', width: 36, height: 36, borderRadius: 9999, background: 'var(--sun)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 18px var(--shadow-sun)' } }, this.ic('map-pin', 18))),
+      h('div', { style: { display: 'flex', alignItems: 'center', gap: 10, padding: '11px 14px', borderTop: '1px solid var(--line)' } },
+        h('span', { style: { color: 'var(--lagoon)', display: 'flex', flex: 'none' } }, this.ic('map-pin', 16)),
+        h('div', { style: { flex: 1, minWidth: 0, fontSize: 14, fontWeight: 800 } }, c.local),
+        h('span', { onClick: () => this.flash('A abrir direções…', 'info'), style: { fontSize: 11, fontWeight: 800, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--lagoon)', display: 'flex', alignItems: 'center', gap: 3, cursor: 'pointer' } }, 'Direções', this.ic('arrow-up-right', 13))));
+  }
+  dMeteoRow(c, passada) {
+    const m = meteoDe(c);
+    const qual = ['Fraco', 'Fraco', 'Razoável', 'Bom', 'Muito bom'][m.qual];
+    const met = (icon, v, l) => h('div', { key: l, style: { flex: 1, minWidth: 0 } },
+      h('span', { style: { color: 'var(--ink2)', display: 'flex' } }, this.ic(icon, 15)),
+      h('div', { style: { fontFamily: BC, fontSize: 20, fontWeight: 700, lineHeight: 1, marginTop: 6, whiteSpace: 'nowrap' } }, v),
+      h('div', { style: { fontSize: 10.5, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--ink2)', marginTop: 3 } }, l));
+    return this.dRow('mar', m.icon, passada ? 'Condições nesse dia' : 'Condições previstas', m.temp + '° · ' + (c.disc === 'Surf' ? 'ondas ' + m.onda + ' · ' : '') + qual, { conteudo: h('div', null,
+      h('div', { style: { display: 'flex', gap: 10 } }, c.disc === 'Surf' ? [met('waves', m.onda, 'ondulação'), met('wind', String(m.vento).split(' ')[0], 'km/h'), met('thermometer', m.agua + '°', 'água')] : [met('wind', String(m.vento).split(' ')[0], 'km/h'), met('thermometer', m.temp + '°', 'ar')]),
+      m.nota ? h('div', { style: { fontSize: 12.5, color: 'var(--ink2)', lineHeight: 1.5, marginTop: 12 } }, m.nota) : null) });
+  }
+  dFotosGrid(n, onAdd) {
+    return h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(3,minmax(0,1fr))', gap: 8 } },
+      h('div', { onClick: onAdd, style: { aspectRatio: '1', borderRadius: 14, border: '1.5px dashed var(--sun)', color: 'var(--sun)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, cursor: 'pointer' } }, this.ic('camera', 20), h('span', { style: { fontSize: 11, fontWeight: 800 } }, n ? 'Mais' : 'Juntar')),
+      Array.from({ length: Math.min(n, 5) }).map((_, i) => h('div', { key: i, style: { aspectRatio: '1', borderRadius: 14, background: ['var(--sky)', 'var(--tan)', 'var(--lagoon)', 'var(--sand)', 'var(--sky)'][i], opacity: .7 } })));
+  }
+  dRegras(rows) { return this.dGrupo('Regras', rows); }
+  dFechar(close) { return h('button', { onClick: close, style: { width: '100%', height: 50, border: 'none', borderRadius: 16, background: 'transparent', color: 'var(--lagoon)', cursor: 'pointer', fontFamily: BC, fontSize: 19, fontWeight: 600, letterSpacing: '.1em', textTransform: 'uppercase' } }, 'Fechar'); }
+  dSheetRegraCancel(close) {
+    return h('div', null,
+      h('div', { style: { width: 56, height: 56, borderRadius: 18, background: 'var(--dim)', color: 'var(--lagoon)', display: 'flex', alignItems: 'center', justifyContent: 'center' } }, this.ic('calendar-x', 26)),
+      h('div', { style: { fontFamily: BC, fontSize: 30, fontWeight: 700, textTransform: 'uppercase', lineHeight: 1, marginTop: 14 } }, 'Regra de cancelamento'),
+      h('div', { style: { fontSize: 12, fontWeight: 700, color: 'var(--ink2)', margin: '8px 0 14px' } }, 'Definida pela escola'),
+      h('div', { style: { padding: '14px 16px', borderRadius: 18, background: 'var(--dim)', fontSize: 13.5, lineHeight: 1.6, whiteSpace: 'pre-line', maxHeight: 320, overflowY: 'auto', textWrap: 'pretty' } }, REGRA_CANCEL.Surf),
+      h('div', { style: { marginTop: 16 } }, this.dFechar(close)));
+  }
+  dSheetRegrasEscola(close) {
+    return h('div', null,
+      h('div', { style: { width: 56, height: 56, borderRadius: 18, background: 'var(--dim)', color: 'var(--lagoon)', display: 'flex', alignItems: 'center', justifyContent: 'center' } }, this.ic('shield', 26)),
+      h('div', { style: { fontFamily: BC, fontSize: 30, fontWeight: 700, textTransform: 'uppercase', lineHeight: 1, marginTop: 14 } }, 'Regras da escola'),
+      h('div', { style: { fontSize: 13.5, color: 'var(--ink2)', margin: '8px 0 14px', lineHeight: 1.55 } }, 'Poucas e simples — para que as aulas corram bem para todos.'),
+      h('div', { style: { maxHeight: 380, overflowY: 'auto', borderRadius: 18, background: 'var(--surface)', border: '1px solid var(--line)', padding: '2px 14px' } },
+        REGRAS_ESCOLA.map((r, i) => h('div', { key: i, style: { display: 'flex', gap: 12, padding: '12px 0', borderBottom: i < REGRAS_ESCOLA.length - 1 ? '1px solid var(--line)' : 'none' } },
+          h('span', { style: { width: 24, flex: 'none', fontFamily: BC, fontSize: 20, fontWeight: 700, color: 'var(--sun)', lineHeight: 1.1 } }, String(i + 1).padStart(2, '0')),
+          h('span', { style: { flex: 1, display: 'flex', flexDirection: 'column', gap: 2 } }, h('span', { style: { fontSize: 14, fontWeight: 800 } }, r.t), h('span', { style: { fontSize: 12.5, lineHeight: 1.5, color: 'var(--ink2)' } }, r.d))))),
+      h('div', { style: { marginTop: 16 } }, this.dFechar(close)));
+  }
+  dHeader(c, onBack, quando) {
+    return [
+      h('div', { key: 'tb', style: { display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px 10px' } },
+        h('button', { onClick: onBack, style: { width: 44, height: 44, borderRadius: 9999, border: 'none', background: 'var(--surface)', color: 'var(--ink)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px var(--shadow)' } }, this.ic('chevron-left', 22)),
+        h('span', { style: { fontFamily: BC, fontSize: 17, fontWeight: 600, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--ink2)' } }, 'Detalhe')),
+      h('div', { key: 'hd', style: { display: 'flex', gap: 6, flexWrap: 'wrap' } },
+        this.chip(c.disc, { icon: c.disc === 'Surf' ? 'waves' : 'disc', style: { background: this.discColor(c.disc), color: '#fff' } }),
+        this.chip(c.nivel, { style: { background: 'var(--info-t)', color: 'var(--lagoon)' } })),
+      h('div', { key: 'hr', style: { fontFamily: BC, fontSize: 42, fontWeight: 700, lineHeight: 1, margin: '12px 0 3px' } }, this.intervalo(c)),
+      h('div', { key: 'dt', style: { fontSize: 13, color: 'var(--ink2)' } }, quando)];
+  }
+
+  detalheScreen() {
+    const s = this.state;
+    const c = CLASSES.concat(HIST).filter(x => x.id === s.aula)[0] || CLASSES[1];
+    const est = this.estVis(c);
+    const cheia = c.ocup >= c.vagas, passada = est === 'passada', livres = c.vagas - c.ocup;
+    const setEst = v => this.setState({ estados: Object.assign({}, s.estados, { [c.id]: v }) });
+    const fimH = this.intervalo(c).split(' - ')[1];
+    const info = {
+      pendente: (s.viaEspera || {})[c.id] ? { tone: 'warn', icon: 'clock', t: 'Pedido pendente', d: 'Abriu uma vaga. O teu pedido aguarda aprovação do Rocha.' } : { tone: 'warn', icon: 'clock', t: 'Pedido pendente', d: 'O Rocha confirma normalmente no próprio dia.' },
+      espera: { tone: 'lagoon', icon: 'clock', t: 'Estás na lista de espera', d: 'Se abrir uma vaga, o teu pedido passa para aprovação do Rocha.' },
+      aprovado: { tone: 'ok', icon: 'check-circle', t: 'Estás inscrito', d: 'Chega 15 min antes para o briefing na areia.' },
+      recusado: { tone: 'bad', icon: 'x-circle', t: 'Pedido recusado', d: 'Toca para ver o motivo do Rocha.', onClick: () => this.setState({ sheet: 'motivo' }) },
+      cancelada: { tone: 'bad', icon: 'x-circle', t: 'Aula cancelada', d: '“' + (c.msgAdmin || 'A escola cancelou esta sessão.') + '” — Rocha' },
+      retirado: { tone: 'bad', icon: 'user-minus', t: 'Foste retirado da aula', d: 'Motivo: “' + (c.motivo || 'Sem motivo indicado.') + '”' },
+      expirado: { tone: 'ink2', icon: 'clock', t: 'Não conseguiste vaga', d: 'O teu pedido expirou sem abrir vaga na turma.' },
+      anulado: { tone: 'ink2', icon: 'x', t: 'Pedido anulado', d: 'Anulaste o teu pedido para esta aula.' },
+      canceladoEu: { tone: 'ink2', icon: 'calendar-x', t: 'Cancelaste a inscrição', d: 'A tua vaga ficou livre.' },
+      decorrer: { tone: 'sun', icon: 'clock', t: 'A decorrer', d: 'A aula já começou. Termina às ' + fimH + '.' },
+      agora: { tone: 'sun', icon: 'clock', t: 'A começar', d: 'Já a seguir — a sessão começa em breve.' },
+      passada: { tone: 'ink2', icon: 'check', t: 'Aula finalizada', d: 'Conta-nos como correu e junta as tuas fotos.' }
+    }[est] || (cheia ? { tone: 'bad', icon: 'users', t: 'Turma cheia', d: c.esperaOff ? 'A lista de espera está fechada para esta aula.' : 'Podes entrar na lista de espera.' } : null);
+
+    const comecou = est === 'decorrer' || est === 'passada' || !!c.mes;
+    const pedir = () => this.setState({ sheet: 'entrar', aceiteCancel: false });
+    const bloqueada = cheia && c.esperaOff;
+    const cta = comecou || est === 'cancelada' ? null
+      : est === 'aprovado' ? this.btn('Cancelar inscrição', () => this.setState({ sheet: 'cancelar' }), 'outline')
+      : est === 'pendente' ? this.btn('Anular pedido', () => this.setState({ sheet: 'cancelar' }), 'outline')
+      : est === 'espera' ? this.btn('Sair da lista de espera', () => { setEst('anulado'); this.flash('Saíste da lista de espera', 'info'); }, 'ghost')
+      : ['recusado', 'anulado', 'canceladoEu', 'retirado', 'expirado'].indexOf(est) >= 0 ? (bloqueada ? null : this.btn('Pedir novamente', pedir, cheia ? 'dark' : 'primary'))
+      : est ? null
+      : cheia ? (bloqueada ? null : this.btn('Entrar na lista de espera', pedir, 'dark'))
+      : this.btn('Pedir para entrar', pedir, 'primary');
+
+    const av = (s.avals || {})[c.id];
+    const fotosL = passada ? this.fotosLista(c) : [];
+    const nMinhas = fotosL.filter(f => f.eu).length;
+    const eq = c.eq || [{ n: c.inst, img: 12 }];
+    const alunos = this.alunosDe(c);
+    const hd = this.dHeader(c, () => this.go(String(c.id).charAt(0) === 'h' ? 'historico' : 'agenda'), c.mes ? c.dia + ' ' + c.mes : DIA_LONGO[c.dia]);
+
+    return h('div', { style: { flex: '1 0 auto', display: 'flex', flexDirection: 'column', animation: 'fadein .3s ease' } },
+      hd[0],
+      h('div', { style: { padding: '4px 20px 24px', flex: 1 } },
+        hd[1], hd[2], hd[3],
+        this.dFaixa(info),
+        passada ? this.dGrupo('Depois da aula', [
+          this.dRow('aval', 'star', 'Avaliação', av ? av.n + ' de 5 estrelas' + (av.txt ? ' · com comentário' : '') : 'Ainda por avaliar', { tone: av ? null : 'warn', onOpen: () => this.go('avaliar', { rating: av ? av.n : 0, comentario: av ? av.txt : '', avEdit: !av }) }),
+          this.dRow('fotos', 'camera', 'Fotos da aula', fotosL.length + ' fotos' + (nMinhas ? ' · ' + nMinhas + ' tuas' : ''), { onOpen: () => this.go('fotos', { fotoAberta: null }) })]) : null,
+        h('div', { style: { marginTop: 18 } }, this.dLabel('A aula'),
+          this.dComQuem(eq, alunos, passada, {
+            abrirInst: p => this.openPerfil({ nome: p.n, img: p.img, role: 'Instrutor', wa: p.pub ? p.wa : null }),
+            abrirAluno: a => this.setState({ pessoa: { nome: a.n, img: a.img, role: 'Aluno', wa: a.pub ? a.wa : null } }) }),
+          passada || est === 'cancelada' ? null : h('div', { style: { fontSize: 12, fontWeight: 700, color: cheia ? 'var(--bad)' : 'var(--ink2)', margin: '8px 4px 0' } }, 'Máx. ' + c.vagas + ' alunos · ' + (cheia ? 'esgotado' : livres + (livres === 1 ? ' vaga livre' : ' vagas livres')))),
+        this.dRegras([
+          this.dRow('regra', 'calendar-x', 'Cancelamento · ' + c.disc, 'Sem penalização até ' + (REGRA_HORAS[c.disc] || 12) + ' h antes', { onOpen: () => this.setState({ sheet: 'regraCancel' }) }),
+          this.dRow('escola', 'shield', 'Regras da escola', REGRAS_ESCOLA.length + ' regras para todos os alunos', { onOpen: () => this.setState({ sheet: 'regrasEscola' }) })]),
+        c.notas ? this.dGrupo('Notas', [h('div', { key: 'n', style: { display: 'flex', gap: 11, padding: '14px 16px' } },
+          h('span', { style: { color: 'var(--lagoon)', display: 'flex', flex: 'none', marginTop: 2 } }, this.ic('sticky-note', 17)),
+          h('div', { style: { fontSize: 13.5, lineHeight: 1.6, whiteSpace: 'pre-line', textWrap: 'pretty' } }, c.notas))]) : null,
+        this.dGrupo('Onde e como', [h('div', { key: 'l', style: { marginTop: 1 } }, this.dMapaLocal(c)), est === 'cancelada' ? null : this.dMeteoRow(c, passada)])),
+      cta ? h('div', { style: { position: 'sticky', bottom: 0, marginTop: 'auto', padding: '16px 20px 16px', background: 'linear-gradient(180deg,transparent,var(--page) 38%)' } }, cta) : null);
+  }
+
+  // ── Fotos da aula ─────────────────────────────────────
+  aulaAtual() { return CLASSES.concat(HIST).filter(x => x.id === this.state.aula)[0] || CLASSES[1]; }
+  podeFotos(c) {
+    const s = this.state;
+    if (s.fotoPapel === 'visitante') return false;
+    const orig = s.estados[c.id] || c.est;
+    return orig === 'aprovado' || orig === 'passada' || String(c.id).charAt(0) === 'h';
+  }
+  fotosLista(c) {
+    const s = this.state;
+    const seed = String(c.id).split('').reduce((t, ch) => t + ch.charCodeAt(0), 0);
+    const eq = c.eq || [{ n: c.inst, img: 12 }];
+    const outros = ALUNOS.slice(1, Math.max(4, c.ocup));
+    const ups = [{ n: eq[0].n, img: eq[0].img, role: 'Instrutor' }].concat(outros.slice(0, 3).map(a => ({ n: a.n, img: a.img, role: 'Aluno' })), [{ n: 'Escola Rocha', img: 68, role: 'Admin' }]);
+    if (this.podeFotos(c)) ups.splice(2, 0, { n: 'Ana Silva', img: 47, role: 'Aluno', eu: true });
+    const n = 6 + seed % 5;
+    const [hh, mm] = String(c.hora).split(':').map(Number);
+    const dia = c.mes ? c.dia + ' ' + c.mes.split(' ')[0].slice(0, 3).toLowerCase() : 'Hoje';
+    const base = [];
+    for (let i = 0; i < n; i++) {
+      const u = ups[(i + seed) % ups.length];
+      const t = hh * 60 + (mm || 0) + 70 + i * 9;
+      base.push({ id: c.id + '-' + i, src: 'https://picsum.photos/id/' + FOTO_IDS[(seed + i * 3) % FOTO_IDS.length] + '/600/750', by: u, eu: !!u.eu, quando: dia + ', ' + pad2(Math.floor(t / 60) % 24) + ':' + pad2(t % 60) });
+    }
+    const rem = s.fotosRem || {};
+    return ((s.fotosUp || {})[c.id] || []).slice().reverse().concat(base.reverse()).filter(f => !rem[f.id]);
+  }
+  fotosScreen() {
+    const s = this.state;
+    const c = this.aulaAtual();
+    const lista = this.fotosLista(c);
+    const pode = this.podeFotos(c);
+    const eq = c.eq || [{ n: c.inst, img: 12 }];
+    const pessoas = {}; lista.forEach(f => { pessoas[f.by.n] = 1; });
+    const nP = Object.keys(pessoas).length;
+    const quando = c.mes ? c.dia + ' ' + c.mes : DIA_LONGO[c.dia];
+    const abrir = f => this.setState({ fotoAberta: f.id, fotoConf: false });
+    const header = h('div', { style: { padding: 16, borderRadius: 22, background: 'var(--surface)', border: '1px solid var(--line)', boxShadow: '0 2px 10px var(--shadow)' } },
+      h('div', { style: { display: 'flex', gap: 6, flexWrap: 'wrap' } },
+        this.chip(c.disc, { icon: c.disc === 'Surf' ? 'waves' : 'disc', style: { background: this.discColor(c.disc), color: '#fff' } }),
+        this.chip(c.nivel, { style: { background: 'var(--info-t)', color: 'var(--lagoon)' } }),
+        this.chip('Finalizada', { icon: 'check', style: { background: 'var(--dim)', color: 'var(--ink2)' } })),
+      h('div', { style: { fontFamily: BC, fontSize: 36, fontWeight: 700, lineHeight: 1, margin: '12px 0 4px' } }, this.intervalo(c)),
+      h('div', { style: { fontSize: 13, color: 'var(--ink2)' } }, quando + (c.local ? ' · ' + c.local : '')),
+      h('div', { style: { display: 'flex', alignItems: 'center', gap: 10, marginTop: 14, paddingTop: 12, borderTop: '1px solid var(--line)' } },
+        h('div', { style: { display: 'flex' } }, eq.concat(ALUNOS.slice(0, Math.min(3, c.ocup))).map((p, i) => this.dAvatar(p, 28, i, true))),
+        h('span', { style: { flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 700, color: 'var(--ink2)', lineHeight: 1.35 } }, 'Com ' + eq.map(p => p.n.split(' ')[0]).join(' e ') + ' · ' + c.ocup + ' alunos')));
+    const tile = f => h('div', { key: f.id, onClick: () => abrir(f), style: { cursor: 'pointer', minWidth: 0 } },
+      h('div', { style: { position: 'relative', aspectRatio: '4/5', borderRadius: 16, overflow: 'hidden', background: 'var(--sky)', boxShadow: f.eu ? '0 0 0 2px var(--sun)' : 'none' } },
+        h('img', { src: f.src, alt: 'Foto de ' + f.by.n, loading: 'lazy', style: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' } }),
+        f.eu ? h('span', { style: { position: 'absolute', top: 8, left: 8, padding: '3px 9px', borderRadius: 9999, background: 'var(--sun)', color: '#fff', fontSize: 10.5, fontWeight: 800, letterSpacing: '.08em', textTransform: 'uppercase' } }, 'Tua') : null),
+      h('div', { style: { display: 'flex', alignItems: 'center', gap: 7, marginTop: 7 } },
+        this.dAvatar(f.by, 24, 0),
+        h('div', { style: { minWidth: 0, flex: 1 } },
+          h('div', { style: { fontSize: 12.5, fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } }, f.eu ? 'Tu' : f.by.n),
+          h('div', { style: { fontSize: 11, color: 'var(--ink2)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } }, (f.by.role !== 'Aluno' ? f.by.role + ' · ' : '') + f.quando))));
+
+    return h('div', { style: { flex: '1 0 auto', display: 'flex', flexDirection: 'column', animation: 'fadein .3s ease' } },
+      h('div', { style: { display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px 10px' } },
+        h('button', { onClick: () => this.go('detalhe', { fotoAberta: null }), style: { width: 44, height: 44, borderRadius: 9999, border: 'none', background: 'var(--surface)', color: 'var(--ink)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px var(--shadow)', flex: 'none' } }, this.ic('chevron-left', 22)),
+        h('span', { style: { fontFamily: BC, fontSize: 17, fontWeight: 600, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--ink2)' } }, 'Fotos da aula')),
+      h('div', { style: { padding: '4px 20px 24px', flex: 1 } },
+        header,
+        pode ? null : h('div', { style: { display: 'flex', gap: 10, alignItems: 'flex-start', marginTop: 12, padding: '12px 14px', borderRadius: 16, background: 'var(--dim)', fontSize: 12.5, lineHeight: 1.5, color: 'var(--ink2)' } },
+          h('span', { style: { display: 'flex', flex: 'none', marginTop: 1 } }, this.ic('lock', 16)),
+          h('span', null, 'Só quem participou nesta aula pode juntar fotos. Podes ver e descarregar todas.')),
+        h('div', { style: { marginTop: 22 } },
+          this.sectionTitle('Galeria', h('span', { style: { fontSize: 12, fontWeight: 700, color: 'var(--ink2)' } }, lista.length + ' fotos · ' + nP + (nP === 1 ? ' pessoa' : ' pessoas'))),
+          lista.length ? h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: '16px 10px' } }, lista.map(tile))
+            : h('div', { style: { padding: '40px 16px', textAlign: 'center', border: '1px dashed var(--input-line)', borderRadius: 20 } },
+                h('div', { style: { width: 48, height: 48, margin: '0 auto 12px', borderRadius: 9999, background: 'var(--info-t)', color: 'var(--lagoon)', display: 'flex', alignItems: 'center', justifyContent: 'center' } }, this.ic('camera', 22)),
+                h('div', { style: { fontFamily: BC, fontSize: 23, fontWeight: 700, textTransform: 'uppercase' } }, 'Ainda sem fotos'),
+                h('div', { style: { fontSize: 13, color: 'var(--ink2)', marginTop: 6 } }, pode ? 'Sê o primeiro a juntar fotos desta aula.' : 'Quando a turma juntar fotos, aparecem aqui.')))),
+      pode ? h('div', { style: { position: 'sticky', bottom: 0, marginTop: 'auto', padding: '16px 20px 16px', background: 'linear-gradient(180deg,transparent,var(--page) 38%)' } }, this.btn('Juntar fotos', () => this.setState({ sheet: 'fotos' }), 'primary')) : null);
+  }
+  fotoViewer() {
+    const s = this.state;
+    if (!s.fotoAberta || s.screen !== 'fotos') return null;
+    const c = this.aulaAtual();
+    const lista = this.fotosLista(c);
+    const idx = lista.findIndex(f => f.id === s.fotoAberta);
+    if (idx < 0) return null;
+    const f = lista[idx];
+    const ir = d => this.setState({ fotoAberta: lista[(idx + d + lista.length) % lista.length].id, fotoConf: false });
+    const fechar = () => this.setState({ fotoAberta: null, fotoConf: false });
+    const rb = (icon, onClick, extra) => h('button', { onClick, style: Object.assign({ width: 44, height: 44, borderRadius: 9999, border: 'none', background: 'rgba(255,255,255,.14)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flex: 'none', backdropFilter: 'blur(6px)' }, extra || {}) }, this.ic(icon, 22));
+    const guardada = (s.fotoGuardadas || {})[f.id];
+    const bigBtn = (label, icon, onClick, st) => h('button', { onClick, style: Object.assign({ flex: 1, height: 52, borderRadius: 16, border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer', fontFamily: BC, fontSize: 19, fontWeight: 600, letterSpacing: '.1em', textTransform: 'uppercase' }, st) }, icon ? this.ic(icon, 19) : null, label);
+    const descarregar = () => { this.setState({ fotoGuardadas: Object.assign({}, s.fotoGuardadas || {}, { [f.id]: 1 }) }); };
+    const remover = () => {
+      const ups = ((s.fotosUp || {})[c.id] || []).filter(x => x.id !== f.id);
+      const prox = lista.length > 1 ? lista[(idx + 1) % lista.length].id : null;
+      this.setState({ fotosUp: Object.assign({}, s.fotosUp || {}, { [c.id]: ups }), fotosRem: Object.assign({}, s.fotosRem || {}, { [f.id]: 1 }), fotoAberta: prox, fotoConf: false });
+      this.flash('Foto removida', 'info');
+    };
+    const acoes = s.fotoConf
+      ? h('div', { style: { padding: 14, borderRadius: 18, background: 'rgba(255,255,255,.08)', animation: 'fadein .2s ease' } },
+          h('div', { style: { fontSize: 15, fontWeight: 800, color: '#fff' } }, 'Remover esta foto?'),
+          h('div', { style: { fontSize: 12.5, color: 'rgba(255,255,255,.7)', marginTop: 4, lineHeight: 1.45 } }, 'Deixa de estar visível para a turma. Não pode ser desfeito.'),
+          h('div', { style: { display: 'flex', gap: 8, marginTop: 12 } },
+            bigBtn('Cancelar', null, () => this.setState({ fotoConf: false }), { background: 'rgba(255,255,255,.14)', color: '#fff' }),
+            bigBtn('Remover', 'trash-2', remover, { background: 'var(--bad)', color: '#fff' })))
+      : h('div', { style: { display: 'flex', gap: 8 } },
+          bigBtn(guardada ? 'Guardada' : 'Descarregar', guardada ? 'check' : 'download', descarregar, guardada ? { background: 'rgba(255,255,255,.14)', color: '#fff' } : { background: 'var(--sun)', color: '#fff' }),
+          f.eu ? bigBtn('Remover', 'trash-2', () => this.setState({ fotoConf: true }), { flex: 'none', padding: '0 18px', background: 'rgba(255,255,255,.1)', color: '#ff9b8a' }) : null);
+
+    return h('div', { style: { position: 'absolute', inset: 0, zIndex: 80, background: '#0c0907', display: 'flex', flexDirection: 'column', animation: 'fadein .2s ease' } },
+      h('div', { style: { display: 'flex', alignItems: 'center', gap: 12, padding: (s.platform === 'ios' ? 58 : 40) + 'px 16px 10px' } },
+        rb('x', fechar),
+        h('span', { style: { flex: 1, textAlign: 'center', fontFamily: BC, fontSize: 17, fontWeight: 600, letterSpacing: '.12em', color: 'rgba(255,255,255,.75)' } }, (idx + 1) + ' / ' + lista.length),
+        h('span', { style: { width: 44, flex: 'none' } })),
+      h('div', { style: { flex: 1, minHeight: 0, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' } },
+        h('img', { key: f.id, src: f.src.replace('/600/750', '/900/1125'), alt: 'Foto de ' + f.by.n, style: { maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', display: 'block', animation: 'fadein .25s ease' } }),
+        lista.length > 1 ? rb('chevron-left', () => ir(-1), { position: 'absolute', left: 12, top: '50%', marginTop: -22 }) : null,
+        lista.length > 1 ? rb('chevron-right', () => ir(1), { position: 'absolute', right: 12, top: '50%', marginTop: -22 }) : null),
+      h('div', { style: { padding: '16px 20px 30px', display: 'flex', flexDirection: 'column', gap: 14 } },
+        h('div', { style: { display: 'flex', alignItems: 'center', gap: 12 } },
+          this.dAvatar(f.by, 42, 0),
+          h('div', { style: { flex: 1, minWidth: 0 } },
+            h('div', { style: { fontSize: 15, fontWeight: 800, color: '#fff' } }, f.eu ? 'Tu' : f.by.n),
+            h('div', { style: { fontSize: 12, color: 'rgba(255,255,255,.65)', marginTop: 2 } }, f.by.role + ' · enviada ' + f.quando))),
+        acoes));
+  }
+
+  // ── Avaliar aula ──────────────────────────────────────
+  estrelasAv(n, sz, onPick) {
+    return h('span', { style: { display: 'inline-flex', gap: onPick ? 8 : 2, flex: 'none' } },
+      [1, 2, 3, 4, 5].map(i => h('svg', { key: i, onClick: onPick ? () => onPick(i) : null, width: sz, height: sz, viewBox: '0 0 24 24', style: { display: 'block', cursor: onPick ? 'pointer' : 'default' } },
+        h('path', { d: 'M12 2.6l2.9 6 6.6.9-4.8 4.6 1.2 6.6L12 17.5l-5.9 3.2 1.2-6.6-4.8-4.6 6.6-.9z', fill: i <= Math.round(n) ? 'var(--sun)' : 'var(--sand)' }))));
+  }
+  comentarioItem(a, i, eu) {
+    return h('div', { key: (eu ? 'eu' : '') + i, style: { padding: 15, borderRadius: 20, background: 'var(--surface)', border: '1px solid ' + (eu ? 'var(--sun)' : 'var(--line)'), boxShadow: '0 2px 10px var(--shadow)' } },
+      h('div', { onClick: eu ? null : () => this.setState({ pessoa: { nome: a.n, img: a.img, role: a.inst ? 'Instrutor' : 'Aluno', wa: null } }), style: { display: 'flex', alignItems: 'center', gap: 12, cursor: eu ? 'default' : 'pointer' } },
+        h('img', { src: 'https://i.pravatar.cc/120?img=' + a.img, alt: a.n, style: { width: 46, height: 46, borderRadius: 9999, objectFit: 'cover', flex: 'none', background: 'var(--sky)' } }),
+        h('div', { style: { flex: 1, minWidth: 0 } },
+          h('div', { style: { display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' } },
+            h('span', { style: { fontSize: 15, fontWeight: 800 } }, eu ? 'Tu' : a.n),
+            a.inst ? this.chip('Instrutor', { style: { background: 'var(--info-t)', color: 'var(--lagoon)' } }) : this.chip('Aluno', { style: { background: 'var(--sand)', color: 'var(--ink)' } })),
+          h('div', { style: { fontSize: 11.5, color: 'var(--ink2)', marginTop: 3 } }, a.quando)),
+        eu ? h('div', { style: { display: 'flex', gap: 6, flex: 'none' } },
+            h('button', { onClick: () => this.setState({ avEdit: true }), style: { border: 'none', background: 'var(--dim)', color: 'var(--ink)', padding: '7px 12px', borderRadius: 9999, fontFamily: "'Nunito',sans-serif", fontSize: 11, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', cursor: 'pointer' } }, 'Editar'),
+            h('button', { onClick: () => this.setState({ sheet: 'apagarAval' }), 'aria-label': 'Apagar avaliação', style: { border: 'none', background: 'var(--bad-t)', color: 'var(--bad)', width: 32, height: 32, borderRadius: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' } }, this.ic('trash-2', 15)))
+          : h('span', { style: { color: 'var(--ink3)', display: 'flex', flex: 'none' } }, this.ic('chevron-right', 17))),
+      a.inst ? null : h('div', { style: { display: 'flex', alignItems: 'center', gap: 8, marginTop: 12 } },
+        this.estrelasAv(a.nota, 16),
+        h('span', { style: { fontSize: 12, fontWeight: 800, color: a.nota <= 2 ? 'var(--bad)' : 'var(--ink2)' } }, a.nota + '/5')),
+      h('div', { style: { fontSize: 13.5, lineHeight: 1.55, marginTop: 8, color: a.txt ? 'var(--ink)' : 'var(--ink3)', fontStyle: a.txt ? 'normal' : 'italic', textWrap: 'pretty' } }, a.txt || 'Sem comentário escrito.'));
+  }
+  avaliarScreen() {
+    const s = this.state;
+    const c = CLASSES.concat(HIST).filter(x => x.id === s.aula)[0] || CLASSES[1];
+    const av = (s.avals || {})[c.id];
+    const outros = comentariosDe(c);
+    const todas = outros.filter(x => !x.inst).map(x => x.nota).concat(av ? [av.n] : []);
+    const media = todas.length ? todas.reduce((t, n) => t + n, 0) / todas.length : 0;
+    const editar = s.avEdit || !av;
+    const enviar = () => {
+      this.setState({ avEdit: false, avals: Object.assign({}, s.avals || {}, { [c.id]: { n: s.rating, txt: (s.comentario || '').trim() } }) });
+      this.flash('Obrigado! Avaliação enviada', 'ok');
+    };
+    const form = h('div', { style: { padding: '18px 16px 16px', borderRadius: 22, background: 'var(--surface)', border: '1px solid var(--sun)', boxShadow: '0 6px 18px var(--shadow)' } },
+      h('div', { style: { fontFamily: BC, fontSize: 26, fontWeight: 700, textTransform: 'uppercase', lineHeight: 1 } }, av ? 'Editar avaliação' : 'Como correu?'),
+      h('div', { style: { fontSize: 12.5, color: 'var(--ink2)', marginTop: 6 } }, 'A tua avaliação fica visível para todos.'),
+      h('div', { style: { display: 'flex', justifyContent: 'center', margin: '18px 0 6px' } }, this.estrelasAv(s.rating || 0, 40, n => this.setState({ rating: n }))),
+      h('div', { style: { textAlign: 'center', fontSize: 12.5, fontWeight: 800, color: 'var(--ink2)', minHeight: 18, marginBottom: 14 } }, ['Toca numa estrela', 'Fraca', 'Podia ser melhor', 'Boa', 'Muito boa', 'Excelente!'][s.rating || 0]),
+      h('div', { style: { fontSize: 11, fontWeight: 800, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--ink2)', marginBottom: 8 } }, 'Comentário ', h('span', { style: { fontWeight: 700, letterSpacing: 0, textTransform: 'none', color: 'var(--ink3)' } }, '(opcional)')),
+      h('textarea', { value: s.comentario || '', onChange: e => this.setState({ comentario: e.target.value }), rows: 3, placeholder: 'O que gostaste? O que podia melhorar?', style: { width: '100%', boxSizing: 'border-box', resize: 'none', padding: '12px 14px', borderRadius: 16, border: '1px solid var(--input-line)', background: 'var(--input)', color: 'var(--ink)', fontFamily: "'Nunito',sans-serif", fontSize: 14, lineHeight: 1.5, outline: 'none' } }),
+      h('div', { style: { display: 'flex', flexDirection: 'column', gap: 6, marginTop: 16 } },
+        this.btn('Enviar', enviar, 'primary', !s.rating),
+        av ? this.btn('Cancelar', () => this.setState({ avEdit: false, rating: av.n, comentario: av.txt }), 'ghost') : null));
+
+    return h('div', { style: { flex: '1 0 auto', display: 'flex', flexDirection: 'column', animation: 'fadein .3s ease' } },
+      h('div', { style: { display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px 10px' } },
+        h('button', { onClick: () => this.go('detalhe'), style: { width: 44, height: 44, borderRadius: 9999, border: 'none', background: 'var(--surface)', color: 'var(--ink)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px var(--shadow)' } }, this.ic('chevron-left', 22)),
+        h('div', { style: { flex: 1, minWidth: 0 } },
+          h('div', { style: { fontFamily: BC, fontSize: 17, fontWeight: 600, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--ink2)' } }, 'Avaliação'),
+          h('div', { style: { fontSize: 12, color: 'var(--ink2)', marginTop: 1 } }, c.disc + ' ' + c.nivel + ' · ' + (c.mes ? c.dia + ' ' + c.mes : DIA_LONGO[c.dia]) + ' · ' + c.hora))),
+      h('div', { style: { padding: '4px 20px 30px' } },
+        editar ? form : null,
+        h('div', { style: { marginTop: editar ? 22 : 4, padding: '16px 18px', borderRadius: 20, background: 'var(--surface)', border: '1px solid var(--line)', display: 'flex', alignItems: 'center', gap: 16 } },
+          h('div', { style: { fontFamily: BC, fontSize: 48, fontWeight: 700, lineHeight: .9 } }, media.toFixed(1).replace('.', ',')),
+          h('div', { style: { flex: 1, minWidth: 0 } },
+            this.estrelasAv(media, 18),
+            h('div', { style: { fontSize: 12.5, color: 'var(--ink2)', marginTop: 6 } }, todas.length + (todas.length === 1 ? ' avaliação' : ' avaliações') + ' da turma'))),
+        h('div', { style: { marginTop: 22 } },
+          this.sectionTitle('Comentários'),
+          h('div', { style: { display: 'flex', flexDirection: 'column', gap: 12 } },
+            (av && !editar ? [this.comentarioItem({ n: 'Ana Silva', img: 47, nota: av.n, quando: 'Agora mesmo', txt: av.txt }, 0, true)] : [])
+              .concat(outros.map((a, i) => this.comentarioItem(a, i)))))));
+  }
+
+  // ── Minhas aulas ─────────────────────────────────────
+  minhasScreen() {
+    const s = this.state;
+    const FM = { Pendentes: ['pendente', 'espera'], Aprovados: ['aprovado'], Recusados: ['recusado'], Anulados: ['anulado'], Cancelados: ['canceladoEu'], Retirados: ['retirado'], Expirados: ['expirado'], 'Aula cancelada': ['cancelada'] };
+    const filtros = ['Todos'].concat(Object.keys(FM));
+    const todos = [].concat.apply([], Object.keys(FM).map(k => FM[k]));
+    const items = CLASSES.filter(c => { const e = s.estados[c.id] || c.est; return s.filtro === 'Todos' || !FM[s.filtro] ? todos.indexOf(e) >= 0 : FM[s.filtro].indexOf(e) >= 0; })
+      .slice().sort((a, b) => a.dia - b.dia || a.hora.localeCompare(b.hora));
+    return h('div', { style: { padding: '18px 20px 30px', animation: 'fadein .3s ease' } },
+      h('div', { style: { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 } },
+        h('div', { style: { flex: 1, fontFamily: BC, fontSize: 34, fontWeight: 700, textTransform: 'uppercase', lineHeight: 1 } }, 'As minhas aulas'),
+        h('button', {
+          onClick: () => this.go('historico', { diaSel: null, calMes: 7 }), title: 'Ver histórico',
+          style: { width: 44, height: 44, borderRadius: 9999, border: '1px solid var(--line)', background: 'var(--surface)', color: 'var(--ink)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flex: 'none', boxShadow: '0 2px 8px var(--shadow)' }
+        }, this.ic('history', 21))),
+      h('div', { style: { display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 14 } },
+        filtros.map(f => h('button', {
+          key: f, onClick: () => this.setState({ filtro: f }),
+          style: {
+            padding: '9px 15px', minHeight: 38, borderRadius: 9999, cursor: 'pointer', whiteSpace: 'nowrap',
+            fontFamily: "'Nunito',sans-serif", fontSize: 11.5, fontWeight: 800, letterSpacing: '.1em', textTransform: 'uppercase',
+            border: '1px solid ' + (s.filtro === f ? 'var(--grape)' : 'var(--line)'),
+            background: s.filtro === f ? 'var(--grape)' : 'transparent',
+            color: s.filtro === f ? '#fff' : 'var(--ink2)'
+          }
+        }, f))),
+      items.length ? h('div', { style: { display: 'flex', flexDirection: 'column', gap: 12 } }, items.map(c => this.classCard(c)))
+        : h('div', { style: { padding: '46px 16px', textAlign: 'center', border: '1px dashed var(--input-line)', borderRadius: 20 } },
+            h('div', { style: { width: 48, height: 48, margin: '0 auto 12px', borderRadius: 9999, background: 'var(--info-t)', color: 'var(--lagoon)', display: 'flex', alignItems: 'center', justifyContent: 'center' } }, this.ic('waves', 24)),
+            h('div', { style: { fontFamily: BC, fontSize: 23, fontWeight: 700, textTransform: 'uppercase' } }, 'Nada por aqui'),
+            h('div', { style: { fontSize: 13, color: 'var(--ink2)', marginTop: 6 } }, 'Não tens pedidos com este estado.')),
+      null);
+  }
+
+  // ── Alertas ──────────────────────────────────────────
+  notas() {
+    return [
+      { id: 'n1', icon: 'check-circle', tone: 'ok', t: 'Inscrição aprovada — Surf da Tarde', sub: 'há 2 min', aula: 'c4' },
+      { id: 'n9', icon: 'user-plus', tone: 'ok', t: 'O Rocha inscreveu-te na aula Já a Seguir', sub: 'há 10 min', aula: 'c11' },
+      { id: 'n2', icon: 'clock', tone: 'warn', t: 'A aula Já a Seguir começa daqui a 30 min', sub: 'há 28 min', aula: 'c11' },
+      { id: 'n7', icon: 'pencil', tone: 'info', t: 'Aula alterada — Skate Iniciados', d: 'Passou a começar às 17:00 (era às 16:30).', sub: 'há 1 hora', aula: 'c7' },
+      { id: 'n12', icon: 'map-pin', tone: 'info', t: 'Mudança de local — Surf da Tarde', d: 'Agora na Praia do Sul (era na Praia do Norte).', sub: 'há 2 horas', aula: 'c4' },
+      { id: 'n8', icon: 'calendar-x', tone: 'bad', t: 'Aula cancelada — Skate Cancelado', d: '“O parque está fechado para manutenção. Remarcámos para sábado à mesma hora.” — Rocha', sub: 'há 3 horas', aula: 'c9' },
+      { id: 'n10', icon: 'user-minus', tone: 'bad', t: 'Foste retirado da Sunset Session', d: 'Motivo: “A turma passou a ser só para quem já fez o nível Avançado.”', sub: 'hoje', aula: 'c5' },
+      { id: 'n11', icon: 'clock', tone: 'mute', t: 'O teu pedido expirou — Ondas Cedo', d: 'Não abriu vaga a tempo. Podes pedir novamente.', sub: 'hoje', aula: 'c15' },
+      { id: 'n3', icon: 'x-circle', tone: 'bad', t: 'Pedido recusado — Sessão Recusada', d: 'Motivo: “Esta sessão é de nível avançado e ainda não fizeste aulas de intermédio connosco.”', sub: 'ontem', aula: 'c8' },
+      { id: 'n4', icon: 'sparkles', tone: 'ok', t: 'Como correu a Aula Dada? Deixa a tua avaliação', sub: 'ontem', aula: 'c10' },
+      { id: 'n13', icon: 'user-check', tone: 'info', t: 'O teu papel mudou: agora és Instrutor', d: 'Da próxima vez que abrires a app, vês as ferramentas de instrutor.', sub: 'há 2 dias' },
+      { id: 'n5', icon: 'send', tone: 'info', t: 'Horário da próxima semana', d: 'Mensagem do Rocha para todos: o horário já está publicado. Boas ondas!', tag: 'Aviso geral', sub: 'há 3 dias' }
+    ];
+  }
+  alertasScreen() {
+    const s = this.state;
+    const notes = this.notas();
+    const tones = { ok: ['var(--ok-t)', 'var(--ok)'], warn: ['var(--warn-t)', 'var(--warn)'], bad: ['var(--bad-t)', 'var(--bad)'], info: ['var(--info-t)', 'var(--lagoon)'], mute: ['var(--dim)', 'var(--ink2)'] };
+    return h('div', { style: { padding: '18px 20px 30px', animation: 'fadein .3s ease' } },
+      h('div', { style: { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 18 } },
+        h('button', { onClick: () => this.go('agenda'), style: { width: 44, height: 44, borderRadius: 9999, border: 'none', background: 'var(--surface)', color: 'var(--ink)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px var(--shadow)', flex: 'none' } }, this.ic('chevron-left', 22)),
+        h('span', { style: { flex: 1, fontFamily: BC, fontSize: 17, fontWeight: 600, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--ink2)' } }, 'Avisos'),
+        h('button', { onClick: () => { const l = {}; notes.forEach(n => { l[n.id] = 1; }); this.setState({ lidas: l }); }, style: { border: 'none', background: 'transparent', padding: 0, color: 'var(--lagoon)', fontFamily: "'Nunito',sans-serif", fontSize: 12, fontWeight: 800, letterSpacing: '.08em', textTransform: 'uppercase', cursor: 'pointer', flex: 'none' } }, 'Marcar lidos')),
+      h('div', { style: { display: 'flex', flexDirection: 'column', gap: 10 } },
+        notes.map(n => {
+          const lida = !!s.lidas[n.id];
+          return h('div', {
+            key: n.id, onClick: () => this.setState(Object.assign({ lidas: Object.assign({}, s.lidas, { [n.id]: 1 }) }, n.aula ? { screen: 'detalhe', aula: n.aula, sheet: null } : {})),
+            style: {
+              display: 'flex', gap: 12, padding: 14, borderRadius: 18, cursor: 'pointer',
+              background: lida ? 'transparent' : 'var(--surface)',
+              border: '1px solid ' + (lida ? 'var(--line)' : 'transparent'),
+              boxShadow: lida ? 'none' : '0 3px 14px var(--shadow)', opacity: lida ? .68 : 1
+            }
+          },
+            h('div', { style: { width: 36, height: 36, borderRadius: 9999, flex: 'none', background: tones[n.tone][0], color: tones[n.tone][1], display: 'flex', alignItems: 'center', justifyContent: 'center' } }, this.ic(n.icon, 18)),
+            h('div', { style: { flex: 1 } },
+              n.tag ? h('div', { style: { display: 'flex', marginBottom: 5 } }, this.chip(n.tag, { style: { background: 'var(--grape)', color: '#fff' } })) : null,
+              h('div', { style: { fontSize: 13.5, fontWeight: 700, lineHeight: 1.35 } }, n.t),
+              n.d ? h('div', { style: { fontSize: 12.5, color: 'var(--ink2)', marginTop: 4, lineHeight: 1.45, textWrap: 'pretty' } }, n.d) : null,
+              h('div', { style: { fontSize: 11.5, color: 'var(--ink2)', marginTop: 4 } }, n.sub)),
+            lida ? null : h('div', { style: { width: 8, height: 8, borderRadius: 9999, background: 'var(--sun)', marginTop: 6, flex: 'none' } }));
+        })));
+  }
+
+  // ── Perfil ───────────────────────────────────────────
+  waIcon(size) {
+    const sz = size || 16;
+    return h('svg', { viewBox: '0 0 24 24', width: sz, height: sz, fill: 'currentColor', style: { flex: 'none' } },
+      h('path', { d: 'M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.46 1.32 4.96L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2Zm0 1.67c2.2 0 4.27.86 5.83 2.42a8.2 8.2 0 0 1 2.41 5.82c0 4.54-3.7 8.24-8.25 8.24a8.24 8.24 0 0 1-4.2-1.15l-.3-.18-3.11.82.83-3.04-.19-.31a8.19 8.19 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24Zm-3.4 4.3c-.16 0-.42.06-.64.3-.22.24-.85.83-.85 2.02s.87 2.34.99 2.5c.12.16 1.69 2.7 4.2 3.68 2.08.82 2.5.66 2.95.62.45-.04 1.46-.6 1.66-1.18.21-.58.21-1.07.15-1.18-.06-.1-.22-.16-.46-.28-.24-.12-1.46-.72-1.68-.8-.22-.08-.39-.12-.55.12-.16.24-.63.8-.77.96-.14.16-.28.18-.52.06-.24-.12-1.03-.38-1.96-1.21-.72-.64-1.21-1.44-1.35-1.68-.14-.24-.02-.37.1-.49.11-.11.24-.28.36-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.55-1.33-.75-1.81-.2-.47-.4-.4-.55-.41h-.32Z' }));
+  }
+
+  openPerfil(p) { this.setState({ pessoa: p }); }
+
+  perfilCardBody(u, eu) {
+    const s = this.state;
+    const row = (icon, label, right, onClick, tone) => h('div', {
+      key: label, onClick,
+      style: { display: 'flex', alignItems: 'center', gap: 12, padding: '15px 16px', borderBottom: '1px solid var(--line)', cursor: onClick ? 'pointer' : 'default' }
+    },
+      h('span', { style: { color: tone === 'bad' ? 'var(--bad)' : 'var(--lagoon)', display: 'flex' } }, this.ic(icon, 18)),
+      h('span', { style: { flex: 1, fontSize: 14.5, fontWeight: 700, color: tone === 'bad' ? 'var(--bad)' : 'var(--ink)' } }, label),
+      right || null);
+
+    return [
+      eu ? this.avatarEditavel('https://i.pravatar.cc/240?img=' + u.img, u.nome) : h('img', { key: 'img', src: 'https://i.pravatar.cc/240?img=' + u.img, alt: u.nome, style: { width: 112, height: 112, borderRadius: 9999, objectFit: 'cover', background: 'var(--sky)', boxShadow: '0 10px 26px var(--shadow)' } }),
+      h('div', { key: 'n', style: { fontFamily: BC, fontSize: 36, fontWeight: 700, textTransform: 'uppercase', lineHeight: 1, marginTop: 16, textAlign: 'center' } }, u.nome),
+      eu ? h('div', { key: 'r', style: { display: 'flex', marginTop: 10 } }, this.chip('Aluno', { style: { background: 'var(--sand)', color: 'var(--ink)' } }))
+        : h('div', { key: 'r', style: { fontSize: 12, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--ink2)', marginTop: 7 } }, u.role),
+      eu ? null : u.wa
+        ? h('div', { key: 'wa', style: { display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 14, padding: '8px 15px', borderRadius: 9999, background: 'var(--surface)', border: '1px solid var(--line)' } },
+            h('span', { style: { color: '#25D366', display: 'flex' } }, this.waIcon(17)),
+            h('span', { style: { fontSize: 13.5, fontWeight: 700 } }, u.wa))
+        : h('div', { key: 'wa', style: { display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 14, padding: '8px 15px', borderRadius: 9999, background: 'var(--dim)', color: 'var(--ink2)' } },
+            h('span', { style: { display: 'flex' } }, this.waIcon(17)),
+            h('span', { style: { fontSize: 12.5, fontWeight: 700 } }, 'Número não partilhado')),
+      eu ? h('div', { key: 'c1', style: { width: '100%', marginTop: 26, borderRadius: 20, background: 'var(--surface)', border: '1px solid var(--line)', overflow: 'hidden' } },
+        h('div', { style: { marginBottom: -1 } },
+          h('div', { key: 'WhatsApp', onClick: () => this.go('whatsapp'), style: { display: 'flex', alignItems: 'center', gap: 12, padding: '15px 16px', borderBottom: '1px solid var(--line)', cursor: 'pointer' } },
+            h('span', { style: { color: 'var(--lagoon)', display: 'flex' } }, this.waIcon(18)),
+            h('span', { style: { flex: 1, fontSize: 14.5, fontWeight: 700 } }, 'WhatsApp'),
+            h('span', { style: { fontSize: 12.5, color: 'var(--ink2)' } }, s.waVisivel ? 'Visível' : 'Oculto'),
+            h('span', { style: { color: 'var(--ink3)', display: 'flex' } }, this.ic('chevron-right', 18))),
+          row(this.temaEf() === 'dark' ? 'moon' : 'sun', 'Tema', h('span', { style: { display: 'flex', alignItems: 'center', gap: 10 } },
+            h('span', { style: { fontSize: 12.5, color: 'var(--ink2)' } }, { auto: 'Igual ao telefone', light: 'Claro', dark: 'Escuro' }[s.temaPref || 'auto']),
+            h('span', { style: { color: 'var(--ink3)', display: 'flex' } }, this.ic('chevron-right', 18))), () => this.setState({ sheet: 'tema' })),
+          row('languages', 'Idioma', h('span', { style: { display: 'flex', alignItems: 'center', gap: 10 } },
+            h('span', { style: { fontSize: 12.5, color: 'var(--ink2)' } }, (IDIOMAS.filter(l => l.id === s.idioma)[0] || IDIOMAS[0]).nome),
+            h('span', { style: { color: 'var(--ink3)', display: 'flex' } }, this.ic('chevron-right', 18))), () => this.setState({ sheet: 'idioma' })))) : null,
+      eu ? h('div', { key: 'c2', style: { width: '100%', marginTop: 16, borderRadius: 20, background: 'var(--surface)', border: '1px solid var(--line)', overflow: 'hidden' } },
+        h('div', { style: { marginBottom: -1 } },
+          row('bell', 'Notificações push', this.switch(s.push, () => this.setState({ push: !s.push }))))) : null,
+      eu ? h('div', { key: 'c2n', style: { width: '100%', boxSizing: 'border-box', padding: '8px 6px 0', fontSize: 12, lineHeight: 1.5, color: 'var(--ink2)' } }, 'Os avisos ficam sempre na app. Aqui só escolhes se também chegam como notificação ao telefone.') : null,
+      eu ? h('div', { key: 'c3', style: { width: '100%', marginTop: 16, borderRadius: 20, background: 'var(--surface)', border: '1px solid var(--line)', overflow: 'hidden' } },
+        h('div', { style: { marginBottom: -1 } },
+          row('shield', 'Regras da escola', h('span', { style: { color: 'var(--ink3)', display: 'flex' } }, this.ic('chevron-right', 18)), () => this.go('regrasLer')),
+          row('calendar-x', 'Regras de cancelamento', h('span', { style: { color: 'var(--ink3)', display: 'flex' } }, this.ic('chevron-right', 18)), () => this.setState({ sheet: 'regrasCancel' })),
+          row('info', 'Sobre a app', h('span', { style: { color: 'var(--ink3)', display: 'flex' } }, this.ic('chevron-right', 18)), () => this.setState({ sheet: 'sobre' })))) : null,
+      eu ? h('div', { key: 'c4', style: { width: '100%', marginTop: 16, borderRadius: 20, background: 'var(--surface)', border: '1px solid var(--line)', overflow: 'hidden' } },
+        h('div', { style: { marginBottom: -1 } },
+          row('log-out', 'Sair', null, () => this.setState({ sheet: 'sair' })),
+          row('trash-2', 'Remover a conta', null, () => this.setState({ sheet: 'apagar' }), 'bad'))) : null
+    ];
+  }
+
+  perfilScreen() {
+    const u = { nome: 'Ana Silva', img: 47, role: 'Aluna', wa: this.state.waNumero };
+    return h('div', { style: { flex: '1 0 auto', display: 'flex', flexDirection: 'column', animation: 'fadein .3s ease' } },
+      h('div', { style: { padding: '24px 20px 120px', display: 'flex', flexDirection: 'column', alignItems: 'center' } },
+        this.perfilCardBody(u, true)));
+  }
+
+  whatsappScreen() {
+    const s = this.state;
+    return h('div', { style: { flex: '1 0 auto', display: 'flex', flexDirection: 'column', animation: 'fadein .3s ease' } },
+      h('div', { style: { display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px 10px' } },
+        h('button', { onClick: () => this.go('perfil'), style: { width: 44, height: 44, borderRadius: 9999, border: 'none', background: 'var(--surface)', color: 'var(--ink)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px var(--shadow)' } }, this.ic('chevron-left', 22)),
+        h('span', { style: { fontFamily: BC, fontSize: 17, fontWeight: 600, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--ink2)' } }, 'WhatsApp')),
+      h('div', { style: { padding: '6px 20px 120px' } },
+        h('div', { style: { display: 'flex', alignItems: 'center', gap: 11, marginBottom: 18 } },
+          h('div', { style: { width: 46, height: 46, borderRadius: 9999, background: 'rgba(37,211,102,.14)', color: '#25D366', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' } }, this.waIcon(23)),
+          h('div', { style: { fontSize: 13, lineHeight: 1.55, color: 'var(--ink2)' } }, 'Os admins vêem sempre o teu número, para avisos de última hora. Instrutores e outros alunos só o vêem se o partilhares.')),
+        this.sectionTitle('O meu número'),
+        h('input', {
+          value: s.waNumero, onChange: e => this.setState({ waNumero: e.target.value }),
+          inputMode: 'tel', placeholder: '+351 900 000 000',
+          style: { width: '100%', boxSizing: 'border-box', padding: '15px 16px', borderRadius: 16, border: '1px solid var(--input-line)', background: 'var(--input)', color: 'var(--ink)', fontFamily: "'Nunito',sans-serif", fontSize: 15, fontWeight: 700, outline: 'none' }
+        }),
+        h('div', { style: { marginTop: 18, borderRadius: 20, background: 'var(--surface)', border: '1px solid var(--line)', padding: '15px 16px', display: 'flex', alignItems: 'center', gap: 12 } },
+          h('div', { style: { flex: 1 } },
+            h('div', { style: { fontSize: 14.5, fontWeight: 700 } }, 'Partilhar com instrutores e alunos'),
+            h('div', { style: { fontSize: 12.5, color: 'var(--ink2)', marginTop: 3, lineHeight: 1.5 } }, s.waVisivel ? 'Instrutores e alunos da escola vêem o teu número.' : 'Oculto — só os admins vêem o teu número.')),
+          this.switch(s.waVisivel, () => this.setState({ waVisivel: !s.waVisivel }))),
+        h('div', { style: { marginTop: 20 } },
+          this.btn('Guardar', () => { this.go('perfil'); this.flash('Número atualizado', 'ok'); }, 'primary'))));
+  }
+
+  pessoaModal() {
+    const s = this.state;
+    if (!s.pessoa) return null;
+    const u = s.pessoa;
+    const fechar = () => this.setState({ pessoa: null });
+    const temWa = !!u.wa;
+    return h('div', { style: { position: 'absolute', inset: 0, zIndex: 70 } },
+      h('div', { onClick: fechar, style: { position: 'absolute', inset: 0, background: 'rgba(24,16,10,.45)', backdropFilter: 'blur(2px)', animation: 'fadein .2s ease' } }),
+      h('div', { style: { position: 'absolute', left: 0, right: 0, bottom: 0, maxHeight: '82%', overflow: 'auto', boxSizing: 'border-box', background: 'var(--page)', borderRadius: '28px 28px 0 0', padding: '14px 20px 30px', animation: 'riseT .32s cubic-bezier(.32,.72,0,1)', boxShadow: '0 -12px 40px rgba(0,0,0,.2)' } },
+        h('div', { style: { width: 44, height: 4, borderRadius: 9999, background: 'var(--line)', margin: '0 auto 18px' } }),
+        h('div', { style: { display: 'flex', alignItems: 'center', gap: 12 } },
+          h('img', { src: 'https://i.pravatar.cc/160?img=' + u.img, alt: u.nome, style: { width: 52, height: 52, borderRadius: 9999, objectFit: 'cover', flex: 'none', background: 'var(--sky)' } }),
+          h('div', { style: { flex: 1, minWidth: 0 } },
+            h('div', { style: { fontFamily: BC, fontSize: 26, fontWeight: 700, textTransform: 'uppercase', lineHeight: 1 } }, u.nome),
+            h('div', { style: { display: 'flex', marginTop: 7 } }, (papel => this.chip(papel, { style: papel === 'Admin' ? { background: 'var(--grape)', color: '#fff' } : papel === 'Instrutor' ? { background: 'var(--info-t)', color: 'var(--lagoon)' } : { background: 'var(--sand)', color: 'var(--ink)' } }))(/Admin/.test(u.role || '') ? 'Admin' : /Instrut/.test(u.role || '') ? 'Instrutor' : 'Aluno')))),
+        h('div', { style: { marginTop: 16 } },
+          h('div', {
+            onClick: temWa ? () => { this.setState({ pessoa: null }); this.flash('A abrir o WhatsApp…', 'info'); } : null,
+            style: { display: 'flex', alignItems: 'center', gap: 12, padding: '13px 2px', borderTop: '1px solid var(--line)', cursor: temWa ? 'pointer' : 'default' }
+          },
+            h('span', { style: { color: temWa ? 'var(--lagoon)' : 'var(--ink3)', display: 'flex', flex: 'none' } }, this.waIcon(18)),
+            h('div', { style: { flex: 1 } },
+              h('div', { style: { fontSize: 14, fontWeight: 700, color: temWa ? 'var(--ink)' : 'var(--ink2)' } }, 'Conversar por WhatsApp'),
+              h('div', { style: { fontSize: 11.5, color: 'var(--ink2)', marginTop: 2 } }, temWa ? u.wa : 'Número não partilhado.')),
+            temWa ? h('span', { style: { color: 'var(--ink3)', display: 'flex' } }, this.ic('arrow-up-right', 17)) : null)),
+        h('div', { style: { marginTop: 16 } }, this.btn('Fechar', fechar, 'ghost'))));
+  }
+
+  switch(on, onClick) {
+    return h('div', { onClick: onClick, style: { width: 50, height: 30, flex: 'none', borderRadius: 9999, padding: 3, boxSizing: 'border-box', background: on ? 'var(--lagoon)' : 'var(--sand)', cursor: 'pointer', transition: 'background .2s ease' } },
+      h('div', { style: { width: 24, height: 24, borderRadius: 9999, background: '#fff', boxShadow: '0 2px 5px rgba(0,0,0,.2)', transform: 'translateX(' + (on ? 20 : 0) + 'px)', transition: 'transform .28s cubic-bezier(.32,.72,0,1)' } }));
+  }
+
+  // ── Histórico ────────────────────────────────────────
+  histData(x) { return new Date(2026, PK_MESES.indexOf(x.mes.split(' ')[0].toLowerCase()), Number(x.dia)); }
+  histPk() { return this.state.histPk || { mode: 'mes', ref: new Date(2026, 7, 1), sel: null }; }
+  histCalendar() {
+    const v = this.histPk();
+    const aulas = d => Math.min(3, HIST.filter(x => pkSame(this.histData(x), d)).length);
+    return h('div', { style: { padding: '14px 12px 14px', borderRadius: 20, background: 'var(--surface)', border: '1px solid var(--line)' } },
+      this.pkGen(v, p => this.setState({ histPk: Object.assign({}, v, p) }), aulas, { limpavel: true, pad: 0 }),
+      h('div', { style: { display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, padding: '0 6px', fontSize: 11.5, color: 'var(--ink2)' } },
+        h('span', { style: { width: 6, height: 6, borderRadius: 9999, background: 'var(--lagoon)' } }), 'Dias com aula dada'));
+  }
+
+  historicoScreen() {
+    const s = this.state;
+    const v = this.histPk();
+    let lista, filtro = null, periodo;
+    if (v.sel) {
+      lista = HIST.filter(x => pkSame(this.histData(x), v.sel));
+      filtro = v.sel.getDate() + ' ' + PK_MES_C[v.sel.getMonth()];
+    } else if (v.mode === 'mes') {
+      lista = HIST.filter(x => this.histData(x).getMonth() === v.ref.getMonth());
+    } else {
+      const i0 = pkIni(v.ref), f7 = pkAdd(i0, 7);
+      lista = HIST.filter(x => { const d = this.histData(x); return d >= i0 && d < f7; });
+    }
+    periodo = this.pkLegenda(v);
+    const chip = (label, bg, color, icon) => h('span', { key: label, style: { display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 9px', borderRadius: 9999, background: bg, color: color, fontSize: 10, fontWeight: 800, letterSpacing: '.08em', textTransform: 'uppercase' } }, icon ? this.ic(icon, 11) : null, label);
+
+    return h('div', { style: { flex: '1 0 auto', display: 'flex', flexDirection: 'column', animation: 'fadein .3s ease' } },
+      h('div', { style: { display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px 10px' } },
+        h('button', { onClick: () => this.go('minhas'), style: { width: 44, height: 44, borderRadius: 9999, border: 'none', background: 'var(--surface)', color: 'var(--ink)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px var(--shadow)' } }, this.ic('chevron-left', 22)),
+        h('span', { style: { fontFamily: BC, fontSize: 17, fontWeight: 600, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--ink2)' } }, 'Histórico')),
+      h('div', { style: { padding: '10px 20px 0' } }, this.histCalendar()),
+      h('div', { style: { padding: '20px 20px 120px' } },
+        h('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 12 } },
+          h('span', { style: { fontSize: 11, fontWeight: 800, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--ink2)' } }, 'Todas as aulas'),
+          filtro ? h('button', { onClick: () => this.setState({ histPk: Object.assign({}, v, { sel: null }) }), style: { display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 9999, border: 'none', background: 'var(--info-t)', color: 'var(--lagoon)', fontFamily: "'Nunito',sans-serif", fontSize: 11.5, fontWeight: 800, cursor: 'pointer' } }, filtro, this.ic('x', 13))
+            : h('span', { style: { fontSize: 11.5, fontWeight: 700, color: 'var(--ink2)', textTransform: 'capitalize' } }, periodo)),
+        lista.length
+          ? h('div', { style: { display: 'flex', flexDirection: 'column', gap: 12 } }, lista.map(a => this.classCard(a, true)))
+          : h('div', { style: { padding: '26px 18px', textAlign: 'center', fontSize: 13, color: 'var(--ink2)', border: '1px dashed var(--input-line)', borderRadius: 20 } }, 'Sem aulas neste período.')));
+  }
+
+  // ── Folhas (bottom sheets) ───────────────────────────
+  sheetView() {
+    const s = this.state;
+    if (!s.sheet) return null;
+    const c = CLASSES.concat(HIST).filter(x => x.id === s.aula)[0] || CLASSES[1];
+    const close = () => this.setState(s.sheetFrom && s.sheet !== s.sheetFrom ? { sheet: s.sheetFrom, sheetFrom: null } : { sheet: null, sheetFrom: null });
+    let content = null;
+
+    if (s.sheet === 'sair') {
+      content = h('div', null,
+        h('div', { style: { fontFamily: BC, fontSize: 30, fontWeight: 700, textTransform: 'uppercase', lineHeight: 1 } }, 'Sair da conta?'),
+        h('div', { style: { fontSize: 13.5, color: 'var(--ink2)', margin: '9px 0 16px', lineHeight: 1.55 } }, 'Para voltar, basta entrar outra vez com a mesma conta.'),
+        h('div', { style: { display: 'flex', flexDirection: 'column', gap: 10 } },
+          this.btn('Sair', () => { close(); this.flash('Sessão terminada', 'info'); }, 'danger', 'log-out'),
+          this.btn('Cancelar', close, 'ghost')));
+    }
+
+    if (s.sheet === 'entrar') {
+      const cheiaS = c.ocup >= c.vagas;
+      const on = !!s.aceiteCancel;
+      content = h('div', null,
+        h('div', { style: { fontFamily: BC, fontSize: 30, fontWeight: 700, textTransform: 'uppercase', lineHeight: 1 } }, cheiaS ? 'Entrar na lista de espera' : 'Pedir para entrar'),
+        h('div', { style: { fontSize: 13.5, color: 'var(--ink2)', margin: '9px 0 18px', lineHeight: 1.55 } }, c.nome + ' · ' + DIA_LONGO[c.dia] + ' · ' + c.hora + '. ' + (cheiaS ? 'A turma está cheia: o teu pedido fica “Na lista de espera”. Se abrir uma vaga, passa para aprovação do Rocha.' : 'O pedido fica pendente até o Rocha confirmar.')),
+        h('div', { style: { fontSize: 11, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--ink2)', margin: '0 4px 8px' } }, 'Cancelamento · ' + c.disc),
+        h('div', { style: { borderRadius: 18, border: '1px solid var(--line)', background: 'var(--surface)', overflow: 'hidden', marginBottom: 18 } },
+          h('div', { style: { display: 'flex', gap: 11, padding: '13px 14px', fontSize: 13, lineHeight: 1.5 } },
+            h('span', { style: { color: 'var(--lagoon)', display: 'flex', flex: 'none', marginTop: 1 } }, this.ic('calendar-x', 17)),
+            h('span', null, 'Podes cancelar sem penalização até ' + (REGRA_HORAS[c.disc] || 12) + ' h antes do início.')),
+          h('div', { onClick: () => this.setState({ aceiteCancel: !on }), role: 'checkbox', 'aria-checked': on, style: { display: 'flex', gap: 12, alignItems: 'center', padding: '12px 14px', minHeight: 56, borderTop: '1px solid var(--line)', cursor: 'pointer' } },
+            h('div', { style: { width: 26, height: 26, borderRadius: 9, flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid ' + (on ? 'var(--lagoon)' : 'var(--input-line)'), background: on ? 'var(--lagoon)' : 'transparent', color: '#fff' } }, on ? this.ic('check', 15) : null),
+            h('div', { style: { flex: 1, minWidth: 0, fontSize: 14, fontWeight: 700, lineHeight: 1.35 } }, 'Li e aceito a regra de cancelamento'),
+            h('button', { onClick: (e) => { e.stopPropagation(); this.setState({ sheet: 'regraCancel', sheetFrom: 'entrar' }); }, style: { flex: 'none', height: 44, padding: '0 4px 0 8px', border: 'none', background: 'transparent', color: 'var(--lagoon)', fontSize: 13, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 2, cursor: 'pointer' } }, 'Ler', this.ic('chevron-right', 16)))),
+        this.btn(cheiaS ? 'Entrar na lista de espera' : 'Enviar pedido', () => {
+          this.setState({ estados: Object.assign({}, s.estados, { [c.id]: cheiaS ? 'espera' : 'pendente' }), sheet: null });
+          this.flash(cheiaS ? 'Estás na lista de espera' : 'Pedido enviado — o Rocha confirma em breve', 'ok');
+        }, cheiaS ? 'dark' : 'primary', !on),
+        h('div', { style: { height: 10 } }),
+        this.btn('Agora não', close, 'ghost'));
+    }
+
+    if (s.sheet === 'cancelar') {
+      const pend = s.estados[c.id] === 'pendente';
+      content = h('div', null,
+        h('div', { style: { fontFamily: BC, fontSize: 30, fontWeight: 700, textTransform: 'uppercase', lineHeight: 1 } }, pend ? 'Anular pedido' : 'Cancelar inscrição'),
+        h('div', { style: { fontSize: 13.5, color: 'var(--ink2)', margin: '9px 0 16px', lineHeight: 1.55 } }, pend ? 'O teu pedido para esta aula deixa de estar à espera de aprovação.' : 'A tua vaga fica livre. Podes cancelar sem penalização até ' + this.prazoCancel(c) + '.'),
+        this.btn(pend ? 'Sim, anular' : 'Sim, cancelar', () => {
+          this.setState({ estados: Object.assign({}, s.estados, { [c.id]: pend ? 'anulado' : 'canceladoEu' }), sheet: null });
+          this.flash(pend ? 'Pedido anulado' : 'Inscrição cancelada', 'bad');
+        }, 'outline'),
+        h('div', { style: { height: 10 } }),
+        this.btn(pend ? 'Manter pedido' : 'Manter inscrição', close, 'ghost'));
+    }
+
+    if (s.sheet === 'apagarAval') {
+      content = h('div', null,
+        h('div', { style: { fontFamily: BC, fontSize: 30, fontWeight: 700, textTransform: 'uppercase', lineHeight: 1 } }, 'Apagar avaliação?'),
+        h('div', { style: { fontSize: 13.5, color: 'var(--ink2)', margin: '9px 0 16px', lineHeight: 1.55 } }, 'A tua nota e o comentário deixam de estar visíveis. Podes avaliar outra vez quando quiseres.'),
+        this.btn('Apagar', () => { const a = Object.assign({}, s.avals || {}); delete a[c.id]; this.setState({ avals: a, sheet: null, rating: 0, comentario: '', avEdit: false }); this.flash('Avaliação apagada', 'info'); }, 'danger'),
+        h('div', { style: { height: 10 } }),
+        this.btn('Manter', close, 'ghost'));
+    }
+
+    if (s.sheet === 'tema') {
+      content = h('div', null,
+        h('div', { style: { fontFamily: BC, fontSize: 30, fontWeight: 700, textTransform: 'uppercase', lineHeight: 1 } }, 'Tema'),
+        h('div', { style: { fontSize: 13.5, color: 'var(--ink2)', margin: '9px 0 14px', lineHeight: 1.55 } }, 'Até escolheres, a app segue o tema do telefone.'),
+        [['auto', 'Igual ao telefone', 'sliders'], ['light', 'Claro', 'sun'], ['dark', 'Escuro', 'moon']].map(([id, label, icon], i) => h('div', {
+          key: id, onClick: () => this.setState({ temaPref: id, sheet: null }),
+          style: { display: 'flex', alignItems: 'center', gap: 12, padding: '13px 2px', borderTop: i ? '1px solid var(--line)' : 'none', cursor: 'pointer' }
+        },
+          h('span', { style: { color: 'var(--lagoon)', display: 'flex' } }, this.ic(icon, 18)),
+          h('div', { style: { flex: 1, fontSize: 14.5, fontWeight: 700 } }, label),
+          (s.temaPref || 'auto') === id ? h('span', { style: { color: 'var(--lagoon)', display: 'flex' } }, this.ic('check', 19)) : null)));
+    }
+
+    if (s.sheet === 'regrasCancel') {
+      content = h('div', null,
+        h('div', { style: { width: 56, height: 56, borderRadius: 18, background: 'var(--dim)', color: 'var(--lagoon)', display: 'flex', alignItems: 'center', justifyContent: 'center' } }, this.ic('calendar-x', 28)),
+        h('div', { style: { fontFamily: BC, fontSize: 30, fontWeight: 700, textTransform: 'uppercase', lineHeight: 1, marginTop: 16 } }, 'Regras de cancelamento'),
+        h('div', { style: { maxHeight: 360, overflow: 'auto', marginTop: 14, display: 'flex', flexDirection: 'column', gap: 10 } },
+          ['Surf', 'Skate'].map(d => h('div', { key: d, style: { padding: '14px 15px', borderRadius: 16, background: 'var(--surface)', border: '1px solid var(--line)' } },
+            h('div', { style: { display: 'flex', marginBottom: 10 } }, this.chip(d, { icon: d === 'Surf' ? 'waves' : 'disc', style: { background: this.discColor(d), color: '#fff' } })),
+            h('div', { style: { fontSize: 13.5, lineHeight: 1.6, whiteSpace: 'pre-wrap', textWrap: 'pretty' } }, REGRA_CANCEL[d])))),
+        h('div', { style: { marginTop: 18 } }, this.btn('Fechar', close, 'ghost')));
+    }
+
+    if (s.sheet === 'fotos') {
+      content = h('div', null,
+        h('div', { style: { fontFamily: BC, fontSize: 30, fontWeight: 700, textTransform: 'uppercase', lineHeight: 1 } }, 'Juntar fotos'),
+        h('div', { style: { fontSize: 13.5, color: 'var(--ink2)', margin: '9px 0 16px', lineHeight: 1.55 } }, 'Aula de ' + this.intervalo(c) + '. As tuas fotos ficam na galeria desta aula — quem a abrir pode vê-las e descarregá-las.'),
+        h('div', { style: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 16 } },
+          Array.from({ length: 3 }).map((_, i) => h('div', { key: i, style: { height: 78, borderRadius: 16, border: '1px dashed var(--input-line)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ink3)' } }, this.ic('camera', 18)))),
+        h('div', { style: { display: 'flex', flexDirection: 'column', gap: 10 } },
+          this.btn('Escolher do telefone', () => {
+            const cur = (s.fotosUp || {})[c.id] || [];
+            const novas = [0, 1, 2].map(i => ({ id: 'u' + Date.now() + i, src: 'https://picsum.photos/id/' + FOTO_IDS[(cur.length + i * 5 + 7) % FOTO_IDS.length] + '/600/750', by: { n: 'Ana Silva', img: 47, role: 'Aluno' }, eu: true, quando: 'agora mesmo' }));
+            this.setState({ sheet: null, screen: 'fotos', fotosUp: Object.assign({}, s.fotosUp || {}, { [c.id]: cur.concat(novas) }) });
+            this.flash('3 fotos juntas', 'ok');
+          }, 'primary'),
+          this.btn('Cancelar', close, 'ghost')));
+    }
+
+    if (s.sheet === 'regras') {
+      const reg = (icon, label, txt) => h('div', { key: label, style: { display: 'flex', gap: 11, padding: '12px 2px', borderTop: '1px solid var(--line)' } },
+        h('span', { style: { color: 'var(--lagoon)', display: 'flex', marginTop: 2, flex: 'none' } }, this.ic(icon, 17)),
+        h('div', null,
+          h('div', { style: { fontSize: 14, fontWeight: 700 } }, label),
+          h('div', { style: { fontSize: 12.5, color: 'var(--ink2)', marginTop: 2, lineHeight: 1.5 } }, txt)));
+      content = h('div', null,
+        h('div', { style: { fontFamily: BC, fontSize: 30, fontWeight: 700, textTransform: 'uppercase', lineHeight: 1, marginBottom: 6 } }, 'Regras da escola'),
+        h('div', null,
+          reg('clock', 'Cancelamento até 12 h antes', 'Depois disso a vaga fica ocupada e perdes a aula.'),
+          reg('user', 'Inscrições aprovadas pelo Rocha', 'O pedido fica pendente até ele confirmar, normalmente no próprio dia.'),
+          reg('waves', 'Fato e prancha incluídos', 'Chega 15 minutos antes para o briefing na areia.')),
+        h('div', { style: { marginTop: 16 } }, this.btn('Fechar', close, 'ghost')));
+    }
+
+    if (s.sheet === 'sobre') {
+      const link = (icon, label, sub) => h('div', {
+        key: label, onClick: () => this.flash('Abrir ' + label, 'info'),
+        style: { display: 'flex', alignItems: 'center', gap: 12, padding: '13px 2px', borderTop: '1px solid var(--line)', cursor: 'pointer' }
+      },
+        h('span', { style: { color: 'var(--lagoon)', display: 'flex' } }, this.ic(icon, 18)),
+        h('div', { style: { flex: 1 } },
+          h('div', { style: { fontSize: 14, fontWeight: 700 } }, label),
+          h('div', { style: { fontSize: 11.5, color: 'var(--ink2)', marginTop: 1 } }, sub)),
+        h('span', { style: { color: 'var(--ink3)', display: 'flex' } }, this.ic('arrow-up-right', 17)));
+
+      content = h('div', null,
+        h('div', { style: { display: 'flex', alignItems: 'center', gap: 11 } },
+          h('div', { style: { width: 42, height: 42, borderRadius: 13, background: 'var(--sun)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' } }, this.ic('waves', 22)),
+          h('div', { style: { flex: 1 } },
+            h('div', { style: { fontFamily: BC, fontSize: 21, fontWeight: 700, textTransform: 'uppercase', lineHeight: 1 } }, "Rocha's Surf School"),
+            h('div', { style: { fontSize: 11.5, color: 'var(--ink2)', marginTop: 3 } }, 'Versão 0.9 · beta'))),
+        h('div', { style: { fontSize: 12.5, lineHeight: 1.6, color: 'var(--ink2)', marginTop: 13 } }, 'Projeto pessoal para tirar a marcação de aulas dos grupos de WhatsApp: agenda da semana, pedidos de inscrição e avisos num só sítio. Feito com o Rocha e os alunos da escola.'),
+        h('div', { style: { display: 'flex', alignItems: 'center', gap: 10, margin: '15px 0 4px' } },
+          h('img', { src: 'https://i.pravatar.cc/120?img=68', alt: 'Criador', style: { width: 34, height: 34, borderRadius: 9999, objectFit: 'cover', flex: 'none', background: 'var(--sky)' } }),
+          h('div', null,
+            h('div', { style: { fontSize: 13.5, fontWeight: 700 } }, 'Diogo Cruz'),
+            h('div', { style: { fontSize: 11.5, color: 'var(--ink2)' } }, 'Design e desenvolvimento'))),
+        h('div', { style: { marginTop: 12 } },
+          link('github', 'Repositório da app', 'github.com/…/rocha-surf-app'),
+          link('github', 'GitHub do criador', 'github.com/diogocruz'),
+          link('linkedin', 'LinkedIn do criador', 'linkedin.com/in/diogocruz'),
+          link('shield', 'Política de privacidade', 'Como tratamos os teus dados'),
+          link('info', 'Termos de utilização', 'Regras de uso da app')));
+    }
+
+    if (s.sheet === 'idioma') {
+      content = h('div', null,
+        h('div', { style: { fontFamily: BC, fontSize: 30, fontWeight: 700, textTransform: 'uppercase', lineHeight: 1 } }, 'Idioma'),
+        h('div', { style: { fontSize: 13.5, color: 'var(--ink2)', margin: '9px 0 14px', lineHeight: 1.55 } }, 'Escolhe o idioma da app.'),
+        h('div', { style: { display: 'flex', flexDirection: 'column' } },
+          IDIOMAS.map((l, i) => {
+            const sel = l.id === s.idioma;
+            return h('div', {
+              key: l.id,
+              onClick: () => { this.setState({ idioma: l.id, sheet: null }); this.flash(l.nome, 'ok'); },
+              style: { display: 'flex', alignItems: 'center', gap: 12, padding: '12px 2px', borderTop: i ? '1px solid var(--line)' : 'none', cursor: 'pointer' }
+            },
+              h('img', { src: l.flag, alt: l.nome, style: { width: 34, height: 34, borderRadius: 9999, objectFit: 'cover', flex: 'none', background: 'var(--dim)', border: '1px solid var(--line)' } }),
+              h('div', { style: { flex: 1, fontSize: 14.5, fontWeight: 700 } }, l.nome),
+              sel ? h('span', { style: { color: 'var(--lagoon)', display: 'flex' } }, this.ic('check', 19)) : null);
+          })));
+    }
+
+    if (s.sheet === 'apagar') {
+      content = h('div', null,
+        h('div', { style: { fontFamily: BC, fontSize: 30, fontWeight: 700, textTransform: 'uppercase', lineHeight: 1 } }, 'Remover a conta?'),
+        h('div', { style: { fontSize: 13.5, color: 'var(--ink2)', margin: '9px 0 16px', lineHeight: 1.55 } }, 'As tuas inscrições e pedidos para aulas futuras são cancelados e perdes o acesso à app. Para voltar, tens de pedir a reativação nos 30 dias seguintes — e só podes enviar esse pedido uma vez.'),
+        this.btn('Remover a conta', () => { close(); this.flash('Conta removida — reativável 30 dias', 'bad'); }, 'danger', 'trash-2'),
+        h('div', { style: { height: 10 } }),
+        this.btn('Manter conta', close, 'ghost'));
+    }
+
+    if (s.sheet === 'avaliar') {
+      content = h('div', null,
+        h('div', { style: { fontFamily: BC, fontSize: 30, fontWeight: 700, textTransform: 'uppercase', lineHeight: 1 } }, 'Como correu?'),
+        h('div', { style: { fontSize: 13.5, color: 'var(--ink2)', margin: '9px 0 16px' } }, c.nome + ' com ' + c.inst),
+        h('div', { style: { display: 'flex', gap: 6, marginBottom: 16 } },
+          [1, 2, 3, 4, 5].map(n => h('button', {
+            key: n, onClick: () => this.setState({ rating: n }),
+            style: { width: 48, height: 48, border: 'none', background: 'transparent', padding: 0, cursor: 'pointer', color: n <= s.rating ? 'var(--sun)' : 'var(--ink3)' }
+          }, h('svg', { width: 34, height: 34, viewBox: '0 0 24 24', fill: n <= s.rating ? 'currentColor' : 'none', stroke: 'currentColor', strokeWidth: 1.6, strokeLinejoin: 'round' },
+            h('polygon', { points: '12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26' }))))),
+        h('textarea', {
+          value: s.comentario, onChange: e => this.setState({ comentario: e.target.value }),
+          placeholder: 'Deixa um comentário sobre a aula (opcional)',
+          style: { width: '100%', boxSizing: 'border-box', minHeight: 84, padding: 14, borderRadius: 16, border: '1px solid var(--input-line)', background: 'var(--input)', color: 'var(--ink)', fontFamily: "'Nunito',sans-serif", fontSize: 14, resize: 'none', outline: 'none' }
+        }),
+        h('div', { style: { height: 18 } }),
+        this.btn('Enviar', () => { this.setState({ sheet: null, avals: Object.assign({}, s.avals || {}, { [c.id]: { n: s.rating, txt: (s.comentario || '').trim() } }) }); this.flash('Obrigado! Avaliação enviada', 'ok'); }, 'primary', !s.rating),
+        h('div', { style: { height: 6 } }),
+        this.btn('Fechar', close, 'ghost'));
+    }
+
+    if (s.sheet === 'alunos') {
+      const lista = ALUNOS.slice(0, c.ocup);
+      content = h('div', { style: { display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 } },
+        h('div', { style: { fontFamily: BC, fontSize: 26, fontWeight: 700, textTransform: 'uppercase', lineHeight: 1, flex: 'none' } }, lista.length + ' alunos confirmados'),
+        h('div', { style: { flex: 1, minHeight: 0, overflow: 'auto', margin: '12px -4px 0' } },
+          lista.map((a, i) => h('div', {
+            key: a.ini,
+            onClick: () => this.setState({ sheet: null, pessoa: { nome: a.n, img: a.img, role: 'Aluno', wa: a.pub ? a.wa : null } }),
+            style: { display: 'flex', alignItems: 'center', gap: 11, padding: '9px 4px', borderTop: i ? '1px solid var(--line)' : 'none', cursor: 'pointer' }
+          },
+            h('img', { src: 'https://i.pravatar.cc/120?img=' + a.img, alt: a.n, style: { width: 36, height: 36, borderRadius: 9999, objectFit: 'cover', flex: 'none', background: 'var(--sky)' } }),
+            h('span', { style: { flex: 1, fontSize: 14.5, fontWeight: 700 } }, a.n),
+            h('span', { style: { color: 'var(--ink3)', display: 'flex' } }, this.ic('chevron-right', 18))))));
+    }
+
+    if (s.sheet === 'regraCancel') {
+      content = h('div', null,
+        h('div', { style: { width: 56, height: 56, borderRadius: 18, background: 'var(--dim)', color: 'var(--lagoon)', display: 'flex', alignItems: 'center', justifyContent: 'center' } }, this.ic('calendar-x', 28)),
+        h('div', { style: { fontFamily: BC, fontSize: 30, fontWeight: 700, textTransform: 'uppercase', lineHeight: 1, marginTop: 16 } }, 'Regra de cancelamento'),
+        h('div', { style: { display: 'flex', marginTop: 10 } }, this.chip(c.disc, { icon: c.disc === 'Surf' ? 'waves' : 'disc', style: { background: this.discColor(c.disc), color: '#fff' } })),
+        h('div', { style: { marginTop: 12, padding: '14px 15px', borderRadius: 16, background: 'var(--surface)', border: '1px solid var(--line)', fontSize: 14, lineHeight: 1.6, whiteSpace: 'pre-wrap', maxHeight: 280, overflow: 'auto', textWrap: 'pretty' } }, REGRA_CANCEL[c.disc] || REGRA_CANCEL.Surf),
+        h('div', { style: { marginTop: 18 } }, this.btn('Fechar', close, 'ghost')));
+    }
+
+    if (s.sheet === 'regrasEscola') content = this.dSheetRegrasEscola(close);
+
+    if (s.sheet === 'motivo') {
+      content = h('div', null,
+        h('div', { style: { width: 56, height: 56, borderRadius: 18, background: 'var(--bad-t)', color: 'var(--bad)', display: 'flex', alignItems: 'center', justifyContent: 'center' } }, this.ic('x-circle', 28)),
+        h('div', { style: { fontFamily: BC, fontSize: 30, fontWeight: 700, textTransform: 'uppercase', lineHeight: 1, marginTop: 16 } }, 'Pedido recusado'),
+        h('div', { style: { fontSize: 12.5, color: 'var(--ink2)', marginTop: 6 } }, c.disc + ' · ' + c.nivel + ' · ' + c.hora),
+        h('div', { style: { fontSize: 11, fontWeight: 800, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--ink2)', margin: '20px 0 8px' } }, 'Motivo do Rocha'),
+        h('div', { style: { padding: '14px 15px', borderRadius: 16, background: 'var(--surface)', border: '1px solid var(--line)', fontSize: 14, lineHeight: 1.6, textWrap: 'pretty' } }, 'Esta sessão é de nível avançado e ainda não fizeste aulas de intermédio connosco. Sugiro a aula de iniciação de sábado às 09:00 — depois de duas sessões voltamos a falar.'),
+        h('div', { style: { marginTop: 18 } }, this.btn('Fechar', close, 'ghost')));
+    }
+
+    const terco = s.sheet === 'alunos';
+
+    return h('div', { style: { position: 'absolute', inset: 0, zIndex: 20 } },
+      h('div', { onClick: close, style: { position: 'absolute', inset: 0, background: 'rgba(24,16,10,.45)', backdropFilter: 'blur(2px)', animation: 'fadein .2s ease' } }),
+      h('div', { style: { position: 'absolute', left: 0, right: 0, bottom: 0, height: terco ? '33.333%' : 'auto', boxSizing: 'border-box', display: terco ? 'flex' : 'block', flexDirection: 'column', background: 'var(--page)', borderRadius: '28px 28px 0 0', padding: terco ? '14px 20px 20px' : '14px 20px 34px', animation: 'rise .32s cubic-bezier(.32,.72,0,1)', boxShadow: '0 -12px 40px rgba(0,0,0,.2)' } },
+        h('div', { style: { width: 44, height: 4, borderRadius: 9999, background: 'var(--line)', margin: '0 auto 18px', flex: 'none' } }),
+        terco ? h('div', { style: { flex: 1, minHeight: 0 } }, content) : content));
+  }
+
+  toastView() {
+    const t = this.state.toast;
+    if (!t) return null;
+    const tone = { ok: ['var(--ok-t)', 'var(--ok)', 'check-circle'], bad: ['var(--bad-t)', 'var(--bad)', 'x-circle'], info: ['var(--info-t)', 'var(--lagoon)', 'info'] }[t.tone] || ['var(--ok-t)', 'var(--ok)', 'check-circle'];
+    return h('div', { style: { position: 'absolute', left: 16, right: 16, bottom: 102, zIndex: 30, display: 'flex', alignItems: 'center', gap: 11, padding: '13px 15px', borderRadius: 18, background: 'var(--surface)', border: '1px solid var(--line)', boxShadow: '0 12px 30px rgba(0,0,0,.18)', animation: 'rise .3s cubic-bezier(.32,.72,0,1)' } },
+      h('div', { style: { width: 32, height: 32, borderRadius: 9999, background: tone[0], color: tone[1], display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' } }, this.ic(tone[2], 17)),
+      h('div', { style: { fontSize: 13.5, fontWeight: 700, lineHeight: 1.35 } }, t.msg));
+  }
+
+  regrasLerScreen() {
+    const lista = REGRAS_ESCOLA;
+    return h('div', { style: { padding: '14px 16px 120px', animation: 'fadein .3s ease' } },
+      h('div', { style: { display: 'flex', alignItems: 'center', gap: 12 } },
+        h('button', { onClick: () => this.go('perfil'), 'aria-label': 'Voltar', style: { width: 44, height: 44, borderRadius: 9999, border: 'none', background: 'var(--surface)', color: 'var(--ink)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px var(--shadow)', flex: 'none' } }, this.ic('chevron-left', 22))),
+      h('div', { style: { fontFamily: BC, fontSize: 40, fontWeight: 700, textTransform: 'uppercase', lineHeight: 1, marginTop: 20 } }, 'Regras da escola'),
+      h('div', { style: { fontSize: 14.5, lineHeight: 1.6, color: 'var(--ink2)', marginTop: 10 } }, 'Poucas e simples — para que as aulas corram bem para todos.'),
+      h('div', { style: { marginTop: 20, display: 'flex', flexDirection: 'column', borderRadius: 20, background: 'var(--surface)', border: '1px solid var(--line)', padding: '4px 16px' } },
+        lista.map((r, i) => h('div', { key: i, style: { display: 'flex', gap: 14, padding: '14px 0', borderBottom: i < lista.length - 1 ? '1px solid var(--line)' : 'none' } },
+          h('span', { style: { width: 26, flex: 'none', fontFamily: BC, fontSize: 22, fontWeight: 700, color: 'var(--sun)', lineHeight: 1.1 } }, String(i + 1).padStart(2, '0')),
+          h('span', { style: { flex: 1, display: 'flex', flexDirection: 'column', gap: 3 } },
+            h('span', { style: { fontSize: 14.5, fontWeight: 800 } }, r.t),
+            h('span', { style: { fontSize: 13, lineHeight: 1.55, color: 'var(--ink2)' } }, r.d))))));
+  }
+
+  escolaScreen() {
+    const s = this.state;
+    const filtro = s.filtroPessoas || 'Todos';
+    const busca = s.busca || '';
+    const mapa = { Alunos: 'Aluno', Instrutores: 'Instrutor', Admins: 'Admin' };
+    const lista = PESSOAS.filter(p => p.n !== 'Ana Silva')
+      .filter(p => filtro === 'Todos' || p.papel === mapa[filtro])
+      .filter(p => !busca || p.n.toLowerCase().indexOf(busca.toLowerCase()) >= 0);
+    const corPapel = papel => papel === 'Admin' ? { background: 'var(--grape)', color: '#fff' } : papel === 'Instrutor' ? { background: 'var(--info-t)', color: 'var(--lagoon)' } : { background: 'var(--sand)', color: 'var(--ink)' };
+    return h('div', { style: { paddingBottom: 30, animation: 'fadein .3s ease' } },
+      h('div', { style: { padding: '18px 20px 14px' } },
+        h('div', { style: { fontSize: 11, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--ink2)' } }, (PESSOAS.length - 1) + ' pessoas na escola'),
+        h('div', { style: { fontFamily: BC, fontSize: 34, fontWeight: 700, textTransform: 'uppercase', lineHeight: 1, marginTop: 4 } }, 'Escola')),
+      h('div', { style: { padding: '0 20px 12px' } },
+        h('div', { style: { display: 'flex', alignItems: 'center', gap: 9, padding: '12px 14px', borderRadius: 16, background: 'var(--input)', border: '1px solid var(--input-line)' } },
+          h('span', { style: { color: 'var(--ink3)', display: 'flex' } }, this.ic('search', 17)),
+          h('input', {
+            value: busca, onChange: e => this.setState({ busca: e.target.value }), placeholder: 'Procurar pessoa',
+            style: { flex: 1, border: 'none', outline: 'none', background: 'transparent', color: 'var(--ink)', fontFamily: "'Nunito',sans-serif", fontSize: 14, fontWeight: 600 }
+          }))),
+      h('div', { style: { padding: '0 20px 14px' } }, this.segControl(['Todos', 'Alunos', 'Instrutores', 'Admins'], filtro, v => this.setState({ filtroPessoas: v }), true)),
+      h('div', { style: { padding: '0 20px' } },
+        lista.length ? h('div', { style: { borderRadius: 20, background: 'var(--surface)', border: '1px solid var(--line)', overflow: 'hidden' } },
+          lista.map((p, i) => h('div', {
+            key: p.id, onClick: () => this.setState({ pessoa: { nome: p.n, img: p.img, role: p.papel, wa: p.pub ? p.wa : null } }),
+            style: { display: 'flex', alignItems: 'center', gap: 11, padding: '12px 15px', borderTop: i ? '1px solid var(--line)' : 'none', cursor: 'pointer' }
+          },
+            h('img', { src: 'https://i.pravatar.cc/120?img=' + p.img, alt: p.n, style: { width: 38, height: 38, borderRadius: 9999, objectFit: 'cover', flex: 'none', background: 'var(--sky)' } }),
+            h('div', { style: { flex: 1, minWidth: 0 } },
+              h('div', { style: { fontSize: 14, fontWeight: 700 } }, p.n),
+              h('div', { style: { fontSize: 11.5, color: 'var(--ink2)', marginTop: 2 } }, p.papel === 'Aluno' ? p.aulas + ' aulas · desde ' + p.desde : p.papel === 'Instrutor' ? p.aulas + ' aulas dadas' : 'Dono da escola')),
+            this.chip(p.papel, { style: corPapel(p.papel) }),
+            h('span', { style: { color: 'var(--ink3)', display: 'flex' } }, this.ic('chevron-right', 17)))))
+          : h('div', { style: { padding: '28px 18px', textAlign: 'center', fontSize: 13, color: 'var(--ink2)', border: '1px dashed var(--input-line)', borderRadius: 20 } }, 'Ninguém encontrado.')));
+  }
+
+  tabBarView() {
+    const s = this.state;
+    const tabs = [['calendar-days', 'Agenda', 'agenda'], ['waves', 'As minhas', 'minhas'], ['surfboard', 'Escola', 'escola'], ['user', 'Perfil', 'perfil']];
+    return h('div', { style: { display: 'flex', padding: '10px 8px 16px', background: 'var(--surface)', borderTop: '1px solid var(--line)', boxShadow: '0 -6px 22px var(--shadow)', position: 'relative', zIndex: 10 } },
+      tabs.map(([icon, label, key]) => {
+        const on = s.screen === key || (key === 'agenda' && (s.screen === 'detalhe' || s.screen === 'avaliar' || s.screen === 'fotos')) || (key === 'perfil' && s.screen === 'regrasLer');
+        return h('div', {
+          key: key, onClick: () => this.go(key),
+          style: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, cursor: 'pointer', color: on ? 'var(--grape)' : 'var(--ink2)' }
+        },
+          h('div', { style: { position: 'relative', display: 'flex' } }, this.ic(icon, 22),
+            key === 'alertas' && this.unreadCount() ? h('span', { style: { position: 'absolute', top: -3, right: -5, width: 9, height: 9, borderRadius: 9999, background: 'var(--sun)', border: '2px solid var(--surface)' } }) : null),
+          h('span', { style: { fontSize: 10.5, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase' } }, label),
+          h('span', { style: { width: 16, height: 3, borderRadius: 9999, background: on ? 'var(--sun)' : 'transparent' } }));
+      }));
+  }
+
+  unreadCount() { const l = this.state.lidas; return this.notas().filter(n => !l[n.id]).length; }
+
+  monthCalendarView() {
+    const s = this.state;
+    const MESES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+    const base = new Date(2026, 7 + s.mes, 1);
+    const ano = base.getFullYear(), mesIdx = base.getMonth();
+    const offset = (new Date(ano, mesIdx, 1).getDay() + 6) % 7;
+    const total = new Date(ano, mesIdx + 1, 0).getDate();
+    const dias = [];
+    for (let d = 1; d <= total; d++) dias.push(d);
+    const comAula = mesIdx === 7 && s.mes === 0 ? CLASSES.map(c => 15 + c.dia) : [];
+    const navBtn = (icon, delta) => h('button', {
+      onClick: () => this.setState({ mes: s.mes + delta }),
+      style: { width: 36, height: 36, borderRadius: 9999, border: 'none', background: 'var(--dim)', color: 'var(--ink)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flex: 'none' }
+    }, this.ic(icon, 19));
+
+    return h('div', { style: { padding: '10px 8px 6px', animation: 'rise .22s cubic-bezier(.32,.72,0,1)' } },
+      h('div', { style: { padding: '14px 16px 16px', borderRadius: 20, background: 'var(--surface)', border: '1px solid var(--line)' } },
+        h('div', { style: { display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 } },
+          navBtn('chevron-left', -1),
+          h('span', { style: { flex: 1, textAlign: 'center', fontFamily: BC, fontSize: 23, fontWeight: 700, textTransform: 'uppercase', lineHeight: 1 } }, MESES[mesIdx] + ' ' + ano),
+          navBtn('chevron-right', 1)),
+        h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 3, marginBottom: 5 } },
+          ['S', 'T', 'Q', 'Q', 'S', 'S', 'D'].map((l, i) => h('span', { key: i, style: { textAlign: 'center', fontSize: 10.5, fontWeight: 800, color: 'var(--ink3)' } }, l))),
+        h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 3 } },
+          Array.from({ length: offset }).map((_, i) => h('span', { key: 'e' + i })).concat(
+            dias.map(d => {
+              const tem = comAula.indexOf(d) >= 0;
+              const sel = s.mes === 0 && mesIdx === 7 && d === 15 + s.dia;
+              return h('button', {
+                key: d, disabled: !tem,
+                onClick: () => this.setState({ dia: d - 15, calAberto: false }),
+                style: { height: 38, borderRadius: 11, border: 'none', background: sel ? 'var(--grape)' : tem ? 'var(--info-t)' : 'transparent', color: sel ? '#fff' : tem ? 'var(--ink)' : 'var(--ink3)', fontFamily: "'Nunito',sans-serif", fontSize: 13, fontWeight: tem ? 800 : 600, cursor: tem ? 'pointer' : 'default', position: 'relative' }
+              }, d, tem && !sel ? h('span', { style: { position: 'absolute', bottom: 5, left: '50%', transform: 'translateX(-50%)', width: 4, height: 4, borderRadius: 9999, background: 'var(--lagoon)' } }) : null);
+            }))),
+        h('div', { style: { display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, fontSize: 11.5, color: 'var(--ink2)' } },
+          h('span', { style: { width: 6, height: 6, borderRadius: 9999, background: 'var(--lagoon)' } }), 'Dias com aula')));
+  }
+
+  // ── Seletor de data (variante 1c) ────────────────────
+  pkState() { return this.state.pk || { mode: 'semana', ref: A_HOJE, sel: A_HOJE }; }
+  pkSet(patch) {
+    const pk = Object.assign({}, this.pkState(), patch);
+    const extra = { pk: pk };
+    if (patch.sel) { extra.semana = pkSemana(pk.sel); extra.dia = (pk.sel.getDay() + 6) % 7; }
+    this.setState(extra);
+  }
+  pkAulas(d) { return pkSemana(d) !== 0 ? 0 : Math.min(3, CLASSES.filter(c => c.dia === (d.getDay() + 6) % 7).length); }
+  pkLegenda(v) {
+    if (v.mode === 'mes') return PK_MESES[v.ref.getMonth()] + ' ' + v.ref.getFullYear();
+    const i = pkIni(v.ref), f = pkAdd(i, 6);
+    return i.getMonth() === f.getMonth() ? i.getDate() + ' – ' + f.getDate() + ' ' + PK_MES_C[f.getMonth()] : i.getDate() + ' ' + PK_MES_C[i.getMonth()] + ' – ' + f.getDate() + ' ' + PK_MES_C[f.getMonth()];
+  }
+  pkDots(n, on) {
+    return h('div', { style: { height: 4, marginTop: 5, display: 'flex', gap: 2, justifyContent: 'center' } },
+      Array.from({ length: n }).map((_, i) => h('span', { key: i, style: { width: 4, height: 4, borderRadius: 9999, background: on ? 'rgba(255,255,255,.85)' : 'var(--lagoon)' } })));
+  }
+  pkGen(v, set, aulas, o) {
+    o = o || {};
+    const aberto = v.mode === 'mes';
+    const nav = dir => set({ ref: aberto ? new Date(v.ref.getFullYear(), v.ref.getMonth() + dir, 1) : pkAdd(v.ref, 7 * dir) });
+    const noMes = d => d && d.getMonth() === v.ref.getMonth() && d.getFullYear() === v.ref.getFullYear();
+    const toggle = () => aberto
+      ? set({ mode: 'semana', ref: noMes(v.sel) ? v.sel : new Date(v.ref.getFullYear(), v.ref.getMonth(), 1) })
+      : set({ mode: 'mes', ref: new Date(v.ref.getFullYear(), v.ref.getMonth(), 1) });
+    const escolher = d => {
+      if (o.limpavel && v.sel && pkSame(d, v.sel)) return set({ sel: null });
+      if (aberto && o.fechaMes) return set({ sel: d, ref: d, mode: 'semana' });
+      set(aberto && !noMes(d) ? { sel: d, ref: new Date(d.getFullYear(), d.getMonth(), 1) } : { sel: d });
+    };
+    const seta = dir => h('button', { onClick: () => nav(dir), 'aria-label': dir < 0 ? 'Anterior' : 'Seguinte', style: { width: 36, height: 36, borderRadius: 9999, border: '1px solid var(--line)', background: 'var(--surface)', color: 'var(--ink)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flex: 'none', padding: 0, boxShadow: '0 2px 6px var(--shadow)' } }, this.ic(dir < 0 ? 'chevron-left' : 'chevron-right', 18));
+    let corpo;
+    if (!aberto) {
+      const i0 = pkIni(v.ref);
+      corpo = h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(7,minmax(0,1fr))', gap: 4 } },
+        Array.from({ length: 7 }).map((_, i) => {
+          const d = pkAdd(i0, i), on = v.sel && pkSame(d, v.sel), hj = pkSame(d, A_HOJE);
+          return h('div', { key: i, onClick: () => escolher(d), style: { padding: '9px 0', borderRadius: 16, textAlign: 'center', cursor: 'pointer', background: on ? 'var(--grape)' : 'transparent', color: on ? '#fff' : 'var(--ink2)', boxShadow: on ? '0 6px 16px var(--shadow)' : 'none', transition: 'background .2s cubic-bezier(.32,.72,0,1), color .2s ease' } },
+            h('div', { style: { fontSize: 10, fontWeight: 800, letterSpacing: '.08em', textTransform: 'uppercase' } }, PK_DOW[d.getDay()]),
+            h('div', { style: { fontFamily: BC, fontSize: 22, fontWeight: 700, lineHeight: 1, marginTop: 4, color: on ? '#fff' : hj ? 'var(--sun)' : 'var(--ink)' } }, d.getDate()),
+            this.pkDots(aulas(d), on));
+        }));
+    } else {
+      const i0 = pkIni(new Date(v.ref.getFullYear(), v.ref.getMonth(), 1));
+      const u = new Date(v.ref.getFullYear(), v.ref.getMonth() + 1, 0);
+      const n = Math.ceil((Math.round((u - i0) / 86400000) + 1) / 7) * 7;
+      corpo = h('div', { style: { animation: 'rise .22s cubic-bezier(.32,.72,0,1)' } },
+        h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(7,minmax(0,1fr))', marginBottom: 4 } },
+          ['S', 'T', 'Q', 'Q', 'S', 'S', 'D'].map((l, i) => h('div', { key: i, style: { textAlign: 'center', fontSize: 10, fontWeight: 800, letterSpacing: '.08em', color: 'var(--ink3)' } }, l))),
+        h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(7,minmax(0,1fr))', rowGap: 2 } },
+          Array.from({ length: n }).map((_, i) => {
+            const d = pkAdd(i0, i), fora = d.getMonth() !== v.ref.getMonth(), on = v.sel && pkSame(d, v.sel), hj = pkSame(d, A_HOJE);
+            return h('div', { key: i, onClick: () => escolher(d), style: { display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '3px 0 4px', cursor: 'pointer', opacity: fora ? .4 : 1 } },
+              h('div', { style: { width: 38, height: 38, borderRadius: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: on ? 'var(--grape)' : 'transparent', boxShadow: hj && !on ? 'inset 0 0 0 1.5px var(--sun)' : 'none', color: on ? '#fff' : hj ? 'var(--sun)' : 'var(--ink)', fontFamily: BC, fontSize: 19, fontWeight: 700 } }, d.getDate()),
+              this.pkDots(fora ? 0 : aulas(d), false));
+          })));
+    }
+    const verHoje = o.hoje && !(v.sel && pkSame(v.sel, A_HOJE) && (aberto ? noMes(A_HOJE) : pkSemana(v.ref) === 0));
+    return h('div', { style: { padding: o.pad != null ? o.pad : '0 10px' } },
+      h('div', { style: { display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 } },
+        seta(-1),
+        h('div', { style: { flex: 1, display: 'flex', justifyContent: 'center' } },
+          h('button', { onClick: toggle, style: { display: 'inline-flex', alignItems: 'center', gap: 7, padding: '7px 12px 7px 11px', borderRadius: 9999, border: '1px solid ' + (aberto ? 'var(--grape)' : 'var(--line)'), background: aberto ? 'var(--grape)' : 'var(--dim)', color: aberto ? '#fff' : 'var(--ink)', cursor: 'pointer', fontFamily: "'Nunito',sans-serif", fontSize: 12.5, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase' } },
+            this.ic('calendar', 15), this.pkLegenda(v), this.ic(aberto ? 'chevron-up' : 'chevron-down', 14))),
+        seta(1)),
+      h('div', { style: { padding: '0 4px' } }, corpo),
+      verHoje ? h('div', { style: { display: 'flex', justifyContent: 'flex-end', marginTop: 8, padding: '0 6px' } },
+        h('button', { onClick: () => set({ sel: A_HOJE, ref: A_HOJE, mode: 'semana' }), style: { border: 'none', padding: '5px 10px', borderRadius: 9999, background: 'var(--sand)', color: 'var(--ink)', fontFamily: "'Nunito',sans-serif", fontSize: 10.5, fontWeight: 800, letterSpacing: '.08em', textTransform: 'uppercase', cursor: 'pointer' } }, 'Hoje')) : null);
+  }
+  pickerView() { return this.pkGen(this.pkState(), p => this.pkSet(p), d => this.pkAulas(d), { fechaMes: true }); }
+
+  controlsView() {
+    const s = this.state;
+    const grp = (label, node) => h('div', { key: label, style: { display: 'flex', alignItems: 'center', gap: 12 } },
+      h('span', { style: { width: 78, flex: 'none', fontFamily: BC, fontSize: 14, fontWeight: 600, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--ink2)' } }, label),
+      h('div', { style: { flex: 1 } }, node));
+    return h('div', { style: { display: 'flex', flexDirection: 'column', gap: 10, padding: 16, borderRadius: 20, background: 'var(--surface)', border: '1px solid var(--line)' } },
+      grp('Sistema', this.segControl(['iOS', 'Android'], s.platform === 'ios' ? 'iOS' : 'Android', v => this.setState({ platform: v === 'iOS' ? 'ios' : 'android' }), true)),
+      grp('Telefone', this.segControl(['Claro', 'Escuro'], s.theme === 'dark' ? 'Escuro' : 'Claro', v => this.setState({ theme: v === 'Escuro' ? 'dark' : 'light' }), true)),
+      h('div', { style: { height: 1, background: 'var(--line)', margin: '4px 0' } }),
+      grp('Cabeçalho', this.segControl(['Herói', 'Semana'], s.headVar === 'B' ? 'Semana' : 'Herói', v => this.setState({ headVar: v === 'Semana' ? 'B' : 'A', screen: 'agenda' }), true)),
+      grp('Agenda', this.segControl(['Cartões', 'Horário'], s.homeVar === 'B' ? 'Horário' : 'Cartões', v => this.setState({ homeVar: v === 'Horário' ? 'B' : 'A', screen: 'agenda' }), true)),
+      grp('Ecrã', this.segControl(['Agenda', 'Detalhe'], s.screen === 'detalhe' ? 'Detalhe' : 'Agenda', v => this.setState({ screen: v === 'Detalhe' ? 'detalhe' : 'agenda' }), true)),
+      grp('Fotos', this.segControl(['Participei', 'Visitante'], s.fotoPapel === 'visitante' ? 'Visitante' : 'Participei', v => this.setState({ fotoPapel: v === 'Visitante' ? 'visitante' : null, fotoAberta: null }), true)));
+  }
+
+  avatarEditavel(src, alt, key) {
+    const foto = this.state.fotoPerfil || src;
+    const escolher = e => {
+      const f = e.target.files && e.target.files[0];
+      if (!f) return;
+      const r = new FileReader();
+      r.onload = () => { this.setState({ fotoPerfil: r.result }); this.flash('Foto de perfil atualizada', 'ok'); };
+      r.readAsDataURL(f);
+      e.target.value = '';
+    };
+    return h('div', { key: key || 'img', style: { position: 'relative', width: 112, height: 112, flex: 'none' } },
+      h('img', { src: foto, alt, style: { width: 112, height: 112, borderRadius: 9999, objectFit: 'cover', background: 'var(--sky)', boxShadow: '0 10px 26px var(--shadow)', display: 'block' } }),
+      h('label', { 'aria-label': 'Mudar foto de perfil', title: 'Mudar foto', style: { position: 'absolute', right: 0, bottom: 2, width: 32, height: 32, borderRadius: 9999, background: 'var(--sun)', color: '#fff', border: '2px solid var(--page)', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 6px 14px var(--shadow-sun)' } },
+        this.ic('camera', 15),
+        h('input', { type: 'file', accept: 'image/*', onChange: escolher, style: { display: 'none' } })));
+  }
+
+  temaEf() { const s = this.state; return s.temaPref && s.temaPref !== 'auto' ? s.temaPref : s.theme; }
+
+  renderVals() {
+    const s = this.state;
+    const doDia = s.semana !== 0 ? [] : CLASSES.filter(c => c.dia === s.dia).filter(c => s.disc === 'Todas' || c.disc === s.disc)
+      .slice().sort((a, b) => a.hora.localeCompare(b.hora));
+    const proxima = CLASSES.filter(c => s.estados[c.id] === 'aprovado')[0] || CLASSES[0];
+
+    const heroCard = h('div', {
+      onClick: () => this.go('detalhe', { aula: proxima.id }),
+      style: { position: 'relative', overflow: 'hidden', borderRadius: 24, padding: 18, background: 'linear-gradient(140deg,var(--grape),var(--lagoon))', color: '#fff', cursor: 'pointer', boxShadow: '0 12px 30px rgba(75,42,99,.28)' }
+    },
+      this.wave('rgba(255,255,255,.15)', 62, 13),
+      h('div', { style: { position: 'relative' } },
+        h('div', { style: { fontSize: 10.5, fontWeight: 800, letterSpacing: '.18em', textTransform: 'uppercase', opacity: .85 } }, 'A tua próxima sessão'),
+        h('div', { style: { fontFamily: BC, fontSize: 36, fontWeight: 700, textTransform: 'uppercase', lineHeight: 1, margin: '8px 0 6px' } }, proxima.nome),
+        h('div', { style: { fontSize: 13, opacity: .92 } }, DIA_LONGO[proxima.dia] + ' · ' + proxima.hora + ' · ' + proxima.local),
+        h('div', { style: { display: 'flex', alignItems: 'center', gap: 10, marginTop: 15 } },
+          h('span', { style: { display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 13px', borderRadius: 9999, background: 'rgba(255,255,255,.18)', fontSize: 11, fontWeight: 800, letterSpacing: '.1em', textTransform: 'uppercase' } }, this.ic('clock', 13), 'amanhã'),
+          h('span', { style: { marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 800, letterSpacing: '.08em', textTransform: 'uppercase' } }, 'Detalhe', this.ic('chevron-left', 15)))));
+
+    const semanaBase = 15 + s.semana * 7;
+
+    const arrow = (dir, onClick, dis) => h('button', {
+      onClick: dis ? null : onClick, disabled: !!dis,
+      style: {
+        width: 26, flex: 'none', alignSelf: 'stretch', border: 'none', background: 'transparent',
+        cursor: dis ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        color: dis ? 'var(--ink3)' : 'var(--ink2)', opacity: dis ? .4 : .7,
+        transform: dir === 'next' ? 'scaleX(-1)' : 'none'
+      }
+    }, this.ic('chevron-left', 15));
+
+    const dayStripB = h('div', null,
+      s.calAberto ? null : h('div', { style: { display: 'flex', alignItems: 'center', padding: '0 4px' } },
+        arrow('prev', () => this.setState({ semana: s.semana - 1 })),
+        h('div', { style: { flex: 1, display: 'flex', gap: 10 } },
+          DIAS.map(([d, n], i) => {
+            const on = s.dia === i;
+            return h('div', {
+              key: d, onClick: () => this.setState({ dia: i }),
+              style: { flex: 1, minWidth: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }
+            },
+              h('div', {
+                style: {
+                  width: '100%', padding: '9px 0 11px', boxSizing: 'border-box', borderRadius: 18,
+                  display: 'flex', flexDirection: 'column', alignItems: 'center',
+                  background: on ? 'var(--grape)' : 'transparent', color: on ? '#fff' : 'var(--ink2)',
+                  boxShadow: on ? '0 6px 16px var(--shadow)' : 'none',
+                  transition: 'background .2s cubic-bezier(.32,.72,0,1), color .2s ease'
+                }
+              },
+                h('span', { style: { fontSize: 10, fontWeight: 800, letterSpacing: '.1em', textTransform: 'uppercase' } }, d),
+                h('span', {
+                  style: {
+                    marginTop: 5, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontFamily: BC, fontSize: 24, fontWeight: 700, lineHeight: 1, color: 'inherit'
+                  }
+                }, semanaBase + i)));
+          })),
+        arrow('next', () => this.setState({ semana: s.semana + 1 }), s.semana >= 1)),
+      s.calAberto ? this.monthCalendarView() : null);
+
+    const calToggle = h('div', {
+      style: {
+        position: 'absolute', left: '50%', bottom: -14, transform: 'translateX(-50%)', zIndex: 5,
+        width: 64, height: 24, borderRadius: '0 0 22px 22px / 0 0 24px 24px', background: 'var(--band)',
+        display: 'flex', alignItems: 'flex-end', justifyContent: 'center', paddingBottom: 0
+      }
+    },
+      h('button', {
+        onClick: () => this.setState({ calAberto: !s.calAberto }),
+        style: {
+          width: 30, height: 30, border: 'none', borderRadius: 9999, background: 'transparent',
+          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ink2)',
+          transform: s.calAberto ? 'rotate(180deg)' : 'none', transition: 'transform .25s cubic-bezier(.32,.72,0,1)'
+        }
+      }, h('svg', { width: 22, height: 22, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2.4, strokeLinecap: 'round', strokeLinejoin: 'round' },
+        h('polyline', { points: '6 9 12 15 18 9' }))));
+
+    const dayStripA = h('div', { style: { display: 'flex', gap: 8, overflowX: 'auto', padding: '0 20px 4px' } },
+      DIAS.map(([d, n], i) => {
+        const on = s.dia === i;
+        const tem = CLASSES.filter(c => c.dia === i).length;
+        return h('div', {
+          key: d, onClick: () => this.setState({ dia: i }),
+          style: {
+            width: 54, flex: 'none', height: 68, borderRadius: 18, display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+            background: on ? 'var(--grape)' : 'var(--dim)', color: on ? '#fff' : 'var(--ink2)',
+            border: '1px solid ' + (on ? 'var(--grape)' : 'var(--line)'),
+            transition: 'all .2s cubic-bezier(.32,.72,0,1)'
+          }
+        },
+          h('span', { style: { fontSize: 10, fontWeight: 800, letterSpacing: '.1em', textTransform: 'uppercase' } }, d),
+          h('span', { style: { fontFamily: BC, fontSize: 24, fontWeight: 700, lineHeight: 1.05 } }, n),
+          h('span', { style: { width: 4, height: 4, borderRadius: 9999, marginTop: 4, background: on ? 'var(--sun)' : 'var(--tan)', opacity: tem ? 1 : 0 } }));
+      }));
+    const dayStrip = this.pickerView();
+
+    const classList = doDia.length
+      ? (s.homeVar === 'A' ? doDia.map(c => this.classCard(c)) : h('div', { style: { display: 'flex', flexDirection: 'column', gap: 4 } }, doDia.map(c => this.timelineRow(c))))
+      : h('div', { style: { padding: '42px 16px', textAlign: 'center', border: '1px dashed var(--input-line)', borderRadius: 20 } },
+          h('div', { style: { width: 48, height: 48, margin: '0 auto 12px', borderRadius: 9999, background: 'var(--info-t)', color: 'var(--lagoon)', display: 'flex', alignItems: 'center', justifyContent: 'center' } }, this.ic('waves', 24)),
+          h('div', { style: { fontFamily: BC, fontSize: 23, fontWeight: 700, textTransform: 'uppercase' } }, 'Mar chão'),
+          h('div', { style: { fontSize: 13, color: 'var(--ink2)', marginTop: 6, lineHeight: 1.55 } }, 'Sem aulas neste dia. O Rocha publica o horário ao domingo.'));
+
+    const bare = !!(this.props && this.props.bare);
+    return {
+      notBare: !bare, pagePad: bare ? '0' : '36px 40px 90px', pageMinH: bare ? '0' : '100vh', pageBg: bare ? 'transparent' : 'var(--page)',
+      theme: this.temaEf(), isDark: this.temaEf() === 'dark',
+      frameComp: s.platform === 'ios' ? 'IOSDevice' : 'AndroidDevice',
+      frameLabel: s.platform === 'ios' ? 'iOS' : 'Android',
+      isHeadA: s.headVar === 'A',
+      screenLabel: { agenda: 'Cabeçalho ' + (s.headVar === 'B' ? 'Semana' : 'Herói') + ' · Agenda ' + (s.homeVar === 'B' ? 'Horário' : 'Cartões'), detalhe: 'Detalhe da aula', avaliar: 'Avaliação da aula', fotos: 'Fotos da aula', minhas: 'As minhas aulas', alertas: 'Avisos', perfil: 'Perfil' , regrasLer: 'Regras da escola' }[s.screen],
+      topInset: h('div', { style: { height: s.platform === 'ios' ? 64 : 44, flex: 'none', background: s.screen === 'agenda' ? 'var(--band)' : 'transparent' } }),
+      isAgenda: s.screen === 'agenda', isDetalhe: s.screen === 'detalhe',
+      isMinhas: s.screen === 'minhas', isAlertas: s.screen === 'alertas', isPerfil: s.screen === 'perfil', isWhats: s.screen === 'whatsapp', isHist: s.screen === 'historico', isEscola: s.screen === 'escola', isRegrasLer: s.screen === 'regrasLer', regrasLer: s.screen === 'regrasLer' ? this.regrasLerScreen() : null,
+      controls: this.controlsView(),
+      heroCard, dayStrip, classList,
+      calToggle: null,
+      dayTitle: (() => { const d = this.pkState().sel; return ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'][d.getDay()] + ' ' + d.getDate() + ' ' + PK_MES_C[d.getMonth()].charAt(0).toUpperCase() + PK_MES_C[d.getMonth()].slice(1); })(), dayCount: doDia.length + (doDia.length === 1 ? ' aula' : ' aulas'),
+      unread: this.unreadCount() || '',
+      goAlertas: () => this.go('alertas'),
+      fab: this.fabView(),
+      avaliar: s.screen === 'avaliar' ? this.avaliarScreen() : null, isAvaliar: s.screen === 'avaliar',
+      fotosEcra: s.screen === 'fotos' ? this.fotosScreen() : null, isFotos: s.screen === 'fotos', fotoViewer: this.fotoViewer(),
+      detalhe: this.detalheScreen(), minhas: this.minhasScreen(), alertas: this.alertasScreen(), perfil: this.perfilScreen(),
+      whatsapp: this.whatsappScreen(), historico: this.historicoScreen(), escola: this.escolaScreen(), pessoa: this.pessoaModal(), sheet: this.sheetView(), toast: this.toastView(), tabBar: this.tabBarView()
+    };
+  }
+}
+</script>
+</body>
+</html>

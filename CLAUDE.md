@@ -33,6 +33,12 @@ Mobile component tests (Jest + `jest-expo` + React Native Testing Library), from
 - `npm test`: all tests. `npx jest src/modules/auth/components/auth`: one folder or file. Add `-t "<name>"` to run a single test
 - Tests sit next to the component as `<name>.component.test.tsx` and run in English (US) by default (`jest.setup.ts`). `jest.setup.ts` also mocks the native pieces (localization, reanimated, safe-area, the bottom sheet). In RNTL 14 `render` and `userEvent` are async, so `await` them.
 
+Designs (`.docs/designs`): the `.html` files are edited through their readable sources in `.docs/designs/src/<name>/` (assets shared by every file are in `src/_shared/`), never by hand.
+
+- `node .docs/designs/scripts/pack.mjs [<name>]`: sources → `.html`. `--check` exits 1 naming any `.html` that doesn't match its sources
+- `node .docs/designs/scripts/unpack.mjs [<name>]`: `.html` → sources (only to import a new Claude Design export)
+- `node --test .docs/designs/scripts/*.test.mjs`: tests of the scripts
+
 Spec skills (`.claude/skills/spec-*`): after changing one of them or the framework bundled in `spec-init/assets/`, run their evals with `node .claude/evals/spec-workflow/run.mjs` (see its README; it runs `claude -p`, so it costs tokens).
 
 Backend + PostgreSQL in Docker, from `apps/backend`: `docker compose up --build`. The compose file reads its credentials from `apps/backend/.env` (`DATABASE_HOST/PORT/USER/PASSWORD/NAME`) and points the backend at the `postgres` service. Postgres is also published on `DATABASE_PORT`, so `npm run dev` on the host can use it with `DATABASE_HOST=127.0.0.1` (not `localhost`: on macOS the name lookup of a new connection sometimes hangs for 5 s, which times out e2e tests).

@@ -231,7 +231,7 @@ shared between mobile and web, the phone frame and the mock UI pieces.
 
 ### Designs (`.docs/designs`)
 
-- [ ] **T-01** — Write `.docs/designs/scripts/unpack.mjs` (an `.html` → `src/<name>/`: the template with
+- [x] **T-01** — Write `.docs/designs/scripts/unpack.mjs` (an `.html` → `src/<name>/`: the template with
   asset UUIDs replaced by readable file names, the prototype pages, the `.jsx` frames and the file's own
   images; assets shared by every file into `src/_shared/`, de-duplicated by content) and
   `.docs/designs/scripts/pack.mjs` (sources → `.html`, every file or one by name, with `--check` comparing the
@@ -242,6 +242,15 @@ shared between mobile and web, the phone frame and the mock UI pieces.
   files; add the commands to `CLAUDE.md` (a "Designs" line under Commands). Covers: ER-01 · Done when:
   `node --test .docs/designs/scripts/*.test.mjs` passes, `node .docs/designs/scripts/pack.mjs --check` exits 0,
   and each repacked `.html` opens in a browser showing the same canvas as before.
+  > ✅ 2026-10-28 14:10 — `unpack.mjs`/`pack.mjs` (+ shared `bundle.mjs`) written; the six files unpacked into
+  > `src/<name>/{shell.html,template.html,bundle.json,assets}` with `asset://<file>` in place of UUIDs and shared
+  > assets (fonts, React, Babel, flags, dc-runtime, iOS/Android frames) de-duplicated in `src/_shared/`; each
+  > unpack verifies its own rebuild; all six repacked; `--check` compares the decoded content (not the gzip bytes);
+  > files: `.docs/designs/scripts/{bundle,pack,unpack}.mjs`, `.docs/designs/scripts/pack.test.mjs`,
+  > `.docs/designs/src/**`, `.docs/designs/{admin-app,auth-flow,design-system,empty-and-error-states,instructor-app,student-app}.html`,
+  > `CLAUDE.md`; verified: `node --test .docs/designs/scripts/*.test.mjs` (7 passed),
+  > `node .docs/designs/scripts/pack.mjs --check` (6 match, exit 0), design-system.html and student-app.html
+  > opened in the browser pane and render their canvas; deviations: `--root <dir>` option added for the tests
 
 - [ ] **T-02** — Bring sections 01–05 of `.docs/designs/src/design-system/` in line with the inventory
   (DS-01-01 to DS-05-03): pt-BR copy from the app's messages, the tokens' current values, the app's icon glyphs

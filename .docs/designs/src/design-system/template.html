@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="asset://dc-runtime.js"></script>
+</head>
+
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<style>/* vietnamese */
+@font-face {
+  font-family: 'Barlow Condensed';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("asset://font-bc42ba6f.woff2") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Barlow Condensed';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("asset://font-ed8618e8.woff2") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Barlow Condensed';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("asset://font-0e2a4081.woff2") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Barlow Condensed';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("asset://font-864c709d.woff2") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Barlow Condensed';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("asset://font-f8ec026d.woff2") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Barlow Condensed';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("asset://font-31ff5e6e.woff2") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Barlow Condensed';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("asset://font-50c25f32.woff2") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Barlow Condensed';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("asset://font-a2f92ada.woff2") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Barlow Condensed';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("asset://font-5bc49d41.woff2") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Barlow Condensed';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("asset://font-960aaed3.woff2") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Barlow Condensed';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("asset://font-0c165565.woff2") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Barlow Condensed';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("asset://font-e3e520cb.woff2") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("asset://font-2d06f2c3.woff2") format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("asset://font-b63651df.woff2") format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("asset://font-d107f726.woff2") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("asset://font-511ce967.woff2") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("asset://font-20fc9b6f.woff2") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("asset://font-2d06f2c3.woff2") format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("asset://font-b63651df.woff2") format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("asset://font-d107f726.woff2") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("asset://font-511ce967.woff2") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("asset://font-20fc9b6f.woff2") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("asset://font-2d06f2c3.woff2") format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("asset://font-b63651df.woff2") format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("asset://font-d107f726.woff2") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("asset://font-511ce967.woff2") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("asset://font-20fc9b6f.woff2") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url("asset://font-2d06f2c3.woff2") format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url("asset://font-b63651df.woff2") format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url("asset://font-d107f726.woff2") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url("asset://font-511ce967.woff2") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url("asset://font-20fc9b6f.woff2") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+</style>
+<script src="asset://icons.js"></script>
+<style>
+body{margin:0;background:#FDF8F3;-webkit-font-smoothing:antialiased}
+a{color:#21837F}a:hover{color:#F0742B}
+[data-theme]{
+--page:#FDF8F3;--surface:#FEFCF9;--dim:rgba(245,230,211,.45);--sand:#F5E6D3;
+--ink:#3D2E1F;--ink2:#6B5744;--ink3:#B8A99A;
+--grape:#4B2A63;--sun:#F0742B;--sun-2:#D95F1B;--lagoon:#21837F;--sky:#7BA7BC;--tan:#D4A574;
+--line:rgba(212,165,116,.28);--input:#FFFFFF;--input-line:#E3D3BC;
+--ok:#4CAF7D;--ok-t:rgba(76,175,125,.15);--bad:#D4574A;--bad-t:rgba(212,87,74,.14);
+--warn:#E8B44A;--warn-t:rgba(232,180,74,.16);--info-t:rgba(33,131,127,.13);
+--shadow:rgba(61,46,31,.10);--shadow-sun:rgba(240,116,43,.28);
+}
+[data-theme="dark"]{
+--page:#161B27;--surface:#212736;--dim:rgba(46,52,68,.55);--sand:#2E3444;
+--ink:#F0E6D8;--ink2:#9B8E7E;--ink3:#5A5248;
+--grape:#7A4E9B;--sun:#F58A45;--sun-2:#E07330;--lagoon:#3FA6A0;--sky:#8BB8CC;--tan:#C49A6C;
+--line:rgba(196,154,108,.14);--input:#1B2130;--input-line:#3E4555;
+--ok:#5BC48A;--ok-t:rgba(91,196,138,.16);--bad:#E8706A;--bad-t:rgba(232,112,106,.16);
+--warn:#F0C45A;--warn-t:rgba(240,196,90,.16);--info-t:rgba(63,166,160,.16);
+--shadow:rgba(0,0,0,.4);--shadow-sun:rgba(245,138,69,.3);
+}
+</style>
+</helmet>
+
+<div data-theme="{{ theme }}" style="min-height:100vh;background:var(--page);color:var(--ink);font-family:'Nunito',system-ui,sans-serif;transition:background-color .3s ease,color .3s ease">
+
+<header style="max-width:1120px;margin:0 auto;padding:56px 32px 32px;display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap">
+<div style="min-width:0">
+<div style="font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:14px;letter-spacing:.22em;text-transform:uppercase;color:var(--ink2);margin-bottom:12px">Rocha's Surf School · Aluno · Instrutor · Admin</div>
+<h1 style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:clamp(52px,8vw,84px);line-height:.9;margin:0;text-transform:uppercase">Sistema<br>de design</h1>
+<p style="margin:16px 0 0;max-width:560px;font-size:15.5px;line-height:1.6;color:var(--ink2);text-wrap:pretty">Os tokens, a tipografia e os componentes usados nas três apps. As três partilham a mesma linguagem visual — mudam apenas os separadores e as permissões.</p>
+</div>
+<button sc-camel-on-click="{{ toggleTheme }}" style="display:flex;align-items:center;gap:9px;height:44px;padding:0 18px;border-radius:9999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-family:'Nunito',sans-serif;font-weight:800;font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;box-shadow:0 3px 12px var(--shadow)"><i data-lucide="{{ themeIcon }}" width="17" height="17"></i>{{ themeLabel }}</button>
+</header>
+
+<!-- 01 Cor -->
+<section style="max-width:1120px;margin:0 auto;padding:32px 32px 0">
+<div style="display:flex;align-items:baseline;gap:16px;margin-bottom:6px"><h2 style="font-family:'Barlow Condensed',sans-serif;font-size:34px;font-weight:700;text-transform:uppercase;margin:0">01 — Cor</h2><div style="flex:1;height:1px;background:var(--line)"></div></div>
+<p style="margin:0 0 22px;font-size:14px;line-height:1.55;color:var(--ink2);max-width:640px;text-wrap:pretty">Três cores de marca: <strong style="color:var(--sun)">sol</strong> para ações, <strong style="color:var(--grape)">uva</strong> para destaque e seleção, <strong style="color:var(--lagoon)">lagoa</strong> para surf e informação. O resto é areia e tinta.</p>
+<sc-for list="{{ grupos }}" as="g" hint-placeholder-count="3">
+<div style="margin-bottom:24px">
+<div style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);margin-bottom:10px">{{ g.nome }}</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px">
+<sc-for list="{{ g.cores }}" as="c" hint-placeholder-count="5">
+<div style="border-radius:16px;overflow:hidden;background:var(--surface);border:1px solid var(--line)">
+<div style="height:72px;background:{{ c.v }};border-bottom:1px solid var(--line)"></div>
+<div style="padding:10px 12px 12px">
+<div style="font-size:13px;font-weight:800">{{ c.n }}</div>
+<div style="font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--ink2);margin-top:3px">{{ c.v }}</div>
+<div style="font-size:11.5px;color:var(--ink2);margin-top:6px;line-height:1.4">{{ c.u }}</div>
+</div>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-for>
+</section>
+
+<!-- 02 Tipografia -->
+<section style="max-width:1120px;margin:0 auto;padding:32px 32px 0">
+<div style="display:flex;align-items:baseline;gap:16px;margin-bottom:6px"><h2 style="font-family:'Barlow Condensed',sans-serif;font-size:34px;font-weight:700;text-transform:uppercase;margin:0">02 — Tipografia</h2><div style="flex:1;height:1px;background:var(--line)"></div></div>
+<p style="margin:0 0 22px;font-size:14px;line-height:1.55;color:var(--ink2);max-width:640px;text-wrap:pretty">Barlow Condensed (700, maiúsculas) para títulos, horas e números. Nunito para todo o texto corrido e para os rótulos em maiúsculas espaçadas.</p>
+<div style="border-radius:20px;background:var(--surface);border:1px solid var(--line);overflow:hidden">
+<div style="display:grid;grid-template-columns:minmax(120px,180px) minmax(0,1fr);gap:16px;align-items:center;padding:16px 20px;border-bottom:1px solid var(--line)"><div style="font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2)">Número KPI<br><span style="font-weight:600;letter-spacing:0;text-transform:none">BC 700 · 48–52</span></div><div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:52px;line-height:.9">86%</div></div>
+<div style="display:grid;grid-template-columns:minmax(120px,180px) minmax(0,1fr);gap:16px;align-items:center;padding:16px 20px;border-bottom:1px solid var(--line)"><div style="font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2)">Hora da aula<br><span style="font-weight:600;letter-spacing:0;text-transform:none">BC 700 · 38</span></div><div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:38px;line-height:1">09:00 – 10:30</div></div>
+<div style="display:grid;grid-template-columns:minmax(120px,180px) minmax(0,1fr);gap:16px;align-items:center;padding:16px 20px;border-bottom:1px solid var(--line)"><div style="font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2)">Título de ecrã<br><span style="font-weight:600;letter-spacing:0;text-transform:none">BC 700 · 34 (26 com voltar)</span></div><div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:34px;line-height:1;text-transform:uppercase">As minhas aulas</div></div>
+<div style="display:grid;grid-template-columns:minmax(120px,180px) minmax(0,1fr);gap:16px;align-items:center;padding:16px 20px;border-bottom:1px solid var(--line)"><div style="font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2)">Título de folha<br><span style="font-weight:600;letter-spacing:0;text-transform:none">BC 700 · 30</span></div><div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:30px;line-height:1;text-transform:uppercase">Ordenar aulas</div></div>
+<div style="display:grid;grid-template-columns:minmax(120px,180px) minmax(0,1fr);gap:16px;align-items:center;padding:16px 20px;border-bottom:1px solid var(--line)"><div style="font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2)">Corpo<br><span style="font-weight:600;letter-spacing:0;text-transform:none">Nunito 400 · 14.5 / 1.6</span></div><div style="font-size:14.5px;line-height:1.6;color:var(--ink2)">Poucas e simples — para que as aulas corram bem para todos.</div></div>
+<div style="display:grid;grid-template-columns:minmax(120px,180px) minmax(0,1fr);gap:16px;align-items:center;padding:16px 20px;border-bottom:1px solid var(--line)"><div style="font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2)">Linha de lista<br><span style="font-weight:600;letter-spacing:0;text-transform:none">Nunito 700 · 14 + 11.5</span></div><div><div style="font-size:14px;font-weight:700">Ocupação semanal</div><div style="font-size:11.5px;color:var(--ink2);margin-top:2px">Lugares ocupados e vagas por aula</div></div></div>
+<div style="display:grid;grid-template-columns:minmax(120px,180px) minmax(0,1fr);gap:16px;align-items:center;padding:16px 20px"><div style="font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2)">Rótulo de secção<br><span style="font-weight:600;letter-spacing:0;text-transform:none">Nunito 800 · 11 · +.1em</span></div><div style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2)">Sexta, 12 set</div></div>
+</div>
+</section>
+
+<!-- 03 Forma -->
+<section style="max-width:1120px;margin:0 auto;padding:32px 32px 0">
+<div style="display:flex;align-items:baseline;gap:16px;margin-bottom:6px"><h2 style="font-family:'Barlow Condensed',sans-serif;font-size:34px;font-weight:700;text-transform:uppercase;margin:0">03 — Forma e espaço</h2><div style="flex:1;height:1px;background:var(--line)"></div></div>
+<p style="margin:0 0 22px;font-size:14px;line-height:1.55;color:var(--ink2);max-width:640px;text-wrap:pretty">Margem de ecrã de 20px, 12px entre cartões, 22px entre grupos. Alvos de toque nunca abaixo de 44px.</p>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px">
+<div style="padding:18px;border-radius:20px;background:var(--surface);border:1px solid var(--line)">
+<div style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);margin-bottom:14px">Raios</div>
+<div style="display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap">
+<div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:52px;height:52px;border-radius:16px;background:var(--sand)"></div><span style="font-size:11px;color:var(--ink2)">16 · botão, input</span></div>
+<div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:52px;height:52px;border-radius:20px;background:var(--sand)"></div><span style="font-size:11px;color:var(--ink2)">20 · cartão</span></div>
+<div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:52px;height:52px;border-radius:28px 28px 0 0;background:var(--sand)"></div><span style="font-size:11px;color:var(--ink2)">28 · folha</span></div>
+<div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:52px;height:30px;border-radius:9999px;background:var(--sand)"></div><span style="font-size:11px;color:var(--ink2)">pílula</span></div>
+</div>
+</div>
+<div style="padding:18px;border-radius:20px;background:var(--surface);border:1px solid var(--line)">
+<div style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);margin-bottom:14px">Elevação</div>
+<div style="display:flex;gap:14px;flex-wrap:wrap">
+<div style="display:flex;flex-direction:column;align-items:center;gap:8px"><div style="width:64px;height:48px;border-radius:14px;background:var(--surface);box-shadow:0 2px 8px var(--shadow)"></div><span style="font-size:11px;color:var(--ink2)">Botão ícone</span></div>
+<div style="display:flex;flex-direction:column;align-items:center;gap:8px"><div style="width:64px;height:48px;border-radius:14px;background:var(--surface);box-shadow:0 3px 12px var(--shadow)"></div><span style="font-size:11px;color:var(--ink2)">Cartão</span></div>
+<div style="display:flex;flex-direction:column;align-items:center;gap:8px"><div style="width:64px;height:48px;border-radius:14px;background:var(--sun);box-shadow:0 8px 20px var(--shadow-sun)"></div><span style="font-size:11px;color:var(--ink2)">Primário</span></div>
+</div>
+</div>
+<div style="padding:18px;border-radius:20px;background:var(--surface);border:1px solid var(--line)">
+<div style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);margin-bottom:14px">Ícones · Lucide, traço 2</div>
+<div style="display:flex;gap:14px;flex-wrap:wrap;color:var(--ink)">
+<i data-lucide="waves" width="22" height="22"></i><i data-lucide="disc" width="22" height="22"></i><i data-lucide="map-pin" width="22" height="22"></i><i data-lucide="calendar-days" width="22" height="22"></i><i data-lucide="clock" width="22" height="22"></i><i data-lucide="users" width="22" height="22"></i><i data-lucide="bell" width="22" height="22"></i><i data-lucide="star" width="22" height="22"></i><i data-lucide="history" width="22" height="22"></i><i data-lucide="shield" width="22" height="22"></i>
+</div>
+<div style="font-size:11.5px;color:var(--ink2);margin-top:12px;line-height:1.5">22 na barra e cabeçalho · 18–19 em listas · 12–14 dentro de chips</div>
+</div>
+</div>
+</section>
+
+<!-- 04 Controlos -->
+<section style="max-width:1120px;margin:0 auto;padding:32px 32px 0">
+<div style="display:flex;align-items:baseline;gap:16px;margin-bottom:22px"><h2 style="font-family:'Barlow Condensed',sans-serif;font-size:34px;font-weight:700;text-transform:uppercase;margin:0">04 — Controlos</h2><div style="flex:1;height:1px;background:var(--line)"></div></div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px">
+
+<div style="padding:18px;border-radius:20px;background:var(--surface);border:1px solid var(--line);display:flex;flex-direction:column;gap:10px">
+<div style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);margin-bottom:4px">Botões</div>
+<button style="width:100%;padding:15px 18px;border-radius:16px;border:none;cursor:pointer;font-family:'Nunito',sans-serif;font-size:14.5px;font-weight:800;letter-spacing:.03em;display:flex;align-items:center;justify-content:center;gap:9px;background:var(--sun);color:#fff;box-shadow:0 8px 20px var(--shadow-sun)" style-hover="background:var(--sun-2)"><i data-lucide="plus" width="18" height="18"></i>Primário</button>
+<button style="width:100%;padding:15px 18px;border-radius:16px;border:none;cursor:pointer;font-family:'Nunito',sans-serif;font-size:14.5px;font-weight:800;letter-spacing:.03em;display:flex;align-items:center;justify-content:center;gap:9px;background:var(--grape);color:#fff">Escuro</button>
+<button style="width:100%;padding:15px 18px;border-radius:16px;border:1px solid var(--input-line);cursor:pointer;font-family:'Nunito',sans-serif;font-size:14.5px;font-weight:800;letter-spacing:.03em;display:flex;align-items:center;justify-content:center;gap:9px;background:transparent;color:var(--ink)">Contorno</button>
+<button style="width:100%;padding:15px 18px;border-radius:16px;border:none;cursor:pointer;font-family:'Nunito',sans-serif;font-size:14.5px;font-weight:800;letter-spacing:.03em;display:flex;align-items:center;justify-content:center;gap:9px;background:var(--dim);color:var(--ink2)">Discreto</button>
+<button style="width:100%;padding:15px 18px;border-radius:16px;border:none;cursor:pointer;font-family:'Nunito',sans-serif;font-size:14.5px;font-weight:800;letter-spacing:.03em;display:flex;align-items:center;justify-content:center;gap:9px;background:var(--bad);color:#fff"><i data-lucide="trash-2" width="18" height="18"></i>Perigo</button>
+</div>
+
+<div style="padding:18px;border-radius:20px;background:var(--surface);border:1px solid var(--line);display:flex;flex-direction:column;gap:18px">
+<div>
+<div style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);margin-bottom:10px">Botões de ícone · 44</div>
+<div style="display:flex;gap:10px">
+<button aria-label="Voltar" style="width:44px;height:44px;border-radius:9999px;border:none;background:var(--surface);color:var(--ink);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px var(--shadow)"><i data-lucide="chevron-left" width="22" height="22"></i></button>
+<button aria-label="Notificações" style="position:relative;width:44px;height:44px;border-radius:9999px;background:var(--surface);border:1px solid var(--line);color:var(--ink);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0"><i data-lucide="bell" width="21" height="21"></i><span style="position:absolute;top:4px;right:5px;min-width:16px;height:16px;padding:0 4px;box-sizing:border-box;border-radius:9999px;background:var(--bad);color:#fff;font-size:9.5px;font-weight:800;display:flex;align-items:center;justify-content:center;border:2px solid var(--page)">3</span></button>
+<button aria-label="Aulas anteriores" style="width:44px;height:44px;border-radius:9999px;background:var(--surface);border:1px solid var(--line);color:var(--ink);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0"><i data-lucide="history" width="21" height="21"></i></button>
+</div>
+</div>
+<div>
+<div style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);margin-bottom:10px">Controlo segmentado</div>
+<div style="display:flex;gap:4px;padding:4px;border-radius:9999px;background:var(--dim);border:1px solid var(--line)">
+<button style="flex:1;padding:9px 10px;border:none;border-radius:9999px;background:var(--surface);color:var(--ink);font-family:'Nunito',sans-serif;font-size:12.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;box-shadow:0 2px 6px var(--shadow)">Hoje</button>
+<button style="flex:1;padding:9px 10px;border:none;border-radius:9999px;background:transparent;color:var(--ink2);font-family:'Nunito',sans-serif;font-size:12.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase">Semana</button>
+<button style="flex:1;padding:9px 10px;border:none;border-radius:9999px;background:transparent;color:var(--ink2);font-family:'Nunito',sans-serif;font-size:12.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase">Mês</button>
+</div>
+</div>
+<div>
+<div style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);margin-bottom:10px">Pílulas de filtro</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<span style="display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 12px 0 10px;border-radius:9999px;border:1px solid var(--grape);background:var(--grape);color:#fff;font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:uppercase"><i data-lucide="waves" width="15" height="15"></i>Surf</span>
+<span style="display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 12px 0 10px;border-radius:9999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:uppercase"><i data-lucide="arrow-up-down" width="15" height="15"></i>Ordenar</span>
+</div>
+</div>
+</div>
+
+<div style="padding:18px;border-radius:20px;background:var(--surface);border:1px solid var(--line);display:flex;flex-direction:column;gap:14px">
+<div style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2)">Campos</div>
+<div>
+<div style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);margin-bottom:8px">Número de WhatsApp</div>
+<div style="display:flex;gap:8px">
+<div style="display:flex;align-items:center;gap:7px;padding:0 12px;border-radius:16px;border:1px solid var(--input-line);background:var(--input);color:var(--ink);font-size:15px;font-weight:700;flex:none"><img src="asset://image-12d4080b.png" alt="Brasil" style="width:22px;height:16px;border-radius:3px;object-fit:cover">+55<i data-lucide="chevron-down" width="15" height="15"></i></div>
+<div style="flex:1;min-width:0;padding:15px 16px;border-radius:16px;border:1px solid var(--input-line);background:var(--input);color:var(--ink);font-size:15px">11 91234 5678</div>
+</div>
+<div style="font-size:11.5px;color:var(--ink2);margin-top:7px">Indicativo do país à esquerda — +55 por defeito, com +351 e outros na lista.</div>
+</div>
+<div style="padding:15px 16px;border-radius:16px;border:2px solid var(--lagoon);background:var(--input);color:var(--ink3);font-size:15px">Foco · borda lagoa 2px</div>
+<div style="display:flex;align-items:center;gap:9px;padding:12px 14px;border-radius:16px;background:var(--input);border:1px solid var(--input-line)"><span style="color:var(--ink3);display:flex"><i data-lucide="search" width="17" height="17"></i></span><span style="font-size:14px;color:var(--ink3)">Procurar pessoas</span></div>
+<div style="display:flex;flex-direction:column;border-radius:16px;border:1px solid var(--line);overflow:hidden">
+<div style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-bottom:1px solid var(--line)"><span style="flex:1;font-size:14px;font-weight:800">Nota mais baixa</span><span style="width:22px;height:22px;border-radius:9999px;box-sizing:border-box;border:6px solid var(--grape)"></span></div>
+<div style="display:flex;align-items:center;gap:12px;padding:13px 14px"><span style="flex:1;font-size:14px;font-weight:600">Mais recentes</span><span style="width:22px;height:22px;border-radius:9999px;box-sizing:border-box;border:2px solid var(--input-line)"></span></div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- 05 Chips -->
+<section style="max-width:1120px;margin:0 auto;padding:32px 32px 0">
+<div style="display:flex;align-items:baseline;gap:16px;margin-bottom:6px"><h2 style="font-family:'Barlow Condensed',sans-serif;font-size:34px;font-weight:700;text-transform:uppercase;margin:0">05 — Chips</h2><div style="flex:1;height:1px;background:var(--line)"></div></div>
+<p style="margin:0 0 22px;font-size:14px;line-height:1.55;color:var(--ink2);max-width:640px">Nunito 800 · 10.5 · maiúsculas · pílula · ícone 12. Cor sólida para modalidade; tinta clara para nível e estado.</p>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px">
+<div style="padding:18px;border-radius:20px;background:var(--surface);border:1px solid var(--line)"><div style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);margin-bottom:12px">Modalidade e nível</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:9999px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--lagoon);color:#fff"><i data-lucide="waves" width="12" height="12"></i>Surf</span>
+<span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:9999px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--tan);color:#fff"><i data-lucide="disc" width="12" height="12"></i>Skate</span>
+<span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:9999px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--info-t);color:var(--lagoon)">Iniciante</span>
+<span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:9999px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--info-t);color:var(--lagoon)">Avançado</span>
+<span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:9999px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--info-t);color:var(--lagoon)">Expert</span>
+</div></div>
+<div style="padding:18px;border-radius:20px;background:var(--surface);border:1px solid var(--line)"><div style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);margin-bottom:12px">Estado da aula</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:9999px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--sun);color:#fff"><i data-lucide="clock" width="12" height="12"></i>Já a seguir</span>
+<span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:9999px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--sun);color:#fff"><i data-lucide="clock" width="12" height="12"></i>A decorrer</span>
+<span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:9999px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--warn-t);color:var(--ink)"><i data-lucide="user-x" width="12" height="12"></i>Sem instrutor</span>
+<span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:9999px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--info-t);color:var(--lagoon)"><i data-lucide="info" width="12" height="12"></i>Atualizada</span>
+<span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:9999px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--bad-t);color:var(--bad)"><i data-lucide="x-circle" width="12" height="12"></i>Cancelada</span>
+<span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:9999px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--bad-t);color:var(--bad)">Sem vagas</span>
+<span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:9999px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--dim);color:var(--ink2)"><i data-lucide="check" width="12" height="12"></i>Finalizada</span>
+</div></div>
+<div style="padding:18px;border-radius:20px;background:var(--surface);border:1px solid var(--line)"><div style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);margin-bottom:12px">Papel</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<span style="display:inline-flex;align-items:center;padding:4px 10px;border-radius:9999px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--grape);color:#fff">Admin</span>
+<span style="display:inline-flex;align-items:center;padding:4px 10px;border-radius:9999px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--info-t);color:var(--lagoon)">Instrutor</span>
+<span style="display:inline-flex;align-items:center;padding:4px 10px;border-radius:9999px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--dim);color:var(--ink2)">Aluno</span>
+<span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:9999px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--sand);color:var(--ink)">Trial</span>
+</div></div>
+<div style="padding:18px;border-radius:20px;background:var(--surface);border:1px solid var(--line);grid-column:1/-1"><div style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);margin-bottom:12px">Estado do pedido</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:9999px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--warn-t);color:var(--warn)"><i data-lucide="clock" width="12" height="12"></i>Pendente</span>
+<span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:9999px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--info-t);color:var(--lagoon)"><i data-lucide="clock" width="12" height="12"></i>Lista de espera</span>
+<span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:9999px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--ok-t);color:var(--ok)"><i data-lucide="check-circle" width="12" height="12"></i>Aprovado</span>
+<span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:9999px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--bad-t);color:var(--bad)"><i data-lucide="x-circle" width="12" height="12"></i>Recusado</span>
+<span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:9999px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--bad-t);color:var(--bad)"><i data-lucide="user-minus" width="12" height="12"></i>Retirado</span>
+<span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:9999px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--dim);color:var(--ink2)"><i data-lucide="calendar-x" width="12" height="12"></i>Cancelado</span>
+<span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:9999px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--dim);color:var(--ink2)"><i data-lucide="x" width="12" height="12"></i>Removido</span>
+<span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:9999px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--dim);color:var(--ink2)"><i data-lucide="clock" width="12" height="12"></i>Expirado</span>
+<span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:9999px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--bad-t);color:var(--bad)"><i data-lucide="x-circle" width="12" height="12"></i>Aula cancelada</span>
+</div>
+<div style="font-size:12px;color:var(--ink2);margin-top:10px;line-height:1.5">Amarelo à espera · lagoa em fila · verde dentro · vermelho decisão da escola · cinzento terminado pelo aluno ou pelo tempo.</div></div>
+</div>
+</section>
+
+<!-- 06 Item de aula -->
+<section style="max-width:1120px;margin:0 auto;padding:32px 32px 0">
+<div style="display:flex;align-items:baseline;gap:16px;margin-bottom:6px"><h2 style="font-family:'Barlow Condensed',sans-serif;font-size:34px;font-weight:700;text-transform:uppercase;margin:0">06 — Item de aula</h2><div style="flex:1;height:1px;background:var(--line)"></div></div>
+<p style="margin:0 0 22px;font-size:14px;line-height:1.55;color:var(--ink2);max-width:640px;text-wrap:pretty">O componente central das três apps — Agenda, As minhas aulas, Aulas anteriores e Ocupação semanal. Ordem fixa: chips → hora → local → ocupação → alunos. Quando cheia, “X/X vagas” passa a vermelho.</p>
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:16px;align-items:start">
+
+<div><div style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);margin-bottom:9px">Próxima aula · destaque</div>
+<div style="border-radius:20px;overflow:hidden;background:var(--grape);color:#fff;border:1px solid var(--grape);box-shadow:0 10px 26px var(--shadow)">
+<div style="padding:13px 14px 14px">
+<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px"><span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:9999px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--lagoon);color:#fff"><i data-lucide="waves" width="12" height="12"></i>Surf</span><span style="display:inline-flex;padding:4px 10px;border-radius:9999px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:rgba(255,255,255,.18);color:#fff">Iniciante</span><span style="margin-left:auto;display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:9999px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:rgba(255,255,255,.18);color:#fff"><i data-lucide="clock" width="12" height="12"></i>Começa em 30 min</span></div>
+<div style="font-family:'Barlow Condensed',sans-serif;font-size:38px;font-weight:700;line-height:1;margin-bottom:11px">09:00 – 10:30</div>
+<div style="margin-bottom:11px;display:flex"><span style="display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border-radius:9999px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);font-size:12.5px"><i data-lucide="map-pin" width="14" height="14"></i>Praia do Guincho</span></div>
+<div style="display:flex;align-items:center;gap:10px"><div style="flex:1;height:6px;border-radius:9999px;background:rgba(255,255,255,.22);overflow:hidden"><div style="height:100%;width:62%;border-radius:9999px;background:#fff"></div></div><span style="font-size:11px;font-weight:800;letter-spacing:.06em;white-space:nowrap">5/8 vagas</span></div>
+</div>
+<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-top:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.14)"><div style="display:flex"><span style="width:26px;height:26px;border-radius:9999px;object-fit:cover;border:2px solid var(--grape);display:inline-block;background:#5A9E8F"></span><span style="width:26px;height:26px;border-radius:9999px;object-fit:cover;margin-left:-8px;border:2px solid var(--grape);display:inline-block;background:#5A9E8F"></span><div style="width:26px;height:26px;border-radius:9999px;margin-left:-8px;border:2px solid var(--grape);background:var(--sand);color:var(--ink2);font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center">+3</div></div><span style="font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:800">5 alunos confirmados</span></div>
+</div></div>
+
+<div><div style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);margin-bottom:9px">Normal</div>
+<div style="border-radius:20px;overflow:hidden;background:var(--surface);border:1px solid var(--line);box-shadow:0 3px 12px var(--shadow)">
+<div style="padding:13px 14px 14px">
+<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px"><span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:9999px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--tan);color:#fff"><i data-lucide="disc" width="12" height="12"></i>Skate</span><span style="display:inline-flex;padding:4px 10px;border-radius:9999px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--info-t);color:var(--lagoon)">Avançado</span></div>
+<div style="font-family:'Barlow Condensed',sans-serif;font-size:38px;font-weight:700;line-height:1;margin-bottom:11px">17:00 – 18:00</div>
+<div style="margin-bottom:11px;display:flex"><span style="display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border-radius:9999px;background:var(--dim);border:1px solid var(--line);font-size:12.5px;color:var(--ink2)"><i data-lucide="map-pin" width="14" height="14"></i>Skatepark de Cascais</span></div>
+<div style="display:flex;align-items:center;gap:10px"><div style="flex:1;height:6px;border-radius:9999px;background:var(--sand);overflow:hidden"><div style="height:100%;width:50%;border-radius:9999px;background:var(--tan)"></div></div><span style="font-size:11px;font-weight:800;letter-spacing:.06em;color:var(--ink2);white-space:nowrap">3/6 vagas</span></div>
+</div>
+<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-top:1px solid var(--line);background:var(--dim)"><div style="display:flex"><span style="width:26px;height:26px;border-radius:9999px;object-fit:cover;border:2px solid var(--surface);display:inline-block;background:#7FB8C9"></span><span style="width:26px;height:26px;border-radius:9999px;object-fit:cover;margin-left:-8px;border:2px solid var(--surface);display:inline-block;background:#7FB8C9"></span><span style="width:26px;height:26px;border-radius:9999px;object-fit:cover;margin-left:-8px;border:2px solid var(--surface);display:inline-block;background:#5A9E8F"></span></div><span style="font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:800;color:var(--ink2)">3 alunos confirmados</span></div>
+</div></div>
+
+<div><div style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);margin-bottom:9px">Já a seguir · cheia</div>
+<div style="border-radius:20px;overflow:hidden;background:var(--surface);border:1px solid var(--sun);box-shadow:0 6px 20px rgba(240,116,43,.26)">
+<div style="padding:13px 14px 14px">
+<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px"><span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:9999px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--lagoon);color:#fff"><i data-lucide="waves" width="12" height="12"></i>Surf</span><span style="display:inline-flex;padding:4px 10px;border-radius:9999px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--info-t);color:var(--lagoon)">Avançado</span><span style="margin-left:auto;display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:9999px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--sun);color:#fff"><i data-lucide="clock" width="12" height="12"></i>Já a seguir</span></div>
+<div style="font-family:'Barlow Condensed',sans-serif;font-size:38px;font-weight:700;line-height:1;margin-bottom:11px">11:00 – 12:30</div>
+<div style="margin-bottom:11px;display:flex"><span style="display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border-radius:9999px;background:var(--dim);border:1px solid var(--line);font-size:12.5px;color:var(--ink2)"><i data-lucide="map-pin" width="14" height="14"></i>Praia de Carcavelos</span></div>
+<div style="display:flex;align-items:center;gap:10px"><div style="flex:1;height:6px;border-radius:9999px;background:var(--sand);overflow:hidden"><div style="height:100%;width:100%;border-radius:9999px;background:var(--bad)"></div></div><span style="font-size:11px;font-weight:800;letter-spacing:.06em;color:var(--bad);white-space:nowrap">8/8 vagas</span></div>
+</div>
+<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-top:1px solid var(--line);background:var(--dim)"><div style="display:flex"><span style="width:26px;height:26px;border-radius:9999px;object-fit:cover;border:2px solid var(--surface);display:inline-block;background:#E7D9C4"></span><span style="width:26px;height:26px;border-radius:9999px;object-fit:cover;margin-left:-8px;border:2px solid var(--surface);display:inline-block;background:#D9A877"></span><div style="width:26px;height:26px;border-radius:9999px;margin-left:-8px;border:2px solid var(--surface);background:var(--sand);color:var(--ink2);font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center">+6</div></div><span style="font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:800;color:var(--ink2)">8 alunos confirmados</span></div>
+</div></div>
+
+<div><div style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);margin-bottom:9px">Cancelada</div>
+<div style="border-radius:20px;overflow:hidden;background:var(--surface);border:1px solid var(--line);box-shadow:0 3px 12px var(--shadow);opacity:.78">
+<div style="padding:13px 14px 14px">
+<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px"><span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:9999px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--lagoon);color:#fff"><i data-lucide="waves" width="12" height="12"></i>Surf</span><span style="display:inline-flex;padding:4px 10px;border-radius:9999px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--info-t);color:var(--lagoon)">Iniciante</span><span style="margin-left:auto;display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:9999px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--bad-t);color:var(--bad)"><i data-lucide="x-circle" width="12" height="12"></i>Cancelada</span></div>
+<div style="font-family:'Barlow Condensed',sans-serif;font-size:38px;font-weight:700;line-height:1;margin-bottom:11px;text-decoration:line-through;color:var(--ink2)">15:00 – 16:00</div>
+<div style="display:flex"><span style="display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border-radius:9999px;background:var(--dim);border:1px solid var(--line);font-size:12.5px;color:var(--ink2)"><i data-lucide="map-pin" width="14" height="14"></i>Praia do Guincho</span></div>
+</div>
+<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-top:1px solid var(--line);background:var(--dim)"><span style="font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:800;color:var(--ink2)">Ainda sem alunos</span></div>
+</div></div>
+
+
+<div><div style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);margin-bottom:9px">A decorrer</div>
+<div style="border-radius:20px;overflow:hidden;background:var(--surface);border:1px solid var(--sun);box-shadow:0 6px 20px rgba(240,116,43,.26)">
+<div style="padding:13px 14px 14px">
+<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px"><span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:9999px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--tan);color:#fff"><i data-lucide="disc" width="12" height="12"></i>Skate</span><span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:9999px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--info-t);color:var(--lagoon)">Iniciante</span><span style="margin-left:auto;display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:9999px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--sun);color:#fff"><i data-lucide="clock" width="12" height="12"></i>A decorrer</span></div>
+<div style="font-family:'Barlow Condensed',sans-serif;font-size:38px;font-weight:700;line-height:1;margin-bottom:11px">10:30 – 12:00</div>
+<div style="margin-bottom:11px;display:flex"><span style="display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border-radius:9999px;background:var(--dim);border:1px solid var(--line);font-size:12.5px;color:var(--ink2)"><i data-lucide="map-pin" width="14" height="14"></i>Parque da Vila</span></div>
+<div style="display:flex;align-items:center;gap:10px"><div style="flex:1;height:6px;border-radius:9999px;background:var(--sand);overflow:hidden"><div style="height:100%;width:83%;border-radius:9999px;background:var(--sun)"></div></div><span style="font-size:11px;font-weight:800;letter-spacing:.06em;color:var(--ink2);white-space:nowrap">5/6 vagas</span></div>
+</div>
+<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-top:1px solid var(--line);background:var(--dim)"><div style="display:flex"><span style="width:26px;height:26px;border-radius:9999px;object-fit:cover;border:2px solid var(--surface);display:inline-block;background:#7FB8C9"></span><span style="width:26px;height:26px;border-radius:9999px;object-fit:cover;margin-left:-8px;border:2px solid var(--surface);display:inline-block;background:#7FB8C9"></span><span style="width:26px;height:26px;border-radius:9999px;object-fit:cover;margin-left:-8px;border:2px solid var(--surface);display:inline-block;background:#5A9E8F"></span></div><span style="font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:800;color:var(--ink2)">5 alunos confirmados</span></div>
+</div></div>
+
+<div><div style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);margin-bottom:9px">Finalizada</div>
+<div style="border-radius:20px;overflow:hidden;background:var(--surface);border:1px solid var(--line);box-shadow:0 3px 12px var(--shadow)">
+<div style="padding:13px 14px 14px">
+<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px"><span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:9999px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--lagoon);color:#fff"><i data-lucide="waves" width="12" height="12"></i>Surf</span><span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:9999px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--info-t);color:var(--lagoon)">Iniciante</span><span style="margin-left:auto;display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:9999px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--dim);color:var(--ink2)"><i data-lucide="check" width="12" height="12"></i>Finalizada</span></div>
+<div style="font-family:'Barlow Condensed',sans-serif;font-size:38px;font-weight:700;line-height:1;margin-bottom:11px">09:00 – 10:00</div>
+<div style="display:flex"><span style="display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border-radius:9999px;background:var(--dim);border:1px solid var(--line);font-size:12.5px;color:var(--ink2)"><i data-lucide="map-pin" width="14" height="14"></i>Praia do Norte</span></div>
+
+</div>
+<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-top:1px solid var(--line);background:var(--dim)"><div style="display:flex"><span style="width:26px;height:26px;border-radius:9999px;object-fit:cover;border:2px solid var(--surface);display:inline-block;background:#D9A877"></span><span style="width:26px;height:26px;border-radius:9999px;object-fit:cover;margin-left:-8px;border:2px solid var(--surface);display:inline-block;background:#D9A877"></span><span style="width:26px;height:26px;border-radius:9999px;object-fit:cover;margin-left:-8px;border:2px solid var(--surface);display:inline-block;background:#D9A877"></span></div><span style="font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:800;color:var(--ink2)">6 alunos presentes</span></div>
+</div></div>
+
+<div><div style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);margin-bottom:9px">Sem instrutor</div>
+<div style="border-radius:20px;overflow:hidden;background:var(--surface);border:1px solid var(--line);box-shadow:0 3px 12px var(--shadow)">
+<div style="padding:13px 14px 14px">
+<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px"><span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:9999px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--lagoon);color:#fff"><i data-lucide="waves" width="12" height="12"></i>Surf</span><span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:9999px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--info-t);color:var(--lagoon)">Iniciante</span><span style="margin-left:auto;display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:9999px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--warn-t);color:var(--ink)"><i data-lucide="user-x" width="12" height="12"></i>Sem instrutor</span></div>
+<div style="font-family:'Barlow Condensed',sans-serif;font-size:38px;font-weight:700;line-height:1;margin-bottom:11px">16:00 – 17:00</div>
+<div style="margin-bottom:11px;display:flex"><span style="display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border-radius:9999px;background:var(--dim);border:1px solid var(--line);font-size:12.5px;color:var(--ink2)"><i data-lucide="map-pin" width="14" height="14"></i>Praia do Sul</span></div>
+<div style="display:flex;align-items:center;gap:10px"><div style="flex:1;height:6px;border-radius:9999px;background:var(--sand);overflow:hidden"><div style="height:100%;width:50%;border-radius:9999px;background:var(--lagoon)"></div></div><span style="font-size:11px;font-weight:800;letter-spacing:.06em;color:var(--ink2);white-space:nowrap">4/8 vagas</span></div>
+</div>
+<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-top:1px solid var(--line);background:var(--dim)"><div style="display:flex"><span style="width:26px;height:26px;border-radius:9999px;object-fit:cover;border:2px solid var(--surface);display:inline-block;background:#5A9E8F"></span><span style="width:26px;height:26px;border-radius:9999px;object-fit:cover;margin-left:-8px;border:2px solid var(--surface);display:inline-block;background:#7FB8C9"></span></div><span style="font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:800;color:var(--ink2)">4 alunos confirmados</span></div>
+</div></div>
+
+<div><div style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);margin-bottom:9px">Com convidados (trial)</div>
+<div style="border-radius:20px;overflow:hidden;background:var(--surface);border:1px solid var(--line);box-shadow:0 3px 12px var(--shadow)">
+<div style="padding:13px 14px 14px">
+<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px"><span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:9999px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--lagoon);color:#fff"><i data-lucide="waves" width="12" height="12"></i>Surf</span><span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:9999px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--info-t);color:var(--lagoon)">Avançado</span></div>
+<div style="font-family:'Barlow Condensed',sans-serif;font-size:38px;font-weight:700;line-height:1;margin-bottom:11px">19:00 – 20:00</div>
+<div style="margin-bottom:11px;display:flex"><span style="display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border-radius:9999px;background:var(--dim);border:1px solid var(--line);font-size:12.5px;color:var(--ink2)"><i data-lucide="map-pin" width="14" height="14"></i>Praia do Sul</span></div>
+<div style="display:flex;align-items:center;gap:10px"><div style="flex:1;height:6px;border-radius:9999px;background:var(--sand);overflow:hidden"><div style="height:100%;width:30%;border-radius:9999px;background:var(--lagoon)"></div></div><span style="font-size:11px;font-weight:800;letter-spacing:.06em;color:var(--ink2);white-space:nowrap">3/10 vagas</span></div>
+</div>
+<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-top:1px solid var(--line);background:var(--dim)"><div style="display:flex"><span style="width:26px;height:26px;border-radius:9999px;object-fit:cover;border:2px solid var(--surface);display:inline-block;background:#E7D9C4"></span><span style="width:26px;height:26px;border-radius:9999px;object-fit:cover;margin-left:-8px;border:2px solid var(--surface);display:inline-block;background:#D9A877"></span><div style="width:26px;height:26px;box-sizing:border-box;border-radius:9999px;margin-left:-8px;border:2px solid var(--surface);background:var(--sand);color:var(--ink2);display:flex;align-items:center;justify-content:center"><i data-lucide="user" width="13" height="13"></i></div></div><span style="font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:800;color:var(--ink2)">3 alunos confirmados · 1 trial</span></div>
+</div></div>
+</div>
+</section>
+
+<!-- 07 Estrutura -->
+<section style="max-width:1120px;margin:0 auto;padding:32px 32px 0">
+<div style="display:flex;align-items:baseline;gap:16px;margin-bottom:22px"><h2 style="font-family:'Barlow Condensed',sans-serif;font-size:34px;font-weight:700;text-transform:uppercase;margin:0">07 — Estrutura</h2><div style="flex:1;height:1px;background:var(--line)"></div></div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;align-items:start">
+
+<div style="padding:18px;border-radius:20px;background:var(--page);border:1px solid var(--line)">
+<div style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);margin-bottom:14px">Cabeçalho de ecrã</div>
+<div style="display:flex;align-items:center;gap:12px"><button style="width:44px;height:44px;border-radius:9999px;border:none;background:var(--surface);color:var(--ink);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px var(--shadow);flex:none"><i data-lucide="chevron-left" width="22" height="22"></i></button><div style="flex:1;min-width:0"><div style="font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--ink2)">Semana 17 – 23 set</div><div style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:700;text-transform:uppercase;line-height:1;margin-top:4px">Ocupação semanal</div></div></div>
+<div style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);margin:26px 0 14px">Lista de ações</div>
+<div style="border-radius:20px;background:var(--surface);border:1px solid var(--line);overflow:hidden">
+<div style="display:flex;align-items:center;gap:12px;padding:14px 16px"><span style="color:var(--lagoon);display:flex"><i data-lucide="users" width="19" height="19"></i></span><div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:700">Pessoas</div><div style="font-size:11.5px;color:var(--ink2);margin-top:2px">24 na plataforma</div></div><span style="color:var(--ink3);display:flex"><i data-lucide="chevron-right" width="18" height="18"></i></span></div>
+<div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-top:1px solid var(--line)"><span style="color:var(--lagoon);display:flex"><i data-lucide="bell" width="19" height="19"></i></span><div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:700">Avisos</div><div style="font-size:11.5px;color:var(--ink2);margin-top:2px">Alterações às aulas</div></div><span style="min-width:22px;height:22px;padding:0 6px;box-sizing:border-box;border-radius:9999px;background:var(--bad);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center">2</span><span style="color:var(--ink3);display:flex"><i data-lucide="chevron-right" width="18" height="18"></i></span></div>
+</div>
+</div>
+
+<div style="padding:18px;border-radius:20px;background:var(--page);border:1px solid var(--line);display:flex;flex-direction:column;gap:14px">
+<div style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2)">Cartões de indicador</div>
+<div style="padding:16px;border-radius:20px;background:var(--grape);color:#fff;display:flex;align-items:center;gap:12px"><span style="font-family:'Barlow Condensed',sans-serif;font-size:52px;font-weight:700;line-height:.9">86%</span><div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:11.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase">Ocupação da semana</span><span style="font-size:12px;color:rgba(255,255,255,.85)">+6 pontos face à semana anterior</span></div></div>
+<div style="display:flex;gap:10px">
+<div style="flex:1;min-width:0;padding:14px 15px 13px;border-radius:20px;background:var(--sun);border:1px solid var(--sun);color:#fff"><div style="font-family:'Barlow Condensed',sans-serif;font-size:34px;font-weight:700;line-height:1">4</div><div style="font-size:11.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;margin-top:6px">Aulas hoje</div><div style="font-size:11px;color:rgba(255,255,255,.85);margin-top:3px">2 de surf · 2 de skate</div></div>
+<div style="flex:1;min-width:0;padding:14px 15px 13px;border-radius:20px;background:var(--surface);border:1px solid var(--line)"><div style="font-family:'Barlow Condensed',sans-serif;font-size:34px;font-weight:700;line-height:1">4,6</div><div style="font-size:11.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;margin-top:6px">Avaliação</div><div style="display:flex;gap:2px;margin-top:5px;color:var(--sun)"><i data-lucide="star" width="13" height="13" fill="currentColor"></i><i data-lucide="star" width="13" height="13" fill="currentColor"></i><i data-lucide="star" width="13" height="13" fill="currentColor"></i><i data-lucide="star" width="13" height="13" fill="currentColor"></i><i data-lucide="star" width="13" height="13" fill="currentColor"></i></div></div>
+</div>
+<div style="padding:13px 16px;border-radius:16px;background:var(--ok);color:#fff;font-size:13.5px;font-weight:700;display:flex;align-items:center;gap:9px;box-shadow:0 8px 20px var(--shadow)"><i data-lucide="check" width="17" height="17"></i>Aviso · toast de confirmação</div>
+</div>
+
+<div style="padding:18px;border-radius:20px;background:var(--page);border:1px solid var(--line)">
+<div style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);margin-bottom:14px">Seletor de dias</div>
+<div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px">
+<sc-for list="{{ dias }}" as="d" hint-placeholder-count="7">
+<div style="padding:9px 0 10px;border-radius:16px;text-align:center;background:{{ d.bg }};color:{{ d.fg }}"><div style="font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase">{{ d.dow }}</div><div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;line-height:1;margin-top:4px">{{ d.n }}</div></div>
+</sc-for>
+</div>
+<div style="font-size:11.5px;color:var(--ink2);margin-top:10px;line-height:1.5">Selecionado a uva · hoje com número a sol · pontos lagoa marcam dias com aulas.</div>
+<div style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);margin:26px 0 14px">Barra de separadores</div>
+<div style="display:flex;padding:10px 10px 14px;background:var(--page);border-top:1px solid var(--line);border-radius:0 0 16px 16px;box-shadow:0 3px 12px var(--shadow)">
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 0;color:var(--sun)"><i data-lucide="bar-chart" width="22" height="22"></i><span style="font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase">Painel</span></div>
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 0;color:var(--ink3)"><i data-lucide="calendar-days" width="22" height="22"></i><span style="font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase">Aulas</span></div>
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 0;color:var(--ink3)"><i data-lucide="user" width="22" height="22"></i><span style="font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase">Perfil</span></div>
+</div>
+</div>
+
+<div style="border-radius:20px;overflow:hidden;border:1px solid var(--line);position:relative;min-height:340px;background:var(--surface)">
+<div style="position:absolute;inset:0;background:rgba(24,16,10,.45)"></div>
+<div style="position:absolute;left:0;right:0;bottom:0;background:var(--page);border-radius:28px 28px 0 0;padding:14px 20px 24px">
+<div style="width:44px;height:4px;border-radius:9999px;background:var(--line);margin:0 auto 18px"></div>
+<div style="font-family:'Barlow Condensed',sans-serif;font-size:30px;font-weight:700;text-transform:uppercase;line-height:1">Eliminar aula?</div>
+<div style="font-size:14px;line-height:1.55;color:var(--ink2);margin:8px 0 18px">Folha inferior · raio 28 · alça 44×4 · véu a 45%.</div>
+<div style="display:flex;flex-direction:column;gap:10px">
+<button style="width:100%;padding:15px 18px;border-radius:16px;border:none;font-family:'Nunito',sans-serif;font-size:14.5px;font-weight:800;background:var(--bad);color:#fff">Eliminar</button>
+<button style="width:100%;padding:15px 18px;border-radius:16px;border:none;font-family:'Nunito',sans-serif;font-size:14.5px;font-weight:800;background:var(--dim);color:var(--ink2)">Cancelar</button>
+</div>
+</div>
+</div>
+
+</div>
+</section>
+
+<!-- 08 Padrões -->
+<section style="max-width:1120px;margin:0 auto;padding:32px 32px 72px">
+<div style="display:flex;align-items:baseline;gap:16px;margin-bottom:22px"><h2 style="font-family:'Barlow Condensed',sans-serif;font-size:34px;font-weight:700;text-transform:uppercase;margin:0">08 — Regras</h2><div style="flex:1;height:1px;background:var(--line)"></div></div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px">
+<sc-for list="{{ regras }}" as="r" hint-placeholder-count="6">
+<div style="padding:18px;border-radius:20px;background:var(--surface);border:1px solid var(--line)"><div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;color:var(--sun);line-height:1">{{ r.n }}</div><div style="font-size:14.5px;font-weight:800;margin-top:10px">{{ r.t }}</div><div style="font-size:13px;line-height:1.55;color:var(--ink2);margin-top:4px;text-wrap:pretty">{{ r.d }}</div></div>
+</sc-for>
+</div>
+</section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script="">
+class Component extends DCLogic {
+  state = { theme: 'light' };
+  componentDidMount() { this.icons(0); }
+  componentDidUpdate() { this.icons(0); }
+  icons(n) {
+    if (window.lucide) { try { window.lucide.createIcons(); } catch (e) {} }
+    else if (n < 40) setTimeout(() => this.icons(n + 1), 150);
+  }
+  renderVals() {
+    const dark = this.state.theme === 'dark';
+    const L = (l, d) => dark ? d : l;
+    const grupos = [
+      { nome: 'Marca', cores: [
+        { n: 'Sol · --sun', v: L('#F0742B', '#F58A45'), u: 'Ações primárias, hoje, separador ativo' },
+        { n: 'Sol forte · --sun-2', v: L('#D95F1B', '#E07330'), u: 'Hover e pressão do primário' },
+        { n: 'Uva · --grape', v: L('#4B2A63', '#7A4E9B'), u: 'Próxima aula, KPIs, seleção' },
+        { n: 'Lagoa · --lagoon', v: L('#21837F', '#3FA6A0'), u: 'Surf, nível, ícones de lista' },
+        { n: 'Areia escura · --tan', v: L('#D4A574', '#C49A6C'), u: 'Skate' },
+        { n: 'Céu · --sky', v: L('#7BA7BC', '#8BB8CC'), u: 'Fundo de avatares' }
+      ] },
+      { nome: 'Superfícies e texto', cores: [
+        { n: 'Página · --page', v: L('#FDF8F3', '#161B27'), u: 'Fundo de ecrã e folhas' },
+        { n: 'Superfície · --surface', v: L('#FEFCF9', '#212736'), u: 'Cartões e listas' },
+        { n: 'Areia · --sand', v: L('#F5E6D3', '#2E3444'), u: 'Trilho de ocupação, estrelas vazias' },
+        { n: 'Tinta · --ink', v: L('#3D2E1F', '#F0E6D8'), u: 'Texto principal' },
+        { n: 'Tinta 2 · --ink2', v: L('#6B5744', '#9B8E7E'), u: 'Texto secundário, rótulos' },
+        { n: 'Tinta 3 · --ink3', v: L('#B8A99A', '#5A5248'), u: 'Placeholders, ícones inativos' }
+      ] },
+      { nome: 'Estado', cores: [
+        { n: 'Sucesso · --ok', v: L('#4CAF7D', '#5BC48A'), u: 'Confirmações' },
+        { n: 'Erro · --bad', v: L('#D4574A', '#E8706A'), u: 'Cancelada, sem vagas, eliminar' },
+        { n: 'Aviso · --warn', v: L('#E8B44A', '#F0C45A'), u: 'Ocupação média' },
+        { n: 'Info · --info-t', v: L('rgba(33,131,127,.13)', 'rgba(63,166,160,.16)'), u: 'Fundo de chips lagoa' },
+        { n: 'Linha · --line', v: L('rgba(212,165,116,.28)', 'rgba(196,154,108,.14)'), u: 'Bordas e divisórias' },
+        { n: 'Borda input · --input-line', v: L('#E3D3BC', '#3E4555'), u: 'Campos e botão contorno' }
+      ] }
+    ];
+    const dias = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'].map((dow, i) => {
+      const on = i === 2, hj = i === 0;
+      return { dow, n: 21 + i, bg: on ? 'var(--grape)' : 'transparent', fg: on ? '#fff' : hj ? 'var(--sun)' : 'var(--ink)' };
+    });
+    const regras = [
+      { n: '01', t: 'Uma ação primária por ecrã', d: 'O sol é reservado para a ação principal. Tudo o resto usa escuro, contorno ou discreto.' },
+      { n: '02', t: 'Uva só para destaque', d: 'Próxima aula, indicadores e elementos selecionados. Nunca como fundo de secção.' },
+      { n: '03', t: 'Agrupar por dia', d: 'Listas de aulas agrupam-se por dia com um rótulo de secção — só o dia, sem contagens.' },
+      { n: '04', t: 'Números em Barlow', d: 'Horas, percentagens e notas usam sempre Barlow Condensed 700.' },
+      { n: '05', t: 'Toque de 44px', d: 'Botões de ícone, linhas de lista e dias do calendário nunca descem dos 44px.' },
+      { n: '06', t: 'Tema claro e escuro', d: 'Usar sempre os tokens — nunca cores fixas — para que ambos os temas funcionem.' }
+    ];
+    return {
+      theme: this.state.theme, grupos, dias, regras,
+      themeIcon: dark ? 'sun' : 'moon', themeLabel: dark ? 'Tema claro' : 'Tema escuro',
+      toggleTheme: () => this.setState({ theme: dark ? 'light' : 'dark' })
+    };
+  }
+}
+</script>
+
+
+</body></html>

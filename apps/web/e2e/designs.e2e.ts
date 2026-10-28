@@ -41,6 +41,19 @@ test("index lists the design system in every language", async ({ page }) => {
   }
 });
 
+test("home links to the designs in every language", async ({ page }) => {
+  for (const locale of locales) {
+    await page.goto(`/${locale}`);
+
+    const rows = page.locator("main a");
+    await expect(rows).toHaveCount(4);
+    await expect(rows.nth(0)).toHaveAttribute("href", `/${locale}/privacy-policy`);
+    await expect(rows.nth(1)).toHaveAttribute("href", `/${locale}/terms-of-use`);
+    await expect(rows.nth(2)).toHaveAttribute("href", `/${locale}/account-deletion`);
+    await expect(rows.nth(3)).toHaveAttribute("href", `/${locale}/designs`);
+  }
+});
+
 test.describe("design page width", () => {
   test.use({ viewport: { width: 1600, height: 900 } });
 

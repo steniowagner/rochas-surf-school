@@ -332,10 +332,14 @@ shared between mobile and web, the phone frame and the mock UI pieces.
   > `apps/web/e2e/designs.e2e.ts`; verified: `npx playwright test` in apps/web (all passed, incl. the existing suites), `npx tsc --noEmit`,
   > `npx eslint`, `npx vitest run` (29 passed); deviations: per-page route `designs/design-system/` (T-11) instead of a `[slug]` route
 
-- [ ] **T-08** — Add the "Designs" row to `src/app/[lang]/page.tsx` (a `LinkRow` after account deletion, a
+- [x] **T-08** — Add the "Designs" row to `src/app/[lang]/page.tsx` (a `LinkRow` after account deletion, a
   Lucide icon) with its title and description in the three dictionaries; add
   `home links to the designs in every language` to `e2e/designs.e2e.ts`. Covers: ER-06 · Done when: that test
   passes.
+  > ✅ 2026-10-28 16:25 — fourth `LinkRow` (Lucide `Palette`) after account deletion linking to `/{lang}/designs`, with title and
+  > description in the three dictionaries; files: `apps/web/src/app/[lang]/(site)/page.tsx`, `apps/web/src/i18n/dictionary.types.ts`,
+  > `apps/web/src/i18n/dictionaries/{pt-br,es,en}.ts`, `apps/web/e2e/designs.e2e.ts`; verified: `npx playwright test` in apps/web
+  > (28 passed, incl. `home links to the designs in every language`), `npx tsc --noEmit`; deviations: none
 
 - [ ] **T-09** — Write the designs' building blocks in `src/modules/designs/components/`: `phone-frame` (iOS,
   402 × 874, status bar, scales down below its width), `design-section` (number and title), `design-entry` (id

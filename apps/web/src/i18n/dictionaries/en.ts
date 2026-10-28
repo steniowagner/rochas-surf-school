@@ -28,6 +28,10 @@ export const en = {
       title: "Account deletion",
       description: "How to delete your account and what happens to your data.",
     },
+    designs: {
+      title: "Designs",
+      description: "How the app is designed: the design system with colors, typography and components.",
+    },
   },
   designs: {
     metaTitle: "Designs",

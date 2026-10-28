@@ -28,6 +28,10 @@ export const ptBr = {
       title: "Exclusão de conta",
       description: "Como excluir a sua conta e o que acontece com os seus dados.",
     },
+    designs: {
+      title: "Designs",
+      description: "Como o app é desenhado: o sistema de design com cores, tipografia e componentes.",
+    },
   },
   designs: {
     metaTitle: "Designs",

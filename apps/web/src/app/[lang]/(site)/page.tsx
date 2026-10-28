@@ -1,4 +1,4 @@
-import { FileText, ShieldCheck, UserX, Waves } from "lucide-react";
+import { FileText, Palette, ShieldCheck, UserX, Waves } from "lucide-react";
 import { notFound } from "next/navigation";
 
 import { LinkRow } from "@/components/link-row";
@@ -41,6 +41,12 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
           icon={<UserX size={24} strokeWidth={2} aria-hidden />}
           title={home.accountDeletion.title}
           description={home.accountDeletion.description}
+        />
+        <LinkRow
+          href={`/${lang}/designs`}
+          icon={<Palette size={24} strokeWidth={2} aria-hidden />}
+          title={home.designs.title}
+          description={home.designs.description}
         />
       </div>
     </>

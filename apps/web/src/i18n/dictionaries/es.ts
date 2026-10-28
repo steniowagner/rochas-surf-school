@@ -28,6 +28,10 @@ export const es = {
       title: "Eliminación de cuenta",
       description: "Cómo eliminar tu cuenta y qué pasa con tus datos.",
     },
+    designs: {
+      title: "Diseños",
+      description: "Cómo está diseñada la app: el sistema de diseño con colores, tipografía y componentes.",
+    },
   },
   designs: {
     metaTitle: "Diseños",

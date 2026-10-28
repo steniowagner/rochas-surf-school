@@ -22,6 +22,7 @@ interface Person {
   id: string;
   name: string;
   role: Role;
+  isInstructor: boolean;
   createdAt: string;
   whatsappNumber: string | null;
 }
@@ -33,6 +34,7 @@ interface AccountOptions {
   createdAt?: Date;
   whatsappNumber?: string;
   whatsappVisible?: boolean;
+  isInstructor?: boolean;
 }
 
 describe('People directory (e2e)', () => {
@@ -74,6 +76,7 @@ describe('People directory (e2e)', () => {
         email: `u.${randomUUID().slice(0, 8)}@${DOMAIN}`,
         status: options.status ?? 'approved',
         role: options.role ?? 'student',
+        isInstructor: options.isInstructor ?? false,
         whatsappNumber: options.whatsappNumber ?? null,
         whatsappVisible: options.whatsappVisible ?? false,
         ...(options.createdAt ? { createdAt: options.createdAt } : {}),
@@ -107,6 +110,7 @@ describe('People directory (e2e)', () => {
       id: ana.user.id,
       name: ana.user.name,
       role: 'instructor',
+      isInstructor: false,
       createdAt: ana.user.createdAt.toISOString(),
       whatsappNumber: '+5585999998888',
     });
@@ -281,5 +285,54 @@ describe('People directory (e2e)', () => {
     ]);
     expect((await people(viewer.accessToken, { page: 'abc' })).status).toBe(422);
     expect((await people(viewer.accessToken, { perPage: '1.5' })).status).toBe(422);
+  });
+
+  describe('teaches', () => {
+    it('lists only approved instructors and admins with the flag, with isInstructor on every item', async () => {
+      const viewer = await account({ name: 'Viewer' });
+      const instructor = await account({ name: 'Ivo', role: 'instructor' });
+      const flagged = await account({ name: 'Fabi', role: 'admin', isInstructor: true });
+      await account({ name: 'Nina', role: 'admin' });
+      await account({ name: 'Saulo', role: 'student' });
+      await account({ name: 'Paulo', role: 'instructor', status: 'pending' });
+
+      const response = await people(viewer.accessToken, { teaches: 'true' });
+      const everyone = await people(viewer.accessToken);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toMatchObject({ total: 2 });
+      expect(names(response.body.items)).toEqual(['Fabi', 'Ivo']);
+      expect((response.body.items as Person[]).map((item) => item.id)).toEqual([flagged.user.id, instructor.user.id]);
+      expect(
+        (everyone.body.items as Person[]).map((item) => [item.name.replace(`${tag} `, ''), item.isInstructor]),
+      ).toEqual([
+        ['Fabi', true],
+        ['Ivo', false],
+        ['Nina', false],
+        ['Saulo', false],
+        ['Viewer', false],
+      ]);
+    });
+
+    it('combines with role and search', async () => {
+      const viewer = await account({ name: 'Viewer' });
+      await account({ name: 'Ivo', role: 'instructor' });
+      await account({ name: 'Fabi', role: 'admin', isInstructor: true });
+
+      const admins = await people(viewer.accessToken, { teaches: 'true', role: 'admin' });
+      const byName = await people(viewer.accessToken, { teaches: 'true', search: `${tag} iv` });
+
+      expect(names(admins.body.items)).toEqual(['Fabi']);
+      expect(names(byName.body.items)).toEqual(['Ivo']);
+    });
+
+    it.each(['false', '1'])('refuses teaches=%s with 422 people.teaches.invalid', async (teaches) => {
+      const viewer = await account({ name: 'Viewer' });
+
+      const response = await people(viewer.accessToken, { teaches });
+
+      expect(response.status).toBe(422);
+      expect(response.body.errors).toEqual(['people.teaches.invalid']);
+    });
   });
 });

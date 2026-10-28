@@ -11,6 +11,9 @@ import {
   RemoveUserOut,
   RestoreAccount,
   RestoreAccountOut,
+  SetInstructorFlag,
+  SetInstructorFlagIn,
+  SetInstructorFlagOut,
 } from '@rochas-surf-school/auth';
 import { CurrentUser } from '../../shared/decorators/current-user.decorator.js';
 import type { AuthenticatedUser } from '../../shared/types/current-user.type.js';
@@ -40,6 +43,7 @@ export class PeopleController {
     @Query('perPage') perPage?: string,
     @Query('role') role?: string,
     @Query('search') search?: string,
+    @Query('teaches') teaches?: string,
   ): Promise<ListPeopleOut> {
     return new ListPeople(this.userRepository).execute({
       actor: { id: user.id, role: user.role, status: user.status },
@@ -47,6 +51,7 @@ export class PeopleController {
       perPage,
       role,
       search,
+      teaches,
     });
   }
 
@@ -64,7 +69,7 @@ export class PeopleController {
   changeRole(
     @CurrentUser() user: AuthenticatedUser,
     @Param('id') id: string,
-    @Body() body: Partial<Pick<ChangeRoleIn, 'role'>> | undefined,
+    @Body() body: Partial<Pick<ChangeRoleIn, 'role' | 'isInstructor'>> | undefined,
   ): Promise<ChangeRoleOut> {
     return new ChangeRole(
       this.userRepository,
@@ -75,6 +80,21 @@ export class PeopleController {
       actor: { id: user.id, role: user.role, status: user.status },
       userId: id,
       role: body?.role,
+      isInstructor: body?.isInstructor,
+    });
+  }
+
+  @Put(':id/instructor')
+  @HttpCode(HttpStatus.OK)
+  setInstructorFlag(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id') id: string,
+    @Body() body: Partial<Pick<SetInstructorFlagIn, 'isInstructor'>> | undefined,
+  ): Promise<SetInstructorFlagOut> {
+    return new SetInstructorFlag(this.userRepository).execute({
+      actor: { id: user.id, role: user.role, status: user.status },
+      userId: id,
+      isInstructor: body?.isInstructor,
     });
   }
 

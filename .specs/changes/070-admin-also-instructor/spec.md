@@ -279,7 +279,7 @@ be assigned to teach.
   `npx vitest run src/modules/auth/user.prisma.spec.ts` passes.
   > ✅ 2026-10-28 12:19 — Added `users.is_instructor` (`NOT NULL DEFAULT false`) with the D-02 backfill (`UPDATE "users" SET "is_instructor" = true WHERE "role" = 'admin'`); `PrismaUserRepository` maps the flag both ways and `findDirectoryPage` supports `teachers`; files: `apps/backend/prisma/models/auth.model.prisma`, `apps/backend/prisma/migrations/20261028130000_users_is_instructor/migration.sql`, `apps/backend/src/modules/auth/user.prisma.ts`, `apps/backend/src/modules/auth/user.prisma.spec.ts`; verified: `cd apps/backend && npx prisma migrate deploy` (applied, exit 0; on the Compose DB the 4 admins got true, the other users false) and `npx vitest run src/modules/auth/user.prisma.spec.ts` (40 passed); deviations: migration SQL written by hand (no `migrate dev`); `modules/auth` and `modules/classes` rebuilt with `npm run build` so the backend sees the new types
 
-- [ ] **T-06** — In `apps/backend/src/modules/auth/people.controller.ts`, pass `isInstructor` from the body of
+- [x] **T-06** — In `apps/backend/src/modules/auth/people.controller.ts`, pass `isInstructor` from the body of
   `PUT :id/role`, add `PUT :id/instructor` (200, `SetInstructorFlag`, declared like the other `:id` routes) and the
   `teaches` query of `GET /people`; add the requests (role with flag, flag on/off, self, 403, 404, 409, 422, `teaches`)
   to `people.integration.http`; specs in `people.controller.spec.ts`; "instructor flag" tests in
@@ -287,6 +287,7 @@ be assigned to teach.
   Skill: [`backend-nest-controller`](../../../.claude/skills/backend-nest-controller).
   Covers: ER-01, ER-03, ER-04, ER-05 · Done when: `cd apps/backend && npx vitest run src/modules/auth` passes and
   `npm run test:e2e -- test/people-roles.e2e-spec.ts test/people.e2e-spec.ts` passes against the Compose database.
+  > ✅ 2026-10-28 12:20 — `PUT /people/:id/role` passes `isInstructor`, new `PUT /people/:id/instructor` (`SetInstructorFlag`, 200) and the `teaches` query of `GET /people`; requests added to the .http file; files: `apps/backend/src/modules/auth/people.controller.ts`, `apps/backend/src/modules/auth/people.controller.spec.ts`, `apps/backend/src/modules/auth/people.integration.http`, `apps/backend/test/people-roles.e2e-spec.ts`, `apps/backend/test/people.e2e-spec.ts`; verified: `cd apps/backend && npx vitest run src/modules/auth` (204 passed) and `npm run test:e2e -- test/people-roles.e2e-spec.ts test/people.e2e-spec.ts` against the Compose database (72 passed); deviations: controller edited by hand following the existing controller (skill not invoked); `tsc` still reports `teacher-lookup.prisma.ts` missing `isInstructor`, which T-07 fixes
 
 - [ ] **T-07** — In `apps/backend/src/modules/classes/teacher-lookup.prisma.ts`, select `isInstructor`; specs in
   `teacher-lookup.prisma.spec.ts`; "admin without the instructor flag" tests in `test/classes.e2e-spec.ts` (batch

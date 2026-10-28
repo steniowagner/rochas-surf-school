@@ -49,7 +49,7 @@ function setup(people: User[] = [person(false)]) {
       total: people.length,
     })),
     findById: vi.fn(async (id: string) => people.find((item) => item.id === id) ?? null),
-    updateKeepingAnAdmin: vi.fn(async () => 'updated'),
+    updateKeepingAnAdmin: vi.fn(async (): Promise<string> => 'updated'),
     findRemovedSince: vi.fn(async () => people),
     updateIfRemoved: vi.fn(async () => true),
   };
@@ -101,6 +101,7 @@ describe('PeopleController', () => {
       '10',
       'instructor,admin',
       ' joao ',
+      'true',
     );
 
     expect(repository.findDirectoryPage).toHaveBeenCalledWith({
@@ -108,6 +109,7 @@ describe('PeopleController', () => {
       perPage: 10,
       roles: ['instructor', 'admin'],
       search: 'joao',
+      teachers: true,
     });
     expect(result).toEqual({
       items: [
@@ -115,6 +117,7 @@ describe('PeopleController', () => {
           id: people[0].id,
           name: 'Ana Silva',
           role: 'student',
+          isInstructor: false,
           createdAt: '2026-10-01T10:00:00.000Z',
           whatsappNumber: null,
         },
@@ -172,7 +175,7 @@ describe('PeopleController', () => {
 
       await expect(
         controller.changeRole(userOf('admin', 'approved'), ana.id, { role: 'instructor' }),
-      ).resolves.toEqual({ id: ana.id, role: 'instructor' });
+      ).resolves.toEqual({ id: ana.id, role: 'instructor', isInstructor: false });
 
       expect(seatReleaser.releaseSeats).toHaveBeenCalledWith(ana.id);
       expect(teachingReleaser.releaseUpcomingClasses).not.toHaveBeenCalled();
@@ -197,6 +200,22 @@ describe('PeopleController', () => {
       expect(teachingReleaser.releaseUpcomingClasses).toHaveBeenCalledWith(people[0]!.id, admin.id);
     });
 
+    it('stores the instructor flag sent with a promotion to admin', async () => {
+      const { controller, repository, people } = setup();
+
+      await expect(
+        controller.changeRole(userOf('admin', 'approved'), people[0]!.id, {
+          role: 'admin',
+          isInstructor: true,
+        }),
+      ).resolves.toEqual({ id: people[0]!.id, role: 'admin', isInstructor: true });
+
+      expect(repository.updateKeepingAnAdmin).toHaveBeenCalledWith(
+        expect.objectContaining({ role: 'admin', isInstructor: true }),
+        { role: 'student', status: 'approved' },
+      );
+    });
+
     it('answers people.role.invalid without a body', async () => {
       const { controller, people } = setup();
 
@@ -216,6 +235,52 @@ describe('PeopleController', () => {
       await expect(
         controller.changeRole(userOf('admin', 'approved'), people[0]!.id, { role: 'instructor' }),
       ).rejects.toEqual(new ConflictError('user.role.lastAdmin'));
+    });
+  });
+
+  describe('PUT /people/:id/instructor', () => {
+    it('setInstructorFlag is a protected PUT :id/instructor route answering 200', () => {
+      const handler = Object.getOwnPropertyDescriptor(PeopleController.prototype, 'setInstructorFlag')!
+        .value as object;
+
+      expect(Reflect.getMetadata(PATH_METADATA, handler)).toBe(':id/instructor');
+      expect(Reflect.getMetadata(METHOD_METADATA, handler)).toBe(RequestMethod.PUT);
+      expect(Reflect.getMetadata(HTTP_CODE_METADATA, handler)).toBe(HttpStatus.OK);
+      expect(Reflect.getMetadata(IS_PUBLIC_KEY, handler)).toBeUndefined();
+    });
+
+    it('runs SetInstructorFlag with the caller as actor, writing only an approved admin', async () => {
+      const { controller, repository, roleChangeNotifier, people } = setup([person(false, 'admin')]);
+      const bia = people[0]!;
+
+      await expect(
+        controller.setInstructorFlag(userOf('admin', 'approved'), bia.id, { isInstructor: true }),
+      ).resolves.toEqual({ id: bia.id, isInstructor: true });
+
+      expect(repository.updateKeepingAnAdmin).toHaveBeenCalledWith(
+        expect.objectContaining({ id: bia.id, isInstructor: true }),
+        { role: 'admin', status: 'approved' },
+      );
+      expect(roleChangeNotifier.roleChanged).not.toHaveBeenCalled();
+    });
+
+    it('answers people.isInstructor.invalid without a body', async () => {
+      const { controller, people } = setup([person(false, 'admin')]);
+
+      await expect(
+        controller.setInstructorFlag(userOf('admin', 'approved'), people[0]!.id, undefined),
+      ).rejects.toBeInstanceOf(ValidationException);
+    });
+
+    it('refuses a caller who is not an admin, and a student', async () => {
+      const { controller, people } = setup();
+
+      await expect(
+        controller.setInstructorFlag(userOf('instructor', 'approved'), people[0]!.id, { isInstructor: true }),
+      ).rejects.toBeInstanceOf(ForbiddenError);
+      await expect(
+        controller.setInstructorFlag(userOf('admin', 'approved'), people[0]!.id, { isInstructor: true }),
+      ).rejects.toEqual(new ConflictError('people.isInstructor.notAdmin'));
     });
   });
 

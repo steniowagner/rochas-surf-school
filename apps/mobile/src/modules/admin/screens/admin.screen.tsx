@@ -74,15 +74,7 @@ export function AdminScreen() {
             grouped="next"
             icon="calendar-month-outline"
             title={t("admin.home.classRequestsRow")}
-            subtitle={
-              requestsCount === undefined
-                ? undefined
-                : requestsCount
-                  ? t("admin.home.classRequestsCount", {
-                      count: requestsCount,
-                    })
-                  : t("admin.home.nothingPending")
-            }
+            subtitle={t("admin.home.classRequestsSubtitle")}
             badge={requestsCount}
             onPress={openClassRequests}
           />
@@ -90,13 +82,7 @@ export function AdminScreen() {
             grouped="next"
             icon="account-plus-outline"
             title={t("admin.home.registrationsRow")}
-            subtitle={
-              registrationsCount === undefined
-                ? undefined
-                : registrationsCount
-                  ? t("admin.home.waiting", { count: registrationsCount })
-                  : t("admin.home.nothingPending")
-            }
+            subtitle={t("admin.home.registrationsSubtitle")}
             badge={registrationsCount}
             onPress={openRegistrations}
           />
@@ -111,28 +97,15 @@ export function AdminScreen() {
             grouped="next"
             icon="account-off-outline"
             title={t("admin.home.removedAccountsRow")}
-            subtitle={
-              removedAccountsCount === undefined
-                ? undefined
-                : removedAccountsCount
-                  ? t("admin.home.removedAccountsCount", {
-                      count: removedAccountsCount,
-                    })
-                  : t("admin.home.removedAccountsNone")
-            }
+            subtitle={t("admin.home.removedAccountsSubtitle")}
+            badge={removedAccountsCount}
             onPress={openRemovedAccounts}
           />
           <AdminToolRow
             grouped="next"
             icon="account-reactivate-outline"
             title={t("admin.home.reactivationsRow")}
-            subtitle={
-              reactivationsCount === undefined
-                ? undefined
-                : reactivationsCount
-                  ? t("admin.home.waiting", { count: reactivationsCount })
-                  : t("admin.home.nothingPending")
-            }
+            subtitle={t("admin.home.reactivationsSubtitle")}
             badge={reactivationsCount}
             onPress={openReactivations}
           />

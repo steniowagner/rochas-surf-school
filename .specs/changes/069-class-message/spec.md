@@ -3,7 +3,7 @@ id: "069"
 slug: class-message
 title: Admin sends a message to one class
 template: quick
-status: in-progress
+status: in-review
 started: 2026-10-27
 base_commit: 6f5a9895ee828032a5cf4e986970fe2b1d390605
 created: 2026-10-27
@@ -270,18 +270,21 @@ Design reference for the content: the `msgAula` sheet ("Mensagem à turma") in
 
 ### Verification
 
-- [ ] **T-05** — Run every command in the Verification Plan from the repo root; all pass. Record the output
+- [x] **T-05** — Run every command in the Verification Plan from the repo root; all pass. Record the output
   summary as evidence. Covers: all · Done when: every command exits 0.
-  > ⛔ 2026-10-27 23:10 — `run-related-tests.mjs 069`: RELATED TESTS PASSED (backend 25 files; mobile 95 suites,
-  > 1851 tests; classes 606; notifications 194; enrolment 292). `check-coverage.mjs 069`: COVERAGE OK (22 files).
-  > `turbo run lint check-types build --concurrency=1` for backend and mobile: 27/27 tasks, 0 errors (warnings
-  > existed before). `run-e2e.mjs 069`: E2E FAILED — 785 of 788 pass, every "class message" test included; the 3
-  > failures are the "suggestions" tests of `test/classes.e2e-spec.ts`, which read every class of last week and find
-  > a local dev class (`5a1e0000-0000-4000-8000-000000000101`, `admin@example.com`, 2026-10-11 08:00 Fortaleza) in the
-  > shared database — not this change's code. Unblocks with: the user removing that row (or allowing it) and a rerun.
-  > User journey (iOS simulator) not run: the backend on :4000 and Metro on :8081 belong to another session, and that
-  > backend predates this branch (`POST /classes/:id/message` answers 404); unblocks with: the user restarting the
-  > backend from this branch, or allowing it.
+  > ✅ 2026-10-27 23:25 — every command of the Verification Plan exits 0: `run-related-tests.mjs 069` → RELATED
+  > TESTS PASSED (backend 25 files; mobile 95 suites, 1851 tests; classes 606; notifications 194; enrolment 292);
+  > `check-coverage.mjs 069` → COVERAGE OK (22 files); `turbo run lint check-types build --concurrency=1` for backend
+  > and mobile → 27/27 tasks, 0 errors (the lint warnings existed before); `run-e2e.mjs 069` → E2E PASSED (28 files,
+  > 788 tests). The first e2e run failed 3 "suggestions" tests on a local dev class in the shared database
+  > (`5a1e0000-0000-4000-8000-000000000101`, `admin@example.com`, 2026-10-11 08:00 Fortaleza); the user had it deleted,
+  > and the rerun passed. Files: none (verification only); deviations: the iOS simulator journey was not driven here —
+  > the backend on :4000 and Metro on :8081 belong to another session and that backend predates this branch. For the
+  > user: restart the backend from this branch; as an admin, open a class with a student and an instructor → tools →
+  > Send message; the screen reads "Mensagem para a turma" with the class, its date, time, location and people; write
+  > a title and a message, tap Enviar and confirm "Enviar a N pessoas?"; the screen closes and the green "Mensagem
+  > enviada" toast shows; signed in as that student, the notifications row shows the title and "Surf, <weekday>
+  > <dd/MM> às <HH:mm>: <message>" with the chat bubble, and tapping it opens the class.
 
 ## Verification Plan
 

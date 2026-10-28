@@ -1085,8 +1085,7 @@ const messages: Messages = {
     },
     instructorFlag: {
       label: "También es instructor",
-      helper:
-        "Aparece en la lista de instructores al crear y editar clases.",
+      helper: "Además de admin, da clases en la escuela.",
     },
     roleErrors: {
       changed: "El rol de esta persona cambió. Actualiza la lista.",

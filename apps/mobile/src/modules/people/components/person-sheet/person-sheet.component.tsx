@@ -137,7 +137,7 @@ export function PersonSheet({
               onChange={toggleInstructorFlag}
               label={t("people.instructorFlag.label")}
               helper={t("people.instructorFlag.helper")}
-              variant="ink"
+              variant="boxed"
               disabled={isSettingInstructorFlag}
             />
           ) : null}

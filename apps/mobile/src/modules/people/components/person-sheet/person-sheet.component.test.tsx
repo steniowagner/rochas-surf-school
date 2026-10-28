@@ -364,7 +364,7 @@ describe("PersonSheet", () => {
 
       expect(row()).toBeChecked();
       expect(
-        screen.getByText("Shows in the instructor list when creating and editing classes."),
+        screen.getByText("Besides being an admin, teaches at the school."),
       ).toBeOnTheScreen();
     });
 

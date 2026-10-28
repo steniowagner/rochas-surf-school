@@ -68,20 +68,20 @@ describe("Checkbox", () => {
     expect(onChange).toHaveBeenCalledWith(true);
   });
 
-  it("draws the ink box with page-colored text in the ink variant", async () => {
+  it("draws the ink-2 box with page-colored text in the boxed variant", async () => {
     await render(
       <Checkbox
         checked={false}
         onChange={jest.fn()}
         label={LABEL}
         helper="The fine print"
-        variant="ink"
+        variant="boxed"
       />,
     );
 
     expect(screen.getByRole("checkbox", { name: LABEL })).toHaveProp(
       "className",
-      expect.stringContaining("rounded-control bg-ink"),
+      expect.stringContaining("rounded-control bg-ink-2"),
     );
     expect(screen.getByText(LABEL)).toHaveProp(
       "className",
@@ -89,7 +89,7 @@ describe("Checkbox", () => {
     );
     expect(screen.getByText("The fine print")).toHaveProp(
       "className",
-      expect.stringContaining("text-ink-3"),
+      expect.stringContaining("text-page"),
     );
   });
 

@@ -14,12 +14,14 @@ export function Checkbox({
   disabled = false,
 }: CheckboxProps) {
   const theme = useTheme();
-  const isInk = variant === "ink";
+  const isBoxed = variant === "boxed";
   const boxClasses = checked
     ? "border-lagoon bg-lagoon"
     : "border-input-line bg-input";
-  // Like the ink button: the fill and the label invert with the theme; ink-3 stays readable on it in both.
-  const containerClasses = isInk ? "rounded-control bg-ink px-4 py-3" : "";
+  // The ink-2 fill inverts with the theme, so page-colored text stays readable on it in both.
+  const containerClasses = isBoxed ? "rounded-control bg-ink-2 px-4 py-3" : "";
+  const labelClasses = isBoxed ? "text-page" : "text-ink";
+  const helperClasses = isBoxed ? "text-page" : "text-ink-2";
 
   return (
     <Pressable
@@ -44,15 +46,9 @@ export function Checkbox({
         ) : null}
       </View>
       <View className="flex-1 gap-0.5">
-        <Text
-          className={`ds-text-list-title ${isInk ? "text-page" : "text-ink"}`}
-        >
-          {label}
-        </Text>
+        <Text className={`ds-text-list-title ${labelClasses}`}>{label}</Text>
         {helper ? (
-          <Text
-            className={`ds-text-list-subtitle ${isInk ? "text-ink-3" : "text-ink-2"}`}
-          >
+          <Text className={`ds-text-list-subtitle ${helperClasses}`}>
             {helper}
           </Text>
         ) : null}

@@ -4,7 +4,7 @@ export type CheckboxProps = {
   label: string;
   /** A second line under the label, stacked with it beside the box. */
   helper?: string;
-  /** `ink`: inside a box with the ink fill and the buttons' radius, its text in the page color. */
-  variant?: "plain" | "ink";
+  /** `boxed`: inside a box with the ink-2 fill and the buttons' radius, its text in the page color. */
+  variant?: "plain" | "boxed";
   disabled?: boolean;
 };

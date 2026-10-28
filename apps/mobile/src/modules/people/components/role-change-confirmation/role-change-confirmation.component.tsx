@@ -40,7 +40,7 @@ export function RoleChangeConfirmation({
             onChange={setIsInstructor}
             label={t("people.instructorFlag.label")}
             helper={t("people.instructorFlag.helper")}
-            variant="ink"
+            variant="boxed"
             disabled={loading}
           />
         ) : null}

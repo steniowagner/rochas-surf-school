@@ -48,7 +48,7 @@ describe("RoleChangeConfirmation", () => {
 
     expect(screen.getByRole("checkbox", { name: "Also an instructor" })).not.toBeChecked();
     expect(
-      screen.getByText("Shows in the instructor list when creating and editing classes."),
+      screen.getByText("Besides being an admin, teaches at the school."),
     ).toBeOnTheScreen();
     expect(
       screen.getByText("They become an admin: they run the school's classes, people, rules and requests."),

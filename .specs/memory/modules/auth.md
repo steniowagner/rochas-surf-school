@@ -15,14 +15,16 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
   (stored trimmed and lowercase; never changes), photo, WhatsApp number and its visibility (hidden by default),
   role (`student` | `instructor` | `admin`, `student` by default), status (`pending` | `approved` | `denied` |
   `deleted` | `removed`, `pending` by default), denial reason (up to 500 characters) and dates, reactivation
-  status (`requested` | `denied`) and when the request was sent, and the versions of the school rules it
-  accepted. An erased account (spec 067) stays in storage as an anonymous record but the repository never returns
+  status (`requested` | `denied`) and when the request was sent, the versions of the school rules it
+  accepted, and `isInstructor` ("also an instructor", `false` by default and when missing; meaningful only for an
+  admin, spec 070). An erased account (spec 067) stays in storage as an anonymous record but the repository never returns
   it, so `erased` isn't a domain status. Relationships: one or
   more identities; many sessions. Lifecycle: as in Product; today the creation of a `pending` student
   through an email code or Google is built, plus the seeded review accounts, an admin approving or denying a
   `pending` account, an approved account adding or changing its WhatsApp number, an approved account changing
   its name, an approved account deleting itself, a deleted account sending its reactivation request, an
-  approved admin approving or denying it, and an approved admin changing another approved account's role.
+  approved admin approving or denying it, an approved admin changing another approved account's role, and an
+  approved admin switching an admin's "also an instructor" flag.
 - **Changing one's name**: an approved account replaces its own name; the name is trimmed and must follow the same
   rules as at sign-up (refused with a `user.name.*` key otherwise, the stored name kept). Only the name changes;
   the email never does. Any other status is refused with `user.status.notApproved`.
@@ -38,11 +40,13 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
   with `user.role.lastAdmin`; an account whose role or status changed meanwhile is refused with
   `user.status.notApproved`. A reactivation doesn't bring the assignments, seats or requests back. 30 days after
   the deletion the account is erased (below).
-- **Changing someone's role**: an approved admin changes another approved account's role. Exactly five changes,
+- **Changing someone's role**: an approved admin changes another approved account's role, sending the new role and,
+  for a promotion to admin, whether the new admin also teaches (`isInstructor`). Exactly five changes,
   one step each: student → instructor, student → admin, instructor → admin, instructor → student, admin →
   instructor (an admin reaches student in two). Checked in this order: the caller's status
   (`user.status.notApproved`, 403) and role (`user.role.notAdmin`, 403); the new role missing, not text or unknown
-  (`people.role.invalid`, 422); an id that isn't a UUID or names no account (`user.notFound`, 404); the caller's own
+  (`people.role.invalid`, 422); an `isInstructor` that is present but not a boolean, or `true` with any role but
+  admin (`people.isInstructor.invalid`, 422); an id that isn't a UUID or names no account (`user.notFound`, 404); the caller's own
   account (`user.role.self`, 403); an account that isn't approved (`user.status.notApproved`, 409); any other pair,
   including the current role (`user.role.changeNotAllowed`, 409). Then, first, the release: a student gives up their
   upcoming seats and pending requests (as for a deletion), an instructor made a student leaves their upcoming
@@ -50,8 +54,17 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
   A failed release fails the call (a retry is safe). Then the guarded write of the new role:
   `user.role.changeNotAllowed` (409) when the stored role or status changed since it was read, `user.role.lastAdmin`
   (409) when no approved admin would remain. Then the person is told once (`role.changed`, with the new role and
-  whether seats or classes were given up); the actor isn't, and a failed notification never changes the answer,
-  `{ id, role }`. A role change applies at once, since every request reloads role and status.
+  whether seats or classes were given up, whatever the flag says); the actor isn't, and a failed notification never
+  changes the answer, `{ id, role, isInstructor }`. A promotion to admin stores the flag as sent (missing → `false`);
+  every other change stores `false`. A role change applies at once, since every request reloads role and status.
+- **Switching "also an instructor"** (spec 070): an approved admin sets the flag of an approved admin, their own
+  included (`{ isInstructor }`, answered `{ id, isInstructor }`). Checked in this order: the caller's status
+  (`user.status.notApproved`, 403) and role (`user.role.notAdmin`, 403); `isInstructor` missing or not a boolean
+  (`people.isInstructor.invalid`, 422); an id that isn't a UUID or names no account (`user.notFound`, 404); an account
+  that isn't approved (`user.status.notApproved`, 409); an account that isn't an admin
+  (`people.isInstructor.notAdmin`, 409). Then the guarded write, expecting an approved admin:
+  `user.role.changeNotAllowed` (409) when the stored role or status changed since it was read. Sending the stored
+  value changes nothing else; nobody is told, and nobody is taken off a class.
 - **Removing someone**: an approved admin removes another approved account, of any role. Checked in this order: the
   caller's status (`user.status.notApproved`, 403) and role (`user.role.notAdmin`, 403); an id that isn't a UUID or
   names no account (`user.notFound`, 404); the caller's own account (`user.remove.self`, 403); an account that isn't
@@ -88,15 +101,18 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
   the only place other users' numbers are shown.
 - **People directory**: an approved account of any role lists every `approved` user of any role, itself included
   (approved accounts that haven't finished onboarding too); pending, denied, deleted and removed accounts never
-  appear. Each item carries only the id, name, role, creation date and WhatsApp number — never the email, photo,
+  appear. Each item carries only the id, name, role, "also an instructor" flag (`false` for students and
+  instructors), creation date and WhatsApp number — never the email, photo,
   status or the visibility itself. The number is given when its owner shares it or when the viewer is an admin,
   and is none otherwise (or when there is no number): a hidden number never leaves the backend for anyone else.
   The list is always sorted A–Z by name ignoring case and accents (same names by id, so pages never overlap), 20
   per page by default (up to 50). It can be searched by name — a "contains" match ignoring case and accents, `%`
   and `_` taken literally, trimmed, up to 80 characters — and filtered by one or more roles (a user with any of
-  them is listed). Wrong parameters are refused together: `people.page.invalid`, `people.perPage.invalid`,
-  `people.role.invalid` (an unknown role or the parameter sent twice), `people.search.max.length`; the access
-  check comes first.
+  them is listed). `teaches=true` keeps only the people who **can be assigned to teach** — instructors and admins with
+  the flag — combined with the role filter and the search, still paged and counted in the database (spec 070).
+  Wrong parameters are refused together: `people.page.invalid`, `people.perPage.invalid`,
+  `people.role.invalid` (an unknown role or the parameter sent twice), `people.teaches.invalid` (anything but
+  `true`), `people.search.max.length`; the access check comes first.
 - **Accepted school rules**: each acceptance is a version of the school rules with when it was accepted; one
   per version, and accepting a version already stored keeps the first one, even when two requests arrive at the
   same moment. The acceptances themselves are recorded by [School rules](school-rules.md).
@@ -256,6 +272,7 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
 - **An approved admin** — lists the pending registrations and approves or denies each one, with an optional
   reason when denying; lists the reactivation requests and approves or denies each one, with an optional reason
   when denying; changes another approved account's role and removes another approved account (never their own);
+  switches the "also an instructor" flag of any approved admin, their own included;
   lists the removed accounts still inside their 30 days and restores each one. The school's only approved
   admin can't delete their account. Anyone else is refused: an account that isn't approved with `user.status.notApproved`
   (checked first, so a removed admin gets it), an approved non-admin with `user.role.notAdmin` — before the id is
@@ -360,6 +377,14 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
   admin" only for a student —, the confirm button, "Voltar" back to the details); confirming sends the change once
   (the button ignores presses while it runs), closes the sheet and reloads the people and the classes, with no
   success toast. A refusal or failure shows its toast and keeps the confirmation; an expired session shows none.
+- **In the app**, the "Promover a admin" confirmation (spec 070) has a boxed "Também é instrutor" checkbox with the
+  helper "Além de admin, dá aulas na escola.", unchecked each time it opens and disabled while saving; its value goes
+  with the promotion. The other confirmations send no flag. The same admin sees the same box on an admin's sheet —
+  another admin's or their own (which still has no role or remove actions) — between the WhatsApp row and the role
+  actions, checked from the person's flag; a tap sends the opposite value once (disabled while it runs), shows the new
+  state and reloads the people lists (the class pickers' too), with no toast. A role changed meanwhile or a person no
+  longer an admin shows "O papel desta pessoa mudou. Atualize a lista.", one no longer approved or not found "Esta
+  pessoa não está mais na plataforma.", anything else the role actions' toasts; the box keeps its state.
 - **In the app**, a `role.changed` push reloads the account with the app open, so the flow guards move it to the new
   role's experience; tapping the push or its row reloads the account and opens the home of the flow it resolves to.
 - **In the app**, the same admin's sheet ends, below the role actions and for every role, with a red "Remover da
@@ -516,3 +541,9 @@ fulfilled by the backend with [Notifications](notifications.md), to delete the n
   stays as an anonymous record (`erased` status and `erased_at` in storage only, nullable name and email) that the
   repository and the access-token check never return; its sign-ins, sessions, phones, rules acceptances, own
   notifications and old sign-in code are deleted.
+- `070-admin-also-instructor` — admins choose whether an admin also teaches: `User.isInstructor` (optional state,
+  `false` when missing; `users.is_instructor`, set on every existing admin by the migration); `ChangeRole` takes and
+  checks `isInstructor` (`people.isInstructor.invalid`) and answers it; `SetInstructorFlag`
+  (`PUT /people/:id/instructor`) with its checks and the guarded write; `ListPeople` gains `teaches`
+  (`DirectoryPageParams.teachers`, `people.teaches.invalid`) and `isInstructor` on every item. In the app, the
+  "Também é instrutor" box on the "Promover a admin" confirmation and on an admin's sheet.

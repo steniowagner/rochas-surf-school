@@ -472,7 +472,9 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   `reactivation` both use it. A tag is the shared `Chip` (`src/components/ui/chip`:
   `tone` and the label, plus an optional `icon` drawn before it — an Ionicons name on mobile, coloured like the
   tone's label, and a `ReactNode` on web, which has no icon set; spec 030). A tick box is the shared
-  `Checkbox` (`src/components/ui/checkbox`: `checked`, `onChange(checked)`, `label`, `disabled`) — one
+  `Checkbox` (`src/components/ui/checkbox`: `checked`, `onChange(checked)`, `label`, `disabled`, optional `helper`
+  — a second line stacked under the label, read as the accessibility hint — and `variant`: `plain` by default, or
+  `boxed`, inside the subtle button's fill and radius, `rounded-control bg-dim`, spec 070) — one
   `Pressable` row with role `checkbox`, so the box and its label toggle it, at least 44 pt tall. Multi-line text is
   the shared `TextArea` (`src/components/ui/text-area`: controlled `value` / `onChangeText`, required `maxLength`
   enforced by the native input, a "{length}/{maxLength}" counter under it, optional `label` also used as the

@@ -81,7 +81,7 @@ The classes themselves, and how a batch becomes classes.
 
 - **Class** (`class`, `school-class` in code — "Class" is avoided as a name): one session. Key fields:
   discipline (`surf` | `skate`), level (`beginner` | `advanced` | `expert`, a label only), when it starts and
-  ends, location, instructors (one or more instructors or admins), capacity, notes (optional), who created it, and
+  ends, location, instructors (one or more instructors or admins who also teach), capacity, notes (optional), who created it, and
   — once cancelled — when it was cancelled and the cancellation message (optional). Lifecycle: created, then
   edited (every field before it starts, only its instructors once started, nothing once finished or cancelled),
   and cancelled at most once, any time before it finishes, or deleted — removed for good, with nothing kept —
@@ -152,8 +152,8 @@ Rules:
   text), `class.instructors.required`, `class.location.required`.
 - **Then, one at a time and in this order** (422): `class.location.notFound`; `class.location.archived` (an
   archived location can't be given to a class); `class.instructors.invalid` (an id
-  that isn't an approved instructor or admin — a student or a pending instructor is refused; repeated ids count
-  once); `class.batch.empty` (no class left: the weekdays and the excluded dates leave out every date or, with
+  of someone who can't be assigned to teach — a student, a pending instructor or an admin without the "also an
+  instructor" flag is refused; repeated ids count once); `class.batch.empty` (no class left: the weekdays and the excluded dates leave out every date or, with
   `skipPast`, every class has started); `class.batch.tooLarge` (more than 200 classes, with the maximum in the
   details); `class.startsAt.past` (without `skipPast`, any class starting at or before the server's now — one
   past class refuses the whole batch).
@@ -202,8 +202,11 @@ Editing one class:
 - **Guests' names are shown only to admins and the class's own instructors**: every class read carries its guests,
   with the name for an approved admin and for an instructor of that class, and without it ("Trial") for everyone
   else; an erased guest has no name for anyone. The week list carries every guest (they are few).
-- **Only added instructors are checked**: an id not already on the class must be an approved instructor or
-  admin; the ones already on it are kept whatever their role or status is now, so a substitute can be swapped
+- **Who can be assigned to teach** (spec 070): an approved instructor, or an approved admin with the "also an
+  instructor" flag (`canTeach`, next to `TeacherRef`, which carries the flag). Clearing an admin's flag never takes
+  them off a class.
+- **Only added instructors are checked**: an id not already on the class must be someone who can be assigned to
+  teach; the ones already on it are kept whatever their role, status or flag is now, so a substitute can be swapped
   in even when a co-instructor was demoted. Repeated ids count once.
 - **"Changed" means a field differs**: discipline, level, start, end, location, capacity and the trimmed notes
   (none when blank), and the instructors as a set (order ignored). A save where nothing differs is accepted and
@@ -409,7 +412,9 @@ module never depends on it. The roster keeps the students in the order they were
 most 4 students per class (a single class all of them) while its seats taken are never capped. The language model that describes the deadlines sits
 behind its own contract too, which the backend fulfils with Anthropic's Claude; the module never sees the
 provider. In the app,
-admins create classes on the "Nova aula" screen, which uses the module's own batch expansion and limits so its
+admins create classes on the "Nova aula" screen, whose instructor list (like "Editar aula"'s) holds only the
+people who can be assigned to teach (`GET /people?role=instructor,admin&teaches=true`, every page; "Editar aula"
+also keeps the class's own instructors, ticked), which uses the module's own batch expansion and limits so its
 count matches what the backend creates: it removes single days of a range and, when today is among the dates,
 leaves out today's classes of the times that have already started and sends `skipPast`. Every role sees the
 classes on its week screen (the student's Agenda, the Aulas tab of instructors and admins) and their details,
@@ -606,3 +611,7 @@ which stops that account from being erased while the link exists — a decision 
   the sender. In the app, `classMessageRecipients` (`utils/class-message.ts`) counts the people the tools' "Enviar
   mensagem" and "Cancelar aula" cards reach (each once, never the viewer) and lists them for the class mode of the
   Send notice screen, which "Enviar mensagem" now opens with the class id; `useClass` takes `{ enabled }`.
+- `070-admin-also-instructor` — only approved instructors and approved admins with the "also an instructor" flag can
+  be assigned to teach: `TeacherRef.isInstructor` and one `canTeach` replace `TEACHER_ROLES` in `CreateClassBatch`
+  and `EditClass` (still `class.instructors.invalid`; an edit checks only the added instructors), and the backend's
+  teacher lookup reads the flag. In the app, `useTeachers` asks the directory with `teaches=true`.

@@ -74,6 +74,8 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
     releases its upcoming classes, then its seats and requests, then closes itself → `deleted` through
     `updateKeepingAnAdmin`), `usecase/change-role.usecase.ts` (`ChangeRole`: an approved admin changes another
     account's role — the five allowed changes, release, guarded write, `role.changed`; spec 058),
+    `usecase/set-instructor-flag.usecase.ts` (`SetInstructorFlag`: an approved admin switches an approved admin's
+    "also an instructor" flag, their own included — checks, guarded write, no notification; spec 070),
     `usecase/{remove-user,list-removed-accounts,restore-account}.usecase.ts` with `usecase/removal-window.ts`
     (`REMOVAL_WINDOW_MS`, 30 × 24 hours) (`RemoveUser`: releases, guarded write, `account.removed`;
     `ListRemovedAccounts`: the removed accounts inside their window; `RestoreAccount`: window check, conditional
@@ -261,6 +263,7 @@ src/
     reactivation-requests.integration.http  # manual REST Client requests
     people.controller.ts        # GET /people (200) — protected; the people directory (ListPeople); PUT
                                 # /people/:id/role (200) — ChangeRole, with the two releasers and the notifier;
+                                # PUT /people/:id/instructor (200) — SetInstructorFlag (spec 070);
                                 # GET /people/removed (200, declared before the :id routes; ListRemovedAccounts),
                                 # POST /people/:id/remove (200; RemoveUser) and POST /people/:id/restore (200;
                                 # RestoreAccount), with the clock and the account-removal notifier (spec 066)
@@ -429,7 +432,8 @@ test/
                                 # notifications (faked pushes; the classes taken; the approve/deny race; spec 064)
   people.e2e-spec.ts            # e2e suite of GET /people (accounts through Prisma, isolated by a per-test name tag)
   people-roles.e2e-spec.ts      # e2e suite of PUT /people/:id/role (spec 058): the five changes, their releases,
-                                # every refusal, the last-admin races forced through the row locks, role.changed
+                                # every refusal, the last-admin races forced through the row locks, role.changed;
+                                # the "instructor flag" tests of PUT /people/:id/instructor (spec 070)
   people-removal.e2e-spec.ts    # e2e suite of POST /people/:id/remove, GET /people/removed and POST
                                 # /people/:id/restore (spec 066): releases, refusals, the last-admin race, the window,
                                 # concurrent restores, account.removed / account.restored, a removed account's phone
@@ -592,18 +596,21 @@ src/
                                 # /people/:id/role; invalidates ["people"] and ["classes"]; spec 058), use-remove-person
                                 # (POST /people/:id/remove; invalidates people, classes and removed accounts),
                                 # use-removed-accounts (["removed-accounts"], GET /people/removed, approved admins
-                                # only), use-restore-account (POST /people/:id/restore; spec 066)
+                                # only), use-restore-account (POST /people/:id/restore; spec 066),
+                                # use-set-instructor-flag (PUT /people/:id/instructor; invalidates ["people"]; spec 070)
     components/                 # role-filters (one toggle button per role), person-avatar (initials), person-row,
-                                # person-sheet (WhatsApp row or "not shared", the role actions when canChangeRole,
+                                # person-sheet (WhatsApp row or "not shared", the "Também é instrutor" box when
+                                # canSetInstructorFlag (spec 070), the role actions when canChangeRole,
                                 # swapped for the confirmation in the same sheet, Close), person-role-actions (the
                                 # rows of each role), role-change-confirmation (title, consequences, confirm,
-                                # Voltar), remove-confirmation ("Remover {name}?", the student or staff text,
+                                # Voltar; the "Também é instrutor" box for promoteAdmin, spec 070), remove-confirmation ("Remover {name}?", the student or staff text,
                                 # Remover da plataforma, Voltar), removed-accounts-section (the "Contas removidas"
                                 # footer) and removed-account-row (dimmed avatar, dates, Restaurar with its own
                                 # loading state; spec 066), people-entry-row (the homes' "People · N on the platform" row)
     utils/                      # people-query.ts (buildPeoplePagePath), group-by-initial.ts, format-since.ts
                                 # ("MMM yyyy"), format-whatsapp-number.ts, role-chip.ts (role → chip tone and label),
                                 # role-change-error.ts (the toast key of each role-change error),
+                                # instructor-flag-error.ts (the toast key of each instructor-flag error; spec 070),
                                 # format-removal-dates.ts (removal day and +30 days, Fortaleza time), removal-error.ts
                                 # (the removal's toasts reuse the role change's; the restore's two 409s; spec 066)
   modules/cancellation-rules/   # the cancellation rules (spec 036): reading them (every role) and editing them

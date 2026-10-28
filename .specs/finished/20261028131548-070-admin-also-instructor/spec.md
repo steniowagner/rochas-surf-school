@@ -2,13 +2,14 @@
 id: "070"
 slug: admin-also-instructor
 title: "Admins who also teach"
-status: accepted
+status: finished
 created: 2026-10-28
 started: 2026-10-28
 base_commit: cbda13b2810986f7db50e4c671503fe55cc34956
 reviewed_commit: 93d9ac96e81d9d26e1d1e13e5ca55d65cd7874f3
 fronts: [auth, classes, backend, mobile]
 depends_on: []
+finished: 2026-10-28
 ---
 
 # 070 — Admins who also teach

@@ -42,8 +42,8 @@ Each user has exactly one role. New accounts start as students. Only students ta
   approves or denies registrations, enrolments and reactivation requests; enrols students directly and adds
   guests; changes roles, removes and restores accounts; writes the school rules and the cancellation rules;
   sets the school's WhatsApp number and the waiting-list switch; sends broadcasts; deletes any comment or
-  photo. An admin can also teach, and then sees their classes under "My classes" and "Past classes" like an
-  instructor. There is
+  photo. An admin can also teach when they have the "also an instructor" flag (spec 070), and then sees their
+  classes under "My classes" and "Past classes" like an instructor. There is
   always at least one admin.
 
 ## Domain concepts
@@ -91,7 +91,13 @@ Listed in the order people meet them.
     instructor → student (unassigned from the classes they teach that haven't started, kept on the others);
     admin → instructor (kept on every class they teach). An admin reaches student in two steps. The only admin
     can't be demoted or removed. The person gets one notification of their new role, and their app moves to the
-    new role's experience. There is no "also an instructor" flag: every admin can be assigned to teach.
+    new role's experience. A promotion to admin sets whether the new admin also teaches (the "also an instructor"
+    flag, unchecked by default); admin → instructor clears it.
+  - Also an instructor (spec 070): a flag stored on every account and meaningful only for admins. Someone **can be
+    assigned to teach** when they are approved and either an instructor or an admin with the flag. Any approved
+    admin switches it on an admin's sheet, their own included; nobody is told. Clearing it never takes the admin
+    off a class: classes keep their instructors, and only the instructors being added are checked. When the flag
+    arrived, every existing admin got it, so nobody lost what they could do.
 - **Identity** (`identity`): one way a user signs in — Google, Apple (iOS only) or a code sent by email. Key
   fields: method, the email it provides. Relationship: belongs to one user; a user has one or more. Any method
   that provides the same email opens the same account; a Google sign-in keeps opening its account even after
@@ -152,7 +158,7 @@ Listed in the order people meet them.
   class, and can't be restored.
 - **Class** (`class`): one surf or skate session at one date and time. Key fields: discipline (`surf` |
   `skate`), level (`beginner` | `advanced` | `expert` — a label only), date, start and end time, location,
-  instructors (at least one; instructors or admins), capacity, notes (optional, max 300 characters, visible to
+  instructors (at least one; instructors or admins with the "also an instructor" flag), capacity, notes (optional, max 300 characters, visible to
   everyone), cancellation deadline. Relationships: one location; one or more instructors; many enrolments,
   guests, ratings, instructor comments and photos. Created one at a time or in a **batch** (a date range with
   single days removed, and one or more non-overlapping time ranges, each ending after it starts; one class per
@@ -685,7 +691,7 @@ time that has already started today stays selectable: when today is among the da
 ("Os horários que já passaram não terão aula hoje.") and the other days are created (spec 029).
 A location is picked from the saved ones or added in place with "Novo local"
 (name and address; a name already used, ignoring case and accents, is refused). Instructors are the approved
-instructors and admins of the school, none preselected. The screen shows "N dias × M horários · <local>" and
+instructors and the approved admins who also teach (spec 070), none preselected. The screen shows "N dias × M horários · <local>" and
 "Criar aula" / "Criar N aulas", enabled for 1 to 200 classes with a location and an instructor; on success a
 toast ("N aulas criadas") and back to the home. The backend creates the whole batch or nothing — refusing past
 classes (unless asked to skip them, spec 029), unknown locations, instructors who can't teach, more than 200 classes and every invalid field — and
@@ -1285,6 +1291,20 @@ read and opens the class's details in the reader's own flow. The counts on the t
 aula" cards now leave out the admin viewing them. Opened from the admin home, the Send notice screen is unchanged.
 All copy is in pt-BR, es-ES and en-US.
 
+**Admins who also teach** (spec `070-admin-also-instructor`) — not every admin teaches any more. The "Promover a
+admin" confirmation, for a student and for an instructor, has a boxed "Também é instrutor" checkbox ("Além de admin,
+dá aulas na escola."), unchecked each time it opens and disabled while saving; its value is stored with the new
+role. On the People screen an approved admin sees the same box on an admin's sheet — another admin's or their own —
+between the WhatsApp row and the role actions, checked when that admin also teaches; a tap switches it at once, with
+no toast and no notification, and a role changed meanwhile or a person no longer on the platform shows the role
+actions' toasts and keeps the box as it was. "Passar a instrutor" clears the flag. The instructor lists of "Nova aula"
+and "Editar aula" offer only the approved instructors and the admins who also teach; on "Editar aula" an admin
+without the flag who already teaches the class still shows, ticked, so they can be taken off. The backend refuses to
+assign an admin without the flag when classes are created or an instructor is added, and never unassigns anyone when
+the flag is cleared. Every admin already on the platform kept the flag. The "Promover a admin" row now reads "Passa a
+gerenciar a escola." and its description no longer says the admin can also teach. All copy is in pt-BR, es-ES and
+en-US.
+
 Active specs: none.
 
 ## Out of scope (future evolution, recorded in the specs)
@@ -1374,8 +1394,7 @@ Active specs: none.
   when the view switches, remembering the chosen view after leaving the screen, and using the calendar on other
   screens.
 - On "Minhas aulas" (spec 048): keeping the chosen chip after a class or the history opened above the tab.
-- On the instructor's and admin's "Minhas aulas" (spec 057): the "Atualizada" chip of a recently edited class; a stored "also an
-  instructor" option on admin accounts; filtering the list by level or status, searching it and paging it; the
+- On the instructor's and admin's "Minhas aulas" (spec 057): the "Atualizada" chip of a recently edited class; filtering the list by level or status, searching it and paging it; the
   admin's week-by-week layout; and the rest of the dashboards (greeting, metrics, "Avaliações das aulas"; "Ocupação
   semanal" came with spec 061).
 - On the sport filter of the instructor's and admin's "Minhas aulas" (spec 059): keeping the chosen sport after
@@ -1408,8 +1427,12 @@ Active specs: none.
   allowed, by product decision); role actions on the sheets opened from the class details or "Entrar na escola";
   undoing a role change and a
   success style for toasts; telling anyone but the person (the releases keep their own notifications), and a
-  `class.unassigned` per released class. The designs' "Também é instrutor" option is decided against: there is no
-  "also an instructor" flag, since every admin can be assigned to teach.
+  `class.unassigned` per released class.
+- On admins who also teach (spec 070): any notification about the flag; a chip or label for it on the People list
+  or anywhere besides the box; taking an admin off classes when the flag is cleared; a flag on students or
+  instructors (instructors always teach); setting it anywhere but the person's sheet and the promotion confirmation.
+  Broadcast audiences ("instructors" is the instructor role) and who **teaches** in "Minhas aulas" and "Aulas
+  anteriores" (derived from class assignment) don't depend on the flag.
 - On removing and restoring accounts (spec 066): removing a pending, denied, deleted or already removed account;
   the remove action on the sheets opened from the class details or "Entrar na escola"; giving back, on a restore,
   the seats, requests or classes the removal released; a confirmation before "Restaurar", a success toast, and any

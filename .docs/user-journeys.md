@@ -265,10 +265,10 @@ None right now.
 ## Deferred to development
 
 _Implemented in spec 069-class-message._
+_Implemented in spec 070-admin-also-instructor._
 
 The designs include these items, which the specs don't cover yet. They'll be decided when development starts:
 
 - weather and sea conditions on class details;
 - class names, such as "Ondas da Manhã";
-- notes on registrations and class requests;
-- an "also an instructor" option when promoting someone to admin.
+- notes on registrations and class requests.

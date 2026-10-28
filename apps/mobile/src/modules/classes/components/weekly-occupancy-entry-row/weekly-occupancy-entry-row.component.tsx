@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, SimpleLineIcons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { Pressable, Text, View } from "react-native";
 
@@ -23,7 +23,7 @@ export function WeeklyOccupancyEntryRow({
         onPress={onPress}
         className="min-h-11 flex-row items-center gap-3 py-3"
       >
-        <Ionicons name="bar-chart-outline" size={20} color={theme.lagoon} />
+        <SimpleLineIcons name="graph" size={20} color={theme.lagoon} />
         <View className="flex-1 gap-0.5">
           <Text className="ds-text-list-title text-ink">
             {t("weeklyOccupancy.title")}

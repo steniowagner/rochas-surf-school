@@ -109,7 +109,7 @@ export function Profile() {
             onPress={openSchoolRules}
           />
           <ProfileRow
-            icon="document-text-outline"
+            icon="close-circle-outline"
             label={t("profile.cancellationRules")}
             onPress={() => openSheet("cancellationRules")}
           />

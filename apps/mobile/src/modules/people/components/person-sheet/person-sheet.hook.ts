@@ -38,13 +38,17 @@ export const usePersonSheet = ({ person, onClose }: UsePersonSheetProps) => {
   };
 
   // The confirm button ignores presses while it is loading, so a second tap can't send another change.
-  const confirmRoleChange = async () => {
+  const confirmRoleChange = async (isInstructor: boolean) => {
     if (!person?.id || !roleAction) {
       return;
     }
 
     try {
-      await changeRole.mutateAsync({ id: person.id, role: ROLE_ACTION_TARGET[roleAction] });
+      await changeRole.mutateAsync({
+        id: person.id,
+        role: ROLE_ACTION_TARGET[roleAction],
+        ...(roleAction === "promoteAdmin" ? { isInstructor } : {}),
+      });
       close();
     } catch (error) {
       const key = getRoleChangeErrorKey(error);

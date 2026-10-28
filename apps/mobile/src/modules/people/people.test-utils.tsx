@@ -11,6 +11,7 @@ export const buildPerson = (index: number, overrides: Partial<Person> = {}): Per
   id: `p-${index}`,
   name: `Person ${index}`,
   role: "student",
+  isInstructor: false,
   createdAt: "2026-07-15T12:00:00.000Z",
   whatsappNumber: null,
   ...overrides,

@@ -41,9 +41,9 @@ describe("usePersonSheet", () => {
       withoutId.result.current.selectRoleAction("promoteInstructor");
     });
     await act(async () => {
-      await withoutAction.result.current.confirmRoleChange();
-      await withoutPerson.result.current.confirmRoleChange();
-      await withoutId.result.current.confirmRoleChange();
+      await withoutAction.result.current.confirmRoleChange(false);
+      await withoutPerson.result.current.confirmRoleChange(false);
+      await withoutId.result.current.confirmRoleChange(false);
     });
 
     expect(api.apiPut).not.toHaveBeenCalled();
@@ -57,10 +57,10 @@ describe("usePersonSheet", () => {
 
     await act(async () => result.current.selectRoleAction("promoteAdmin"));
     await act(async () => {
-      await result.current.confirmRoleChange();
+      await result.current.confirmRoleChange(false);
     });
 
-    expect(api.apiPut).toHaveBeenCalledWith("/people/p-1/role", { role: "admin" }, { authenticated: true });
+    expect(api.apiPut).toHaveBeenCalledWith("/people/p-1/role", { role: "admin", isInstructor: false }, { authenticated: true });
     expect(mockShow).not.toHaveBeenCalled();
     expect(onClose).not.toHaveBeenCalled();
     expect(result.current.roleAction).toBe("promoteAdmin");

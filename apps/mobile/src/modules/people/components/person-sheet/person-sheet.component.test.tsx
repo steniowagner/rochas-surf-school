@@ -135,8 +135,8 @@ describe("PersonSheet", () => {
     beforeEach(setupSignedInUser);
 
     it.each([
-      ["student", ["Make instructor", "Make admin"], ["Can be assigned to classes.", "Runs the school. Can also teach."]],
-      ["instructor", ["Make admin", "Make student"], ["Runs the school. Can also teach.", "Leaves the upcoming classes they teach."]],
+      ["student", ["Make instructor", "Make admin"], ["Can be assigned to classes.", "Runs the school."]],
+      ["instructor", ["Make admin", "Make student"], ["Runs the school.", "Leaves the upcoming classes they teach."]],
       ["admin", ["Remove admin"], ["Stops running the school."]],
     ] as const)("shows the role actions of a %s below the contact row", async (role, titles, subtitles) => {
       await renderSheet(
@@ -238,6 +238,35 @@ describe("PersonSheet", () => {
       expect(screen.queryByText("Make Ana an instructor?")).not.toBeOnTheScreen();
       expect(fetchMock).not.toHaveBeenCalled();
       expect(onClose).not.toHaveBeenCalled();
+    });
+
+    it("makes an admin who does not teach by default, and one who does when the box is checked", async () => {
+      fetchMock.mockResolvedValue(ok({ id: ana.id, role: "admin", isInstructor: false }));
+      const first = await openConfirmation(ana, "Make admin");
+      await first.user.press(screen.getByRole("button", { name: "Make admin" }));
+
+      expect(fetchMock).toHaveBeenLastCalledWith(
+        `http://api.test/people/${ana.id}/role`,
+        expect.objectContaining({ body: JSON.stringify({ role: "admin", isInstructor: false }) }),
+      );
+    });
+
+    it("sends isInstructor true when the box is checked, and starts unchecked every time", async () => {
+      fetchMock.mockResolvedValue(ok({ id: ana.id, role: "admin", isInstructor: true }));
+      const { user } = await openConfirmation(ana, "Make admin");
+
+      await user.press(screen.getByRole("checkbox", { name: "Also an instructor" }));
+      await user.press(screen.getByRole("button", { name: "Back" }));
+      await user.press(screen.getByRole("button", { name: "Make admin" }));
+      expect(screen.getByRole("checkbox", { name: "Also an instructor" })).not.toBeChecked();
+
+      await user.press(screen.getByRole("checkbox", { name: "Also an instructor" }));
+      await user.press(screen.getByRole("button", { name: "Make admin" }));
+
+      expect(fetchMock).toHaveBeenLastCalledWith(
+        `http://api.test/people/${ana.id}/role`,
+        expect.objectContaining({ body: JSON.stringify({ role: "admin", isInstructor: true }) }),
+      );
     });
 
     it("adds the seats note when a student is made admin", async () => {

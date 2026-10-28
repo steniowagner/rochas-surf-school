@@ -19,7 +19,7 @@ describe("useChangeRole", () => {
   it("puts the new role and reloads the people and the classes", async () => {
     const queryClient = createQueryClient();
     const invalidate = jest.spyOn(queryClient, "invalidateQueries");
-    fetchMock.mockResolvedValue(ok({ id: "p-1", role: "instructor" }));
+    fetchMock.mockResolvedValue(ok({ id: "p-1", role: "instructor", isInstructor: false }));
     const { result } = await renderHook(() => useChangeRole(), {
       wrapper: createWrapper(queryClient),
     });
@@ -29,7 +29,7 @@ describe("useChangeRole", () => {
       answer = await result.current.mutateAsync({ id: "p-1", role: "instructor" });
     });
 
-    expect(answer).toEqual({ id: "p-1", role: "instructor" });
+    expect(answer).toEqual({ id: "p-1", role: "instructor", isInstructor: false });
     expect(fetchMock).toHaveBeenCalledWith(
       "http://api.test/people/p-1/role",
       expect.objectContaining({
@@ -40,6 +40,22 @@ describe("useChangeRole", () => {
     );
     expect(invalidate).toHaveBeenCalledWith({ queryKey: ["people"] });
     expect(invalidate).toHaveBeenCalledWith({ queryKey: ["classes"] });
+  });
+
+  it("sends the instructor flag only when given", async () => {
+    fetchMock.mockResolvedValue(ok({ id: "p-1", role: "admin", isInstructor: true }));
+    const { result } = await renderHook(() => useChangeRole(), {
+      wrapper: createWrapper(createQueryClient()),
+    });
+
+    await act(async () => {
+      await result.current.mutateAsync({ id: "p-1", role: "admin", isInstructor: true });
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "http://api.test/people/p-1/role",
+      expect.objectContaining({ body: JSON.stringify({ role: "admin", isInstructor: true }) }),
+    );
   });
 
   it("fails without retrying and without reloading anything", async () => {

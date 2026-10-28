@@ -1032,7 +1032,7 @@ const messages = {
       },
       promoteAdmin: {
         title: "Make admin",
-        subtitle: "Runs the school. Can also teach.",
+        subtitle: "Runs the school.",
       },
       demoteStudent: {
         title: "Make student",
@@ -1053,7 +1053,7 @@ const messages = {
       promoteAdmin: {
         title: "Make {{name}} an admin?",
         description:
-          "They become an admin: they run the school's classes, people, rules and requests. They can also teach.",
+          "They become an admin: they run the school's classes, people, rules and requests.",
         seatsNote:
           "The seats and requests they had in upcoming classes, as a student, are cancelled.",
         confirm: "Make admin",
@@ -1071,6 +1071,11 @@ const messages = {
         confirm: "Remove admin",
       },
       back: "Back",
+    },
+    instructorFlag: {
+      label: "Also an instructor",
+      helper:
+        "Shows in the instructor list when creating and editing classes.",
     },
     roleErrors: {
       changed: "This person's role changed. Refresh the list.",

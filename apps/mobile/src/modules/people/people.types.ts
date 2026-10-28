@@ -5,6 +5,8 @@ export type Person = {
   id: string;
   name: string;
   role: PeopleRole;
+  /** Only an admin can be one: an admin who also teaches can be assigned to classes (spec 070). */
+  isInstructor: boolean;
   createdAt: string;
   /** E.164; `null` unless the owner shares it or the viewer is an admin. */
   whatsappNumber: string | null;
@@ -27,12 +29,27 @@ export type PeopleFilters = {
 export type ChangeRoleVariables = {
   id: string;
   role: PeopleRole;
+  /** Sent only with a promotion to admin: whether the new admin also teaches. */
+  isInstructor?: boolean;
 };
 
 /** What `PUT /people/:id/role` answers. */
 export type RoleChange = {
   id: string;
   role: PeopleRole;
+  isInstructor: boolean;
+};
+
+/** What `PUT /people/:id/instructor` takes. */
+export type SetInstructorFlagVariables = {
+  id: string;
+  isInstructor: boolean;
+};
+
+/** What `PUT /people/:id/instructor` answers. */
+export type InstructorFlagChange = {
+  id: string;
+  isInstructor: boolean;
 };
 
 /** A role change an admin can start from a person's sheet (spec 058, D-12). */

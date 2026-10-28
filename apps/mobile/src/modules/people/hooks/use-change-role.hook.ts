@@ -14,8 +14,12 @@ export const useChangeRole = () => {
   return useMutation({
     // No retry: a role change notifies the person.
     retry: false,
-    mutationFn: ({ id, role }: ChangeRoleVariables) =>
-      apiPut<RoleChange>(`/people/${id}/role`, { role }, { authenticated: true }),
+    mutationFn: ({ id, role, isInstructor }: ChangeRoleVariables) =>
+      apiPut<RoleChange>(
+        `/people/${id}/role`,
+        isInstructor === undefined ? { role } : { role, isInstructor },
+        { authenticated: true },
+      ),
     onSuccess: () =>
       Promise.all([
         queryClient.invalidateQueries({ queryKey: ["people"] }),

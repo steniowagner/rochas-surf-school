@@ -299,7 +299,7 @@ be assigned to teach.
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-08** — In `apps/mobile/src/modules/people/`, add `isInstructor: boolean` to `Person` and an optional
+- [x] **T-08** — In `apps/mobile/src/modules/people/`, add `isInstructor: boolean` to `Person` and an optional
   `isInstructor` to `ChangeRoleVariables` / `isInstructor` to `RoleChange` (`people.types.ts`); send it from
   `hooks/use-change-role.hook.ts` when present; add the "Também é instrutor" `Checkbox` and helper to
   `components/role-change-confirmation/` for `promoteAdmin` only (D-08), with its state reset each time the
@@ -307,6 +307,7 @@ be assigned to teach.
   `src/i18n/messages/pt-BR.ts`, `es-ES.ts` and `en-US.ts`. Tests in `role-change-confirmation.component.test.tsx`,
   `person-sheet.component.test.tsx`, `person-sheet.hook.test.tsx` and `use-change-role.hook.test.tsx`.
   Covers: ER-07 · Done when: `cd apps/mobile && npx jest src/modules/people` passes.
+  > ✅ 2026-10-28 12:23 — `Person.isInstructor`, `isInstructor` on `ChangeRoleVariables`/`RoleChange`, `useChangeRole` sends it only when given; the "Também é instrutor" checkbox + helper on the `promoteAdmin` confirmation (unchecked each time it opens because the confirmation remounts, disabled while saving), value passed through `usePersonSheet.confirmRoleChange(isInstructor)`; copy of D-10 and new `people.instructorFlag.*` keys in the three languages; files: `apps/mobile/src/modules/people/people.types.ts`, `apps/mobile/src/modules/people/people.test-utils.tsx`, `apps/mobile/src/modules/people/hooks/use-change-role.hook.ts`, `apps/mobile/src/modules/people/hooks/use-change-role.hook.test.tsx`, `apps/mobile/src/modules/people/components/role-change-confirmation/role-change-confirmation.{component.tsx,types.ts,component.test.tsx}`, `apps/mobile/src/modules/people/components/person-sheet/person-sheet.{hook.ts,hook.test.tsx,component.test.tsx}`, `apps/mobile/src/i18n/messages/{pt-BR,es-ES,en-US}.ts`; verified: `cd apps/mobile && npx jest src/modules/people` (174 passed), `npx tsc --noEmit` clean; deviations: none
 
 - [ ] **T-09** — Add `hooks/use-set-instructor-flag.hook.ts` (`PUT /people/:id/instructor`, no retry, invalidates
   `["people"]` on success) in `apps/mobile/src/modules/people/`, and the toggle row of D-09 on the person sheet: a

@@ -657,10 +657,9 @@ const messages: Messages = {
   },
   tabs: {
     agenda: "Agenda",
-    myClasses: "Mis clases",
+    myClasses: "Reservas",
     school: "Escuela",
     home: "Inicio",
-    panel: "Panel",
     classes: "Clases",
     people: "Personas",
     profile: "Perfil",

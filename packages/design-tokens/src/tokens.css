@@ -355,6 +355,15 @@
   text-transform: none;
 }
 
+.ds-text-tab-bar-label {
+  font-family: var(--ds-font-display), sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .ds-text-badge {
   font-family: var(--ds-font-body), system-ui, sans-serif;
   font-weight: 800;

@@ -144,9 +144,9 @@ describe("instructor tabs", () => {
   it("instructor opens on Panel and switches tabs", async () => {
     const app = await open();
 
-    expect(tabLabels()).toEqual(["Panel", "Classes", "People", "Profile"]);
+    expect(tabLabels()).toEqual(["Home", "Classes", "People", "Profile"]);
     expect(app.getPathname()).toBe("/instructor");
-    expect(selectedTabLabel()).toBe("Panel");
+    expect(selectedTabLabel()).toBe("Home");
     expect(screen.getByRole("header", { name: "School" })).toBeOnTheScreen();
 
     await act(async () => router.navigate(routes.instructor.classes));
@@ -197,6 +197,6 @@ describe("instructor tabs", () => {
     await i18n.changeLanguage("pt-BR");
     await open();
 
-    expect(tabLabels()).toEqual(["Painel", "Aulas", "Pessoas", "Perfil"]);
+    expect(tabLabels()).toEqual(["Início", "Aulas", "Pessoas", "Perfil"]);
   });
 });

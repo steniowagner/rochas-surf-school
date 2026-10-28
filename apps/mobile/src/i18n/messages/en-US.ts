@@ -649,10 +649,9 @@ const messages = {
   },
   tabs: {
     agenda: "Schedule",
-    myClasses: "My classes",
+    myClasses: "Bookings",
     school: "School",
     home: "Home",
-    panel: "Panel",
     classes: "Classes",
     people: "People",
     profile: "Profile",

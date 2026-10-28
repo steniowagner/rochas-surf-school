@@ -1,10 +1,27 @@
 import { RoleTabs } from "@/components/role-tabs";
+import type { RoleTab } from "@/components/role-tabs/role-tabs.types";
 
-const tabs = [
-  { name: "(home)", labelKey: "tabs.panel", sf: "chart.bar", md: "bar_chart" },
-  { name: "classes", labelKey: "tabs.classes", sf: "calendar", md: "calendar_today" },
-  { name: "people", labelKey: "tabs.people", sf: "person.2", md: "group" },
-  { name: "profile", labelKey: "tabs.profile", sf: "person.crop.circle", md: "person" },
+const tabs: RoleTab[] = [
+  {
+    name: "(home)",
+    labelKey: "tabs.home",
+    icon: { set: "Feather", name: "home" },
+  },
+  {
+    name: "classes",
+    labelKey: "tabs.classes",
+    icon: { set: "Ionicons", name: "calendar-outline" },
+  },
+  {
+    name: "people",
+    labelKey: "tabs.people",
+    icon: { set: "Feather", name: "users" },
+  },
+  {
+    name: "profile",
+    labelKey: "tabs.profile",
+    icon: { set: "FontAwesome6", name: "circle-user" },
+  },
 ];
 
 export default function TabsLayout() {

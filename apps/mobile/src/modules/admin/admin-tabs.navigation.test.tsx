@@ -160,9 +160,9 @@ describe("admin tabs", () => {
   it("admin opens on Panel with the school tools and the pending count", async () => {
     const app = await open();
 
-    expect(tabLabels()).toEqual(["Panel", "Classes", "People", "Profile"]);
+    expect(tabLabels()).toEqual(["Home", "Classes", "People", "Profile"]);
     expect(app.getPathname()).toBe("/admin");
-    expect(selectedTabLabel()).toBe("Panel");
+    expect(selectedTabLabel()).toBe("Home");
     expect(screen.getByText("Tools")).toBeOnTheScreen();
     expect(await screen.findByText("2 waiting")).toBeOnTheScreen();
   });
@@ -191,8 +191,8 @@ describe("admin tabs", () => {
 
     await act(async () => router.back());
     expect(app.getPathname()).toBe("/admin");
-    expect(selectedTabLabel()).toBe("Panel");
-    expect(tabLabels()).toEqual(["Panel", "Classes", "People", "Profile"]);
+    expect(selectedTabLabel()).toBe("Home");
+    expect(tabLabels()).toEqual(["Home", "Classes", "People", "Profile"]);
   });
 
   it("opens the new class screen above the tabs, and back returns to Panel with the tab bar", async () => {
@@ -220,8 +220,8 @@ describe("admin tabs", () => {
     await act(async () => router.back());
 
     expect(app.getPathname()).toBe("/admin");
-    expect(selectedTabLabel()).toBe("Panel");
-    expect(tabLabels()).toEqual(["Panel", "Classes", "People", "Profile"]);
+    expect(selectedTabLabel()).toBe("Home");
+    expect(tabLabels()).toEqual(["Home", "Classes", "People", "Profile"]);
   });
 
   it("opens the cancellation rules above the tabs, and back returns to Panel with the tab bar (cancellation rules)", async () => {
@@ -249,8 +249,8 @@ describe("admin tabs", () => {
     await act(async () => router.back());
 
     expect(app.getPathname()).toBe("/admin");
-    expect(selectedTabLabel()).toBe("Panel");
-    expect(tabLabels()).toEqual(["Panel", "Classes", "People", "Profile"]);
+    expect(selectedTabLabel()).toBe("Home");
+    expect(tabLabels()).toEqual(["Home", "Classes", "People", "Profile"]);
   });
 
   it("opens a class above the tabs, and back returns to Classes with the tab bar", async () => {
@@ -296,6 +296,6 @@ describe("admin tabs", () => {
     await i18n.changeLanguage("es-ES");
     await open();
 
-    expect(tabLabels()).toEqual(["Panel", "Clases", "Personas", "Perfil"]);
+    expect(tabLabels()).toEqual(["Inicio", "Clases", "Personas", "Perfil"]);
   });
 });

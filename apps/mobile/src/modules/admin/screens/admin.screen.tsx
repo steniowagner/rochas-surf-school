@@ -8,7 +8,6 @@ import { TeachingClassesEntryRow } from "@/modules/classes/components/teaching-c
 import { WeeklyOccupancyEntryRow } from "@/modules/classes/components/weekly-occupancy-entry-row";
 import { usePendingRequests } from "@/modules/enrolment/hooks/use-pending-requests.hook";
 import { useRemovedAccounts } from "@/modules/people/hooks/use-removed-accounts.hook";
-import { PeopleEntryRow } from "@/modules/people/components/people-entry-row";
 import { SchoolRulesEntryRow } from "@/modules/school-rules/components/school-rules-entry-row";
 import { useHeaderInset } from "@/navigation/stack-header";
 
@@ -21,7 +20,6 @@ const openReactivations = () => router.push(routes.admin.reactivations);
 const openClassRequests = () => router.push(routes.admin.classRequests);
 const openEnrolStudent = () => router.push(routes.admin.enrolStudent);
 const openRemovedAccounts = () => router.push(routes.admin.removedAccounts);
-const openPeople = () => router.push(routes.admin.people);
 const openMyClasses = () => router.push(routes.admin.myClasses);
 const openNewClass = () => router.push(routes.admin.newClass());
 const openWeeklyOccupancy = () => router.push(routes.admin.weeklyOccupancy);
@@ -68,31 +66,9 @@ export function AdminScreen() {
         <View className="overflow-hidden rounded-card border border-line bg-surface">
           <AdminToolRow
             grouped="first"
-            icon="account-plus-outline"
-            title={t("admin.home.registrationsRow")}
-            subtitle={
-              registrationsCount === undefined
-                ? undefined
-                : registrationsCount
-                  ? t("admin.home.waiting", { count: registrationsCount })
-                  : t("admin.home.nothingPending")
-            }
-            badge={registrationsCount}
-            onPress={openRegistrations}
-          />
-          <AdminToolRow
-            grouped="next"
-            icon="account-reactivate-outline"
-            title={t("admin.home.reactivationsRow")}
-            subtitle={
-              reactivationsCount === undefined
-                ? undefined
-                : reactivationsCount
-                  ? t("admin.home.waiting", { count: reactivationsCount })
-                  : t("admin.home.nothingPending")
-            }
-            badge={reactivationsCount}
-            onPress={openReactivations}
+            icon="plus-circle-outline"
+            title={t("admin.home.newClassRow")}
+            onPress={openNewClass}
           />
           <AdminToolRow
             grouped="next"
@@ -109,6 +85,20 @@ export function AdminScreen() {
             }
             badge={requestsCount}
             onPress={openClassRequests}
+          />
+          <AdminToolRow
+            grouped="next"
+            icon="account-plus-outline"
+            title={t("admin.home.registrationsRow")}
+            subtitle={
+              registrationsCount === undefined
+                ? undefined
+                : registrationsCount
+                  ? t("admin.home.waiting", { count: registrationsCount })
+                  : t("admin.home.nothingPending")
+            }
+            badge={registrationsCount}
+            onPress={openRegistrations}
           />
           <AdminToolRow
             grouped="next"
@@ -134,29 +124,17 @@ export function AdminScreen() {
           />
           <AdminToolRow
             grouped="next"
-            icon="plus-circle-outline"
-            title={t("admin.home.newClassRow")}
-            onPress={openNewClass}
-          />
-          <AdminToolRow
-            grouped="next"
-            icon="calendar-remove-outline"
-            title={t("admin.home.cancellationRulesRow")}
-            subtitle={t("admin.home.cancellationRulesSubtitle")}
-            onPress={openCancellationRules}
-          />
-          <AdminToolRow
-            grouped="next"
-            icon="tune-variant"
-            title={t("admin.home.schoolSettingsRow")}
-            onPress={openSchoolSettings}
-          />
-          <AdminToolRow
-            grouped="next"
-            icon="bullhorn-outline"
-            title={t("admin.home.sendNoticeRow")}
-            subtitle={t("admin.home.sendNoticeSubtitle")}
-            onPress={openSendNotice}
+            icon="account-reactivate-outline"
+            title={t("admin.home.reactivationsRow")}
+            subtitle={
+              reactivationsCount === undefined
+                ? undefined
+                : reactivationsCount
+                  ? t("admin.home.waiting", { count: reactivationsCount })
+                  : t("admin.home.nothingPending")
+            }
+            badge={reactivationsCount}
+            onPress={openReactivations}
           />
         </View>
       </View>
@@ -178,10 +156,29 @@ export function AdminScreen() {
             grouped="next"
             onPress={openSchoolRules}
           />
-          <PeopleEntryRow grouped="next" onPress={openPeople} />
           <WeeklyOccupancyEntryRow
             grouped="next"
             onPress={openWeeklyOccupancy}
+          />
+          <AdminToolRow
+            grouped="next"
+            icon="calendar-remove-outline"
+            title={t("admin.home.cancellationRulesRow")}
+            subtitle={t("admin.home.cancellationRulesSubtitle")}
+            onPress={openCancellationRules}
+          />
+          <AdminToolRow
+            grouped="next"
+            icon="bullhorn-outline"
+            title={t("admin.home.sendNoticeRow")}
+            subtitle={t("admin.home.sendNoticeSubtitle")}
+            onPress={openSendNotice}
+          />
+          <AdminToolRow
+            grouped="next"
+            icon="tune-variant"
+            title={t("admin.home.schoolSettingsRow")}
+            onPress={openSchoolSettings}
           />
         </View>
       </View>

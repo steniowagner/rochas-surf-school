@@ -13,7 +13,8 @@ import AdminLayout from "@/app/(private)/admin/_layout";
 import AdminClassRoute from "@/app/(private)/admin/class/[id]";
 import AdminCancellationRulesRoute from "@/app/(private)/admin/cancellation-rules";
 import AdminNewClassRoute from "@/app/(private)/admin/new-class";
-import AdminPeopleRoute from "@/app/(private)/admin/people";
+import PeopleLayout from "@/app/(private)/admin/(tabs)/people/_layout";
+import PeopleRoute from "@/app/(private)/admin/(tabs)/people/index";
 import AdminRegistrationsRoute from "@/app/(private)/admin/registrations";
 import {
   selectedTabLabel,
@@ -96,10 +97,11 @@ const routeTree = {
   "(private)/admin/(tabs)/(home)/index": AdminRoute,
   "(private)/admin/(tabs)/classes/_layout": ClassesLayout,
   "(private)/admin/(tabs)/classes/index": ClassesRoute,
+  "(private)/admin/(tabs)/people/_layout": PeopleLayout,
+  "(private)/admin/(tabs)/people/index": PeopleRoute,
   "(private)/admin/(tabs)/profile": ProfileRoute,
   "(private)/admin/cancellation-rules": AdminCancellationRulesRoute,
   "(private)/admin/new-class": AdminNewClassRoute,
-  "(private)/admin/people": AdminPeopleRoute,
   "(private)/admin/registrations": AdminRegistrationsRoute,
   "(private)/admin/class/[id]": AdminClassRoute,
 };
@@ -138,15 +140,17 @@ beforeEach(() => {
       // The class details read the school rules for the count on their rules row.
       String(url).endsWith("/reactivation-requests")
         ? { items: [] }
-        : String(url).includes("/school-rules")
-          ? { version: 1, rules: [] }
-          : String(url).includes("/classes?date=")
-            ? { weekStart: "x", items: [aClass] }
-            : String(url).endsWith("/classes/teaching")
-              ? { items: [], teachesAny: false }
-              : String(url).includes("/classes/")
-                ? aClass
-                : { items: [person("a"), person("b")] },
+        : String(url).includes("/people?")
+          ? { items: [], page: 1, perPage: 50, total: 0 }
+          : String(url).includes("/school-rules")
+            ? { version: 1, rules: [] }
+            : String(url).includes("/classes?date=")
+              ? { weekStart: "x", items: [aClass] }
+              : String(url).endsWith("/classes/teaching")
+                ? { items: [], teachesAny: false }
+                : String(url).includes("/classes/")
+                  ? aClass
+                  : { items: [person("a"), person("b")] },
   }));
   globalThis.fetch = fetchMock;
   process.env.EXPO_PUBLIC_API_URL = "http://api.test";
@@ -156,7 +160,7 @@ describe("admin tabs", () => {
   it("admin opens on Panel with the school tools and the pending count", async () => {
     const app = await open();
 
-    expect(tabLabels()).toEqual(["Panel", "Classes", "Profile"]);
+    expect(tabLabels()).toEqual(["Panel", "Classes", "People", "Profile"]);
     expect(app.getPathname()).toBe("/admin");
     expect(selectedTabLabel()).toBe("Panel");
     expect(screen.getByText("Tools")).toBeOnTheScreen();
@@ -188,7 +192,7 @@ describe("admin tabs", () => {
     await act(async () => router.back());
     expect(app.getPathname()).toBe("/admin");
     expect(selectedTabLabel()).toBe("Panel");
-    expect(tabLabels()).toEqual(["Panel", "Classes", "Profile"]);
+    expect(tabLabels()).toEqual(["Panel", "Classes", "People", "Profile"]);
   });
 
   it("opens the new class screen above the tabs, and back returns to Panel with the tab bar", async () => {
@@ -217,7 +221,7 @@ describe("admin tabs", () => {
 
     expect(app.getPathname()).toBe("/admin");
     expect(selectedTabLabel()).toBe("Panel");
-    expect(tabLabels()).toEqual(["Panel", "Classes", "Profile"]);
+    expect(tabLabels()).toEqual(["Panel", "Classes", "People", "Profile"]);
   });
 
   it("opens the cancellation rules above the tabs, and back returns to Panel with the tab bar (cancellation rules)", async () => {
@@ -246,7 +250,7 @@ describe("admin tabs", () => {
 
     expect(app.getPathname()).toBe("/admin");
     expect(selectedTabLabel()).toBe("Panel");
-    expect(tabLabels()).toEqual(["Panel", "Classes", "Profile"]);
+    expect(tabLabels()).toEqual(["Panel", "Classes", "People", "Profile"]);
   });
 
   it("opens a class above the tabs, and back returns to Classes with the tab bar", async () => {
@@ -278,22 +282,20 @@ describe("admin tabs", () => {
     expect(app.getPathname()).toBe("/admin/new-class");
   });
 
-  it("/admin/people shows the people directory", async () => {
+  it("/admin/people shows the people directory in its own tab", async () => {
     const app = await open();
 
     await act(async () => router.push(routes.admin.people));
 
     expect(app.getPathname()).toBe("/admin/people");
+    expect(selectedTabLabel()).toBe("People");
     expect(screen.getByRole("header", { name: "People" })).toBeOnTheScreen();
-
-    await act(async () => router.back());
-    expect(app.getPathname()).toBe("/admin");
   });
 
   it("labels the tabs in the app language", async () => {
     await i18n.changeLanguage("es-ES");
     await open();
 
-    expect(tabLabels()).toEqual(["Panel", "Clases", "Perfil"]);
+    expect(tabLabels()).toEqual(["Panel", "Clases", "Personas", "Perfil"]);
   });
 });

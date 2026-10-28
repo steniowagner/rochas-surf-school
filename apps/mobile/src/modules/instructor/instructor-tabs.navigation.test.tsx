@@ -11,7 +11,8 @@ import InstructorRoute from "@/app/(private)/instructor/(tabs)/(home)/index";
 import ProfileRoute from "@/app/(private)/instructor/(tabs)/profile";
 import InstructorClassRoute from "@/app/(private)/instructor/class/[id]";
 import InstructorLayout from "@/app/(private)/instructor/_layout";
-import InstructorPeopleRoute from "@/app/(private)/instructor/people";
+import PeopleLayout from "@/app/(private)/instructor/(tabs)/people/_layout";
+import PeopleRoute from "@/app/(private)/instructor/(tabs)/people/index";
 import {
   selectedTabLabel,
   tabLabels,
@@ -61,8 +62,9 @@ const routeTree = {
   "(private)/instructor/(tabs)/(home)/index": InstructorRoute,
   "(private)/instructor/(tabs)/classes/_layout": ClassesLayout,
   "(private)/instructor/(tabs)/classes/index": ClassesRoute,
+  "(private)/instructor/(tabs)/people/_layout": PeopleLayout,
+  "(private)/instructor/(tabs)/people/index": PeopleRoute,
   "(private)/instructor/(tabs)/profile": ProfileRoute,
-  "(private)/instructor/people": InstructorPeopleRoute,
   "(private)/instructor/class/[id]": InstructorClassRoute,
 };
 
@@ -142,7 +144,7 @@ describe("instructor tabs", () => {
   it("instructor opens on Panel and switches tabs", async () => {
     const app = await open();
 
-    expect(tabLabels()).toEqual(["Panel", "Classes", "Profile"]);
+    expect(tabLabels()).toEqual(["Panel", "Classes", "People", "Profile"]);
     expect(app.getPathname()).toBe("/instructor");
     expect(selectedTabLabel()).toBe("Panel");
     expect(screen.getByRole("header", { name: "School" })).toBeOnTheScreen();
@@ -186,6 +188,7 @@ describe("instructor tabs", () => {
     await act(async () => router.push(routes.instructor.people));
 
     expect(app.getPathname()).toBe("/instructor/people");
+    expect(selectedTabLabel()).toBe("People");
     expect(screen.getByRole("header", { name: "People" })).toBeOnTheScreen();
     expect(await screen.findByText("No one found")).toBeOnTheScreen();
   });
@@ -194,6 +197,6 @@ describe("instructor tabs", () => {
     await i18n.changeLanguage("pt-BR");
     await open();
 
-    expect(tabLabels()).toEqual(["Painel", "Aulas", "Perfil"]);
+    expect(tabLabels()).toEqual(["Painel", "Aulas", "Pessoas", "Perfil"]);
   });
 });

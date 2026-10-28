@@ -6,12 +6,10 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { routes } from "@/constants/routes";
 import { TeachingClassesEntryRow } from "@/modules/classes/components/teaching-classes-entry-row";
 import { WeeklyOccupancyEntryRow } from "@/modules/classes/components/weekly-occupancy-entry-row";
-import { PeopleEntryRow } from "@/modules/people/components/people-entry-row";
 import { SchoolRulesEntryRow } from "@/modules/school-rules/components/school-rules-entry-row";
 import { useHeaderInset } from "@/navigation/stack-header";
 
 const openMyClasses = () => router.push(routes.instructor.myClasses);
-const openPeople = () => router.push(routes.instructor.people);
 const openWeeklyOccupancy = () =>
   router.push(routes.instructor.weeklyOccupancy);
 const openSchoolRules = () => router.push(routes.instructor.schoolRules);
@@ -48,7 +46,6 @@ export function InstructorScreen() {
             grouped="next"
             onPress={openSchoolRules}
           />
-          <PeopleEntryRow grouped="next" onPress={openPeople} />
           <WeeklyOccupancyEntryRow
             grouped="next"
             onPress={openWeeklyOccupancy}

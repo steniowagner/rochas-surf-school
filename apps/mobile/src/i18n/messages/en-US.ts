@@ -210,9 +210,6 @@ const messages = {
       removedAccountsNone: "No removed accounts",
     },
   },
-  home: {
-    peopleRow: "People",
-  },
   reactivations: {
     title: "Reactivate accounts",
     waiting: "{{count}} waiting for an answer",
@@ -657,6 +654,7 @@ const messages = {
     home: "Home",
     panel: "Panel",
     classes: "Classes",
+    people: "People",
     profile: "Profile",
   },
   weekMonthCalendar: {

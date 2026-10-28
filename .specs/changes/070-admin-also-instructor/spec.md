@@ -2,7 +2,7 @@
 id: "070"
 slug: admin-also-instructor
 title: "Admins who also teach"
-status: in-progress
+status: in-review
 created: 2026-10-28
 started: 2026-10-28
 base_commit: cbda13b2810986f7db50e4c671503fe55cc34956

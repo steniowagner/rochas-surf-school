@@ -1,5 +1,12 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, userEvent, waitFor, within } from "@testing-library/react-native";
+import {
+  fireEvent,
+  render,
+  screen,
+  userEvent,
+  waitFor,
+  within,
+} from "@testing-library/react-native";
 import { router } from "expo-router";
 import { Keyboard } from "react-native";
 
@@ -42,7 +49,10 @@ const fetchMock = setupFetch();
 
 const COUNTS: Record<string, number> = { all: 12, students: 8, instructors: 0 };
 
-type Serve = { count?: (audience: string) => Response; send?: () => Response | Promise<Response> };
+type Serve = {
+  count?: (audience: string) => Response;
+  send?: () => Response | Promise<Response>;
+};
 
 const serve = ({ count, send }: Serve = {}) =>
   fetchMock.mockImplementation(async (url: string, init?: RequestInit) => {
@@ -52,7 +62,9 @@ const serve = ({ count, send }: Serve = {}) =>
 
     const audience = new URL(url).searchParams.get("audience")!;
 
-    return (count ?? ((value) => jsonResponse(200, { count: COUNTS[value] })))(audience);
+    return (count ?? ((value) => jsonResponse(200, { count: COUNTS[value] })))(
+      audience,
+    );
   });
 
 const posts = () =>
@@ -89,13 +101,21 @@ describe("SendNoticeScreen", () => {
   it("shows the audience selector, the fields and the live count of the audience", async () => {
     const user = await open();
 
-    expect(screen.getByRole("header", { name: "Send notice" })).toBeOnTheScreen();
-    expect(screen.getByRole("tab", { name: "Everyone", selected: true })).toBeOnTheScreen();
-    expect(await screen.findByText("12 people will receive it")).toBeOnTheScreen();
+    expect(
+      screen.getByRole("header", { name: "Send notice" }),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByRole("tab", { name: "Everyone", selected: true }),
+    ).toBeOnTheScreen();
+    expect(
+      await screen.findByText("12 people will receive it"),
+    ).toBeOnTheScreen();
 
     await user.press(screen.getByRole("tab", { name: "Students" }));
 
-    expect(await screen.findByText("8 people will receive it")).toBeOnTheScreen();
+    expect(
+      await screen.findByText("8 people will receive it"),
+    ).toBeOnTheScreen();
   });
 
   it("reads the three counts once when it opens, so switching audiences shows the count at once", async () => {
@@ -112,7 +132,9 @@ describe("SendNoticeScreen", () => {
     await user.press(screen.getByRole("tab", { name: "Everyone" }));
 
     expect(screen.getByText("12 people will receive it")).toBeOnTheScreen();
-    expect(fetchMock.mock.calls.filter(([, init]) => init?.method !== "POST")).toHaveLength(3);
+    expect(
+      fetchMock.mock.calls.filter(([, init]) => init?.method !== "POST"),
+    ).toHaveLength(3);
   });
 
   it("says when nobody would receive it and keeps Send off", async () => {
@@ -139,7 +161,9 @@ describe("SendNoticeScreen", () => {
   });
 
   it("keeps Send off while the count loads and after it fails", async () => {
-    const user = await open({ count: () => new Promise(() => undefined) as any });
+    const user = await open({
+      count: () => new Promise(() => undefined) as any,
+    });
     await fill(user);
 
     expect(screen.getByText("Loading the recipients…")).toBeOnTheScreen();
@@ -150,7 +174,9 @@ describe("SendNoticeScreen", () => {
     const user = await open({ count: () => jsonResponse(500, {}) });
     await fill(user);
 
-    expect(await screen.findByText("Couldn't count the recipients.")).toBeOnTheScreen();
+    expect(
+      await screen.findByText("Couldn't count the recipients."),
+    ).toBeOnTheScreen();
     expect(sendButton()).toBeDisabled();
   });
 
@@ -198,7 +224,9 @@ describe("SendNoticeScreen", () => {
 
     await user.press(screen.getByRole("button", { name: "Back to editing" }));
 
-    await waitFor(() => expect(screen.queryByText("Send to 12 people?")).not.toBeOnTheScreen());
+    await waitFor(() =>
+      expect(screen.queryByText("Send to 12 people?")).not.toBeOnTheScreen(),
+    );
     expect(posts()).toEqual([]);
     expect(router.back).not.toHaveBeenCalled();
     expect(titleField().props.value).toBe("  Class moved ");
@@ -213,7 +241,9 @@ describe("SendNoticeScreen", () => {
     await user.press(sendButton());
 
     expect(
-      await screen.findByText("All students get a notification. Once it's sent, it can't be deleted."),
+      await screen.findByText(
+        "All students get a notification. Once it's sent, it can't be deleted.",
+      ),
     ).toBeOnTheScreen();
   });
 
@@ -244,7 +274,9 @@ describe("SendNoticeScreen", () => {
     await user.press(sendButton());
     await user.press(await screen.findByRole("button", { name: "Yes, send" }));
 
-    expect(await screen.findByText("Couldn't send the notice. Try again.")).toBeOnTheScreen();
+    expect(
+      await screen.findByText("Couldn't send the notice. Try again."),
+    ).toBeOnTheScreen();
     expect(router.back).not.toHaveBeenCalled();
     expect(titleField().props.value).toBe("  Class moved ");
     expect(messageField().props.value).toBe("See you at 7. ");
@@ -252,7 +284,9 @@ describe("SendNoticeScreen", () => {
   });
 
   it("shows the no-connection error when the network is down", async () => {
-    const user = await open({ send: () => Promise.reject(new TypeError("offline")) as any });
+    const user = await open({
+      send: () => Promise.reject(new TypeError("offline")) as any,
+    });
     await fill(user);
     await screen.findByText("12 people will receive it");
 
@@ -260,7 +294,9 @@ describe("SendNoticeScreen", () => {
     await user.press(await screen.findByRole("button", { name: "Yes, send" }));
 
     expect(
-      await screen.findByText("No connection. Check your internet and try again."),
+      await screen.findByText(
+        "No connection. Check your internet and try again.",
+      ),
     ).toBeOnTheScreen();
   });
 
@@ -276,16 +312,44 @@ describe("SendNoticeScreen", () => {
       cancelledAt: null,
       cancellationMessage: null,
       cancellationDeadline: null,
-      location: { id: "l-1", name: "Praia do Futuro", address: "Av. Beira Mar", latitude: null, longitude: null },
+      location: {
+        id: "l-1",
+        name: "Praia do Futuro",
+        address: "Av. Beira Mar",
+        latitude: null,
+        longitude: null,
+      },
       // The admin who opens the screen (user-1) teaches it too: they are never counted.
       instructors: [
-        { id: "user-1", name: "Ana Souza", role: "admin", whatsappNumber: null },
-        { id: "i-1", name: "Rui Costa", role: "instructor", whatsappNumber: null },
+        {
+          id: "user-1",
+          name: "Ana Souza",
+          role: "admin",
+          whatsappNumber: null,
+        },
+        {
+          id: "i-1",
+          name: "Rui Costa",
+          role: "instructor",
+          whatsappNumber: null,
+        },
       ],
       seatsTaken: 3,
       students: [
-        { id: "s-1", name: "Bia Lima", photoUrl: null, enrolmentId: "e-1", whatsappNumber: null },
-        { id: "s-2", name: null, photoUrl: null, enrolmentId: "e-2", whatsappNumber: null },
+        {
+          id: "s-1",
+          name: "Bia Lima",
+          photoUrl: null,
+          enrolmentId: "e-1",
+          whatsappNumber: null,
+        },
+        {
+          id: "s-2",
+          name: null,
+          photoUrl: null,
+          enrolmentId: "e-2",
+          whatsappNumber: null,
+        },
       ],
       guests: [{ id: "g-1", name: "Guest" }],
       myEnrolment: null,
@@ -297,11 +361,36 @@ describe("SendNoticeScreen", () => {
       send?: () => Response | Promise<Response>;
     };
 
+    const PENDING = {
+      total: 2,
+      classes: [
+        {
+          id: "c-1",
+          requests: [
+            {
+              id: "r-1",
+              requestedAt: "2026-10-26T10:00:00.000Z",
+              student: { id: "p-1", name: "Caio Dias", photoUrl: null },
+            },
+            {
+              id: "r-2",
+              requestedAt: "2026-10-26T11:00:00.000Z",
+              student: { id: "p-2", name: "Dani Melo", photoUrl: null },
+            },
+          ],
+        },
+      ],
+    };
+
     const openClass = async ({ item, send }: ServeClass = {}) => {
       mockParams = { classId: "c-1" };
-      fetchMock.mockImplementation(async (_url: string, init?: RequestInit) => {
+      fetchMock.mockImplementation(async (url: string, init?: RequestInit) => {
         if (init?.method === "POST") {
           return (send ?? (() => jsonResponse(204, undefined)))();
+        }
+
+        if (url.includes("/enrolments/pending")) {
+          return jsonResponse(200, PENDING);
         }
 
         return (item ?? (() => jsonResponse(200, CLASS)))();
@@ -310,7 +399,10 @@ describe("SendNoticeScreen", () => {
       // `Infinity` schedules no garbage-collection timer for the class query or the send, which would keep Jest
       // running for minutes after the tests.
       const client = new QueryClient({
-        defaultOptions: { queries: { gcTime: Infinity }, mutations: { gcTime: Infinity, retry: false } },
+        defaultOptions: {
+          queries: { gcTime: Infinity },
+          mutations: { gcTime: Infinity, retry: false },
+        },
       });
       await render(
         <QueryClientProvider client={client}>
@@ -330,11 +422,15 @@ describe("SendNoticeScreen", () => {
         .filter(([, init]) => init?.method !== "POST")
         .map(([url]) => new URL(url).pathname + new URL(url).search);
 
-    const confirmAndSend = async (user: Awaited<ReturnType<typeof openClass>>) => {
+    const confirmAndSend = async (
+      user: Awaited<ReturnType<typeof openClass>>,
+    ) => {
       await fill(user);
-      await screen.findByText("5 people will receive it");
+      await screen.findByText("5 people receive it");
       await user.press(sendButton());
-      await user.press(await screen.findByRole("button", { name: "Yes, send" }));
+      await user.press(
+        await screen.findByRole("button", { name: "Yes, send" }),
+      );
     };
 
     afterEach(() => {
@@ -344,31 +440,49 @@ describe("SendNoticeScreen", () => {
     it("shows the class and its people instead of the audience selector, with the fields and Send", async () => {
       await openClass();
 
-      expect(screen.getByRole("header", { name: "Message to the class" })).toBeOnTheScreen();
+      expect(
+        screen.getByRole("header", { name: "Message to the class" }),
+      ).toBeOnTheScreen();
       expect(
         screen.getByText(
           "Write a title and a message. The instructors and students of this class get it as a notification.",
         ),
       ).toBeOnTheScreen();
-      expect(await screen.findByText("Surf Beginner")).toBeOnTheScreen();
-      expect(screen.getByText(/08:00 – 09:00$/)).toBeOnTheScreen();
+      expect(await screen.findByText("Surf")).toBeOnTheScreen();
+      expect(screen.getByText("Beginner")).toBeOnTheScreen();
+      expect(screen.getByText("08:00 – 09:00")).toBeOnTheScreen();
       expect(screen.getByText("Praia do Futuro")).toBeOnTheScreen();
-      expect(within(screen.getByTestId("class-message-instructors")).getByText("Rui Costa")).toBeOnTheScreen();
+      expect(screen.getByText("5 people receive it")).toBeOnTheScreen();
       expect(
-        within(screen.getByTestId("class-message-students")).getByText("Bia Lima, Former student"),
+        screen.getByText("1 instructor · 2 students · 2 pending requests"),
       ).toBeOnTheScreen();
-      expect(screen.getByText("+ 2 pending requests")).toBeOnTheScreen();
-      expect(screen.getByText("5 people will receive it")).toBeOnTheScreen();
+      expect(screen.queryByText("Rui Costa")).not.toBeOnTheScreen();
+      await userEvent.setup().press(screen.getByText("5 people receive it"));
+      expect(screen.getByText("Rui Costa")).toBeOnTheScreen();
+      expect(screen.getByText("Bia Lima")).toBeOnTheScreen();
+      expect(screen.getByText("Former student")).toBeOnTheScreen();
+      // The pending requests come last, after the instructors and the students.
+      expect(screen.getByText("Caio Dias")).toBeOnTheScreen();
+      expect(screen.getByText("Dani Melo")).toBeOnTheScreen();
+      expect(screen.getAllByText("Pending request")).toHaveLength(2);
+      await userEvent
+        .setup()
+        .press(screen.getByRole("button", { name: "Caio Dias" }));
+      expect(await screen.findByText("Student")).toBeOnTheScreen();
       expect(screen.queryByRole("tab")).not.toBeOnTheScreen();
       expect(titleField()).toBeOnTheScreen();
       expect(messageField()).toBeOnTheScreen();
       expect(sendButton()).toBeOnTheScreen();
-      expect(gets()).toEqual(["/classes/c-1"]);
+      expect(gets()).toEqual(
+        expect.arrayContaining(["/classes/c-1", "/enrolments/pending"]),
+      );
     });
 
     it("says the class is loading, then says when it can't be loaded, keeping Send off", async () => {
       let answer: (response: Response) => void = () => undefined;
-      const user = await openClass({ item: () => new Promise((resolve) => (answer = resolve)) });
+      const user = await openClass({
+        item: () => new Promise((resolve) => (answer = resolve)),
+      });
       await fill(user);
 
       expect(screen.getByText("Loading the class…")).toBeOnTheScreen();
@@ -376,14 +490,16 @@ describe("SendNoticeScreen", () => {
 
       answer(jsonResponse(404, { errors: ["class.notFound"] }));
 
-      expect(await screen.findByText("Couldn't load the class.")).toBeOnTheScreen();
+      expect(
+        await screen.findByText("Couldn't load the class."),
+      ).toBeOnTheScreen();
       expect(sendButton()).toBeDisabled();
       expect(screen.queryByTestId("class-message-card")).not.toBeOnTheScreen();
     });
 
     it("keeps Send off while a field is blank, and when nobody would receive it", async () => {
       const user = await openClass();
-      await screen.findByText("5 people will receive it");
+      await screen.findByText("5 people receive it");
 
       await user.type(titleField(), "Meeting point");
       expect(sendButton()).toBeDisabled();
@@ -396,11 +512,18 @@ describe("SendNoticeScreen", () => {
     it("says nobody would receive it when the admin teaches the class alone", async () => {
       const user = await openClass({
         item: () =>
-          jsonResponse(200, { ...CLASS, instructors: [CLASS.instructors[0]], students: [], pendingRequests: 0 }),
+          jsonResponse(200, {
+            ...CLASS,
+            instructors: [CLASS.instructors[0]],
+            students: [],
+            pendingRequests: 0,
+          }),
       });
       await fill(user);
 
-      expect(await screen.findByText("No one to send it to.")).toBeOnTheScreen();
+      expect(
+        await screen.findByText("No one to send it to."),
+      ).toBeOnTheScreen();
       expect(sendButton()).toBeDisabled();
     });
 
@@ -414,7 +537,7 @@ describe("SendNoticeScreen", () => {
     it("asks to send to the class's people, and going back sends nothing and keeps the text", async () => {
       const user = await openClass();
       await fill(user);
-      await screen.findByText("5 people will receive it");
+      await screen.findByText("5 people receive it");
 
       await user.press(sendButton());
 
@@ -424,11 +547,15 @@ describe("SendNoticeScreen", () => {
           /^The instructors and students of Surf Beginner · .+, 08:00 get a notification\. Once it's sent, it can't be deleted\.$/,
         ),
       ).toBeOnTheScreen();
-      expect(within(screen.getByTestId("notice-preview")).getByText("Class moved")).toBeOnTheScreen();
+      expect(
+        within(screen.getByTestId("notice-preview")).getByText("Class moved"),
+      ).toBeOnTheScreen();
 
       await user.press(screen.getByRole("button", { name: "Back to editing" }));
 
-      await waitFor(() => expect(screen.queryByText("Send to 5 people?")).not.toBeOnTheScreen());
+      await waitFor(() =>
+        expect(screen.queryByText("Send to 5 people?")).not.toBeOnTheScreen(),
+      );
       expect(posts()).toEqual([]);
       expect(titleField().props.value).toBe("  Class moved ");
     });
@@ -440,17 +567,25 @@ describe("SendNoticeScreen", () => {
 
       await waitFor(() => expect(router.back).toHaveBeenCalledTimes(1));
       expect(posts()).toEqual([
-        ["/classes/c-1/message", { title: "Class moved", message: "See you at 7." }],
+        [
+          "/classes/c-1/message",
+          { title: "Class moved", message: "See you at 7." },
+        ],
       ]);
       expect(await screen.findByText("Message sent")).toBeOnTheScreen();
       expect(screen.getByText("tone:success")).toBeOnTheScreen();
     });
 
     it.each([
-      ["class.finished", "This class has already finished. The message wasn't sent."],
+      [
+        "class.finished",
+        "This class has already finished. The message wasn't sent.",
+      ],
       ["class.cancelled", "This class was cancelled. The message wasn't sent."],
     ])("shows the %s error and keeps the text", async (key, text) => {
-      const user = await openClass({ send: () => jsonResponse(409, { errors: [key] }) });
+      const user = await openClass({
+        send: () => jsonResponse(409, { errors: [key] }),
+      });
 
       await confirmAndSend(user);
 
@@ -462,12 +597,16 @@ describe("SendNoticeScreen", () => {
     });
 
     it("shows the no-connection error when the network is down", async () => {
-      const user = await openClass({ send: () => Promise.reject(new TypeError("offline")) as any });
+      const user = await openClass({
+        send: () => Promise.reject(new TypeError("offline")) as any,
+      });
 
       await confirmAndSend(user);
 
       expect(
-        await screen.findByText("No connection. Check your internet and try again."),
+        await screen.findByText(
+          "No connection. Check your internet and try again.",
+        ),
       ).toBeOnTheScreen();
       expect(posts()).toHaveLength(1);
     });

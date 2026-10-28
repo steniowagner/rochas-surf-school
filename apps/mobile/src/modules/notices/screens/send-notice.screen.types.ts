@@ -1,3 +1,4 @@
+import type { ClassDetailsPerson } from "@/modules/classes/screens/class-details.screen.types";
 import type { ClassMessageView, NoticeAudience } from "../notices.types";
 
 export type UseSendNoticeScreenResult = {
@@ -5,6 +6,10 @@ export type UseSendNoticeScreenResult = {
   isClassMode: boolean;
   /** The class and its people, once loaded; `null` in notice mode and while the class loads or fails. */
   classView: ClassMessageView | null;
+  selectedPerson: ClassDetailsPerson | null;
+  personVisible: boolean;
+  openPerson: (person: ClassDetailsPerson) => void;
+  closePerson: () => void;
   /** The confirm sheet's line about who receives it. */
   confirmDescription: string;
   audience: NoticeAudience;

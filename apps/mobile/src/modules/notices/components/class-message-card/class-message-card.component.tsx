@@ -1,48 +1,169 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Text, View } from "react-native";
+import { useState } from "react";
+import { Pressable, Text, View } from "react-native";
 
+import { Chip } from "@/components/ui/chip";
 import { shadowStyle } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
+import { GuestAvatar } from "@/modules/classes/components/guest-avatar";
+import { StudentAvatar } from "@/modules/classes/components/student-avatar";
 
 import { ClassMessageCardProps } from "./class-message-card.types";
 
+const STACK_AVATAR_SIZE = 32;
+const ROW_AVATAR_SIZE = 40;
+const STACK_AVATARS = 3;
+
+const roleTone = {
+  instructor: "muted",
+  student: "info",
+  pending: "warn",
+} as const;
+
 /**
- * The class a message goes to, in place of the audience picker (spec 069, D-09): its name, day, time and location, then
- * the people who receive it — the instructors and the students with a seat by name, and the pending requests by number.
+ * The class a message goes to and the people who receive it (spec 069, D-09): its category, level, day, time and
+ * location, drawn as the class list draws a class, then a row that opens the list of the instructors and the students with a seat, each with their role.
  */
-export function ClassMessageCard({ view }: ClassMessageCardProps) {
+export function ClassMessageCard({
+  view,
+  onOpenPerson,
+}: ClassMessageCardProps) {
   const theme = useTheme();
+  const [expanded, setExpanded] = useState(false);
+  const stacked = view.people.slice(0, STACK_AVATARS);
+  const canExpand = view.people.length > 0;
 
   return (
     <View
       testID="class-message-card"
-      className="gap-3 rounded-card bg-surface p-4"
+      className="overflow-hidden rounded-card bg-surface"
       style={shadowStyle("card", theme)}
     >
-      <View className="gap-1">
-        <Text className="ds-text-list-title text-ink">{view.name}</Text>
-        <View className="flex-row items-center gap-1.5">
-          <Ionicons name="calendar-outline" size={14} color={theme.ink2} />
-          <Text className="ds-text-list-subtitle flex-1 text-ink-2">{view.when}</Text>
+      <View className="px-3.5 pb-3.5 pt-[13px]">
+        <View className="mb-2.5 flex-row flex-wrap items-center gap-2">
+          <Chip tone={view.discipline === "surf" ? "surf" : "skate"}>
+            {view.disciplineLabel}
+          </Chip>
+          <Chip tone="info">{view.levelLabel}</Chip>
         </View>
-        <View className="flex-row items-center gap-1.5">
-          <Ionicons name="location-outline" size={14} color={theme.ink2} />
-          <Text className="ds-text-list-subtitle flex-1 text-ink-2">{view.locationName}</Text>
+        <Text className="ds-text-lesson-time mb-3 text-ink">
+          {view.timeRange}
+        </Text>
+        <View className="gap-2.5">
+          <View className="flex-row items-center gap-2">
+            <View className="h-7 w-7 items-center justify-center rounded-checkbox bg-dim">
+              <Ionicons
+                name="calendar-outline"
+                size={14}
+                color={theme.lagoon}
+              />
+            </View>
+            <Text className="ds-text-list-subtitle flex-1 text-ink">
+              {view.dateLabel}
+            </Text>
+          </View>
+          <View className="flex-row items-center gap-2">
+            <View className="h-7 w-7 items-center justify-center rounded-checkbox bg-dim">
+              <Ionicons
+                name="location-outline"
+                size={14}
+                color={theme.lagoon}
+              />
+            </View>
+            <Text className="ds-text-list-subtitle flex-1 text-ink">
+              {view.locationName}
+            </Text>
+          </View>
         </View>
       </View>
-      {view.groups.length > 0 || view.pendingLine !== null ? (
-        <View className="gap-2 border-t border-line pt-3">
-          {view.groups.map((group) => (
-            <View key={group.key} testID={`class-message-${group.key}`} className="gap-0.5">
-              <Text className="ds-text-section-label text-ink-2">{group.label}</Text>
-              <Text className="ds-text-list-subtitle text-ink">{group.names.join(", ")}</Text>
+      <View className="border-t border-line">
+        <Pressable
+          accessibilityRole="button"
+          accessibilityState={{ disabled: !canExpand, expanded }}
+          disabled={!canExpand}
+          onPress={() => setExpanded((current) => !current)}
+          className="min-h-11 flex-row items-center gap-3 px-4 py-3"
+        >
+          {stacked.length > 0 ? (
+            <View className="flex-row items-center">
+              {stacked.map((person, index) => (
+                <View key={person.id} className={index === 0 ? "" : "-ml-2"}>
+                  {person.erased ? (
+                    <GuestAvatar size={STACK_AVATAR_SIZE} ringed />
+                  ) : (
+                    <StudentAvatar
+                      name={person.label}
+                      photoUrl={person.photoUrl}
+                      size={STACK_AVATAR_SIZE}
+                      ringed
+                    />
+                  )}
+                </View>
+              ))}
             </View>
-          ))}
-          {view.pendingLine !== null ? (
-            <Text className="ds-text-list-subtitle text-ink-2">{view.pendingLine}</Text>
           ) : null}
-        </View>
-      ) : null}
+          <View className="flex-1 gap-0.5">
+            <Text className="ds-text-list-title text-ink">{view.title}</Text>
+            {view.summary !== "" ? (
+              <Text className="ds-text-list-subtitle text-ink-2">
+                {view.summary}
+              </Text>
+            ) : null}
+          </View>
+          {canExpand ? (
+            <Ionicons
+              name={expanded ? "chevron-up" : "chevron-down"}
+              size={18}
+              color={theme.ink2}
+            />
+          ) : null}
+        </Pressable>
+        {expanded
+          ? view.people.map((person) => (
+              <Pressable
+                key={person.id}
+                testID={`class-message-${person.role}-${person.id}`}
+                accessibilityRole="button"
+                accessibilityLabel={person.label}
+                disabled={person.sheetPerson === null}
+                onPress={() => {
+                  if (person.sheetPerson) {
+                    onOpenPerson(person.sheetPerson);
+                  }
+                }}
+                className="min-h-11 flex-row items-center gap-3 border-t border-line px-4 py-3"
+              >
+                {person.erased ? (
+                  <GuestAvatar size={ROW_AVATAR_SIZE} />
+                ) : (
+                  <StudentAvatar
+                    name={person.label}
+                    photoUrl={person.photoUrl}
+                    size={ROW_AVATAR_SIZE}
+                  />
+                )}
+                <View className="flex-1 items-start gap-1">
+                  <Text
+                    numberOfLines={1}
+                    className="ds-text-list-title text-ink"
+                  >
+                    {person.label}
+                  </Text>
+                  <Chip tone={roleTone[person.role]} size="compact">
+                    {person.roleLabel}
+                  </Chip>
+                </View>
+                {person.sheetPerson ? (
+                  <Ionicons
+                    name="chevron-forward"
+                    size={17}
+                    color={theme.ink3}
+                  />
+                ) : null}
+              </Pressable>
+            ))
+          : null}
+      </View>
     </View>
   );
 }

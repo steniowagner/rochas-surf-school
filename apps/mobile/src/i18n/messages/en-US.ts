@@ -472,12 +472,19 @@ const messages = {
     },
     classMessage: {
       title: "Message to the class",
+      receive_one: "{{count}} person receives it",
+      receive_other: "{{count}} people receive it",
+      summary: {
+        instructors_one: "{{count}} instructor",
+        instructors_other: "{{count}} instructors",
+        students_one: "{{count}} student",
+        students_other: "{{count}} students",
+        pending_one: "{{count}} pending request",
+        pending_other: "{{count}} pending requests",
+      },
+      roles: { instructor: "Instructor", student: "Confirmed", pending: "Pending request" },
       description:
         "Write a title and a message. The instructors and students of this class get it as a notification.",
-      instructors: "Instructors",
-      students: "Students",
-      pending_one: "+ {{count}} pending request",
-      pending_other: "+ {{count}} pending requests",
       count: {
         loading: "Loading the class…",
         error: "Couldn't load the class.",

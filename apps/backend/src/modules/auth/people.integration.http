@@ -1,4 +1,4 @@
-# Manual REST Client requests for GET /people, PUT /people/:id/role, POST /people/:id/remove, GET /people/removed and POST /people/:id/restore (VS Code REST Client).
+# Manual REST Client requests for GET /people, PUT /people/:id/role, PUT /people/:id/instructor, POST /people/:id/remove, GET /people/removed and POST /people/:id/restore (VS Code REST Client).
 # Sign in with any approved review account of REVIEW_ACCOUNTS in apps/backend/.env: set the email and code below.
 # Codes are read from the backend log when RESEND_API_KEY is unset.
 
@@ -28,12 +28,21 @@ Content-Type: application/json
 ###
 @token = {{session.response.body.accessToken}}
 
-### Default list: approved users, A–Z by name (ignoring case and accents), 20 per page (expects 200 with { items: [{ id, name, role, createdAt, whatsappNumber }], page, perPage, total })
+### Default list: approved users, A–Z by name (ignoring case and accents), 20 per page (expects 200 with { items: [{ id, name, role, isInstructor, createdAt, whatsappNumber }], page, perPage, total })
 GET {{baseUrl}}/people
 Authorization: Bearer {{token}}
 
 ### Filter by one or more roles (comma separated) and search the name ignoring case and accents (expects 200; "joao" finds "João")
 GET {{baseUrl}}/people?role=student,instructor&search=joao
+Authorization: Bearer {{token}}
+
+### Only the people who can be assigned to teach: approved instructors and approved admins with isInstructor (expects 200;
+### combines with role and search; any value but "true" answers 422 people.teaches.invalid)
+GET {{baseUrl}}/people?teaches=true&role=instructor,admin&search=joao
+Authorization: Bearer {{token}}
+
+### Invalid teaches (expects 422 people.teaches.invalid)
+GET {{baseUrl}}/people?teaches=false
 Authorization: Bearer {{token}}
 
 ### Second page (expects 200; items: [] past the end, with the real total)
@@ -51,7 +60,7 @@ Authorization: Bearer {{token}}
 GET {{baseUrl}}/people?page=0&perPage=51&role=guest
 Authorization: Bearer {{token}}
 
-### Change someone's role, as an approved admin (expects 200 { id, role }). Allowed: student → instructor or admin,
+### Change someone's role, as an approved admin (expects 200 { id, role, isInstructor }). Allowed: student → instructor or admin,
 ### instructor → admin or student, admin → instructor. A student gives up their upcoming seats and pending requests;
 ### an instructor made a student leaves their upcoming classes. The person gets a role.changed notification.
 @personId = 00000000-0000-4000-8000-000000000000
@@ -61,6 +70,27 @@ Content-Type: application/json
 
 {
   "role": "instructor"
+}
+
+### Promote to admin who also teaches (expects 200 { id, role: "admin", isInstructor: true }). Without isInstructor, or with
+### false, the new admin does not teach. A non-boolean, or true with another role, answers 422 people.isInstructor.invalid.
+PUT {{baseUrl}}/people/{{personId}}/role
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "role": "admin",
+  "isInstructor": true
+}
+
+### isInstructor true with another role (expects 422 people.isInstructor.invalid)
+PUT {{baseUrl}}/people/{{personId}}/role
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "role": "instructor",
+  "isInstructor": true
 }
 
 ### Missing or unknown role (expects 422 people.role.invalid)
@@ -81,6 +111,36 @@ Content-Type: application/json
 
 {
   "role": "student"
+}
+
+### Switch whether an approved admin (the caller included) can also be assigned to teach (expects 200 { id, isInstructor }).
+### Nobody is notified and nobody is taken off a class.
+PUT {{baseUrl}}/people/{{personId}}/instructor
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "isInstructor": false
+}
+
+### Missing or non-boolean isInstructor (expects 422 people.isInstructor.invalid)
+PUT {{baseUrl}}/people/{{personId}}/instructor
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "isInstructor": "yes"
+}
+
+### Refusals: an unapproved caller (403 user.status.notApproved); a student or instructor caller (403 user.role.notAdmin);
+### an unknown or malformed id (404 user.notFound); a person who isn't approved (409 user.status.notApproved); a student or
+### instructor (409 people.isInstructor.notAdmin); a role or status that changed meanwhile (409 user.role.changeNotAllowed)
+PUT {{baseUrl}}/people/{{personId}}/instructor
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "isInstructor": true
 }
 
 ### Remove someone from the platform, as an approved admin (expects 200 { id, status: "removed" }). The account gives up its

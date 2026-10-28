@@ -55,6 +55,7 @@ describe("ChangeRole", () => {
     await expect(useCase.execute({ actor: ACTOR, userId: ana.id, role: "instructor" })).resolves.toEqual({
       id: ana.id,
       role: "instructor",
+      isInstructor: false,
     });
 
     expect(seatReleaser.released).toEqual([ana.id]);
@@ -87,6 +88,7 @@ describe("ChangeRole", () => {
     await expect(useCase.execute({ actor: ACTOR, userId: ana.id, role: "admin" })).resolves.toEqual({
       id: ana.id,
       role: "admin",
+      isInstructor: false,
     });
 
     expect(seatReleaser.released).toEqual([ana.id]);
@@ -104,6 +106,7 @@ describe("ChangeRole", () => {
     await expect(useCase.execute({ actor: ACTOR, userId: ana.id, role: "admin" })).resolves.toEqual({
       id: ana.id,
       role: "admin",
+      isInstructor: false,
     });
 
     expect(seatReleaser.released).toEqual([]);
@@ -128,6 +131,7 @@ describe("ChangeRole", () => {
     await expect(useCase.execute({ actor: ACTOR, userId: ana.id, role: "student" })).resolves.toEqual({
       id: ana.id,
       role: "student",
+      isInstructor: false,
     });
 
     expect(teachingReleaser.released).toEqual([ana.id]);
@@ -158,6 +162,7 @@ describe("ChangeRole", () => {
     await expect(useCase.execute({ actor: ACTOR, userId: bia.id, role: "instructor" })).resolves.toEqual({
       id: bia.id,
       role: "instructor",
+      isInstructor: false,
     });
 
     expect(seatReleaser.released).toEqual([]);
@@ -176,6 +181,7 @@ describe("ChangeRole", () => {
     await expect(useCase.execute({ actor: ACTOR, userId: ana.id, role: "instructor" })).resolves.toEqual({
       id: ana.id,
       role: "instructor",
+      isInstructor: false,
     });
     expect((await repository.findById(ana.id))?.role).toBe("instructor");
   });
@@ -193,6 +199,74 @@ describe("ChangeRole", () => {
     expect((await repository.findById(ana.id))?.role).toBe("student");
     expect((await repository.findById(bob.id))?.role).toBe("instructor");
     expect(notifier.events).toEqual([]);
+  });
+
+  describe("instructor flag", () => {
+    it.each<[string, UserRole, boolean | undefined, boolean]>([
+      ["a student made an admin with the flag", "student", true, true],
+      ["a student made an admin with the flag off", "student", false, false],
+      ["an instructor made an admin with the flag", "instructor", true, true],
+      ["an admin without the flag given", "student", undefined, false],
+    ])("stores it for %s", async (_label, from, sent, stored) => {
+      const ana = buildUser(from);
+      const { repository, useCase } = setup([ana]);
+
+      await expect(
+        useCase.execute({ actor: ACTOR, userId: ana.id, role: "admin", isInstructor: sent }),
+      ).resolves.toEqual({ id: ana.id, role: "admin", isInstructor: stored });
+
+      expect((await repository.findById(ana.id))?.isInstructor).toBe(stored);
+    });
+
+    it("clears it when an admin is made an instructor", async () => {
+      const bia = new User({
+        name: "Bia Souza",
+        email: "bia@example.com",
+        whatsappVisible: false,
+        role: "admin",
+        status: "approved",
+        isInstructor: true,
+      });
+      const { repository, useCase } = setup([bia]);
+
+      await expect(useCase.execute({ actor: ACTOR, userId: bia.id, role: "instructor" })).resolves.toEqual({
+        id: bia.id,
+        role: "instructor",
+        isInstructor: false,
+      });
+
+      expect((await repository.findById(bia.id))?.isInstructor).toBe(false);
+    });
+
+    it.each<[UserRole, UserRole]>([
+      ["student", "instructor"],
+      ["instructor", "student"],
+    ])("stores false when a %s becomes a %s", async (from, to) => {
+      const ana = buildUser(from);
+      const { useCase } = setup([ana]);
+
+      await expect(
+        useCase.execute({ actor: ACTOR, userId: ana.id, role: to, isInstructor: false }),
+      ).resolves.toEqual({ id: ana.id, role: to, isInstructor: false });
+    });
+
+    it.each<[string, unknown, string]>([
+      ["a non-boolean", "yes", "admin"],
+      ["a number", 1, "admin"],
+      ["true with another role", true, "instructor"],
+    ])("refuses %s, before looking for the person", async (_label, isInstructor, role) => {
+      const ana = buildUser("student");
+      const context = setup([ana]);
+
+      const error = await context.useCase
+        .execute({ actor: ACTOR, userId: ana.id, role, isInstructor })
+        .catch((caught: unknown) => caught);
+
+      expect(error).toBeInstanceOf(ValidationException);
+      expect(error).toMatchObject({ errors: [expect.objectContaining({ message: "people.isInstructor.invalid" })] });
+      expect((await context.repository.findById(ana.id))?.role).toBe("student");
+      expect(context.notifier.events).toEqual([]);
+    });
   });
 
   describe("refuses", () => {

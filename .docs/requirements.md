@@ -401,18 +401,20 @@ Only students SHALL be able to request or hold seats in classes. Instructors and
 #### Admins can teach
 
 _Implemented in spec 057-teaching-classes._
-_Implemented in spec 058-admin-role-changes (a role change keeps admins assignable; there is no "also an instructor" flag)._
+_Implemented in spec 058-admin-role-changes (a role change keeps admins assignable; there was no "also an instructor" flag until spec 070)._
 _Implemented in spec 062-teaching-class-history._
+_Implemented in spec 070-admin-also-instructor._
 
-Admins SHALL be able to teach classes, and SHALL see the classes they teach among their own classes, as instructors do.
+Admins who also teach SHALL be able to teach classes, and admins SHALL see the classes they teach among their own classes, as instructors do. Whether an admin also teaches is an "also an instructor" option on the admin's account, which any admin SHALL be able to switch, their own included; switching it off SHALL NOT take the admin off the classes they teach.
 
 - _Admin assigned to a class:_ When an admin is assigned to teach a class, then the class appears among that admin's own classes.
 
 #### Promoting users
 
 _Implemented in spec 058-admin-role-changes._
+_Implemented in spec 070-admin-also-instructor._
 
-Admins SHALL be able to make a student an instructor, and make a student or an instructor an admin. Promoting a student SHALL cancel their upcoming seats and pending requests.
+Admins SHALL be able to make a student an instructor, and make a student or an instructor an admin. Promoting a student SHALL cancel their upcoming seats and pending requests. When making someone an admin, the admin SHALL choose whether the new admin also teaches (not by default).
 
 - _Student promoted:_ When an admin promotes a student with upcoming seats to instructor, then the user becomes an instructor, and their upcoming seats and pending requests are cancelled.
 
@@ -783,8 +785,9 @@ Admins SHALL be able to delete a class, after a confirmation step, only if it ha
 
 _Implemented in spec 028-create-classes (assigning when classes are created)._
 _Implemented in spec 032-class-editing (adding and removing instructors when a class is edited)._
+_Implemented in spec 070-admin-also-instructor._
 
-Admins SHALL be able to assign instructors and admins to teach a class, and remove them from it. An instructor SHALL be notified when assigned to a class or removed from one; an instructor assigned to a batch SHALL be notified once for the whole batch, and the admin who creates the batch or edits the class SHALL NOT be notified.
+Admins SHALL be able to assign instructors and admins who also teach to teach a class, and remove them from it. An instructor SHALL be notified when assigned to a class or removed from one; an instructor assigned to a batch SHALL be notified once for the whole batch, and the admin who creates the batch or edits the class SHALL NOT be notified.
 
 - _Instructor assigned:_ When an admin assigns an instructor to a class, then the instructor is notified.
 - _Instructor removed:_ When an admin removes an instructor from a class, then the instructor is notified.

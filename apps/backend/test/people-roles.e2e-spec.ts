@@ -111,9 +111,21 @@ describe('PUT /people/:id/role (e2e)', () => {
 
   const http = () => request(app.getHttpServer());
 
-  async function account(role: Role = 'student', status: Status = 'approved', name = 'Ana Rocha') {
+  async function account(
+    role: Role = 'student',
+    status: Status = 'approved',
+    name = 'Ana Rocha',
+    isInstructor = false,
+  ) {
     const user = await prisma.user.create({
-      data: { id: randomUUID(), name, email: `${MARK}.${randomUUID().slice(0, 8)}@${DOMAIN}`, role, status },
+      data: {
+        id: randomUUID(),
+        name,
+        email: `${MARK}.${randomUUID().slice(0, 8)}@${DOMAIN}`,
+        role,
+        status,
+        isInstructor,
+      },
     });
     return { id: user.id, accessToken: tokens.signAccessToken({ id: user.id, email: user.email! }).token };
   }
@@ -171,6 +183,13 @@ describe('PUT /people/:id/role (e2e)', () => {
     return body === undefined ? authed : authed.send(body as object);
   };
 
+  const setInstructorFlag = (accessToken: string | undefined, id: string, body?: unknown) => {
+    const req = http().put(`/people/${id}/instructor`);
+    const authed = accessToken === undefined ? req : req.set('Authorization', `Bearer ${accessToken}`);
+    return body === undefined ? authed : authed.send(body as object);
+  };
+
+  const flagOf = async (id: string) => (await prisma.user.findUniqueOrThrow({ where: { id } })).isInstructor;
   const roleOf = async (id: string) => (await prisma.user.findUniqueOrThrow({ where: { id } })).role;
   const statusOf = async (id: string) => (await prisma.enrolment.findUniqueOrThrow({ where: { id } })).status;
   const instructorsOf = async (classId: string) =>
@@ -219,7 +238,7 @@ describe('PUT /people/:id/role (e2e)', () => {
       const response = await changeRole(admin.accessToken, student.id, { role: 'instructor' });
 
       expect(response.status).toBe(200);
-      expect(response.body).toEqual({ id: student.id, role: 'instructor' });
+      expect(response.body).toEqual({ id: student.id, role: 'instructor', isInstructor: false });
       expect(await roleOf(student.id)).toBe('instructor');
       expect(await statusOf(seat)).toBe('cancelled');
       expect(await statusOf(requested)).toBe('withdrawn');
@@ -251,7 +270,7 @@ describe('PUT /people/:id/role (e2e)', () => {
       const response = await changeRole(admin.accessToken, student.id, { role: 'admin' });
 
       expect(response.status).toBe(200);
-      expect(response.body).toEqual({ id: student.id, role: 'admin' });
+      expect(response.body).toEqual({ id: student.id, role: 'admin', isInstructor: false });
       expect(await roleOf(student.id)).toBe('admin');
       expect(await statusOf(seat)).toBe('cancelled');
       expect(await statusOf(requested)).toBe('withdrawn');
@@ -284,7 +303,7 @@ describe('PUT /people/:id/role (e2e)', () => {
       const response = await changeRole(actor.accessToken, instructor.id, { role: 'student' });
 
       expect(response.status).toBe(200);
-      expect(response.body).toEqual({ id: instructor.id, role: 'student' });
+      expect(response.body).toEqual({ id: instructor.id, role: 'student', isInstructor: false });
       expect(await roleOf(instructor.id)).toBe('student');
       expect(await instructorsOf(alone)).toEqual([]);
       expect(await instructorsOf(shared)).toEqual([coInstructor.id]);
@@ -319,7 +338,7 @@ describe('PUT /people/:id/role (e2e)', () => {
       const response = await changeRole(actor.accessToken, target.id, { role: 'instructor' });
 
       expect(response.status).toBe(200);
-      expect(response.body).toEqual({ id: target.id, role: 'instructor' });
+      expect(response.body).toEqual({ id: target.id, role: 'instructor', isInstructor: false });
       expect(await roleOf(target.id)).toBe('instructor');
       expect(await instructorsOf(upcoming)).toEqual([target.id]);
       const registrations = await http()
@@ -560,6 +579,181 @@ describe('PUT /people/:id/role (e2e)', () => {
       expect(response.status).toBe(200);
       expect(await roleOf(student.id)).toBe('instructor');
       expect(await notificationsOf([student.id], 'role.changed')).toHaveLength(1);
+    });
+  });
+
+  describe('instructor flag', () => {
+    it.each([
+      ['a student', 'student' as Role],
+      ['an instructor', 'instructor' as Role],
+    ])('stores it when %s is made an admin with the flag, and not without it', async (_label, from) => {
+      const admin = await account('admin');
+      const withFlag = await account(from);
+      const withoutFlag = await account(from);
+      const flagOff = await account(from);
+
+      const first = await changeRole(admin.accessToken, withFlag.id, { role: 'admin', isInstructor: true });
+      const second = await changeRole(admin.accessToken, withoutFlag.id, { role: 'admin' });
+      const third = await changeRole(admin.accessToken, flagOff.id, { role: 'admin', isInstructor: false });
+
+      expect(first.body).toEqual({ id: withFlag.id, role: 'admin', isInstructor: true });
+      expect(second.body).toEqual({ id: withoutFlag.id, role: 'admin', isInstructor: false });
+      expect(third.body).toEqual({ id: flagOff.id, role: 'admin', isInstructor: false });
+      expect(await flagOf(withFlag.id)).toBe(true);
+      expect(await flagOf(withoutFlag.id)).toBe(false);
+      expect(await flagOf(flagOff.id)).toBe(false);
+    });
+
+    it('tells the promoted person the same thing whatever the flag says', async () => {
+      const admin = await account('admin');
+      const student = await account('student');
+
+      await changeRole(admin.accessToken, student.id, { role: 'admin', isInstructor: true });
+
+      const [notification] = await notificationsOf([student.id], 'role.changed');
+      expect(notification!.params).toMatchObject({ role: 'admin' });
+    });
+
+    it('refuses a non-boolean flag, and true with another role, with 422 and changes nothing', async () => {
+      const admin = await account('admin');
+      const student = await account('student');
+
+      for (const body of [
+        { role: 'admin', isInstructor: 'yes' },
+        { role: 'instructor', isInstructor: true },
+      ]) {
+        const response = await changeRole(admin.accessToken, student.id, body);
+
+        expect(response.status).toBe(422);
+        expect(response.body.errors).toEqual(['people.isInstructor.invalid']);
+      }
+      expect(await roleOf(student.id)).toBe('student');
+      expect(await changeRole(admin.accessToken, student.id, { role: 'instructor', isInstructor: false })).toMatchObject({
+        status: 200,
+      });
+    });
+
+    it('admin made an instructor clears the flag, keeping their classes', async () => {
+      const actor = await account('admin');
+      const target = await account('admin', 'approved', 'Bia Souza', true);
+      const upcoming = await classWith([target.id], 22);
+
+      const response = await changeRole(actor.accessToken, target.id, { role: 'instructor' });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({ id: target.id, role: 'instructor', isInstructor: false });
+      expect(await flagOf(target.id)).toBe(false);
+      expect(await instructorsOf(upcoming)).toEqual([target.id]);
+    });
+
+    it('lets an admin switch the flag of another admin and of themselves', async () => {
+      const actor = await account('admin');
+      const other = await account('admin');
+
+      const on = await setInstructorFlag(actor.accessToken, other.id, { isInstructor: true });
+      const self = await setInstructorFlag(actor.accessToken, actor.id, { isInstructor: true });
+
+      expect(on.status).toBe(200);
+      expect(on.body).toEqual({ id: other.id, isInstructor: true });
+      expect(self.body).toEqual({ id: actor.id, isInstructor: true });
+      expect(await flagOf(other.id)).toBe(true);
+      expect(await flagOf(actor.id)).toBe(true);
+
+      const off = await setInstructorFlag(actor.accessToken, other.id, { isInstructor: false });
+      const again = await setInstructorFlag(actor.accessToken, other.id, { isInstructor: false });
+
+      expect(off.body).toEqual({ id: other.id, isInstructor: false });
+      expect(again.status).toBe(200);
+      expect(await flagOf(other.id)).toBe(false);
+    });
+
+    it('notifies nobody and takes the admin off no class when the flag is switched off', async () => {
+      const actor = await account('admin');
+      const other = await account('admin', 'approved', 'Bia Souza', true);
+      const upcoming = await classWith([other.id], 22);
+
+      const response = await setInstructorFlag(actor.accessToken, other.id, { isInstructor: false });
+
+      expect(response.status).toBe(200);
+      expect(await instructorsOf(upcoming)).toEqual([other.id]);
+      expect(
+        await prisma.notification.count({ where: { user: { email: { endsWith: `@${DOMAIN}` } } } }),
+      ).toBe(0);
+    });
+
+    it.each(NOT_APPROVED)('refuses a caller whose status is %s with 403 user.status.notApproved', async (status) => {
+      const caller = await account('admin', status);
+      const other = await account('admin');
+
+      const response = await setInstructorFlag(caller.accessToken, other.id, { isInstructor: true });
+
+      expect(response.status).toBe(403);
+      expect(response.body.errors).toEqual(['user.status.notApproved']);
+    });
+
+    it.each<Role>(['student', 'instructor'])('refuses a %s caller with 403 user.role.notAdmin', async (role) => {
+      const caller = await account(role);
+      const other = await account('admin');
+
+      const response = await setInstructorFlag(caller.accessToken, other.id, { isInstructor: true });
+
+      expect(response.status).toBe(403);
+      expect(response.body.errors).toEqual(['user.role.notAdmin']);
+      expect(await flagOf(other.id)).toBe(false);
+    });
+
+    it('refuses a missing or non-boolean flag with 422 people.isInstructor.invalid', async () => {
+      const actor = await account('admin');
+      const other = await account('admin');
+
+      for (const body of [undefined, {}, { isInstructor: 'true' }]) {
+        const response = await setInstructorFlag(actor.accessToken, other.id, body);
+
+        expect(response.status).toBe(422);
+        expect(response.body.errors).toEqual(['people.isInstructor.invalid']);
+      }
+    });
+
+    it('refuses a malformed or unknown id with 404 user.notFound', async () => {
+      const actor = await account('admin');
+
+      for (const id of ['nope', randomUUID()]) {
+        const response = await setInstructorFlag(actor.accessToken, id, { isInstructor: true });
+
+        expect(response.status).toBe(404);
+        expect(response.body.errors).toEqual(['user.notFound']);
+      }
+    });
+
+    it.each(NOT_APPROVED)('refuses a target whose status is %s with 409 user.status.notApproved', async (status) => {
+      const actor = await account('admin');
+      const target = await account('admin', status);
+
+      const response = await setInstructorFlag(actor.accessToken, target.id, { isInstructor: true });
+
+      expect(response.status).toBe(409);
+      expect(response.body.errors).toEqual(['user.status.notApproved']);
+      expect(await flagOf(target.id)).toBe(false);
+    });
+
+    it.each<Role>(['student', 'instructor'])('refuses a %s target with 409 people.isInstructor.notAdmin', async (role) => {
+      const actor = await account('admin');
+      const target = await account(role);
+
+      const response = await setInstructorFlag(actor.accessToken, target.id, { isInstructor: true });
+
+      expect(response.status).toBe(409);
+      expect(response.body.errors).toEqual(['people.isInstructor.notAdmin']);
+      expect(await flagOf(target.id)).toBe(false);
+    });
+
+    it('refuses a request without a token with 401 auth.token.invalid', async () => {
+      const other = await account('admin');
+
+      const response = await setInstructorFlag(undefined, other.id, { isInstructor: true });
+
+      expect(response.status).toBe(401);
+      expect(response.body.errors).toEqual(['auth.token.invalid']);
     });
   });
 });

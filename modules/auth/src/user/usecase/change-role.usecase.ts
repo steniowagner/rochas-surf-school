@@ -31,18 +31,22 @@ export interface ChangeRoleIn {
   userId: string;
   /** Typed `unknown` because it comes straight from the request body. */
   role?: unknown;
+  /** Typed `unknown` for the same reason; only a promotion to admin may set it. */
+  isInstructor?: unknown;
 }
 
 export interface ChangeRoleOut {
   id: string;
   role: UserRole;
+  isInstructor: boolean;
 }
 
 /**
  * An approved admin changes someone else's role. A student first gives up their upcoming seats and pending requests,
  * an instructor made a student first leaves their upcoming classes; a failed release fails the whole call (releases
  * are idempotent, so a retry is safe). The role is then written only while the stored role and status are the ones
- * read and an approved admin remains, and the person is told.
+ * read and an approved admin remains, and the person is told. A promotion to admin stores whether the new admin also
+ * teaches; every other change stores `false`.
  */
 export class ChangeRole implements UseCase<ChangeRoleIn, ChangeRoleOut> {
   constructor(
@@ -56,6 +60,7 @@ export class ChangeRole implements UseCase<ChangeRoleIn, ChangeRoleOut> {
     assertCanDecideRegistrations(input.actor);
 
     const role = this.toRole(input.role);
+    const isInstructor = this.toInstructorFlag(role, input.isInstructor);
 
     // An id that isn't a UUID can't name anyone (and the database would refuse to compare it).
     const user = UUID_PATTERN.test(input.userId)
@@ -81,7 +86,7 @@ export class ChangeRole implements UseCase<ChangeRoleIn, ChangeRoleOut> {
         ? await this.teachingReleaser.releaseUpcomingClasses(user.id, input.actor.id)
         : 0;
 
-    const changed = user.clone({ role });
+    const changed = user.clone({ role, isInstructor });
     changed.validate();
 
     const result = await this.userRepository.updateKeepingAnAdmin(changed, {
@@ -106,7 +111,7 @@ export class ChangeRole implements UseCase<ChangeRoleIn, ChangeRoleOut> {
       // A failed notification never changes the answer; the adapter logs it.
     }
 
-    return { id: user.id, role };
+    return { id: user.id, role, isInstructor };
   }
 
   private toRole(role: unknown): UserRole {
@@ -115,5 +120,16 @@ export class ChangeRole implements UseCase<ChangeRoleIn, ChangeRoleOut> {
     }
 
     return role as UserRole;
+  }
+
+  private toInstructorFlag(role: UserRole, value: unknown): boolean {
+    if (value === undefined) {
+      return false;
+    }
+    if (typeof value !== "boolean" || (value && role !== "admin")) {
+      throw new ValidationException([new ValidationError("people.isInstructor.invalid")]);
+    }
+
+    return value;
   }
 }

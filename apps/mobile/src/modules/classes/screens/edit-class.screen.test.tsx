@@ -132,7 +132,7 @@ const serve = (overrides: Record<string, Handler> = {}) => {
           { start: "16:00", end: "17:00" },
         ],
       }),
-    "GET /people?page=1&perPage=50&role=instructor,admin": () =>
+    "GET /people?page=1&perPage=50&role=instructor,admin&teaches=true": () =>
       ok({
         items: teachers.map((item) => ({
           ...item,
@@ -362,6 +362,17 @@ describe("EditClassScreen", () => {
       screen.getByRole("checkbox", { name: "Carla Dias" }),
     ).not.toBeChecked();
     expect(saveButton()).toBeEnabled();
+  });
+
+  it("keeps an admin who no longer teaches, already on the class, ticked, while the others stay unlisted", async () => {
+    await renderScreen();
+    await loaded();
+
+    expect(screen.getByRole("checkbox", { name: "Carla Dias" })).toBeChecked();
+    expect(screen.queryByRole("checkbox", { name: "Dora Admin" })).toBeNull();
+    expect(
+      requestedPaths().filter((path) => path.startsWith("/people")),
+    ).toContain("/people?page=1&perPage=50&role=instructor,admin&teaches=true");
   });
 
   it("lists an erased instructor it keeps as Former instructor, ticked, so they can be removed", async () => {
@@ -775,7 +786,7 @@ describe("EditClassScreen", () => {
 
   it("offers to retry the instructors when they fail to load", async () => {
     serve({
-      "GET /people?page=1&perPage=50&role=instructor,admin": failure(
+      "GET /people?page=1&perPage=50&role=instructor,admin&teaches=true": failure(
         500,
         "INTERNAL_SERVER_ERROR",
       ),
@@ -1114,7 +1125,7 @@ describe("EditClassScreen", () => {
     });
 
     it("reloads the instructors when one can no longer teach", async () => {
-      const teachersPath = "/people?page=1&perPage=50&role=instructor,admin";
+      const teachersPath = "/people?page=1&perPage=50&role=instructor,admin&teaches=true";
       await save("class.instructors.invalid", 422);
 
       await waitFor(() =>

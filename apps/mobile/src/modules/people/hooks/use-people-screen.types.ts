@@ -22,6 +22,7 @@ export type UsePeopleScreenResult = {
   selectedPerson: Person | null;
   /** The viewer may change the selected person's role. */
   canChangeRole: boolean;
+  canSetInstructorFlag: boolean;
   isSheetVisible: boolean;
   openPerson: (person: Person) => void;
   closeSheet: () => void;

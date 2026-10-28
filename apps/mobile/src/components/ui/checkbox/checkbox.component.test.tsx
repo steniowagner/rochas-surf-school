@@ -42,6 +42,57 @@ describe("Checkbox", () => {
     expect(onChange).toHaveBeenCalledWith(false);
   });
 
+  it("stacks the helper under the label and toggles from it", async () => {
+    const onChange = jest.fn();
+    const user = userEvent.setup();
+    await render(
+      <Checkbox
+        checked={false}
+        onChange={onChange}
+        label={LABEL}
+        helper="The fine print"
+      />,
+    );
+
+    expect(screen.getByRole("checkbox", { name: LABEL })).toHaveProp(
+      "accessibilityHint",
+      "The fine print",
+    );
+    expect(screen.getByText("The fine print")).toHaveProp(
+      "className",
+      expect.stringContaining("text-ink-2"),
+    );
+
+    await user.press(screen.getByText("The fine print"));
+
+    expect(onChange).toHaveBeenCalledWith(true);
+  });
+
+  it("draws the dim box in the boxed variant, keeping the text colors", async () => {
+    await render(
+      <Checkbox
+        checked={false}
+        onChange={jest.fn()}
+        label={LABEL}
+        helper="The fine print"
+        variant="boxed"
+      />,
+    );
+
+    expect(screen.getByRole("checkbox", { name: LABEL })).toHaveProp(
+      "className",
+      expect.stringContaining("rounded-control bg-dim"),
+    );
+    expect(screen.getByText(LABEL)).toHaveProp(
+      "className",
+      expect.stringContaining("text-ink"),
+    );
+    expect(screen.getByText("The fine print")).toHaveProp(
+      "className",
+      expect.stringContaining("text-ink-2"),
+    );
+  });
+
   it("ignores presses when disabled", async () => {
     const onChange = jest.fn();
     const user = userEvent.setup();

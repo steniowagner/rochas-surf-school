@@ -17,7 +17,8 @@ Takes care of who people are and how they get in: their accounts (one per email 
 approval status), the ways they sign in (Google, Apple, a code sent by email), the sign-in codes themselves
 and the sessions that keep them signed in. It also lets admins decide registrations — approving or denying
 each account waiting for approval, once and for good, and shows every approved member the people directory,
-with each WhatsApp number only to who may see it. Admins change other people's roles there, remove members from
+with each WhatsApp number only to who may see it. Admins change other people's roles there, decide which admins
+also teach, remove members from
 the platform and restore them within 30 days, and the school always keeps at least one approved admin. It does not decide anything about classes; that belongs to
 Classes and to the modules that come with their specs.
 It groups four areas: **Accounts**, **Identities**, **Sign-in codes** and **Sessions**.

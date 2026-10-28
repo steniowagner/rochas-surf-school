@@ -97,6 +97,8 @@ export const usePeopleScreen = (): UsePeopleScreenResult => {
       isApprovedAdmin &&
       selectedPerson !== null &&
       selectedPerson.id !== user.id,
+    // An approved admin switches the flag of an admin, their own included (spec 070, D-09).
+    canSetInstructorFlag: isApprovedAdmin && selectedPerson?.role === "admin",
     isSheetVisible,
     openPerson: (person) => {
       setSelectedPerson(person);

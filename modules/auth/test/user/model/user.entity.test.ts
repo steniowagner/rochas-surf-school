@@ -61,6 +61,7 @@ describe("User", () => {
           reactivationStatus: "requested",
           reactivationRequestedAt,
           rulesAcceptances,
+          isInstructor: true,
           deletedAt,
         }),
       );
@@ -78,6 +79,7 @@ describe("User", () => {
       expect(user.reactivationStatus).toBe("requested");
       expect(user.reactivationRequestedAt).toEqual(reactivationRequestedAt);
       expect(user.rulesAcceptances).toEqual(rulesAcceptances);
+      expect(user.isInstructor).toBe(true);
       expect(user.deletedAt).toEqual(deletedAt);
       expect(() => user.validate()).not.toThrow();
     });
@@ -93,6 +95,7 @@ describe("User", () => {
       expect(user.reactivationStatus).toBeUndefined();
       expect(user.reactivationRequestedAt).toBeUndefined();
       expect(user.rulesAcceptances).toEqual([]);
+      expect(user.isInstructor).toBe(false);
     });
 
     it("keeps the provided id and timestamps", () => {
@@ -233,6 +236,14 @@ describe("User", () => {
       expect(
         validationMessagesFor({ whatsappVisible: "yes" as never }),
       ).toEqual(["user.whatsappVisible.in"]);
+    });
+  });
+
+  describe("isInstructor", () => {
+    it("rejects non-boolean values", () => {
+      const user = new User(buildState({ isInstructor: "yes" as unknown as boolean }));
+
+      expect(() => user.validate()).toThrow(ValidationException);
     });
   });
 

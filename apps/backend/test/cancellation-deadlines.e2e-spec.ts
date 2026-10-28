@@ -85,6 +85,7 @@ describe('Cancellation deadlines (e2e)', () => {
         name: 'Person admin',
         email: `u.${randomUUID().slice(0, 8)}@${DOMAIN}`,
         role: 'admin',
+        isInstructor: true,
         status: 'approved',
       },
     });

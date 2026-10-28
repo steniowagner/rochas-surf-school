@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 
 import { ROLE_ACTION_LOOK } from "../../constants/role-actions";
 
@@ -16,6 +18,7 @@ export function RoleChangeConfirmation({
   onBack,
 }: RoleChangeConfirmationProps) {
   const { t } = useTranslation();
+  const [isInstructor, setIsInstructor] = useState(false);
 
   return (
     <View className="gap-4">
@@ -31,12 +34,22 @@ export function RoleChangeConfirmation({
             {t("people.roleConfirm.promoteAdmin.seatsNote")}
           </Text>
         ) : null}
+        {action === "promoteAdmin" ? (
+          <Checkbox
+            checked={isInstructor}
+            onChange={setIsInstructor}
+            label={t("people.instructorFlag.label")}
+            helper={t("people.instructorFlag.helper")}
+            variant="boxed"
+            disabled={loading}
+          />
+        ) : null}
       </View>
       <View className="gap-2">
         <Button
           variant={ROLE_ACTION_LOOK[action].danger ? "danger" : "primary"}
           loading={loading}
-          onPress={onConfirm}
+          onPress={() => onConfirm(isInstructor)}
         >
           {t(`people.roleConfirm.${action}.confirm`)}
         </Button>

@@ -104,7 +104,7 @@ const serve = (overrides: Record<string, Handler> = {}) => {
           { start: "16:00", end: "17:00" },
         ],
       }),
-    "GET /people?page=1&perPage=50&role=instructor,admin": () =>
+    "GET /people?page=1&perPage=50&role=instructor,admin&teaches=true": () =>
       ok({
         items: teachers.map((item) => ({
           ...item,
@@ -297,7 +297,7 @@ describe("NewClassScreen", () => {
       expect.arrayContaining([
         "/locations",
         "/classes/time-range-suggestions",
-        "/people?page=1&perPage=50&role=instructor,admin",
+        "/people?page=1&perPage=50&role=instructor,admin&teaches=true",
       ]),
     );
     expect(
@@ -306,6 +306,17 @@ describe("NewClassScreen", () => {
     expect(
       screen.getByRole("checkbox", { name: "Ana Souza" }),
     ).not.toBeChecked();
+  });
+
+  it("lists only the people the API answers for teaches=true: an admin who does not teach is absent", async () => {
+    await renderScreen();
+
+    expect(await screen.findByRole("checkbox", { name: "Ana Souza" })).toBeTruthy();
+    expect(screen.getByRole("checkbox", { name: "Bruno Lima" })).toBeTruthy();
+    expect(screen.queryByRole("checkbox", { name: "Dora Admin" })).toBeNull();
+    expect(
+      requestedPaths().filter((path) => path.startsWith("/people")),
+    ).toEqual(["/people?page=1&perPage=50&role=instructor,admin&teaches=true"]);
   });
 
   it("switches the discipline and the level", async () => {
@@ -828,7 +839,7 @@ describe("NewClassScreen", () => {
 
     it("shows the load error and retries", async () => {
       serve({
-        "GET /people?page=1&perPage=50&role=instructor,admin": failure(
+        "GET /people?page=1&perPage=50&role=instructor,admin&teaches=true": failure(
           500,
           "x",
         ),
@@ -1004,7 +1015,7 @@ describe("NewClassScreen", () => {
       const user = userEvent.setup();
       await renderScreen();
       await fillValidBatch(user);
-      const teachersPath = "/people?page=1&perPage=50&role=instructor,admin";
+      const teachersPath = "/people?page=1&perPage=50&role=instructor,admin&teaches=true";
       const before = requestedPaths().filter(
         (path) => path === teachersPath,
       ).length;

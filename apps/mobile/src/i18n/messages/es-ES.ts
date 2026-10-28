@@ -1043,7 +1043,7 @@ const messages: Messages = {
       },
       promoteAdmin: {
         title: "Ascender a admin",
-        subtitle: "Gestionará la escuela. También puede dar clases.",
+        subtitle: "Gestionará la escuela.",
       },
       demoteStudent: {
         title: "Bajar a alumno",
@@ -1064,7 +1064,7 @@ const messages: Messages = {
       promoteAdmin: {
         title: "¿Ascender a {{name}} a admin?",
         description:
-          "Pasa a ser admin: gestiona clases, personas, reglas y solicitudes de la escuela. También puede dar clases.",
+          "Pasa a ser admin: gestiona clases, personas, reglas y solicitudes de la escuela.",
         seatsNote:
           "Las plazas y solicitudes que tenía en clases futuras, como alumno, se cancelan.",
         confirm: "Ascender a admin",
@@ -1082,6 +1082,10 @@ const messages: Messages = {
         confirm: "Pasar a instructor",
       },
       back: "Volver",
+    },
+    instructorFlag: {
+      label: "También es instructor",
+      helper: "Además de admin, da clases en la escuela.",
     },
     roleErrors: {
       changed: "El rol de esta persona cambió. Actualiza la lista.",

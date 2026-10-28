@@ -29,6 +29,7 @@ import {
   SchoolClassRepository,
   SeatCounter,
   TeacherLookup,
+  canTeach,
 } from "../provider";
 
 export interface EditClassIn {
@@ -51,7 +52,6 @@ export interface EditClassOut {
   id: string;
 }
 
-const TEACHER_ROLES = ["instructor", "admin"];
 const uuidRule = new UuidRule();
 
 function isUuid(value: unknown): value is string {
@@ -271,12 +271,7 @@ export class EditClass implements UseCase<EditClassIn, EditClassOut> {
 
     const teachers = await this.teacherLookup.findTeachers(addedIds);
     const valid = addedIds.every((id) =>
-      teachers.some(
-        (teacher) =>
-          teacher.id === id &&
-          teacher.status === "approved" &&
-          TEACHER_ROLES.includes(teacher.role),
-      ),
+      teachers.some((teacher) => teacher.id === id && canTeach(teacher)),
     );
 
     if (!valid) {

@@ -112,6 +112,9 @@ export class PrismaUserRepository implements UserRepository {
     if (params.roles?.length) {
       conditions.push(Prisma.sql`role = ANY(${params.roles}::user_role[])`);
     }
+    if (params.teachers) {
+      conditions.push(Prisma.sql`(role = 'instructor' OR (role = 'admin' AND is_instructor))`);
+    }
     if (params.search) {
       const pattern = `%${escapeLike(params.search)}%`;
       conditions.push(Prisma.sql`unaccent(lower(name)) LIKE unaccent(lower(${pattern}))`);
@@ -329,6 +332,7 @@ export class PrismaUserRepository implements UserRepository {
       whatsappVisible: user.whatsappVisible,
       role: user.role,
       status: user.status,
+      isInstructor: user.isInstructor,
       denialReason: user.denialReason ?? null,
       deniedAt: user.deniedAt ?? null,
       removedAt: user.removedAt ?? null,
@@ -356,6 +360,7 @@ export class PrismaUserRepository implements UserRepository {
       whatsappVisible: record.whatsappVisible,
       role: record.role,
       status: record.status as UserStatus,
+      isInstructor: record.isInstructor,
       denialReason: record.denialReason ?? undefined,
       deniedAt: record.deniedAt ?? undefined,
       removedAt: record.removedAt ?? undefined,

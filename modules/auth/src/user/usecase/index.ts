@@ -25,3 +25,4 @@ export * from "./change-role.usecase";
 export * from "./remove-user.usecase";
 export * from "./list-removed-accounts.usecase";
 export * from "./restore-account.usecase";
+export * from "./set-instructor-flag.usecase";

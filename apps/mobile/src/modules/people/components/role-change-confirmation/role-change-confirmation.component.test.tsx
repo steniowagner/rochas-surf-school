@@ -32,6 +32,69 @@ describe("RoleChangeConfirmation", () => {
     expect(onBack).toHaveBeenCalledTimes(1);
   });
 
+  it("shows the unchecked instructor checkbox for a promotion to admin and sends its value", async () => {
+    const onConfirm = jest.fn();
+    const user = userEvent.setup();
+    await render(
+      <RoleChangeConfirmation
+        action="promoteAdmin"
+        name="Ana"
+        showSeatsNote={false}
+        loading={false}
+        onConfirm={onConfirm}
+        onBack={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByRole("checkbox", { name: "Also an instructor" })).not.toBeChecked();
+    expect(
+      screen.getByText("Besides being an admin, teaches at the school."),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText("They become an admin: they run the school's classes, people, rules and requests."),
+    ).toBeOnTheScreen();
+
+    await user.press(screen.getByRole("button", { name: "Make admin" }));
+    await user.press(screen.getByRole("checkbox", { name: "Also an instructor" }));
+    await user.press(screen.getByRole("button", { name: "Make admin" }));
+
+    expect(onConfirm).toHaveBeenNthCalledWith(1, false);
+    expect(onConfirm).toHaveBeenNthCalledWith(2, true);
+  });
+
+  it("disables the checkbox while saving", async () => {
+    await render(
+      <RoleChangeConfirmation
+        action="promoteAdmin"
+        name="Ana"
+        showSeatsNote={false}
+        loading
+        onConfirm={jest.fn()}
+        onBack={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByRole("checkbox", { name: "Also an instructor" })).toBeDisabled();
+  });
+
+  it.each(["promoteInstructor", "demoteStudent", "adminToInstructor"] as const)(
+    "shows no checkbox for %s",
+    async (action) => {
+      await render(
+        <RoleChangeConfirmation
+          action={action}
+          name="Ana"
+          showSeatsNote={false}
+          loading={false}
+          onConfirm={jest.fn()}
+          onBack={jest.fn()}
+        />,
+      );
+
+      expect(screen.queryByRole("checkbox")).not.toBeOnTheScreen();
+    },
+  );
+
   it("adds the seats note when asked, and ignores presses while loading", async () => {
     const onConfirm = jest.fn();
     const onBack = jest.fn();

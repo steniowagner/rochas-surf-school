@@ -14,7 +14,7 @@ const fetchTeachers = async (): Promise<Teacher[]> => {
 
   do {
     const result = await apiGet<PeoplePage>(
-      `/people?page=${page}&perPage=${PER_PAGE}&role=instructor,admin`,
+      `/people?page=${page}&perPage=${PER_PAGE}&role=instructor,admin&teaches=true`,
       { authenticated: true },
     );
 
@@ -33,7 +33,7 @@ const fetchTeachers = async (): Promise<Teacher[]> => {
   return teachers;
 };
 
-/** Every approved instructor and admin, all pages of the directory. */
+/** Every approved instructor and admin who also teaches (spec 070), all pages of the directory. */
 export const useTeachers = () =>
   useQuery({
     queryKey: ["people", "teachers"],

@@ -301,12 +301,18 @@ shared between mobile and web, the phone frame and the mock UI pieces.
 
 ### Web (`apps/web`)
 
-- [ ] **T-06** — Add `@rochas-surf-school/app-messages` to `apps/web`, and write
+- [x] **T-06** — Add `@rochas-surf-school/app-messages` to `apps/web`, and write
   `src/modules/designs/i18n/` with the map from the site's locales (`pt-br`, `es`, `en`) to the app's
   (`pt-BR`, `es-ES`, `en-US`) and an `appT(locale, key, params?)` that reads a dotted key, fills `{{name}}`
   values, picks i18next plural suffixes with `Intl.PluralRules`, and renders `<tag>…</tag>` rich text with given
   components; with `app-t.test.ts` (Vitest) covering each of those and a missing key. Covers: ER-09 · Done when:
   `npx vitest run src/modules/designs/i18n` passes in `apps/web`.
+  > ✅ 2026-10-28 15:25 — web depends on app-messages; `appT(locale, key, params)` (dotted key, `{{name}}`, plural via
+  > `Intl.PluralRules` with `_other` fallback, throws on a missing key) and `appRich` (`<tag>` rich text through given components)
+  > written with the site-locale → app-locale map; files: `apps/web/package.json`, `package-lock.json`,
+  > `apps/web/src/modules/designs/i18n/{app-locale,app-t,app-t.test}.ts`; verified:
+  > `npx vitest run src/modules/designs/i18n` in apps/web (7 passed), `npx tsc --noEmit` (clean); deviations: rich text is a
+  > separate `appRich` function (returns ReactNode) next to `appT` (returns string)
 
 - [ ] **T-07** — Add `/designs` and `/designs/:path*` to the matcher in `src/proxy.ts`; restructure
   `src/app/[lang]/` so the design pages get a container up to 1440 px wide while the existing pages keep their

@@ -204,6 +204,10 @@ const messages: Messages = {
       waiting: "{{count}} esperando",
       nothingPending: "Nada pendente",
       enrolStudentSubtitle: "Alunos da escola ou aulas experimentais",
+      removedAccountsRow: "Contas removidas",
+      removedAccountsCount_one: "{{count}} conta",
+      removedAccountsCount_other: "{{count}} contas",
+      removedAccountsNone: "Nenhuma conta removida",
     },
   },
   home: {
@@ -261,6 +265,22 @@ const messages: Messages = {
       placeholder: "Ex.: No momento não temos vagas para novos alunos.",
       confirm: "Recusar e avisar",
       back: "Voltar",
+    },
+  },
+  removedAccounts: {
+    title: "Contas removidas",
+    count_one: "{{count}} restaurável",
+    count_other: "{{count}} restauráveis",
+    description:
+      "Contas removidas nos últimos 30 dias. Ao restaurar, a pessoa volta com os mesmos dados e recebe uma notificação push.",
+    loading: "Carregando as contas removidas",
+    empty: {
+      title: "Nenhuma conta removida",
+      description: "As contas que você remover aparecem aqui por 30 dias, para poder restaurá-las.",
+    },
+    loadError: {
+      title: "Não foi possível carregar as contas removidas",
+      description: "Verifique sua conexão e tente de novo.",
     },
   },
   classRequests: {
@@ -1073,9 +1093,8 @@ const messages: Messages = {
       back: "Voltar",
     },
     removed: {
-      title: "Contas removidas",
-      hint: "restauráveis durante 30 dias",
-      row: "{{role}} · removida em {{date}} · até {{until}}",
+      removedOn: "Removida em {{date}}",
+      deletedOn: "Exclusão definitiva em {{until}}",
       restore: "Restaurar",
       errors: {
         notRemoved: "Esta conta já não está removida.",

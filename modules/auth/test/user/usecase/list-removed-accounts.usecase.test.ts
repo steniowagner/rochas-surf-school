@@ -38,8 +38,8 @@ describe("ListRemovedAccounts", () => {
 
     await expect(useCase.execute({ actor: ADMIN })).resolves.toEqual({
       items: [
-        { id: r2.id, name: "Caio", role: "student", removedAt: r2.removedAt?.toISOString() },
-        { id: r1.id, name: "Bia", role: "instructor", removedAt: r1.removedAt?.toISOString() },
+        { id: r2.id, name: "Caio", role: "student", whatsappNumber: null, removedAt: r2.removedAt?.toISOString() },
+        { id: r1.id, name: "Bia", role: "instructor", whatsappNumber: null, removedAt: r1.removedAt?.toISOString() },
       ],
     });
   });
@@ -83,5 +83,18 @@ describe("ListRemovedAccounts", () => {
     await expect(useCase.execute({ actor: { ...ADMIN, role: "instructor" } })).rejects.toThrow(
       new ForbiddenError("user.role.notAdmin"),
     );
+  });
+
+  it("gives the admin the WhatsApp number even when its owner doesn't share it", async () => {
+    const hidden = buildUser({
+      whatsappNumber: "+5585999998888",
+      whatsappVisible: false,
+      removedAt: new Date(NOW.getTime() - HOUR),
+    });
+    const { useCase } = setup([hidden]);
+
+    const { items } = await useCase.execute({ actor: ADMIN });
+
+    expect(items[0]?.whatsappNumber).toBe("+5585999998888");
   });
 });

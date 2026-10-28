@@ -20,6 +20,7 @@ import AdminSendNoticeRoute from "@/app/(private)/admin/send-notice";
 import AdminPeopleRoute from "@/app/(private)/admin/people";
 import AdminClassRequestsRoute from "@/app/(private)/admin/class-requests";
 import AdminEnrolStudentRoute from "@/app/(private)/admin/enrol-student";
+import AdminRemovedAccountsRoute from "@/app/(private)/admin/removed-accounts";
 import AdminManageSchoolRulesRoute from "@/app/(private)/admin/manage-school-rules";
 import AdminMyClassesRoute from "@/app/(private)/admin/my-classes";
 import AdminReactivationsRoute from "@/app/(private)/admin/reactivations";
@@ -68,10 +69,19 @@ let teaching: typeof TEACHING | typeof NOT_TEACHING | null = NOT_TEACHING;
 // What `GET /reactivation-requests` answers: no request unless a test says otherwise; `null` fails.
 let reactivations: ReturnType<typeof reactivation>[] | null = [];
 
-// The Rules, My classes and People rows ask for the school rules, the classes taught and the people count on their own: they are answered here,
+// What `GET /people/removed` answers: nobody is removed unless a test says otherwise.
+let removedAccounts: { id: string; name: string; role: string; removedAt: string }[] = [];
+
+// The Rules, My classes, People and Removed accounts rows ask for the school rules, the classes taught, the people count and the removed accounts on their own: they are answered here,
 // so `fetchMock` sees only the home's other requests.
 const fetchWithSchoolRules = (url: string, init: RequestInit) =>
-  String(url).endsWith("/reactivation-requests")
+  String(url).endsWith("/people/removed")
+    ? Promise.resolve({
+        ok: true,
+        status: 200,
+        json: async () => ({ items: removedAccounts }),
+      })
+    : String(url).endsWith("/reactivation-requests")
     ? Promise.resolve(
         reactivations
           ? {
@@ -188,6 +198,7 @@ async function openAdminHome() {
       "(private)/admin/reactivations": AdminReactivationsRoute,
       "(private)/admin/class-requests": AdminClassRequestsRoute,
       "(private)/admin/enrol-student": AdminEnrolStudentRoute,
+      "(private)/admin/removed-accounts": AdminRemovedAccountsRoute,
       "(private)/admin/manage-school-rules": AdminManageSchoolRulesRoute,
       "(private)/admin/my-classes": AdminMyClassesRoute,
       "(private)/admin/weekly-occupancy": AdminWeeklyOccupancyRoute,
@@ -216,6 +227,7 @@ beforeEach(() => {
   });
   teaching = NOT_TEACHING;
   reactivations = [];
+  removedAccounts = [];
   fetchMock.mockReset();
   globalThis.fetch = fetchWithSchoolRules as typeof fetch;
   process.env.EXPO_PUBLIC_API_URL = "http://api.test";
@@ -611,6 +623,40 @@ describe("AdminScreen", () => {
       await act(async () => router.back());
 
       expect(app.getPathname()).toBe(routes.admin.home);
+    });
+  });
+
+  describe("Removed accounts row", () => {
+    it("sits under the tools, after Enrol a student, and opens the tool", async () => {
+      const user = userEvent.setup();
+      removedAccounts = [
+        { id: "r-1", name: "Bia Souza", role: "student", removedAt: "2026-10-02T15:00:00.000Z" },
+      ];
+      respondWith([]);
+      const app = await openAdminHome();
+
+      const rows = screen.getAllByText(
+        /^(Enrol a student|Removed accounts|Create classes)$/,
+      );
+      expect(rows.map((row) => row.props.children)).toEqual([
+        "Enrol a student",
+        "Removed accounts",
+        "Create classes",
+      ]);
+      expect(await screen.findByText("1 account")).toBeOnTheScreen();
+
+      await user.press(screen.getByRole("button", { name: /Removed accounts/ }));
+
+      expect(app.getPathname()).toBe(routes.admin.removedAccounts);
+      expect(await screen.findByText("Bia Souza")).toBeOnTheScreen();
+    });
+
+    it("says no account is removed when there is none", async () => {
+      removedAccounts = [];
+      respondWith([]);
+      await openAdminHome();
+
+      expect(await screen.findByText("No removed accounts")).toBeOnTheScreen();
     });
   });
 

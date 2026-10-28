@@ -13,6 +13,8 @@ export interface RemovedAccountOut {
   id: string;
   name: string;
   role: UserRole;
+  /** E.164; the viewer is always an admin, who sees it whether or not the owner shares it. */
+  whatsappNumber: string | null;
   removedAt: string;
 }
 
@@ -39,6 +41,7 @@ export class ListRemovedAccounts implements UseCase<ListRemovedAccountsIn, ListR
         id: user.id,
         name: user.name,
         role: user.role,
+        whatsappNumber: user.whatsappNumber ?? null,
         removedAt: (user.removedAt as Date).toISOString(),
       })),
     };

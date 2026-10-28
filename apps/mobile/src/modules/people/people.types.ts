@@ -47,6 +47,8 @@ export type RemovedAccount = {
   id: string;
   name: string;
   role: PeopleRole;
+  /** E.164; an admin always gets it, whether or not the owner shares it. */
+  whatsappNumber: string | null;
   removedAt: string;
 };
 

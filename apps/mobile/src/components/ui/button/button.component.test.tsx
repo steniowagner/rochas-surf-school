@@ -86,6 +86,23 @@ describe("Button", () => {
     expect(getSpinners()).toHaveLength(1);
   });
 
+  it("draws the spinner in the label's color, so it shows on a light variant", async () => {
+    await render(
+      <>
+        <Button variant="primary" loading>
+          Filled
+        </Button>
+        <Button variant="outline" loading>
+          Outlined
+        </Button>
+      </>,
+    );
+
+    const [filled, outlined] = getSpinners();
+
+    expect(filled?.props.color).not.toBe(outlined?.props.color);
+  });
+
   it("draws the success variant green, with an on-color label and no shadow", async () => {
     expect(variantClasses.success).toEqual({
       container: "bg-ok",

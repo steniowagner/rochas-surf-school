@@ -64,17 +64,10 @@ jest.mock("expo-router", () => ({
   },
 }));
 
-/** What `GET /people/removed` answers; nobody is removed unless a test says so. */
-let removedItems: unknown[] = [];
-
-/** Answers the unfiltered count, the removed accounts and any list request, per the handlers given. */
+/** Answers the unfiltered count and any list request, per the handlers given. */
 const serve = (list: (path: string) => unknown, total = 3) => {
   fetchMock.mockImplementation(async (url: string) => {
     const path = String(url).replace("http://api.test", "");
-
-    if (path === "/people/removed") {
-      return ok({ items: removedItems });
-    }
 
     return path === "/people?perPage=1"
       ? ok(buildPage(1, 1, total))
@@ -91,9 +84,7 @@ const renderScreen = () =>
   );
 
 const listPaths = () =>
-  requestedPaths().filter(
-    (path) => path !== "/people?perPage=1" && path !== "/people/removed",
-  );
+  requestedPaths().filter((path) => path !== "/people?perPage=1");
 
 const actualApiGet = jest.requireActual("@/services/api").apiGet;
 
@@ -117,7 +108,6 @@ afterEach(() => {
 beforeEach(() => {
   setupSignedInUser();
   mockShow.mockReset();
-  removedItems = [];
 });
 
 describe("PeopleScreen", () => {
@@ -548,9 +538,6 @@ describe("PeopleScreen", () => {
       fetchMock.mockImplementation(
         async (url: string, init?: { method?: string }) => {
           const path = String(url).replace("http://api.test", "");
-          if (path === "/people/removed") {
-            return ok({ items: [] });
-          }
           if (init?.method === "PUT") {
             promoted = true;
             return ok({ id: "p-1", role: "instructor" });
@@ -585,232 +572,6 @@ describe("PeopleScreen", () => {
       ).not.toBeOnTheScreen();
       expect(screen.queryByText("Chat on WhatsApp")).not.toBeOnTheScreen();
       expect(requestedPaths()).toContain("/people/p-1/role");
-    });
-  });
-
-  describe("removed accounts", () => {
-    const BIA = {
-      id: "r-1",
-      name: "Bia Souza",
-      role: "student",
-      removedAt: "2026-10-02T15:00:00.000Z",
-    };
-
-    const oneStudent = () => ok(buildPage(1, 1, 1));
-
-    it("closes the list of an approved admin with the removed accounts, their dates and Restore", async () => {
-      setupSignedInAdmin();
-      removedItems = [BIA];
-      serve(oneStudent, 1);
-      await renderScreen();
-
-      expect(await screen.findByText("Removed accounts")).toBeOnTheScreen();
-      expect(screen.getByText("can be restored for 30 days")).toBeOnTheScreen();
-      expect(screen.getByText("Bia Souza")).toBeOnTheScreen();
-      expect(
-        screen.getByText("Student · removed Oct 2 · until Nov 1"),
-      ).toBeOnTheScreen();
-      expect(screen.getByRole("button", { name: "Restore Bia Souza" })).toBeOnTheScreen();
-    });
-
-    it("hides with a search text or a role filter", async () => {
-      setupSignedInAdmin();
-      removedItems = [BIA];
-      serve(oneStudent, 1);
-      const user = userEvent.setup();
-      await renderScreen();
-      await screen.findByText("Removed accounts");
-
-      await user.press(screen.getByRole("button", { name: "Students", selected: false }));
-      await waitFor(() =>
-        expect(screen.queryByText("Removed accounts")).not.toBeOnTheScreen(),
-      );
-      await user.press(screen.getByRole("button", { name: "Students", selected: true }));
-      await screen.findByText("Removed accounts");
-
-      await user.type(screen.getByPlaceholderText("Search people"), "ana");
-      expect(screen.queryByText("Removed accounts")).not.toBeOnTheScreen();
-    });
-
-    it("hides before the last page of the directory has loaded", async () => {
-      setupSignedInAdmin();
-      removedItems = [BIA];
-      serve(() => ok(buildPage(1, 20, 25)), 25);
-      await renderScreen();
-      await screen.findByText("Person 0");
-
-      expect(screen.queryByText("Removed accounts")).not.toBeOnTheScreen();
-    });
-
-    it("shows under an empty directory once it has loaded", async () => {
-      setupSignedInAdmin();
-      removedItems = [BIA];
-      serve(() => ok({ items: [], page: 1, perPage: 20, total: 0 }), 0);
-      await renderScreen();
-
-      expect(await screen.findByText("Removed accounts")).toBeOnTheScreen();
-      expect(screen.getByText("Bia Souza")).toBeOnTheScreen();
-    });
-
-    it("hides with no removed account, and after the query fails", async () => {
-      setupSignedInAdmin();
-      serve(oneStudent, 1);
-      await renderScreen();
-      await screen.findByText("Person 0");
-      expect(screen.queryByText("Removed accounts")).not.toBeOnTheScreen();
-
-      fetchMock.mockImplementation(async (url: string) => {
-        const path = String(url).replace("http://api.test", "");
-
-        if (path === "/people/removed") return failure();
-
-        return path === "/people?perPage=1" ? ok(buildPage(1, 1, 1)) : oneStudent();
-      });
-      await renderScreen();
-      await screen.findAllByText("Person 0");
-
-      expect(screen.queryByText("Removed accounts")).not.toBeOnTheScreen();
-    });
-
-    it("never asks a student or instructor viewer", async () => {
-      removedItems = [BIA];
-      serve(oneStudent, 1);
-      await renderScreen();
-      await screen.findByText("Person 0");
-
-      expect(screen.queryByText("Removed accounts")).not.toBeOnTheScreen();
-      expect(requestedPaths()).not.toContain("/people/removed");
-    });
-
-    it("reloads them with a pull to refresh", async () => {
-      setupSignedInAdmin();
-      removedItems = [BIA];
-      serve(oneStudent, 1);
-      await renderScreen();
-      await screen.findByText("Removed accounts");
-      const before = requestedPaths().filter((path) => path === "/people/removed").length;
-
-      await act(async () => {
-        await screen.getByTestId("people-list").props.refreshControl.props.onRefresh();
-      });
-
-      expect(requestedPaths().filter((path) => path === "/people/removed").length).toBe(before + 1);
-    });
-
-    it("shows a removal in Fortaleza time", async () => {
-      setupSignedInAdmin();
-      removedItems = [{ ...BIA, removedAt: "2026-10-03T02:00:00.000Z" }];
-      serve(oneStudent, 1);
-      await renderScreen();
-
-      expect(await screen.findByText("Student · removed Oct 2 · until Nov 1")).toBeOnTheScreen();
-    });
-  });
-
-  describe("restore", () => {
-    const rows = [
-      { id: "r-1", name: "Bia Souza", role: "student", removedAt: "2026-10-02T15:00:00.000Z" },
-      { id: "r-2", name: "Caio Lima", role: "instructor", removedAt: "2026-10-01T15:00:00.000Z" },
-    ];
-
-    /** Serves the removed accounts that haven't been restored yet; a POST restores the account of its path. */
-    const serveWithRestore = (restore: (id: string) => unknown) => {
-      let restored: string[] = [];
-      fetchMock.mockImplementation(async (url: string, init?: { method?: string }) => {
-        const path = String(url).replace("http://api.test", "");
-
-        if (init?.method === "POST") {
-          const id = path.split("/")[2]!;
-          const answer = await restore(id);
-          if ((answer as { ok: boolean }).ok) restored = [...restored, id];
-          return answer;
-        }
-        if (path === "/people/removed") {
-          return ok({ items: rows.filter((row) => !restored.includes(row.id)) });
-        }
-
-        return path === "/people?perPage=1" ? ok(buildPage(1, 1, 1)) : ok(buildPage(1, 1, 1));
-      });
-    };
-
-    it("restores at once: one request, the row leaves, no toast", async () => {
-      setupSignedInAdmin();
-      serveWithRestore(() => ok({ id: "r-1", status: "approved" }));
-      const user = userEvent.setup();
-      await renderScreen();
-
-      await user.press(await screen.findByRole("button", { name: "Restore Bia Souza" }));
-
-      await waitFor(() => expect(screen.queryByText("Bia Souza")).not.toBeOnTheScreen());
-      expect(screen.getByText("Caio Lima")).toBeOnTheScreen();
-      expect(requestedPaths().filter((path) => path === "/people/r-1/restore")).toHaveLength(1);
-      expect(mockShow).not.toHaveBeenCalled();
-    });
-
-    it("loads and ignores presses on its own row only, leaving the others usable", async () => {
-      setupSignedInAdmin();
-      let answer!: (value: unknown) => void;
-      serveWithRestore((id) =>
-        id === "r-1" ? new Promise((resolve) => (answer = resolve)) : ok({ id, status: "approved" }),
-      );
-      const user = userEvent.setup();
-      await renderScreen();
-      const first = await screen.findByRole("button", { name: "Restore Bia Souza" });
-
-      await user.press(first);
-      await user.press(first);
-      await user.press(screen.getByRole("button", { name: "Restore Caio Lima" }));
-      answer(ok({ id: "r-1", status: "approved" }));
-
-      await waitFor(() => expect(screen.queryByText("Bia Souza")).not.toBeOnTheScreen());
-      expect(requestedPaths().filter((path) => path === "/people/r-1/restore")).toHaveLength(1);
-      expect(requestedPaths().filter((path) => path === "/people/r-2/restore")).toHaveLength(1);
-    });
-
-    it.each([
-      ["user.status.notRemoved", "This account is no longer removed."],
-      ["removal.window.ended", "The time to restore this account has ended."],
-    ])("toasts a 409 %s and reloads the removed accounts", async (key, message) => {
-      setupSignedInAdmin();
-      serveWithRestore(() => ({ ok: false, status: 409, json: async () => ({ errors: [key] }) }));
-      const user = userEvent.setup();
-      await renderScreen();
-      await screen.findByText("Bia Souza");
-      const before = requestedPaths().filter((path) => path === "/people/removed").length;
-
-      await user.press(screen.getByRole("button", { name: "Restore Bia Souza" }));
-
-      expect(mockShow).toHaveBeenCalledWith(message);
-      await waitFor(() =>
-        expect(requestedPaths().filter((path) => path === "/people/removed").length).toBe(before + 1),
-      );
-    });
-
-    it("toasts the generic error on a network failure and keeps the row", async () => {
-      setupSignedInAdmin();
-      serveWithRestore(() => {
-        throw new api.NetworkError();
-      });
-      const user = userEvent.setup();
-      await renderScreen();
-
-      await user.press(await screen.findByRole("button", { name: "Restore Bia Souza" }));
-
-      expect(mockShow).toHaveBeenCalledWith("No connection. Check your internet and try again.");
-      expect(screen.getByText("Bia Souza")).toBeOnTheScreen();
-    });
-
-    it("shows no toast when the session expired", async () => {
-      setupSignedInAdmin();
-      serveWithRestore(() => ok({}));
-      (api.apiPost as jest.Mock).mockRejectedValue(new api.SessionExpiredError());
-      const user = userEvent.setup();
-      await renderScreen();
-
-      await user.press(await screen.findByRole("button", { name: "Restore Bia Souza" }));
-
-      expect(mockShow).not.toHaveBeenCalled();
-      expect(screen.getByText("Bia Souza")).toBeOnTheScreen();
     });
   });
 });

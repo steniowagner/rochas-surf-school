@@ -15,7 +15,6 @@ import { useCollapsingTitleHeader } from "@/navigation/stack-header";
 import { PeopleSkeleton } from "../components/people-skeleton";
 import { PersonRow } from "../components/person-row";
 import { PersonSheet } from "../components/person-sheet";
-import { RemovedAccountsSection } from "../components/removed-accounts-section";
 import { RoleFilters } from "../components/role-filters";
 import { usePeopleScreen } from "../hooks/use-people-screen.hook";
 import { groupByInitial } from "../utils/group-by-initial";
@@ -34,7 +33,6 @@ export function PeopleScreen() {
   const {
     count,
     people,
-    removedAccounts,
     searchText,
     setSearchText,
     roles,
@@ -161,19 +159,14 @@ export function PeopleScreen() {
         }
         ListEmptyComponent={renderEmpty()}
         ListFooterComponent={
-          <>
-            {isFetchingNextPage ? (
-              <ActivityIndicator
-                testID="people-loading-more"
-                accessibilityRole="progressbar"
-                color={theme.ink2}
-                className="py-4"
-              />
-            ) : null}
-            {removedAccounts.length > 0 ? (
-              <RemovedAccountsSection accounts={removedAccounts} />
-            ) : null}
-          </>
+          isFetchingNextPage ? (
+            <ActivityIndicator
+              testID="people-loading-more"
+              accessibilityRole="progressbar"
+              color={theme.ink2}
+              className="py-4"
+            />
+          ) : null
         }
         onEndReached={loadMore}
         onEndReachedThreshold={0.5}

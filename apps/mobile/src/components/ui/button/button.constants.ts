@@ -1,3 +1,5 @@
+import type { ThemeColor } from "@/constants/theme";
+
 import { ButtonVariant } from "./button.types";
 
 /** Press feedback for every button in the app (they are built with TouchableOpacity). */
@@ -22,3 +24,15 @@ export const variantClasses: Record<
 
 export const disabledClasses = { container: "bg-sand", label: "text-ink-2" };
 export const disabledGhostClasses = { container: "", label: "text-ink-2" };
+
+/** The loading spinner takes the color of the variant's label, so it shows on the variant's background. */
+export const spinnerColors: Record<ButtonVariant, ThemeColor> = {
+  primary: "onColor",
+  dark: "onColor",
+  ink: "page",
+  outline: "ink",
+  subtle: "ink2",
+  danger: "onColor",
+  success: "onColor",
+  ghost: "ink",
+};

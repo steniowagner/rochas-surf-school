@@ -96,7 +96,7 @@ POST {{baseUrl}}/people/{{personId}}/remove
 Authorization: Bearer {{token}}
 
 ### Removed accounts still inside their 30-day window, most recent removal first
-### (expects 200 { items: [{ id, name, role, removedAt }] })
+### (expects 200 { items: [{ id, name, role, whatsappNumber, removedAt }] })
 GET {{baseUrl}}/people/removed
 Authorization: Bearer {{token}}
 

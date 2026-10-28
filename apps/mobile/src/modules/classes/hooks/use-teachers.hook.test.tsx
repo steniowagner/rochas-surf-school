@@ -41,9 +41,9 @@ describe("useTeachers", () => {
 
     await waitFor(() => expect(result.current.data).toHaveLength(120));
     expect(requestedPaths()).toEqual([
-      "/people?page=1&perPage=50&role=instructor,admin",
-      "/people?page=2&perPage=50&role=instructor,admin",
-      "/people?page=3&perPage=50&role=instructor,admin",
+      "/people?page=1&perPage=50&role=instructor,admin&teaches=true",
+      "/people?page=2&perPage=50&role=instructor,admin&teaches=true",
+      "/people?page=3&perPage=50&role=instructor,admin&teaches=true",
     ]);
     expect(result.current.data?.[0]).toEqual({
       id: "t-0",

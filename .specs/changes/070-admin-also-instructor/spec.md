@@ -319,11 +319,12 @@ be assigned to teach.
   Covers: ER-08 · Done when: `cd apps/mobile && npx jest src/modules/people` passes.
   > ✅ 2026-10-28 12:24 — `useSetInstructorFlag` (PUT /people/:id/instructor, no retry, invalidates ["people"]); toggle row (Checkbox + helper) on the person sheet between the contact row and the role actions, new `canSetInstructorFlag` prop computed in `usePeopleScreen` (approved admin viewer, admin person, self included); the sheet hook keeps the new state for the open sheet and maps errors with the new `getInstructorFlagErrorKey` (409 changeNotAllowed/notAdmin → "changed", 409 notApproved/404 → "notApproved", else generic/no-connection); files: `apps/mobile/src/modules/people/hooks/use-set-instructor-flag.hook.ts` (+ `.test.tsx`), `apps/mobile/src/modules/people/utils/instructor-flag-error.ts` (+ `.test.ts`), `apps/mobile/src/modules/people/components/person-sheet/person-sheet.{component.tsx,hook.ts,types.ts,component.test.tsx,hook.test.tsx}`, `apps/mobile/src/modules/people/hooks/use-people-screen.{hook.ts,types.ts}`, `apps/mobile/src/modules/people/screens/people.screen.tsx`, `apps/mobile/src/modules/people/screens/people.screen.test.tsx`; verified: `cd apps/mobile && npx jest src/modules/people` (198 passed), `npx tsc --noEmit` clean; deviations: error mapping lives in a new util instead of reusing `getRoleChangeErrorKey` (404 and the notAdmin key need different mapping); label/helper keys were added in T-08
 
-- [ ] **T-10** — In `apps/mobile/src/modules/classes/hooks/use-teachers.hook.ts`, add `teaches=true` to the request;
+- [x] **T-10** — In `apps/mobile/src/modules/classes/hooks/use-teachers.hook.ts`, add `teaches=true` to the request;
   tests in `use-teachers.hook.test.tsx` (the URL, every page) and in `screens/new-class.screen.test.tsx` /
   `edit-class.screen.test.tsx` (an unflagged admin answered by the mocked API is absent; on edit, an unflagged admin
   already on the class still shows).
   Covers: ER-09 · Done when: `cd apps/mobile && npx jest src/modules/classes` passes.
+  > ✅ 2026-10-28 12:26 — `useTeachers` requests `GET /people?page=N&perPage=50&role=instructor,admin&teaches=true` across every page; the edit screen already lists the class's own instructors who are no longer in the teachers list (ticked, removable), so it needed no change; files: `apps/mobile/src/modules/classes/hooks/use-teachers.hook.ts`, `apps/mobile/src/modules/classes/hooks/use-teachers.hook.test.tsx`, `apps/mobile/src/modules/classes/screens/new-class.screen.test.tsx`, `apps/mobile/src/modules/classes/screens/edit-class.screen.test.tsx`; verified: `cd apps/mobile && npx jest src/modules/classes` (1084 passed), `npx tsc --noEmit` clean; deviations: none
 
 ### Verification
 

@@ -1120,6 +1120,32 @@ describe("ClassDetailsScreen", () => {
       expect(screen.getByText("Notifies 5 people")).toBeOnTheScreen();
     });
 
+    it("counts an instructor who holds a seat once, and never the admin who teaches and holds one", async () => {
+      const user = userEvent.setup();
+      const seat = (id: string) => ({
+        id,
+        name: `Aluno ${id}`,
+        photoUrl: null,
+        enrolmentId: `e-${id}`,
+        whatsappNumber: null,
+      });
+      serve(
+        makeClass({
+          seatsTaken: 3,
+          students: [seat("u-1"), seat("i-2"), seat("s-1")],
+          pendingRequests: 1,
+        }),
+      );
+      await renderScreen(true);
+      await user.press(
+        await screen.findByRole("button", { name: "Class tools" }),
+      );
+
+      // Bruno (i-2), the student s-1 and the pending request; the viewer (u-1) is left out twice.
+      expect(screen.getByText("3 people")).toBeOnTheScreen();
+      expect(screen.getByText("Notifies 3 people")).toBeOnTheScreen();
+    });
+
     it("reads Nobody yet when the viewer teaches it alone and nobody is in it", async () => {
       const user = userEvent.setup();
       serve(
@@ -1143,7 +1169,7 @@ describe("ClassDetailsScreen", () => {
       expect(screen.getByText("Nobody to notify")).toBeOnTheScreen();
     });
 
-    it("opens the send notice screen when Send message is pressed", async () => {
+    it("opens the message to this class when Send message is pressed", async () => {
       const user = userEvent.setup();
       serve(makeClass());
       await renderScreen(true);
@@ -1153,7 +1179,7 @@ describe("ClassDetailsScreen", () => {
 
       await user.press(screen.getByRole("button", { name: "Send message" }));
 
-      expect(router.push).toHaveBeenCalledWith(routes.admin.sendNotice());
+      expect(router.push).toHaveBeenCalledWith(routes.admin.sendNotice({ classId: "c-1" }));
     });
 
     it("shows on a class that has started", async () => {

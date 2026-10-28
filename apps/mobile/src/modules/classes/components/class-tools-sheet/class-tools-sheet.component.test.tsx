@@ -103,7 +103,7 @@ describe("ClassToolsSheet", () => {
     expect(sheet.onCancel).not.toHaveBeenCalled();
   });
 
-  it("closes the sheet, then opens the notice screen", async () => {
+  it("closes the sheet, then opens the message to the class", async () => {
     const user = userEvent.setup();
     const sheet = props();
     await render(<ClassToolsSheet {...sheet} />);

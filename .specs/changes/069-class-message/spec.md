@@ -250,11 +250,23 @@ Design reference for the content: the `msgAula` sheet ("Mensagem à turma") in
   > deviations: the class-mode screen tests render with their own `QueryClient` (`gcTime: Infinity`), because the
   > default 5-minute cache time of a query or a mutation keeps Jest running for 5 minutes when that file runs alone —
   > the notice-mode send tests already do this with `renderWithProviders` (left as is, a follow-up).
-- [ ] **T-06** — In `src/modules/classes/screens/class-details.screen.hook.ts`, make the tools card's "Send
+- [x] **T-06** — In `src/modules/classes/screens/class-details.screen.hook.ts`, make the tools card's "Send
   message" open the Send notice screen with the class id instead of the plain notice route, and leave the
   admin out of `messageCount` when they teach the class (D-07), with tests in `class-details.screen.test.tsx`
   and the tools sheet tests.
   Covers: ER-02 · Done when: `npx jest src/modules/classes` passes.
+  > ✅ 2026-10-27 22:55 — the tools card's "Send message" pushes `routes.admin.sendNotice({ classId: id })`, and
+  > `messageCount` (both cards' subtitles) is `classMessageRecipients(item, user.id).count`: the viewer was already
+  > left out as an instructor; now they are also left out when they hold a seat, and an instructor who holds a seat
+  > counts once. Tests: the push with the class id, and a class where the viewer teaches and holds a seat and the other
+  > instructor holds one ("3 people" / "Notifies 3 people"), both seen failing on the previous hook; the tools sheet's
+  > notify test and prop docs name the class message; files:
+  > `apps/mobile/src/modules/classes/screens/class-details.screen.hook.ts`,
+  > `apps/mobile/src/modules/classes/screens/class-details.screen.test.tsx`,
+  > `apps/mobile/src/modules/classes/components/class-tools-sheet/class-tools-sheet.types.ts`,
+  > `apps/mobile/src/modules/classes/components/class-tools-sheet/class-tools-sheet.component.test.tsx`; verified:
+  > `npx jest src/modules/classes` (89 suites, 1082 passed), `npx tsc --noEmit` and `npx eslint src/modules/classes`
+  > clean; deviations: none.
 
 ### Verification
 

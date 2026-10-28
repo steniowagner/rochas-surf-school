@@ -48,12 +48,7 @@ export function CancellationRulesSheet({
                 className="gap-2 rounded-card border border-line bg-surface p-4"
               >
                 <View className="flex-row">
-                  <Chip
-                    tone={discipline}
-                    icon={
-                      discipline === "surf" ? "water-outline" : "disc-outline"
-                    }
-                  >
+                  <Chip tone={discipline}>
                     {t(`newClass.discipline.${discipline}`)}
                   </Chip>
                 </View>

@@ -47,7 +47,6 @@ jest.useFakeTimers({
 
 afterAll(() => jest.useRealTimers());
 
-
 const routeTree = {
   _layout: () => (
     <QueryClientProvider client={new QueryClient()}>
@@ -79,7 +78,11 @@ const aClass = {
   endsAt: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
   capacity: 8,
   notes: null,
-  location: { id: "l-1", name: "Praia do Futuro", address: "Av. Zezé Diogo, 1000" },
+  location: {
+    id: "l-1",
+    name: "Praia do Futuro",
+    address: "Av. Zezé Diogo, 1000",
+  },
   instructors: [{ id: "i-1", name: "Carla Dias" }],
   seatsTaken: 0,
   students: [],
@@ -160,12 +163,7 @@ describe("student tabs", () => {
   it("student opens on Agenda and switches tabs", async () => {
     const app = await open();
 
-    expect(tabLabels()).toEqual([
-      "Schedule",
-      "My classes",
-      "School",
-      "Profile",
-    ]);
+    expect(tabLabels()).toEqual(["Schedule", "Bookings", "School", "Profile"]);
     expect(app.getPathname()).toBe("/student");
     expect(selectedTabLabel()).toBe("Schedule");
     // The user header takes the place of the "Schedule" title.
@@ -178,7 +176,7 @@ describe("student tabs", () => {
 
     await act(async () => router.navigate(routes.student.myClasses));
     expect(app.getPathname()).toBe("/student/my-classes");
-    expect(selectedTabLabel()).toBe("My classes");
+    expect(selectedTabLabel()).toBe("Bookings");
 
     await act(async () => router.navigate(routes.student.school));
     expect(app.getPathname()).toBe("/student/school");
@@ -197,7 +195,9 @@ describe("student tabs", () => {
     await user.press(await screen.findByText("Praia do Futuro"));
 
     expect(app.getPathname()).toBe("/student/class/c-1");
-    expect(await screen.findByText("Max. 8 students · 8 spots left")).toBeOnTheScreen();
+    expect(
+      await screen.findByText("Max. 8 students · 8 spots left"),
+    ).toBeOnTheScreen();
 
     await act(async () => router.back());
 
@@ -209,9 +209,13 @@ describe("student tabs", () => {
     const user = userEvent.setup();
     const app = await open();
     const countCalls = () =>
-      fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/notifications/unread-count"));
+      fetchMock.mock.calls.filter(([url]) =>
+        String(url).endsWith("/notifications/unread-count"),
+      );
 
-    await user.press(await screen.findByRole("button", { name: "Notifications, 3 unread" }));
+    await user.press(
+      await screen.findByRole("button", { name: "Notifications, 3 unread" }),
+    );
 
     expect(app.getPathname()).toBe(routes.student.notifications);
     expect(await screen.findByText("No notifications yet")).toBeOnTheScreen();
@@ -233,13 +237,15 @@ describe("student tabs", () => {
     expect(selectedTabLabel()).toBe("School");
     expect(screen.getByRole("header", { name: "People" })).toBeOnTheScreen();
     expect(await screen.findByText("Bruno Lima")).toBeOnTheScreen();
-    expect(screen.queryByRole("button", { name: "Back" })).not.toBeOnTheScreen();
+    expect(
+      screen.queryByRole("button", { name: "Back" }),
+    ).not.toBeOnTheScreen();
   });
 
   it("labels the tabs in the app language", async () => {
     await i18n.changeLanguage("pt-BR");
     await open();
 
-    expect(tabLabels()).toEqual(["Agenda", "Minhas aulas", "Escola", "Perfil"]);
+    expect(tabLabels()).toEqual(["Agenda", "Reservas", "Escola", "Perfil"]);
   });
 });

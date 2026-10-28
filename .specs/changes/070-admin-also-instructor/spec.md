@@ -238,13 +238,14 @@ be assigned to teach.
   Covers: ER-01, ER-03 · Done when: `cd modules/auth && npx vitest run test/user` passes.
   > ✅ 2026-10-28 12:15 — ChangeRole takes/validates/stores `isInstructor` (D-03) and answers it; `User.isInstructor` optional state + getter (missing → false) + boolean validation; files: `modules/auth/src/user/model/user.entity.ts`, `modules/auth/src/user/usecase/change-role.usecase.ts`, `modules/auth/test/user/model/user.entity.test.ts`, `modules/auth/test/user/usecase/change-role.usecase.test.ts`; verified: `cd modules/auth && npx jest test/user` (344 passed); deviations: the auth module runs Jest, not Vitest as the task text says
 
-- [ ] **T-02** — Add the `SetInstructorFlag` use case in `modules/auth/src/user/usecase/set-instructor-flag.usecase.ts`
+- [x] **T-02** — Add the `SetInstructorFlag` use case in `modules/auth/src/user/usecase/set-instructor-flag.usecase.ts`
   (D-04: checks in order, self allowed, `updateKeepingAnAdmin` with `{ role: "admin", status: "approved" }`, no
   notifier), exported from the module index, with `test/user/usecase/set-instructor-flag.usecase.test.ts` covering
   every case of ER-04 (the in-memory repository's `updateKeepingAnAdmin` answering `"changed"` included).
   Skill: [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-04 · Done when: `cd modules/auth && npx vitest run test/user/usecase/set-instructor-flag.usecase.test.ts`
   passes.
+  > ✅ 2026-10-28 12:16 — Added `SetInstructorFlag` (D-04) exported from the usecase index, with tests for every case of ER-04; files: `modules/auth/src/user/usecase/set-instructor-flag.usecase.ts`, `modules/auth/src/user/usecase/index.ts`, `modules/auth/test/user/usecase/set-instructor-flag.usecase.test.ts`; verified: `cd modules/auth && npx jest test/user/usecase/set-instructor-flag` (21 passed); deviations: Jest instead of Vitest; guarded write treats any result other than "updated" as `user.role.changeNotAllowed` ("lastAdmin" is unreachable for admin→admin)
 
 - [ ] **T-03** — In `modules/auth/src/user/provider/user.repository.ts`, add `teachers?: boolean` to
   `DirectoryPageParams` (approved instructors and admins with the flag, D-06), and support it in the module's

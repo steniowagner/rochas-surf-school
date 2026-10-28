@@ -28,7 +28,7 @@ export function RemoveConfirmation({
         <Button variant="danger" loading={loading} onPress={onConfirm}>
           {t("people.removeConfirm.confirm")}
         </Button>
-        <Button variant="subtle" disabled={loading} onPress={onBack}>
+        <Button variant="ghost" disabled={loading} onPress={onBack}>
           {t("people.removeConfirm.back")}
         </Button>
       </View>

@@ -7,12 +7,6 @@ import { ROLE_ACTION_LOOK } from "../../constants/role-actions";
 
 import { RoleChangeConfirmationProps } from "./role-change-confirmation.types";
 
-const GHOST_BACK_ACTIONS = [
-  "promoteInstructor",
-  "promoteAdmin",
-  "demoteStudent",
-];
-
 export function RoleChangeConfirmation({
   action,
   name,
@@ -46,11 +40,7 @@ export function RoleChangeConfirmation({
         >
           {t(`people.roleConfirm.${action}.confirm`)}
         </Button>
-        <Button
-          variant={GHOST_BACK_ACTIONS.includes(action) ? "ghost" : "subtle"}
-          disabled={loading}
-          onPress={onBack}
-        >
+        <Button variant="ghost" disabled={loading} onPress={onBack}>
           {t("people.roleConfirm.back")}
         </Button>
       </View>

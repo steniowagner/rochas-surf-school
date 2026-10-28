@@ -11,6 +11,7 @@ import { SegmentedControl } from "@/components/ui/segmented-control";
 import { TextArea } from "@/components/ui/text-area";
 import { TextInput } from "@/components/ui/text-input";
 import { useTheme } from "@/hooks/use-theme";
+import { PersonSheet } from "@/modules/people/components/person-sheet";
 import { usePinnedFooter } from "@/modules/school-settings/hooks/use-pinned-footer.hook";
 import { useCollapsingTitleHeader } from "@/navigation/stack-header";
 
@@ -55,9 +56,17 @@ export function SendNoticeScreen() {
   }));
 
   const countText = screen.isCountError
-    ? t(screen.isClassMode ? "notices.classMessage.count.error" : "notices.count.error")
+    ? t(
+        screen.isClassMode
+          ? "notices.classMessage.count.error"
+          : "notices.count.error",
+      )
     : screen.count === undefined
-      ? t(screen.isClassMode ? "notices.classMessage.count.loading" : "notices.count.loading")
+      ? t(
+          screen.isClassMode
+            ? "notices.classMessage.count.loading"
+            : "notices.count.loading",
+        )
       : screen.count === 0
         ? t("notices.count.none")
         : t("notices.count.people", { count: screen.count });
@@ -82,7 +91,9 @@ export function SendNoticeScreen() {
         <ScreenIntro
           icon={
             <Ionicons
-              name={screen.isClassMode ? "chatbubble-outline" : "megaphone-outline"}
+              name={
+                screen.isClassMode ? "chatbubble-outline" : "megaphone-outline"
+              }
               size={30}
               color={theme.grape}
             />
@@ -92,12 +103,17 @@ export function SendNoticeScreen() {
           onTitleLayout={header.onTitleBottomChange}
         />
         <View className="gap-2">
-          <Text className="ds-text-section-label text-ink-2">
-            {t("notices.audience.section")}
-          </Text>
+          {screen.isClassMode ? null : (
+            <Text className="ds-text-section-label text-ink-2">
+              {t("notices.audience.section")}
+            </Text>
+          )}
           {screen.isClassMode ? (
             screen.classView ? (
-              <ClassMessageCard view={screen.classView} />
+              <ClassMessageCard
+                view={screen.classView}
+                onOpenPerson={screen.openPerson}
+              />
             ) : null
           ) : (
             <SegmentedControl
@@ -106,16 +122,20 @@ export function SendNoticeScreen() {
               onChange={screen.setAudience}
             />
           )}
-          <View className="flex-row items-center gap-1.5 px-1">
-            <Ionicons name="people-outline" size={14} color={theme.ink2} />
-            <Text
-              accessibilityLiveRegion="polite"
-              testID="notice-recipients-count"
-              className="ds-text-list-subtitle flex-1 text-ink-2"
-            >
-              {countText}
-            </Text>
-          </View>
+          {screen.isClassMode &&
+          screen.classView &&
+          screen.count !== 0 ? null : (
+            <View className="flex-row items-center gap-1.5 px-1">
+              <Ionicons name="people-outline" size={14} color={theme.ink2} />
+              <Text
+                accessibilityLiveRegion="polite"
+                testID="notice-recipients-count"
+                className="ds-text-list-subtitle flex-1 text-ink-2"
+              >
+                {countText}
+              </Text>
+            </View>
+          )}
         </View>
         <View
           testID="notice-title-field"
@@ -162,6 +182,11 @@ export function SendNoticeScreen() {
           {t("notices.send")}
         </Button>
       </Animated.View>
+      <PersonSheet
+        person={screen.selectedPerson}
+        visible={screen.personVisible}
+        onClose={screen.closePerson}
+      />
       <SendNoticeConfirmSheet
         visible={screen.isConfirming}
         description={screen.confirmDescription}

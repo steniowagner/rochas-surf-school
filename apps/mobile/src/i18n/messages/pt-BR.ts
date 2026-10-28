@@ -471,12 +471,19 @@ const messages: Messages = {
     },
     classMessage: {
       title: "Mensagem para a turma",
+      receive_one: "{{count}} pessoa recebe",
+      receive_other: "{{count}} pessoas recebem",
+      summary: {
+        instructors_one: "{{count}} instrutor",
+        instructors_other: "{{count}} instrutores",
+        students_one: "{{count}} aluno",
+        students_other: "{{count}} alunos",
+        pending_one: "{{count}} pedido pendente",
+        pending_other: "{{count}} pedidos pendentes",
+      },
+      roles: { instructor: "Instrutor", student: "Confirmado", pending: "Pedido pendente" },
       description:
         "Escreva um título e uma mensagem. Os instrutores e os alunos desta aula recebem como notificação.",
-      instructors: "Instrutores",
-      students: "Alunos",
-      pending_one: "+ {{count}} pedido pendente",
-      pending_other: "+ {{count}} pedidos pendentes",
       count: {
         loading: "Carregando a aula…",
         error: "Não foi possível carregar a aula.",

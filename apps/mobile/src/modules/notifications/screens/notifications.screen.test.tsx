@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen, userEvent, waitFor } from "@testing-lib
 import { router } from "expo-router";
 
 import { routes } from "@/constants/routes";
+import { Colors } from "@/constants/theme";
 import { isOnboardingCompleted, resolveFlow } from "@/navigation/resolve-flow";
 import { getSession } from "@/services/session/session.store";
 
@@ -12,6 +13,7 @@ import {
   createWrapper,
   failure,
   fetchMock,
+  glyph,
   noContent,
   ok,
   requests,
@@ -304,6 +306,49 @@ describe("NotificationsScreen", () => {
       expect(router.push).not.toHaveBeenCalled();
       expect(router.replace).not.toHaveBeenCalled();
       expect(screen.getByText("Row")).toBeOnTheScreen();
+    });
+
+    describe("a class.message row", () => {
+      const classMessage = () =>
+        page([
+          buildNotification(1, {
+            type: "class.message",
+            classId: "c-1",
+            title: "Ponto de encontro",
+            body: "Surf, Thu 10/15 at 08:00: Barraca azul.",
+          }),
+        ]);
+
+      it("shows the admin's title and the class line with the message, with the chat bubble on the info tone", async () => {
+        serve({ count: 1, list: classMessage });
+        await renderScreen();
+
+        expect(await screen.findByText("Ponto de encontro")).toBeOnTheScreen();
+        expect(screen.getByText("Surf, Thu 10/15 at 08:00: Barraca azul.")).toBeOnTheScreen();
+        expect(screen.getByTestId("notification-row-icon")).toHaveProp(
+          "className",
+          expect.stringContaining("bg-info-tint"),
+        );
+        expect(screen.getByText(glyph("chatbubble-outline"))).toHaveStyle({ color: Colors.light.lagoon });
+      });
+
+      it.each([
+        ["student", routes.student.classDetail("c-1")],
+        ["instructor", routes.instructor.classDetail("c-1")],
+        ["admin", routes.admin.classDetail("c-1")],
+      ] as const)("marks it read and opens the class for a %s", async (role, target) => {
+        mockRole = role;
+        const user = userEvent.setup();
+        serve({ count: 1, list: classMessage });
+        await renderScreen();
+        await screen.findByText("Ponto de encontro");
+
+        await user.press(screen.getByRole("button", { name: /Ponto de encontro/ }));
+
+        expect(dots()).toHaveLength(0);
+        await waitFor(() => expect(posts()).toEqual(["/notifications/n-1/read"]));
+        expect(router.push).toHaveBeenCalledWith(target);
+      });
     });
 
     it("marks a broadcast row read and shows the current home", async () => {

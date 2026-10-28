@@ -45,6 +45,11 @@ const WITH_CLASS: Record<string, Record<(typeof ROLES)[number], unknown>> = {
     instructor: routes.instructor.classDetail("C"),
     admin: routes.admin.classDetail("C"),
   },
+  "class.message": {
+    student: routes.student.classDetail("C"),
+    instructor: routes.instructor.classDetail("C"),
+    admin: routes.admin.classDetail("C"),
+  },
   "location.changed": {
     student: routes.student.home,
     instructor: routes.instructor.classes,
@@ -90,8 +95,8 @@ const cases = Object.entries(WITH_CLASS).flatMap(([type, byRole]) =>
 );
 
 describe("notificationTarget", () => {
-  it("covers the 24 notification types", () => {
-    expect(Object.keys(WITH_CLASS)).toHaveLength(24);
+  it("covers the 25 notification types", () => {
+    expect(Object.keys(WITH_CLASS)).toHaveLength(25);
   });
 
   it("leads a role.changed nowhere in any flow, so its tap opens the flow's home", () => {

@@ -177,11 +177,24 @@ Design reference for the content: the `msgAula` sheet ("Mensagem à turma") in
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-03** — In `src/modules/notifications/utils/`, give `class.message` the `chatbubble-outline` icon on the
+- [x] **T-03** — In `src/modules/notifications/utils/`, give `class.message` the `chatbubble-outline` icon on the
   info tone (`notification-icon.ts`) and the class details as its target for every role
   (`notification-target.ts`), with tests in `notification-icon.test.ts`, `notification-target.test.ts` and the
   notifications screen test.
   Covers: ER-03 · Done when: `npx jest src/modules/notifications` passes.
+  > ✅ 2026-10-27 21:50 — `class.message` draws `chatbubble-outline` on the info tone, and its push and row open the
+  > class's details in the student, instructor and admin flows (nowhere without a class id or in other flows, as the
+  > table-driven test checks); tests: the icon, the target table (now 25 types), and on the notifications screen a
+  > `class.message` row showing the title and the body as written with the chat bubble on `bg-info-tint`, and its tap
+  > marking it read and opening each role's class details. The push received in the foreground and the unread count
+  > are the existing, type-independent handling (no change needed); files:
+  > `apps/mobile/src/modules/notifications/utils/notification-icon.ts`,
+  > `apps/mobile/src/modules/notifications/utils/notification-icon.test.ts`,
+  > `apps/mobile/src/modules/notifications/utils/notification-target.ts`,
+  > `apps/mobile/src/modules/notifications/utils/notification-target.test.ts`,
+  > `apps/mobile/src/modules/notifications/screens/notifications.screen.test.tsx`; verified:
+  > `npx jest src/modules/notifications` (14 suites, 392 passed), `npx tsc --noEmit` and `npx eslint
+  > src/modules/notifications` clean; deviations: none.
 - [ ] **T-04** — In `src/modules/notices/`, give the Send notice screen its class mode (D-09): read the `classId`
   route param (`routes.admin.sendNotice` gains a way to pass it), load the class with the classes module's
   details query, replace the audience section with the class view (date, time, location and the D-01 people,

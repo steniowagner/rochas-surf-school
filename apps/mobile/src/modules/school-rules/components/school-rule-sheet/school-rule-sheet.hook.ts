@@ -45,10 +45,10 @@ export const useSchoolRuleSheet = ({ visible, mode, rule, onClose }: UseSchoolRu
     try {
       if (editing) {
         await updateRule.mutateAsync({ id: rule!.id, ...fields });
-        alertMessage.show(t("manageSchoolRules.toasts.saved"));
+        alertMessage.show(t("manageSchoolRules.toasts.saved"), { tone: "success" });
       } else {
         await createRule.mutateAsync(fields);
-        alertMessage.show(t("manageSchoolRules.toasts.added"));
+        alertMessage.show(t("manageSchoolRules.toasts.added"), { tone: "success" });
       }
 
       onClose();

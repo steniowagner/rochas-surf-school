@@ -165,7 +165,7 @@ export const useEnrolStudentScreen = (): UseEnrolStudentScreenResult => {
 
     try {
       await request();
-      alertMessage.show(done);
+      alertMessage.show(done, { tone: "success" });
       router.back();
     } catch (error) {
       const key = errorKey(error);

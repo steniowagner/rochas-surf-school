@@ -105,6 +105,7 @@ export const useClassEnrolment = ({
 
       alertMessage.show(
         t(full ? "enrolment.requestSheet.doneWaitingList" : "enrolment.requestSheet.done"),
+        { tone: "success" },
       );
       setRequestVisible(false);
     } catch (error) {
@@ -139,6 +140,7 @@ export const useClassEnrolment = ({
 
       alertMessage.show(
         t(full ? "enrolment.withdrawSheet.doneWaitingList" : "enrolment.withdrawSheet.done"),
+        { tone: "success" },
       );
       setWithdrawVisible(false);
     } catch (error) {
@@ -163,7 +165,7 @@ export const useClassEnrolment = ({
     try {
       await cancelSeat.mutateAsync(item.myEnrolment.id);
 
-      alertMessage.show(t("enrolment.cancelSeatSheet.done"));
+      alertMessage.show(t("enrolment.cancelSeatSheet.done"), { tone: "success" });
       setCancelVisible(false);
     } catch (error) {
       if (shouldReloadClass(error)) {

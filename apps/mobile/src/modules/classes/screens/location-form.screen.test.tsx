@@ -952,7 +952,7 @@ describe("LocationFormScreen (edit)", () => {
       ...point,
       notify: false,
     });
-    expect(mockShow).toHaveBeenCalledWith("Location updated");
+    expect(mockShow).toHaveBeenCalledWith("Location updated", { tone: "success" });
     expect(events.onCreated).not.toHaveBeenCalled();
   });
 
@@ -1068,7 +1068,7 @@ describe("LocationFormScreen (edit)", () => {
     await user.press(removeButtons()[1]);
 
     await waitFor(() => expect(events.onRemoved).toHaveBeenCalledWith("l-1"));
-    expect(mockShow).toHaveBeenCalledWith("Praia do Futuro removed");
+    expect(mockShow).toHaveBeenCalledWith("Praia do Futuro removed", { tone: "success" });
     // Leaving the list is not "gone" news.
     expect(mockShow).toHaveBeenCalledTimes(1);
     expect(router.back).toHaveBeenCalledTimes(1);

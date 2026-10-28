@@ -28,7 +28,7 @@ export function SchoolRulesAcceptance({
     <View className="flex-1 bg-page">
       <ScrollView
         className="flex-1"
-        contentContainerClassName="gap-6 px-[22px] pb-6"
+        contentContainerClassName="gap-6 px-screen pb-6"
         contentContainerStyle={{ paddingTop: insets.top + 36 }}
       >
         <ScreenIntro
@@ -43,7 +43,7 @@ export function SchoolRulesAcceptance({
       </ScrollView>
 
       <View
-        className="gap-3.5 border-t border-line bg-surface px-[22px] pt-4"
+        className="gap-3.5 border-t border-line bg-surface px-screen pt-4"
         style={{ paddingBottom: Math.max(insets.bottom, 16) }}
       >
         <Checkbox

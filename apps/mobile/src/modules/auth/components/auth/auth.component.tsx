@@ -105,7 +105,7 @@ export function AuthComponent({
       </View>
 
       <View
-        className="absolute left-[22px] right-[22px]"
+        className="absolute left-screen right-screen"
         style={{ top: topInset + 70 }}
       >
         {WORDMARK.map(({ line, isAccent }) => (
@@ -122,7 +122,7 @@ export function AuthComponent({
       </View>
 
       <View
-        className="absolute left-[22px] right-[22px] gap-2.5"
+        className="absolute left-screen right-screen gap-2.5"
         style={{ bottom: Math.max(insets.bottom, 30) }}
       >
         {/* Sign in with Apple isn't built yet, so its button isn't shown (spec 017, D-11). */}

@@ -9,13 +9,27 @@ import {
 import { AlertMessageProvider } from "./alert-message.provider";
 import { useAlertMessage } from "./use-alert-message";
 
+/* eslint-disable @typescript-eslint/no-require-imports -- jest.mock factories can only load modules with require */
+jest.mock("@/components/ui/toast", () =>
+  require("@/components/ui/toast/toast.test-utils"),
+);
+/* eslint-enable @typescript-eslint/no-require-imports */
+
 jest.useFakeTimers();
 
-function Trigger({ message }: { message: string }) {
+function Trigger({
+  message,
+  tone,
+}: {
+  message: string;
+  tone?: "success" | "error";
+}) {
   const { show } = useAlertMessage();
 
   return (
-    <TouchableOpacity onPress={() => show(message)}>
+    <TouchableOpacity
+      onPress={() => show(message, tone ? { tone } : undefined)}
+    >
       <Text>{`show ${message}`}</Text>
     </TouchableOpacity>
   );
@@ -26,6 +40,7 @@ const renderProvider = () =>
     <AlertMessageProvider>
       <Trigger message="first" />
       <Trigger message="second" />
+      <Trigger message="good" tone="success" />
     </AlertMessageProvider>,
   );
 
@@ -74,6 +89,22 @@ describe("AlertMessageProvider", () => {
     expect(
       screen.queryByText("first", { includeHiddenElements: true }),
     ).toBeNull();
+  });
+
+  it("shows the error tone by default, the success tone on request, and swaps between them", async () => {
+    const user = userEvent.setup();
+    await renderProvider();
+    const tone = () =>
+      screen.queryByText("tone:success") ? "success" : "error";
+
+    await user.press(screen.getByText("show first"));
+    expect(tone()).toBe("error");
+
+    await user.press(screen.getByText("show good"));
+    expect(tone()).toBe("success");
+
+    await user.press(screen.getByText("show second"));
+    expect(tone()).toBe("error");
   });
 
   it("does nothing when used without the provider", async () => {

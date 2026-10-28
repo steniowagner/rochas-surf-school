@@ -56,7 +56,7 @@ export const useClassRequestsScreen = () => {
     try {
       await send();
       closeDenyOf(request);
-      alertMessage.show(t(doneKey, { name: request.student.name }));
+      alertMessage.show(t(doneKey, { name: request.student.name }), { tone: "success" });
     } catch (error) {
       const key = getDecideRequestErrorKey(error);
 

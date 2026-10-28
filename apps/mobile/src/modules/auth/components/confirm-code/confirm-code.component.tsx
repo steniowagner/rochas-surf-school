@@ -40,7 +40,7 @@ export function ConfirmCode({ email, name, onVerified }: ConfirmCodeProps) {
       className="flex-1 bg-page"
     >
       <View
-        className="flex-1 px-[22px]"
+        className="flex-1 px-screen"
         style={{
           paddingTop: headerInset,
           paddingBottom: Math.max(insets.bottom, 24),

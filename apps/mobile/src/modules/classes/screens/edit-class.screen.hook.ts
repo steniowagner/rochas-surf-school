@@ -288,7 +288,7 @@ export const useEditClassScreen = () => {
     try {
       await editClass.mutateAsync(request);
 
-      alertMessage.show(t("editClass.saved"));
+      alertMessage.show(t("editClass.saved"), { tone: "success" });
       router.back();
     } catch (error) {
       showError(error);

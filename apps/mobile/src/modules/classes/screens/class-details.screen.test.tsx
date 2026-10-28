@@ -1534,7 +1534,7 @@ describe("ClassDetailsScreen", () => {
       await user.press(confirmButton());
 
       await waitFor(() =>
-        expect(mockShow).toHaveBeenCalledWith("Class cancelled"),
+        expect(mockShow).toHaveBeenCalledWith("Class cancelled", { tone: "success" }),
       );
       expect(posts()).toHaveLength(1);
       expect(posts()[0]![0]).toBe("http://api.test/classes/c-1/cancel");
@@ -1829,7 +1829,7 @@ describe("ClassDetailsScreen", () => {
       await user.press(confirmButton());
 
       await waitFor(() =>
-        expect(mockShow).toHaveBeenCalledWith("Class deleted"),
+        expect(mockShow).toHaveBeenCalledWith("Class deleted", { tone: "success" }),
       );
       expect(deletes()).toHaveLength(1);
       expect(deletes()[0]![0]).toBe("http://api.test/classes/c-1");
@@ -2129,7 +2129,7 @@ describe("ClassDetailsScreen enrol", () => {
     await user.press(await screen.findByRole("checkbox", { name: RULE }));
     await user.press(screen.getByRole("button", { name: "Send request" }));
 
-    await waitFor(() => expect(mockShow).toHaveBeenCalledWith("Request sent"));
+    await waitFor(() => expect(mockShow).toHaveBeenCalledWith("Request sent", { tone: "success" }));
     expect(posts()).toHaveLength(1);
     expect(posts()[0]![0]).toBe("http://api.test/classes/c-1/enrolments");
     expect(JSON.parse(posts()[0]![1].body!)).toEqual({
@@ -2156,7 +2156,7 @@ describe("ClassDetailsScreen enrol", () => {
     );
 
     await waitFor(() =>
-      expect(mockShow).toHaveBeenCalledWith("You're on the waiting list"),
+      expect(mockShow).toHaveBeenCalledWith("You're on the waiting list", { tone: "success" }),
     );
   });
 
@@ -2173,7 +2173,7 @@ describe("ClassDetailsScreen enrol", () => {
     ).toBeOnTheScreen();
     await user.press(screen.getByRole("button", { name: "Send request" }));
 
-    await waitFor(() => expect(mockShow).toHaveBeenCalledWith("Request sent"));
+    await waitFor(() => expect(mockShow).toHaveBeenCalledWith("Request sent", { tone: "success" }));
   });
 
   it("enrol: sends once on a double press", async () => {
@@ -2356,7 +2356,7 @@ describe("ClassDetailsScreen withdraw", () => {
     await user.press(screen.getByRole("button", { name: "Yes, withdraw" }));
 
     await waitFor(() =>
-      expect(mockShow).toHaveBeenCalledWith("Request withdrawn"),
+      expect(mockShow).toHaveBeenCalledWith("Request withdrawn", { tone: "success" }),
     );
     expect(posts()).toHaveLength(1);
     expect(posts()[0]![0]).toBe("http://api.test/enrolments/e-1/withdraw");
@@ -2383,7 +2383,7 @@ describe("ClassDetailsScreen withdraw", () => {
     );
 
     await waitFor(() =>
-      expect(mockShow).toHaveBeenCalledWith("You left the waiting list"),
+      expect(mockShow).toHaveBeenCalledWith("You left the waiting list", { tone: "success" }),
     );
     expect(posts()).toHaveLength(1);
     expect(screen.queryByText("Yes, withdraw")).toBeNull();
@@ -2511,7 +2511,7 @@ describe("ClassDetailsScreen cancel seat", () => {
     await user.press(screen.getByRole("button", { name: "Yes, cancel" }));
 
     await waitFor(() =>
-      expect(mockShow).toHaveBeenCalledWith("Enrolment cancelled"),
+      expect(mockShow).toHaveBeenCalledWith("Enrolment cancelled", { tone: "success" }),
     );
     expect(posts()).toHaveLength(1);
     expect(posts()[0]![0]).toBe("http://api.test/enrolments/e-1/cancel");
@@ -3283,6 +3283,7 @@ describe("ClassDetailsScreen enrolment status", () => {
       await waitFor(() =>
         expect(mockShow).toHaveBeenCalledWith(
           "Ana Souza taken out · student notified",
+          { tone: "success" },
         ),
       );
       expect(posts()).toHaveLength(1);
@@ -3440,7 +3441,7 @@ describe("ClassDetailsScreen trial guests", () => {
     );
 
     await waitFor(() =>
-      expect(mockShow).toHaveBeenCalledWith("Carolina Reis taken out"),
+      expect(mockShow).toHaveBeenCalledWith("Carolina Reis taken out", { tone: "success" }),
     );
     expect(deletes()).toHaveLength(1);
     expect(deletes()[0][0]).toBe("http://api.test/guests/g-1");

@@ -19,7 +19,7 @@ export function Pending() {
 
   return (
     <View
-      className="flex-1 justify-between bg-page px-[22px]"
+      className="flex-1 justify-between bg-page px-screen"
       style={{
         paddingTop: insets.top + 12,
         paddingBottom: Math.max(insets.bottom, 24),

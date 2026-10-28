@@ -1256,6 +1256,13 @@ student"), with a generic person avatar, no arrow, nothing opening and no "Retir
 student's generic avatar, and an erased instructor still counts, so the class isn't "without instructor". Nothing
 is shown anywhere else, and nobody is told.
 
+**Success messages look like success** (spec `068-mobile-review-polish`) — the message shown after an action
+completes (a class created, saved, cancelled or deleted, a location saved or removed, a notice sent, a school rule
+added, saved or deleted, the cancellation rules or school settings saved, a student enrolled or taken out, a class
+request approved or denied, a seat requested, withdrawn or cancelled) is green with a check icon; errors and
+warnings stay red with an alert icon. In pt-BR the class tools sheet's delete row reads "Excluir aula", the same
+words as its confirmation.
+
 Active specs: none.
 
 ## Out of scope (future evolution, recorded in the specs)

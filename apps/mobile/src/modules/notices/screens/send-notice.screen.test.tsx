@@ -71,6 +71,12 @@ const fill = async (user: Awaited<ReturnType<typeof open>>) => {
   await user.type(messageField(), "See you at 7. ");
 };
 
+/* eslint-disable @typescript-eslint/no-require-imports -- jest.mock factories can only load modules with require */
+jest.mock("@/components/ui/toast", () =>
+  require("@/components/ui/toast/toast.test-utils"),
+);
+/* eslint-enable @typescript-eslint/no-require-imports */
+
 describe("SendNoticeScreen", () => {
   beforeEach(() => jest.mocked(router.back).mockReset());
 
@@ -208,6 +214,7 @@ describe("SendNoticeScreen", () => {
       ],
     ]);
     expect(await screen.findByText("Notice sent")).toBeOnTheScreen();
+    expect(screen.getByText("tone:success")).toBeOnTheScreen();
   });
 
   it("shows an error and keeps the text when the send fails", async () => {

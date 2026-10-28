@@ -47,7 +47,8 @@ export const useSchoolSettingsForm = ({
         whatsappNumber: isNumberChanged ? phone.whatsappNumber : undefined,
       },
       {
-        onSuccess: () => alertMessage.show(t("schoolSettings.saved")),
+        onSuccess: () =>
+          alertMessage.show(t("schoolSettings.saved"), { tone: "success" }),
         onSettled: () => {
           sending.current = false;
         },

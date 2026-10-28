@@ -62,7 +62,7 @@ export const useSendNoticeScreen = (): UseSendNoticeScreenResult => {
         onSuccess: () => {
           setIsConfirming(false);
           router.back();
-          alertMessage.show(t("notices.sent"));
+          alertMessage.show(t("notices.sent"), { tone: "success" });
         },
         // The text stays: only the sheet closes, so the admin can try again.
         onError: () => setIsConfirming(false),

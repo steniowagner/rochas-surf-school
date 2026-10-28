@@ -1,6 +1,7 @@
 import { act, render, screen } from "@testing-library/react-native";
 
 import { Toast } from "./toast.component";
+import { toneStyles } from "./toast.constants";
 import { TOAST_EXIT_DURATION, TOAST_VISIBLE_DURATION } from "./toast.hook";
 
 jest.useFakeTimers();
@@ -12,6 +13,23 @@ describe("Toast", () => {
     expect(
       screen.getByText("Something went wrong", { includeHiddenElements: true }),
     ).toBeOnTheScreen();
+  });
+
+  it("draws the error tone by default and the success tone on request", async () => {
+    expect(toneStyles.error.background).toBe("bg-bad");
+    expect(toneStyles.success.background).toBe("bg-ok");
+
+    const { rerender } = await render(
+      <Toast message="Oops" onHidden={jest.fn()} />,
+    );
+    const glyph = () => JSON.stringify(screen.toJSON());
+    const errorGlyph = glyph();
+
+    await rerender(
+      <Toast message="Oops" tone="success" onHidden={jest.fn()} />,
+    );
+
+    expect(glyph()).not.toBe(errorGlyph);
   });
 
   it("calls onHidden only after the visible and exit durations", async () => {

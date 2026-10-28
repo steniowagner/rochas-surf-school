@@ -290,7 +290,7 @@ describe("ClassRequestsScreen decisions", () => {
 
     await user.press(within(cardOf("Ana Souza")).getByRole("button", { name: "Enrol" }));
 
-    await waitFor(() => expect(mockShow).toHaveBeenCalledWith("Ana Souza enrolled · student notified"));
+    await waitFor(() => expect(mockShow).toHaveBeenCalledWith("Ana Souza enrolled · student notified", { tone: "success" }));
     expect(posts()[0]![0]).toBe("http://api.test/enrolments/r-ana/approve");
     await waitFor(() => expect(screen.queryByText("Ana Souza")).toBeNull());
     expect(screen.getByText("1 request · 1 class")).toBeOnTheScreen();
@@ -308,7 +308,7 @@ describe("ClassRequestsScreen decisions", () => {
     await user.type(screen.getByLabelText("Reason (optional)"), "Advanced level");
     await user.press(screen.getByRole("button", { name: "Deny and notify" }));
 
-    await waitFor(() => expect(mockShow).toHaveBeenCalledWith("Ana Souza denied · student notified"));
+    await waitFor(() => expect(mockShow).toHaveBeenCalledWith("Ana Souza denied · student notified", { tone: "success" }));
     expect(posts()[0]![0]).toBe("http://api.test/enrolments/r-ana/deny");
     expect(JSON.parse(posts()[0]![1].body)).toEqual({ reason: "Advanced level" });
     await waitFor(() => expect(screen.queryByText("Deny enrolment?")).toBeNull());

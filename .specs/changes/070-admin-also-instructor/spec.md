@@ -2,11 +2,10 @@
 id: "070"
 slug: admin-also-instructor
 title: "Admins who also teach"
-status: accepted
+status: in-progress
 created: 2026-10-28
 started: 2026-10-28
 base_commit: cbda13b2810986f7db50e4c671503fe55cc34956
-reviewed_commit: 86b18c42acacbc166978af54a8644347ac730bbe
 fronts: [auth, classes, backend, mobile]
 depends_on: []
 ---
@@ -96,9 +95,9 @@ be assigned to teach.
 | D-05 | Clearing the flag (unchecked at promotion of an instructor, or switched off later) never unassigns anyone: classes keep their instructors. `CreateClassBatch` refuses any instructor who can't be assigned (D-01); `EditClass` checks only the instructors being added, so an admin without the flag already on a class can stay. Both refuse with the existing 422 `class.instructors.invalid`. One shared `canTeach(teacher)` in the classes module replaces both `TEACHER_ROLES`. | A checkbox shouldn't leave classes without an instructor; this matches spec 032's "the ones already on the class can stay whatever their role is now". The backend enforces the rule, not only the picker. |
 | D-06 | `GET /people` accepts `teaches`: absent → as today; `"true"` → only approved instructors and approved admins with the flag, combined (AND) with `role` and `search`, paged and sorted as today; any other value → 422 `people.teaches.invalid`. Every item gains `isInstructor` (the stored flag; `false` for students and instructors). `DirectoryPageParams` gains `teachers?: boolean`. | Filtering in the database keeps paging and `total` correct; the sheet needs the stored value to draw the toggle. |
 | D-07 | Unchanged: the `role.changed` notification and its copy, broadcasts' audiences, the derived "teaches" of spec 057, `TeachingReleaser`, removal and restore (a restored admin keeps their flag). | Keep the change to who can be assigned. |
-| D-08 | On the mobile "Promover a admin" confirmation (`promoteAdmin` only, for a student and for an instructor), a `Checkbox` labelled "Também é instrutor" sits below the description (and below the seats sentence when shown), with the helper text "Aparece na lista de instrutores ao criar e editar aulas." under it. It is unchecked every time the confirmation opens, disabled while the change is saving, and its value is sent as `isInstructor` with `role: "admin"`. Other confirmations send no `isInstructor`. | The request: default false, chosen at promotion. |
-| D-09 | On the person sheet, when the viewer is an approved admin and the person is an admin — another admin or the viewer themselves — a toggle row with a `Checkbox` labelled "Também é instrutor" and the same helper text shows below the WhatsApp/e-mail row and above the role actions, checked from the person's `isInstructor`. A tap sends `PUT /people/:id/instructor` with the opposite value (hook `useSetInstructorFlag`, no retry); the checkbox is disabled while it saves. Success shows the new state on the open sheet and invalidates `["people"]` (which also reloads `["people", "teachers"]`); no success toast. A refusal or failure keeps the previous state and shows the error toast: 409 `user.role.changeNotAllowed` or `people.isInstructor.notAdmin` → "O papel desta pessoa mudou. Atualize a lista."; 409 `user.status.notApproved` or 404 → "Esta pessoa não está mais na plataforma."; anything else → the generic error toast the role actions use. The viewer's own sheet still shows no role actions or remove action (spec 058 D-04). | One place to fix a wrong tap; reuses the role-change toasts. |
-| D-10 | Copy (pt-BR, with es-ES and en-US): checkbox label "Também é instrutor" / "También es instructor" / "Also an instructor"; helper "Aparece na lista de instrutores ao criar e editar aulas." / "Aparece en la lista de instructores al crear y editar clases." / "Shows in the instructor list when creating and editing classes."; `people.roleActions.promoteAdmin.subtitle` becomes "Passa a gerenciar a escola." (es/en: the same sentence without "can also teach"); `people.roleConfirm.promoteAdmin.description` becomes "Passa a ser admin: gerencia aulas, pessoas, regras e pedidos da escola." (es/en likewise). | "Pode também dar aulas." is no longer true of every admin. |
+| D-08 | On the mobile "Promover a admin" confirmation (`promoteAdmin` only, for a student and for an instructor), a boxed `Checkbox` labelled "Também é instrutor" sits below the description (and below the seats sentence when shown): the shared `Checkbox` with `variant="boxed"` (the `dim` fill and the buttons' radius, `rounded-control`) and `helper` "Além de admin, dá aulas na escola.", the label and the helper stacked beside the box in the usual `ink` / `ink-2` text colors. It is unchecked every time the confirmation opens, disabled while the change is saving, and its value is sent as `isInstructor` with `role: "admin"`. Other confirmations send no `isInstructor`. | The request: default false, chosen at promotion. The box sets the choice apart from the copy around it (amended). |
+| D-09 | On the person sheet, when the viewer is an approved admin and the person is an admin — another admin or the viewer themselves — the same boxed `Checkbox` of D-08 (label "Também é instrutor" and its helper) shows below the WhatsApp/e-mail row and above the role actions, checked from the person's `isInstructor`. A tap sends `PUT /people/:id/instructor` with the opposite value (hook `useSetInstructorFlag`, no retry); the checkbox is disabled while it saves. Success shows the new state on the open sheet and invalidates `["people"]` (which also reloads `["people", "teachers"]`); no success toast. A refusal or failure keeps the previous state and shows the error toast: 409 `user.role.changeNotAllowed` or `people.isInstructor.notAdmin` → "O papel desta pessoa mudou. Atualize a lista."; 409 `user.status.notApproved` or 404 → "Esta pessoa não está mais na plataforma."; anything else → the generic error toast the role actions use. The viewer's own sheet still shows no role actions or remove action (spec 058 D-04). | One place to fix a wrong tap; reuses the role-change toasts. |
+| D-10 | Copy (pt-BR, with es-ES and en-US): checkbox label "Também é instrutor" / "También es instructor" / "Also an instructor"; helper "Além de admin, dá aulas na escola." / "Además de admin, da clases en la escuela." / "Besides being an admin, teaches at the school."; `people.roleActions.promoteAdmin.subtitle` becomes "Passa a gerenciar a escola." (es/en: the same sentence without "can also teach"); `people.roleConfirm.promoteAdmin.description` becomes "Passa a ser admin: gerencia aulas, pessoas, regras e pedidos da escola." (es/en likewise). | "Pode também dar aulas." is no longer true of every admin. The helper says what the flag means for the person, not where they show up (amended). |
 
 ## Expected Results
 
@@ -194,7 +193,7 @@ be assigned to teach.
   disabled while the change is saving; the "Promover a instrutor", "Rebaixar a aluno" and "Passar a instrutor"
   confirmations show no checkbox and send no `isInstructor`; the "Promover a admin" row's subtitle reads "Passa a
   gerenciar a escola."; the copy exists in pt-BR, es-ES and en-US.
-- **Verify by:** `cd apps/mobile && npx jest src/modules/people/components/role-change-confirmation
+- **Verify by:** `cd apps/mobile && npx jest src/components/ui/checkbox src/modules/people/components/role-change-confirmation
   src/modules/people/components/person-sheet src/modules/people/hooks/use-change-role.hook.test.tsx`, and the user
   journey in the Verification Plan.
 
@@ -209,7 +208,7 @@ be assigned to teach.
   student viewer; the viewer's own sheet shows the row but still no role actions or remove action; the row is
   disabled while saving; a 409 or 404 shows the toast of D-09 and the row keeps its previous state; a network failure
   shows the generic error toast and keeps the previous state.
-- **Verify by:** `cd apps/mobile && npx jest src/modules/people/components/person-sheet
+- **Verify by:** `cd apps/mobile && npx jest src/components/ui/checkbox src/modules/people/components/person-sheet
   src/modules/people/hooks/use-set-instructor-flag.hook.test.tsx src/modules/people/screens/people.screen.test.tsx`,
   and the user journey in the Verification Plan.
 
@@ -327,6 +326,17 @@ be assigned to teach.
   Covers: ER-09 · Done when: `cd apps/mobile && npx jest src/modules/classes` passes.
   > ✅ 2026-10-28 12:26 — `useTeachers` requests `GET /people?page=N&perPage=50&role=instructor,admin&teaches=true` across every page; the edit screen already lists the class's own instructors who are no longer in the teachers list (ticked, removable), so it needed no change; files: `apps/mobile/src/modules/classes/hooks/use-teachers.hook.ts`, `apps/mobile/src/modules/classes/hooks/use-teachers.hook.test.tsx`, `apps/mobile/src/modules/classes/screens/new-class.screen.test.tsx`, `apps/mobile/src/modules/classes/screens/edit-class.screen.test.tsx`; verified: `cd apps/mobile && npx jest src/modules/classes` (1084 passed), `npx tsc --noEmit` clean; deviations: none
 
+- [x] **T-12** — Draw the "Também é instrutor" checkbox of D-08/D-09 as a boxed checkbox: give the shared
+  `apps/mobile/src/components/ui/checkbox/` `Checkbox` an optional `helper` (a second line stacked under the label,
+  read as the accessibility hint) and `variant` (`"plain"` default, `"boxed"`: `rounded-control bg-dim px-4 py-3`,
+  text colors unchanged), and use `helper` + `variant="boxed"` in `components/role-change-confirmation/` and
+  `components/person-sheet/` instead of the separate helper `Text`; change the helper copy of D-10 in
+  `src/i18n/messages/pt-BR.ts`, `es-ES.ts` and `en-US.ts`. Tests in `checkbox.component.test.tsx` (the helper and its
+  hint, pressing the helper toggles, the boxed classes) and the helper text in `role-change-confirmation.component.test.tsx`
+  and `person-sheet.component.test.tsx`. (added by amendment)
+  Covers: ER-07, ER-08 · Done when: `cd apps/mobile && npx jest src/components/ui/checkbox src/modules/people` passes.
+  > ✅ 2026-10-28 12:56 — `Checkbox` gains `helper` and `variant="boxed"` (dim fill, `rounded-control`), used by the promotion confirmation and the admin's sheet; helper copy of D-10 in the three languages; files: `apps/mobile/src/components/ui/checkbox/checkbox.{component.tsx,types.ts,component.test.tsx}`, `apps/mobile/src/modules/people/components/role-change-confirmation/role-change-confirmation.{component.tsx,component.test.tsx}`, `apps/mobile/src/modules/people/components/person-sheet/person-sheet.{component.tsx,component.test.tsx}`, `apps/mobile/src/i18n/messages/{pt-BR,es-ES,en-US}.ts`; commits: 3076d743 (ink box, helper stacked), 08ee7a20 (helper copy, ink-2 fill), 9b5b4e28 (dim fill, usual text colors); verified: `cd apps/mobile && npx jest src/components/ui/checkbox src/modules/people` (29 suites, 204 passed), `npx tsc --noEmit` clean, eslint and prettier clean on the changed files, the confirmation and an admin's sheet seen on the iOS simulator (dark theme); deviations: made after round 1 accepted the spec — reopened with the user's approval (see Amendments); the other `Checkbox` users keep the plain look
+
 ### Verification
 
 - [x] **T-11** — Run every command in the Verification Plan from the repo root; all pass. Record the output summary
@@ -375,6 +385,22 @@ be assigned to teach.
 - [Spec lifecycle](../../shared/spec-lifecycle.md)
 
 ## Amendments
+
+- 2026-10-28 — /spec-plan --amend — status `accepted` → `in-progress` and `reviewed_commit` 86b18c42 dropped, so the
+  spec can be amended and reviewed again. Reason: the checkbox tweak below was committed after round 1 accepted the
+  spec. Off-workflow transition approved by the user.
+- 2026-10-28 — /spec-plan --amend — D-08 changed: a plain `Checkbox` with a separate helper `Text` under it → a boxed
+  `Checkbox` (`variant="boxed"`: `dim` fill, `rounded-control`) with the label and the helper stacked beside the box.
+  Reason: the user wants the choice set apart in a box like the buttons. Approved by the user.
+- 2026-10-28 — /spec-plan --amend — D-09 changed: "a toggle row with a `Checkbox` … and the same helper text" → "the
+  same boxed `Checkbox` of D-08". Reason: same look on the sheet and the confirmation. Approved by the user.
+- 2026-10-28 — /spec-plan --amend — D-10 changed: helper "Aparece na lista de instrutores ao criar e editar aulas." /
+  "Aparece en la lista de instructores al crear y editar clases." / "Shows in the instructor list when creating and
+  editing classes." → "Além de admin, dá aulas na escola." / "Además de admin, da clases en la escuela." / "Besides
+  being an admin, teaches at the school.". Reason: the helper should only say the admin also teaches, not where they
+  appear. Approved by the user.
+- 2026-10-28 — /spec-plan --amend — T-12 added (Covers: ER-07, ER-08), already done in commits 3076d743, 08ee7a20 and
+  9b5b4e28; ER-07 and ER-08 `Verify by` gain `src/components/ui/checkbox`. Approved by the user.
 
 ## Review
 

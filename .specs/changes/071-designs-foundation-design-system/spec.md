@@ -341,7 +341,7 @@ shared between mobile and web, the phone frame and the mock UI pieces.
   > `apps/web/src/i18n/dictionaries/{pt-br,es,en}.ts`, `apps/web/e2e/designs.e2e.ts`; verified: `npx playwright test` in apps/web
   > (28 passed, incl. `home links to the designs in every language`), `npx tsc --noEmit`; deviations: none
 
-- [ ] **T-09** — Write the designs' building blocks in `src/modules/designs/components/`: `phone-frame` (iOS,
+- [x] **T-09** — Write the designs' building blocks in `src/modules/designs/components/`: `phone-frame` (iOS,
   402 × 874, status bar, scales down below its width), `design-section` (number and title), `design-entry` (id
   badge, title, note, `data-design-id`), `app-icon` (renders an Ionicons, Feather, FontAwesome, FontAwesome6,
   MaterialCommunityIcons or SimpleLineIcons glyph by set and name, D-09), and the mock components of sections
@@ -351,6 +351,16 @@ shared between mobile and web, the phone frame and the mock UI pieces.
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices). Covers: ER-08 · Done
   when: `npx vitest run src/modules/designs/components` passes and `npm run check-types --workspace apps/web`
   exits 0.
+  > ✅ 2026-10-28 18:10 — added `react-icons` and `@mdi/js` to the web app; wrote in `src/modules/designs/components/`:
+  > `phone-frame` (402 × 874, scales with a container query), `design-section`, `design-entry` (`data-design-id`), `app-icon` (a
+  > typed `"<set>:<name>"` registry of the app's glyphs; the sets still missing — MaterialCommunityIcons, SimpleLineIcons — are added in
+  > T-11 with DS-03-04), and the mock `button`, `header-button`, `text-button`, `text-input`, `text-area`, `otp-input`, `checkbox`,
+  > `segmented-control`, `step-tabs`, `phone-number-field`, `chip`, each folder per react.md with a Vitest test; globals.css maps the extra
+  > tokens (checkbox/icon-button radii, sun-tint, band, scrim); files: `apps/web/package.json`, `package-lock.json`,
+  > `apps/web/src/app/globals.css`, `apps/web/src/modules/designs/components/**`; verified: `npx vitest run src/modules/designs/components`
+  > (54 passed), `npm run check-types -w @rochas-surf-school/web` (exit 0), `npx eslint src/modules` (clean); deviations: `country-picker`
+  > moved to T-10 (it is drawn inside `bottom-modal`); `text-input`/`header-button`/`chip` take an `AppIconName` string for the icon instead
+  > of a node; mock components are static (no handlers)
 
 - [ ] **T-10** — Write the mock components of sections 06–09 the same way: `class-card` (every state of
   DS-06), `class-card-skeleton`, `tab-bar` (student and instructor/admin tabs), `stack-header`,

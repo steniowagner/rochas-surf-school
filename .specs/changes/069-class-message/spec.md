@@ -3,9 +3,10 @@ id: "069"
 slug: class-message
 title: Admin sends a message to one class
 template: quick
-status: in-review
+status: accepted
 started: 2026-10-27
 base_commit: 6f5a9895ee828032a5cf4e986970fe2b1d390605
+reviewed_commit: 376c8300749cae132c0369440244f90575f1a676
 created: 2026-10-27
 fronts: [backend, mobile]
 depends_on: ["068"]
@@ -320,3 +321,50 @@ Design reference for the content: the `msgAula` sheet ("Mensagem à turma") in
 - 2026-10-27 — /spec-plan --amend — Memory Impact changed: `structure.md` records the class mode of the notices screen instead of the `class-message-sheet` component. Reason: D-09. Approved by the user.
 
 ## Review
+
+### Round 1 — 2026-10-27 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (backend, mobile: `turbo run lint check-types build`, 27/27 tasks; the two lint
+  warnings in `test/classes.e2e-spec.ts` sit on lines this spec didn't touch)
+- related tests ✅ apps/backend · apps/mobile · modules/classes 606 · modules/notifications 194 · modules/enrolment 292
+  (`RELATED TESTS PASSED`)
+- coverage of the changed lines ✅ `COVERAGE OK` (22 files); no coverage-ignore comments in the diff
+- e2e ✅ backend suite 28 files, 788 passed (`E2E PASSED`), the six "class message" tests included
+- user journey (iOS simulator, iPhone 18 Pro, backend on :4000 from this branch) ✅ — see ER-02 and ER-03
+
+**Expected Results**
+
+- ER-01 ✅ — the use case and e2e tests assert every case. Also sent over HTTP to this branch's backend:
+  student / instructor → 403 `user.role.notAdmin`, no token → 401, `not-a-uuid` and an unknown id → 404
+  `class.notFound`, blank title + 501-character message → 422 `class.message.title.required` /
+  `class.message.text.range.length`, no body → 422 (both `required`), a cancelled class → 409 `class.cancelled`;
+  a valid send → 204, one `class.message` row for the instructor with the trimmed title and message and the D-06
+  params, none for the admin who sent it while teaching the class; the row reads "Surf, ter 02/03 às 09:00: …".
+- ER-02 ✅ — as the review admin, on a class tomorrow 16:00 with the review instructor and student: both tools cards
+  read "2 pessoas"; "Enviar mensagem" opens "Mensagem para a turma" with the class description, the class card
+  (Surf Iniciante, Amanhã · 28 out · 16:00 – 17:00, the beach, Dev Instructor, Dev Student), "2 pessoas vão
+  receber" and no audience selector; Enviar is off while a field is blank; the confirm sheet reads "Enviar a 2
+  pessoas?" with the class line and the preview; confirming closes the screen and shows the green "Mensagem enviada"
+  toast; one row stored for the instructor and one for the student. A class with a pending request (another class
+  already open in the simulator) showed "+ 1 pedido pendente" and counted it. The remaining edge cases (limits,
+  back from the sheet, 409 / no-connection toasts, double tap, notice mode unchanged) are covered by the screen, hook
+  and send-hook tests, which assert them.
+- ER-03 ✅ — signed in as the review student: the row shows "Barraca azul" and "Surf, qua 28/10 às 16:00: Nos
+  encontramos 15 min antes." with the chat bubble on the info tone, unread; tapping it opened the class's details in
+  the student flow and marked it read (the instructor's row stays unread). The instructor and admin targets and the
+  foreground push are covered by `notification-target.test.ts` and the notifications screen test.
+
+**Findings**
+
+None.
+
+**Notes**
+
+- `## Memory Impact` leaves out pieces `spec-finish` should record: `classMessageRecipients`
+  (`apps/mobile/src/modules/classes/utils/class-message.ts`), which the tools cards now count with too; the `enabled`
+  option of `useClass` and of `useNoticeRecipientsCounts`; and `routes.admin.sendNotice` becoming a function
+  (`sendNotice()` / `sendNotice({ classId })`).
+- The confirm sheet's line in class mode names the people as "Os instrutores e os alunos de …" even when only pending
+  requests remain; harmless, as they are the class's students too.

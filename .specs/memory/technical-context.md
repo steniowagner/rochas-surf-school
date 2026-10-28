@@ -539,7 +539,15 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   by the Pending screen), `getInitials` (first letter of the first and of the last
   word, uppercase) and the date helpers of `calendar-dates.ts` (see Dates). API errors are shown in a toast
   through `useAlertMessage()` (`AlertMessageProvider` in the root layout; the toast hides by itself after 3 s).
-  One exception: an error about what the person typed in a code field (a wrong, expired or locked code) is
+  `show(message, { tone })` takes `"error"` (the default: `bg-bad`, `alert-circle-outline`) or `"success"`
+  (`bg-ok`, `checkmark-circle-outline`, same colors as the `success` `Button`). Only the toasts shown after an
+  action completed pass `{ tone: "success" }` (a class created, saved, cancelled or deleted, a location saved or
+  removed, a notice sent, a school rule added, saved or deleted, cancellation rules or school settings saved, a
+  student enrolled, a request approved or denied, a seat requested, withdrawn or cancelled, a student taken out);
+  everything else, `profile.comingSoon` included, keeps the error tone (spec 068). `Toast` takes the same `tone`
+  prop (`toast.constants.ts` maps it to the class and icon). NativeWind compiles the classes away in tests, so a
+  test that checks the tone mocks `@/components/ui/toast` with `toast.test-utils.tsx`, which also renders a
+  `tone:<tone>` text. One exception: an error about what the person typed in a code field (a wrong, expired or locked code) is
   shown inline under the field, because the design shows it there.
 - **Mobile routes**: every app path lives in `src/constants/routes.ts` (`routes.<module>.<screen>`, a function
   when the route takes params, optional ones included: `routes.auth.createAccount()` or

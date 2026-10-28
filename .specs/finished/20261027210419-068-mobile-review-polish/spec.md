@@ -3,13 +3,14 @@ id: "068"
 slug: mobile-review-polish
 title: Mobile polish left by earlier reviews
 template: quick
-status: accepted
+status: finished
 created: 2026-10-27
 started: 2026-10-27
 base_commit: 31fd0ebc54a9fc60d2726f79ff63e121e3b0f1d1
 reviewed_commit: 7859b824eeabf9db35b726ceb5e32ca9e5a0bf6d
 fronts: [mobile]
 depends_on: []
+finished: 2026-10-27
 ---
 
 # 068 — Mobile polish left by earlier reviews

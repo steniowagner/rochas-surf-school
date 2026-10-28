@@ -272,6 +272,16 @@ Design reference for the content: the `msgAula` sheet ("Mensagem à turma") in
 
 - [ ] **T-05** — Run every command in the Verification Plan from the repo root; all pass. Record the output
   summary as evidence. Covers: all · Done when: every command exits 0.
+  > ⛔ 2026-10-27 23:10 — `run-related-tests.mjs 069`: RELATED TESTS PASSED (backend 25 files; mobile 95 suites,
+  > 1851 tests; classes 606; notifications 194; enrolment 292). `check-coverage.mjs 069`: COVERAGE OK (22 files).
+  > `turbo run lint check-types build --concurrency=1` for backend and mobile: 27/27 tasks, 0 errors (warnings
+  > existed before). `run-e2e.mjs 069`: E2E FAILED — 785 of 788 pass, every "class message" test included; the 3
+  > failures are the "suggestions" tests of `test/classes.e2e-spec.ts`, which read every class of last week and find
+  > a local dev class (`5a1e0000-0000-4000-8000-000000000101`, `admin@example.com`, 2026-10-11 08:00 Fortaleza) in the
+  > shared database — not this change's code. Unblocks with: the user removing that row (or allowing it) and a rerun.
+  > User journey (iOS simulator) not run: the backend on :4000 and Metro on :8081 belong to another session, and that
+  > backend predates this branch (`POST /classes/:id/message` answers 404); unblocks with: the user restarting the
+  > backend from this branch, or allowing it.
 
 ## Verification Plan
 

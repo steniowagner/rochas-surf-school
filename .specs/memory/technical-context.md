@@ -2175,6 +2175,7 @@ apps/web/src/**                           # static public content pages; covered
 apps/web/vitest.setup.ts                  # test setup (matchers, cleanup); loaded by Vitest before every test, not as source
 .github/scripts/affected.mjs              # CI helper; its logic is tested with `node --test` (affected.test.mjs), which the coverage tooling doesn't measure
 packages/design-tokens/**                 # token data and the CSS generator, verified by its check-types (--check)
+.docs/designs/**                          # design prototypes (checked by opening them) and their pack script (tested with `node --test`, which the coverage tooling doesn't measure); decided with the user in spec 071
 modules/*/src/**/index.ts                 # re-export barrels
 packages/shared/src/**/index.ts           # re-export barrels
 ```

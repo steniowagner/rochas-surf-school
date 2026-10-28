@@ -29,6 +29,13 @@ export const es = {
       description: "Cómo eliminar tu cuenta y qué pasa con tus datos.",
     },
   },
+  designs: {
+    metaTitle: "Diseños",
+    metaDescription: "Mira cómo está diseñada la app: el sistema de diseño con los colores, la tipografía y los componentes que usan las pantallas. Sigue el tema y el idioma elegidos en la parte superior de la página.",
+    title: "Los diseños de la app",
+    description: "Mira cómo está diseñada la app: el sistema de diseño con los colores, la tipografía y los componentes que usan las pantallas. Sigue el tema y el idioma elegidos en la parte superior de la página.",
+    pages: { designSystem: { title: "Sistema de diseño", description: "Los colores, la tipografía, los controles, las tarjetas y los estados de la app." } },
+  },
   privacyPolicy: {
     metaTitle: "Política de privacidad",
     metaDescription: "Qué datos recopila la app de Rocha's Surf School, por qué, por cuánto tiempo y quién los trata.",

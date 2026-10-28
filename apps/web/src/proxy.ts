@@ -13,7 +13,7 @@ export function proxy(request: NextRequest) {
   return NextResponse.redirect(url, 307);
 }
 
-// Only the four unprefixed paths: paths that carry a language, `_next` and `public/` files never reach it.
+// Only the unprefixed public paths: paths that carry a language, `_next` and `public/` files never reach it.
 export const config = {
-  matcher: ["/", "/privacy-policy", "/terms-of-use", "/account-deletion"],
+  matcher: ["/", "/privacy-policy", "/terms-of-use", "/account-deletion", "/designs", "/designs/:path*"],
 };

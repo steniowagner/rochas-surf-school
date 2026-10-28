@@ -314,13 +314,23 @@ shared between mobile and web, the phone frame and the mock UI pieces.
   > `npx vitest run src/modules/designs/i18n` in apps/web (7 passed), `npx tsc --noEmit` (clean); deviations: rich text is a
   > separate `appRich` function (returns ReactNode) next to `appT` (returns string)
 
-- [ ] **T-07** — Add `/designs` and `/designs/:path*` to the matcher in `src/proxy.ts`; restructure
+- [x] **T-07** — Add `/designs` and `/designs/:path*` to the matcher in `src/proxy.ts`; restructure
   `src/app/[lang]/` so the design pages get a container up to 1440 px wide while the existing pages keep their
   640 px column (D-15); add `src/app/[lang]/designs/page.tsx` (the index, from a typed list of design pages in
   `src/modules/designs/data/`, with `generateMetadata`) and `src/app/[lang]/designs/[slug]/` or per-page routes
   with `dynamicParams = false`; add the index copy to the three dictionaries and `dictionary.types.ts`; write
   `e2e/designs.e2e.ts` with the redirect, 404, index and width tests. Covers: ER-05, ER-07, ER-11 · Done when:
   those tests and the existing `e2e/*.e2e.ts` pass with `npm run test:e2e --workspace apps/web`.
+  > ✅ 2026-10-28 16:10 — `/designs` and `/designs/:path*` added to the proxy matcher; pages moved into the `(site)` route group (640 px
+  > shell unchanged) and a shared `SiteShell` (`narrow` max-w-160 / `wide` max-w-360) used by `(site)/layout.tsx` and the new
+  > `designs/layout.tsx`; index page `designs/page.tsx` driven by the typed list `designPages` (the unknown slug answers 404 because
+  > only real routes exist under `[lang]`); `designs` copy in the three dictionaries and `dictionary.types.ts`;
+  > `e2e/designs.e2e.ts` (redirects, 404, index, width); files: `apps/web/src/proxy.ts`, `apps/web/src/components/site-shell/*`,
+  > `apps/web/src/app/[lang]/layout.tsx`, `apps/web/src/app/[lang]/(site)/**` (moved pages + layout),
+  > `apps/web/src/app/[lang]/designs/{layout,page}.tsx`, `apps/web/src/modules/designs/data/design-pages.ts`,
+  > `apps/web/src/modules/designs/i18n/app-t.ts` (unused const removed), `apps/web/src/i18n/{dictionary.types.ts,dictionaries/*.ts}`,
+  > `apps/web/e2e/designs.e2e.ts`; verified: `npx playwright test` in apps/web (all passed, incl. the existing suites), `npx tsc --noEmit`,
+  > `npx eslint`, `npx vitest run` (29 passed); deviations: per-page route `designs/design-system/` (T-11) instead of a `[slug]` route
 
 - [ ] **T-08** — Add the "Designs" row to `src/app/[lang]/page.tsx` (a `LinkRow` after account deletion, a
   Lucide icon) with its title and description in the three dictionaries; add

@@ -29,6 +29,13 @@ export const ptBr = {
       description: "Como excluir a sua conta e o que acontece com os seus dados.",
     },
   },
+  designs: {
+    metaTitle: "Designs",
+    metaDescription: "Veja como o app é desenhado: o sistema de design com as cores, a tipografia e os componentes que as telas usam. Segue o tema e o idioma escolhidos no topo da página.",
+    title: "Os designs do app",
+    description: "Veja como o app é desenhado: o sistema de design com as cores, a tipografia e os componentes que as telas usam. Segue o tema e o idioma escolhidos no topo da página.",
+    pages: { designSystem: { title: "Sistema de design", description: "As cores, a tipografia, os controles, os cartões e os estados do app." } },
+  },
   privacyPolicy: {
     metaTitle: "Política de privacidade",
     metaDescription: "Quais dados o app da Rocha's Surf School coleta, por quê, por quanto tempo e quem os trata.",

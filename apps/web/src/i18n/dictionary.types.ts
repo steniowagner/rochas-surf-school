@@ -19,6 +19,13 @@ export type Dictionary = {
     termsOfUse: { title: string; description: string };
     accountDeletion: { title: string; description: string };
   };
+  designs: {
+    metaTitle: string;
+    metaDescription: string;
+    title: string;
+    description: string;
+    pages: { designSystem: { title: string; description: string } };
+  };
   privacyPolicy: {
     metaTitle: string;
     metaDescription: string;

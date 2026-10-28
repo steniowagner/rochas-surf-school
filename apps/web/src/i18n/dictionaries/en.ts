@@ -29,6 +29,13 @@ export const en = {
       description: "How to delete your account and what happens to your data.",
     },
   },
+  designs: {
+    metaTitle: "Designs",
+    metaDescription: "See how the app is designed: the design system with the colors, typography and components its screens use. It follows the theme and language picked at the top of the page.",
+    title: "The app's designs",
+    description: "See how the app is designed: the design system with the colors, typography and components its screens use. It follows the theme and language picked at the top of the page.",
+    pages: { designSystem: { title: "Design system", description: "The app's colors, typography, controls, cards and states." } },
+  },
   privacyPolicy: {
     metaTitle: "Privacy policy",
     metaDescription: "What data the Rocha's Surf School app collects, why, for how long, and which services handle it.",

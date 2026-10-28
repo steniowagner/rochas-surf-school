@@ -10,8 +10,6 @@ export type AppTParams = Record<string, string | number>;
 
 export type AppTComponents = Record<string, (children: ReactNode) => ReactNode>;
 
-const PLURAL_SUFFIXES = ["zero", "one", "two", "few", "many", "other"];
-
 function lookup(locale: Locale, key: string): string | undefined {
   let node: unknown = messages[appLocaleBySiteLocale[locale]];
   for (const part of key.split(".")) {

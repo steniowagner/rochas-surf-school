@@ -13,6 +13,8 @@ export interface DirectoryPageParams {
   roles?: UserRole[];
   /** Already trimmed; matched as a "contains" on the name, ignoring case and accents. */
   search?: string;
+  /** Only the people who can be assigned to teach: instructors and admins with `isInstructor`. */
+  teachers?: boolean;
 }
 
 /** The role and status a guarded write expects to find stored. */
@@ -33,7 +35,7 @@ export interface UserRepository extends CrudRepository<
   User,
   UserPageParams
 > {
-  /** Page of the `approved` users, filtered by roles and name and sorted A–Z by name (ignoring case and accents, ties broken by id). */
+  /** Page of the `approved` users, filtered by roles, teachers and name and sorted A–Z by name (ignoring case and accents, ties broken by id). */
   findDirectoryPage(params: DirectoryPageParams): Promise<PageResult<User>>;
   searchByName(name: string): Promise<User[]>;
   findByEmail(email: string): Promise<User | null>;

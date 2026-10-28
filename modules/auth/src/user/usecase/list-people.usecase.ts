@@ -19,12 +19,14 @@ export interface ListPeopleIn {
   perPage?: string;
   role?: string;
   search?: string;
+  teaches?: string;
 }
 
 export interface PersonOut {
   id: string;
   name: string;
   role: UserRole;
+  isInstructor: boolean;
   createdAt: string;
   whatsappNumber: string | null;
 }
@@ -60,6 +62,13 @@ function parseRoles(value: unknown): UserRole[] | null {
   return [...new Set(names)] as UserRole[];
 }
 
+/** Only `"true"` is accepted: it narrows the list to the people who can be assigned to teach. */
+function parseTeaches(value: unknown): boolean | null {
+  if (value === undefined) return false;
+
+  return value === "true" ? true : null;
+}
+
 export class ListPeople implements UseCase<ListPeopleIn, ListPeopleOut> {
   constructor(private readonly userRepository: UserRepository) {}
 
@@ -79,6 +88,9 @@ export class ListPeople implements UseCase<ListPeopleIn, ListPeopleOut> {
     const roles = parseRoles(input.role);
     if (roles === null) errors.push(new ValidationError("people.role.invalid"));
 
+    const teaches = parseTeaches(input.teaches);
+    if (teaches === null) errors.push(new ValidationError("people.teaches.invalid"));
+
     const search = typeof input.search === "string" ? input.search.trim() : undefined;
     if (search !== undefined && search.length > MAX_SEARCH_LENGTH) {
       errors.push(new ValidationError("people.search.max.length"));
@@ -91,6 +103,7 @@ export class ListPeople implements UseCase<ListPeopleIn, ListPeopleOut> {
       perPage: perPage as number,
       roles: roles?.length ? roles : undefined,
       search: search || undefined,
+      teachers: teaches || undefined,
     });
     const viewerIsAdmin = input.actor.role === "admin";
 
@@ -99,6 +112,7 @@ export class ListPeople implements UseCase<ListPeopleIn, ListPeopleOut> {
         id: user.id,
         name: user.name,
         role: user.role,
+        isInstructor: user.isInstructor,
         createdAt: user.createdAt.toISOString(),
         whatsappNumber:
           user.whatsappNumber && (user.whatsappVisible || viewerIsAdmin)

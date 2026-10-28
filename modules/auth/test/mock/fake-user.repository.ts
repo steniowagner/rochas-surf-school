@@ -66,6 +66,12 @@ export class FakeUserRepository implements UserRepository {
     const matches = this.users
       .filter((item) => item.status === "approved")
       .filter((item) => !params.roles?.length || params.roles.includes(item.role))
+      .filter(
+        (item) =>
+          !params.teachers ||
+          item.role === "instructor" ||
+          (item.role === "admin" && item.isInstructor),
+      )
       .filter((item) => term === undefined || fold(item.name).includes(term))
       .sort((a, b) => {
         return fold(a.name).localeCompare(fold(b.name)) || a.id.localeCompare(b.id);

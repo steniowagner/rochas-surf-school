@@ -247,13 +247,14 @@ be assigned to teach.
   passes.
   > ✅ 2026-10-28 12:16 — Added `SetInstructorFlag` (D-04) exported from the usecase index, with tests for every case of ER-04; files: `modules/auth/src/user/usecase/set-instructor-flag.usecase.ts`, `modules/auth/src/user/usecase/index.ts`, `modules/auth/test/user/usecase/set-instructor-flag.usecase.test.ts`; verified: `cd modules/auth && npx jest test/user/usecase/set-instructor-flag` (21 passed); deviations: Jest instead of Vitest; guarded write treats any result other than "updated" as `user.role.changeNotAllowed` ("lastAdmin" is unreachable for admin→admin)
 
-- [ ] **T-03** — In `modules/auth/src/user/provider/user.repository.ts`, add `teachers?: boolean` to
+- [x] **T-03** — In `modules/auth/src/user/provider/user.repository.ts`, add `teachers?: boolean` to
   `DirectoryPageParams` (approved instructors and admins with the flag, D-06), and support it in the module's
   in-memory repository; in `src/user/usecase/list-people.usecase.ts`, parse `teaches` (`"true"` only, else 422
   `people.teaches.invalid`), pass it on, and add `isInstructor` to `PersonOut`. Tests in
   `test/user/usecase/list-people.usecase.test.ts` (filter, combined with role and search, invalid value, the field on
   every item).
   Covers: ER-05 · Done when: `cd modules/auth && npx vitest run test/user/usecase/list-people.usecase.test.ts` passes.
+  > ✅ 2026-10-28 12:16 — `DirectoryPageParams.teachers`, in-memory repository support, `ListPeople` parses `teaches` (only "true", else 422 `people.teaches.invalid`) and answers `isInstructor` per item; files: `modules/auth/src/user/provider/user.repository.ts`, `modules/auth/src/user/usecase/list-people.usecase.ts`, `modules/auth/test/mock/fake-user.repository.ts`, `modules/auth/test/user/usecase/list-people.usecase.test.ts`; verified: `cd modules/auth && npx jest` (537 passed) and `tsc --noEmit` clean; deviations: Jest instead of Vitest
 
 ### Classes module (`modules/classes`)
 

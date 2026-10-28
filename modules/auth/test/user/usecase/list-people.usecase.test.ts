@@ -8,6 +8,7 @@ interface BuildOptions {
   createdAt?: string;
   whatsappNumber?: string;
   whatsappVisible?: boolean;
+  isInstructor?: boolean;
 }
 
 function buildUser(name: string, options: BuildOptions = {}): User {
@@ -18,6 +19,7 @@ function buildUser(name: string, options: BuildOptions = {}): User {
     whatsappVisible: options.whatsappVisible ?? false,
     role: options.role ?? "student",
     status: options.status ?? "approved",
+    isInstructor: options.isInstructor,
     createdAt: new Date(options.createdAt ?? "2026-09-01T10:00:00.000Z"),
   });
 }
@@ -59,6 +61,7 @@ describe("ListPeople", () => {
           id: ana.id,
           name: "Ana Silva",
           role: "student",
+          isInstructor: false,
           createdAt: "2026-09-02T10:00:00.000Z",
           whatsappNumber: "+5585999998888",
         },
@@ -136,6 +139,58 @@ describe("ListPeople", () => {
     expect(await errorKeys({ role: ["student", "admin"] as unknown as string })).toEqual([
       "people.role.invalid",
     ]);
+  });
+
+  test("answers the stored instructor flag on every item", async () => {
+    const users = [
+      buildUser("Ana", { role: "admin", isInstructor: true }),
+      buildUser("Bia", { role: "admin" }),
+      buildUser("Caio", { role: "instructor" }),
+    ];
+
+    const result = await run(users);
+
+    expect(result.items.map((item) => [item.name, item.isInstructor])).toEqual([
+      ["Ana", true],
+      ["Bia", false],
+      ["Caio", false],
+    ]);
+  });
+
+  describe("teaches", () => {
+    const users = [
+      buildUser("Ivo Instrutor", { role: "instructor" }),
+      buildUser("Fabi Flag", { role: "admin", isInstructor: true }),
+      buildUser("Nina Nao", { role: "admin" }),
+      buildUser("Saulo Aluno", { role: "student" }),
+      buildUser("Paulo Pendente", { role: "instructor", status: "pending" }),
+    ];
+    const names = async (input: Partial<ListPeopleIn>) =>
+      (await run(users, input)).items.map((item) => item.name);
+
+    test("lists only approved instructors and admins with the flag", async () => {
+      expect(await names({ teaches: "true" })).toEqual(["Fabi Flag", "Ivo Instrutor"]);
+      expect((await run(users, { teaches: "true" })).total).toBe(2);
+    });
+
+    test("combines with role and search", async () => {
+      expect(await names({ teaches: "true", role: "admin" })).toEqual(["Fabi Flag"]);
+      expect(await names({ teaches: "true", search: "ivo" })).toEqual(["Ivo Instrutor"]);
+    });
+
+    test("is ignored when absent", async () => {
+      expect(await names({})).toHaveLength(4);
+    });
+
+    test.each(["false", "1", ""])("rejects %j", async (teaches) => {
+      expect(await errorKeys({ teaches })).toEqual(["people.teaches.invalid"]);
+    });
+
+    test("rejects a repeated parameter", async () => {
+      expect(await errorKeys({ teaches: ["true", "true"] as unknown as string })).toEqual([
+        "people.teaches.invalid",
+      ]);
+    });
   });
 
   test("trims the search and treats a blank one as none", async () => {

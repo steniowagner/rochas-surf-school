@@ -20,6 +20,7 @@ const NOW = new Date("2026-10-14T13:00:00.000Z"); // 10:00 in Fortaleza
 const A = INSTRUCTOR.id;
 const B = "9b8c7d6e-5f4a-4321-8abc-0d1e2f3a4b5c";
 const C = "3c4d5e6f-7a8b-4c9d-8e0f-1a2b3c4d5e6f";
+const UNFLAGGED_ADMIN = "5d6e7f8a-9b0c-4d1e-8f2a-3b4c5d6e7f8a";
 const PENDING = "e1f2a3b4-c5d6-4e7f-8a9b-0c1d2e3f4a5b";
 const MISSING = "11111111-1111-4111-8111-111111111111";
 
@@ -64,12 +65,13 @@ function setup(options: Options = {}) {
     classes,
     new FakeLocationRepository([location, other, archived]),
     new FakeTeacherLookup([
-      { id: A, role: "instructor", status: "approved" },
-      { id: B, role: "instructor", status: "approved" },
-      { id: C, role: "instructor", status: "approved" },
-      { id: ADMIN.id, role: "admin", status: "approved" },
-      { id: STUDENT.id, role: "student", status: "approved" },
-      { id: PENDING, role: "instructor", status: "pending" },
+      { id: A, role: "instructor", status: "approved", isInstructor: false },
+      { id: B, role: "instructor", status: "approved", isInstructor: false },
+      { id: C, role: "instructor", status: "approved", isInstructor: false },
+      { id: ADMIN.id, role: "admin", status: "approved", isInstructor: true },
+      { id: UNFLAGGED_ADMIN, role: "admin", status: "approved", isInstructor: false },
+      { id: STUDENT.id, role: "student", status: "approved", isInstructor: false },
+      { id: PENDING, role: "instructor", status: "pending", isInstructor: false },
     ]),
     assignments,
     changes,
@@ -544,6 +546,7 @@ describe("EditClass", () => {
     it.each([
       ["a student", STUDENT.id],
       ["a pending instructor", PENDING],
+      ["an admin without the instructor flag", UNFLAGGED_ADMIN],
       ["an unknown user", MISSING],
       ["an id that is not a uuid", "nope"],
     ])("refuses to add %s", async (_name, id) => {
@@ -566,7 +569,17 @@ describe("EditClass", () => {
       expect((await classes.findById(stored.id))!.instructorIds).toEqual([STUDENT.id, A, C]);
     });
 
-    it("adds an approved admin", async () => {
+    it("keeps an admin without the instructor flag who is already on the class", async () => {
+      const { useCase, input, classes, stored } = setup({
+        stored: { instructorIds: [UNFLAGGED_ADMIN, A] },
+      });
+
+      await useCase.execute({ ...input, instructorIds: [UNFLAGGED_ADMIN, A, C], capacity: 9 });
+
+      expect((await classes.findById(stored.id))!.instructorIds).toEqual([UNFLAGGED_ADMIN, A, C]);
+    });
+
+    it("adds an approved admin with the instructor flag", async () => {
       const { useCase, input, classes, stored } = setup({ stored: { instructorIds: [A] } });
 
       await useCase.execute({ ...input, instructorIds: [A, ADMIN.id] });

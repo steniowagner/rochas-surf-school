@@ -14,6 +14,7 @@ import {
 
 const NOW = new Date("2026-10-14T13:00:00.000Z"); // 10:00 in Fortaleza
 const INSTRUCTOR_ID = INSTRUCTOR.id;
+const UNFLAGGED_ADMIN_ID = "5d6e7f8a-9b0c-4d1e-8f2a-3b4c5d6e7f8a";
 const OTHER_ID = "9b8c7d6e-5f4a-4321-8abc-0d1e2f3a4b5c";
 
 function setup(overrides: { failNotifier?: boolean } = {}) {
@@ -30,11 +31,12 @@ function setup(overrides: { failNotifier?: boolean } = {}) {
     classes,
     new FakeLocationRepository([location, archived]),
     new FakeTeacherLookup([
-      { id: INSTRUCTOR_ID, role: "instructor", status: "approved" },
-      { id: ADMIN.id, role: "admin", status: "approved" },
-      { id: OTHER_ID, role: "instructor", status: "approved" },
-      { id: STUDENT.id, role: "student", status: "approved" },
-      { id: "e1f2a3b4-c5d6-4e7f-8a9b-0c1d2e3f4a5b", role: "instructor", status: "pending" },
+      { id: INSTRUCTOR_ID, role: "instructor", status: "approved", isInstructor: false },
+      { id: ADMIN.id, role: "admin", status: "approved", isInstructor: true },
+      { id: UNFLAGGED_ADMIN_ID, role: "admin", status: "approved", isInstructor: false },
+      { id: OTHER_ID, role: "instructor", status: "approved", isInstructor: false },
+      { id: STUDENT.id, role: "student", status: "approved", isInstructor: false },
+      { id: "e1f2a3b4-c5d6-4e7f-8a9b-0c1d2e3f4a5b", role: "instructor", status: "pending", isInstructor: false },
     ]),
     notifier,
     new FakeClockProvider(NOW),
@@ -355,6 +357,8 @@ describe("CreateClassBatch", () => {
 
     it.each([
       ["a student", [STUDENT.id]],
+      ["an admin without the instructor flag", [UNFLAGGED_ADMIN_ID]],
+      ["a flagged and an unflagged admin", [ADMIN.id, UNFLAGGED_ADMIN_ID]],
       ["a pending instructor", ["e1f2a3b4-c5d6-4e7f-8a9b-0c1d2e3f4a5b"]],
       ["an unknown user", ["aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"]],
       ["an id that is not a uuid", ["nope"]],

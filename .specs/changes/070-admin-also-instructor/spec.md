@@ -258,13 +258,14 @@ be assigned to teach.
 
 ### Classes module (`modules/classes`)
 
-- [ ] **T-04** — In `modules/classes/src/school-class/provider/teacher-lookup.provider.ts`, add `isInstructor: boolean`
+- [x] **T-04** — In `modules/classes/src/school-class/provider/teacher-lookup.provider.ts`, add `isInstructor: boolean`
   to `TeacherRef`; add one `canTeach(teacher)` (approved and instructor, or approved admin with the flag, D-01/D-05)
   in the school-class aggregate and use it in `usecase/create-class-batch.usecase.ts` and `usecase/edit-class.usecase.ts`
   instead of their `TEACHER_ROLES`; update `test/mock/fake-teacher.lookup.ts`. Tests in
   `test/school-class/usecase/create-class-batch.usecase.test.ts` and `edit-class.usecase.test.ts` (admin without the
   flag refused, with the flag accepted, already-assigned admin without the flag kept on edit).
   Covers: ER-06 · Done when: `cd modules/classes && npx vitest run test/school-class` passes.
+  > ✅ 2026-10-28 12:17 — `TeacherRef.isInstructor` and one `canTeach` (approved instructor, or approved admin with the flag) used by CreateClassBatch and EditClass instead of `TEACHER_ROLES`; files: `modules/classes/src/school-class/provider/teacher-lookup.provider.ts`, `modules/classes/src/school-class/usecase/create-class-batch.usecase.ts`, `modules/classes/src/school-class/usecase/edit-class.usecase.ts`, `modules/classes/test/school-class/usecase/create-class-batch.usecase.test.ts`, `modules/classes/test/school-class/usecase/edit-class.usecase.test.ts`; verified: `cd modules/classes && npx jest` (610 passed), `tsc --noEmit` clean; deviations: `canTeach` lives next to `TeacherRef` in the provider file rather than the model folder (the model must not import from providers); `test/mock/fake-teacher.lookup.ts` needed no change (it passes `TeacherRef` through); Jest instead of Vitest
 
 ### Backend (`apps/backend`)
 

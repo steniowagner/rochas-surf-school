@@ -34,6 +34,7 @@ import {
   ClockProvider,
   SchoolClassRepository,
   TeacherLookup,
+  canTeach,
 } from "../provider";
 
 export interface CreateClassBatchIn {
@@ -58,7 +59,6 @@ export interface CreateClassBatchOut {
   count: number;
 }
 
-const TEACHER_ROLES = ["instructor", "admin"];
 const uuidRule = new UuidRule();
 
 function isUuid(value: unknown): value is string {
@@ -258,12 +258,7 @@ export class CreateClassBatch
 
     const teachers = await this.teacherLookup.findTeachers(instructorIds);
     const valid = instructorIds.every((id) =>
-      teachers.some(
-        (teacher) =>
-          teacher.id === id &&
-          teacher.status === "approved" &&
-          TEACHER_ROLES.includes(teacher.role),
-      ),
+      teachers.some((teacher) => teacher.id === id && canTeach(teacher)),
     );
 
     if (!valid) {

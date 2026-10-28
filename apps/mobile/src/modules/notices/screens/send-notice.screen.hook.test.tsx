@@ -11,7 +11,16 @@ import {
 
 import { useSendNoticeScreen } from "./send-notice.screen.hook";
 
-jest.mock("expo-router", () => ({ router: { back: jest.fn() } }));
+let mockParams: { classId?: string } = {};
+
+jest.mock("@/providers/session", () => ({
+  useSession: () => ({ user: { id: "admin-1", role: "admin", status: "approved" } }),
+}));
+
+jest.mock("expo-router", () => ({
+  router: { back: jest.fn() },
+  useLocalSearchParams: () => mockParams,
+}));
 
 beforeEach(() => {
   setupSignedInUser();
@@ -99,5 +108,56 @@ describe("useSendNoticeScreen", () => {
       finish(ok(undefined));
     });
     await waitFor(() => expect(result.current.isConfirming).toBe(false));
+  });
+
+  describe("in class mode", () => {
+    const CLASS = {
+      id: "c-1",
+      discipline: "surf",
+      level: "beginner",
+      startsAt: "2030-01-15T11:00:00.000Z",
+      endsAt: "2030-01-15T12:00:00.000Z",
+      location: { id: "l-1", name: "Praia do Futuro" },
+      instructors: [{ id: "i-1", name: "Rui Costa", role: "instructor", whatsappNumber: null }],
+      students: [],
+      guests: [],
+      pendingRequests: 0,
+    };
+
+    beforeEach(() => {
+      jest.mocked(router.back).mockReset();
+      mockParams = { classId: "c-1" };
+      fetchMock.mockImplementation(async (_url: string, init?: RequestInit) =>
+        init?.method === "POST" ? ok(undefined) : ok(CLASS),
+      );
+    });
+
+    afterEach(() => {
+      mockParams = {};
+    });
+
+    it("sends once to the class even when confirmed twice in the same frame", async () => {
+      const { result } = await renderHook(() => useSendNoticeScreen(), {
+        wrapper: createQueryWrapper(createQueryClient()),
+      });
+      await waitFor(() => expect(result.current.count).toBe(1));
+      expect(result.current.isClassMode).toBe(true);
+      await act(async () => {
+        result.current.setTitle("T");
+        result.current.setMessage("M");
+      });
+      await act(async () => {
+        result.current.askToConfirm();
+      });
+
+      await act(async () => {
+        result.current.confirm();
+        result.current.confirm();
+      });
+
+      await waitFor(() => expect(router.back).toHaveBeenCalledTimes(1));
+      expect(posts()).toHaveLength(1);
+      expect(String(posts()[0]![0])).toContain("/classes/c-1/message");
+    });
   });
 });

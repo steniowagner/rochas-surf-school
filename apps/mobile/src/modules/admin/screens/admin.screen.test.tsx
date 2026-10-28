@@ -679,7 +679,7 @@ describe("AdminScreen", () => {
 
     await user.press(screen.getByRole("button", { name: /Send notice/ }));
 
-    expect(app.getPathname()).toBe(routes.admin.sendNotice);
+    expect(app.getPathname()).toBe("/admin/send-notice");
     expect(
       await screen.findByText("4 people will receive it"),
     ).toBeOnTheScreen();

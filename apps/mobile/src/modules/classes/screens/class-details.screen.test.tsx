@@ -1153,7 +1153,7 @@ describe("ClassDetailsScreen", () => {
 
       await user.press(screen.getByRole("button", { name: "Send message" }));
 
-      expect(router.push).toHaveBeenCalledWith("/admin/send-notice");
+      expect(router.push).toHaveBeenCalledWith(routes.admin.sendNotice());
     });
 
     it("shows on a class that has started", async () => {

@@ -14,6 +14,7 @@ import { useTheme } from "@/hooks/use-theme";
 import { usePinnedFooter } from "@/modules/school-settings/hooks/use-pinned-footer.hook";
 import { useCollapsingTitleHeader } from "@/navigation/stack-header";
 
+import { ClassMessageCard } from "../components/class-message-card";
 import { SendNoticeConfirmSheet } from "../components/send-notice-confirm-sheet";
 import { useScrollFieldIntoView } from "../hooks/use-scroll-field-into-view.hook";
 import {
@@ -30,7 +31,9 @@ const FOOTER_CLEARANCE = 64;
 
 /**
  * An admin writes a notice, picks who gets it, sees how many people that is and confirms it (PAINEL-07, PAINEL-07A).
- * The form scrolls under a collapsing title and the Send button stays at the bottom, above the keyboard.
+ * Opened from a class's tools with its id, the same screen writes a message to that class: the class and its people
+ * take the audience picker's place (spec 069). The form scrolls under a collapsing title and the Send button stays at
+ * the bottom, above the keyboard.
  */
 export function SendNoticeScreen() {
   const { t } = useTranslation();
@@ -38,12 +41,13 @@ export function SendNoticeScreen() {
   const insets = useSafeAreaInsets();
   const restingPaddingBottom = Math.max(insets.bottom, 24);
   const footerStyle = usePinnedFooter(restingPaddingBottom);
+  const screen = useSendNoticeScreen();
+  const copy = screen.isClassMode ? "notices.classMessage" : "notices";
   const header = useCollapsingTitleHeader({
-    title: t("notices.title"),
+    title: t(`${copy}.title`),
     contentTop: CONTENT_PADDING_TOP,
   });
   const { scrollRef, onFieldLayout, onFieldFocus } = useScrollFieldIntoView();
-  const screen = useSendNoticeScreen();
 
   const audienceOptions = NOTICE_AUDIENCES.map((value) => ({
     value,
@@ -51,9 +55,9 @@ export function SendNoticeScreen() {
   }));
 
   const countText = screen.isCountError
-    ? t("notices.count.error")
+    ? t(screen.isClassMode ? "notices.classMessage.count.error" : "notices.count.error")
     : screen.count === undefined
-      ? t("notices.count.loading")
+      ? t(screen.isClassMode ? "notices.classMessage.count.loading" : "notices.count.loading")
       : screen.count === 0
         ? t("notices.count.none")
         : t("notices.count.people", { count: screen.count });
@@ -77,21 +81,31 @@ export function SendNoticeScreen() {
       >
         <ScreenIntro
           icon={
-            <Ionicons name="megaphone-outline" size={30} color={theme.grape} />
+            <Ionicons
+              name={screen.isClassMode ? "chatbubble-outline" : "megaphone-outline"}
+              size={30}
+              color={theme.grape}
+            />
           }
-          title={t("notices.title")}
-          description={t("notices.description")}
+          title={t(`${copy}.title`)}
+          description={t(`${copy}.description`)}
           onTitleLayout={header.onTitleBottomChange}
         />
         <View className="gap-2">
           <Text className="ds-text-section-label text-ink-2">
             {t("notices.audience.section")}
           </Text>
-          <SegmentedControl
-            options={audienceOptions}
-            value={screen.audience}
-            onChange={screen.setAudience}
-          />
+          {screen.isClassMode ? (
+            screen.classView ? (
+              <ClassMessageCard view={screen.classView} />
+            ) : null
+          ) : (
+            <SegmentedControl
+              options={audienceOptions}
+              value={screen.audience}
+              onChange={screen.setAudience}
+            />
+          )}
           <View className="flex-row items-center gap-1.5 px-1">
             <Ionicons name="people-outline" size={14} color={theme.ink2} />
             <Text
@@ -150,7 +164,7 @@ export function SendNoticeScreen() {
       </Animated.View>
       <SendNoticeConfirmSheet
         visible={screen.isConfirming}
-        audience={screen.audience}
+        description={screen.confirmDescription}
         count={screen.count ?? 0}
         title={screen.title.trim()}
         message={screen.message.trim()}

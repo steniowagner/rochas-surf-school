@@ -195,7 +195,7 @@ Design reference for the content: the `msgAula` sheet ("Mensagem à turma") in
   > `apps/mobile/src/modules/notifications/screens/notifications.screen.test.tsx`; verified:
   > `npx jest src/modules/notifications` (14 suites, 392 passed), `npx tsc --noEmit` and `npx eslint
   > src/modules/notifications` clean; deviations: none.
-- [ ] **T-04** — In `src/modules/notices/`, give the Send notice screen its class mode (D-09): read the `classId`
+- [x] **T-04** — In `src/modules/notices/`, give the Send notice screen its class mode (D-09): read the `classId`
   route param (`routes.admin.sendNotice` gains a way to pass it), load the class with the classes module's
   details query, replace the audience section with the class view (date, time, location and the D-01 people,
   shown as the agent judges best within the design system), switch the title, description and confirm line to
@@ -204,6 +204,52 @@ Design reference for the content: the `msgAula` sheet ("Mensagem à turma") in
   mode stays as it is. Screen, screen-hook and hook tests for both modes, one per case of ER-02, following
   `.claude/rules/react.md`.
   Covers: ER-02 · Done when: `npx jest src/modules/notices` passes.
+  > ✅ 2026-10-27 22:45 — `routes.admin.sendNotice` became `sendNotice()` / `sendNotice({ classId })` (the routes
+  > convention for optional params; its two callers and their tests follow). `useSendNoticeScreen` reads `classId`:
+  > in class mode it loads the class with `useClass(classId, { enabled })` (the broadcast counts are off through
+  > `useNoticeRecipientsCounts(false)`), counts the people with `classMessageRecipients` (new,
+  > `classes/utils/class-message.ts`: instructors and students with a seat, each once, never the sender, plus the
+  > pending requests; guests left out — shared with T-06), and sends with the new `useSendClassMessage`
+  > (`POST /classes/:id/message`, no retry; toasts for 409 finished / cancelled, 404, no connection, generic). The
+  > screen swaps the `SegmentedControl` for `ClassMessageCard` (new component: name, day and time, location, then the
+  > instructors and the students by name and "+ N pending requests"), the title, description, icon and count copy for
+  > the class ones, and the confirm sheet now takes its `description` line from the screen (the audience line in
+  > notice mode, "The instructors and students of <class line> get…" in class mode). After sending, the screen closes
+  > and "Mensagem enviada" shows on the success tone. Copy under `notices.classMessage` in pt-BR, es-ES and en-US.
+  > Notice mode unchanged (its tests pass untouched, apart from the router mock gaining `useLocalSearchParams` and a
+  > session mock in the hook test; the audience lines moved from the sheet test to a screen test). Tests, one per
+  > ER-02 case: class view and no selector, loading and failed class, Send off while a field is blank or N = 0, the
+  > 60 / 500 limits, confirm and back (nothing sent, text kept), send → POST, close, success toast, 409 finished /
+  > cancelled and no connection keep the text, a second confirm in the same frame sends once, the admin who teaches
+  > left out of N; files: `apps/mobile/src/constants/routes.ts`, `apps/mobile/src/i18n/messages/pt-BR.ts`,
+  > `apps/mobile/src/i18n/messages/es-ES.ts`, `apps/mobile/src/i18n/messages/en-US.ts`,
+  > `apps/mobile/src/modules/admin/screens/admin.screen.tsx`, `apps/mobile/src/modules/admin/screens/admin.screen.test.tsx`,
+  > `apps/mobile/src/modules/classes/hooks/use-class.hook.ts`, `apps/mobile/src/modules/classes/hooks/use-class.hook.test.tsx`,
+  > `apps/mobile/src/modules/classes/screens/class-details.screen.hook.ts`,
+  > `apps/mobile/src/modules/classes/screens/class-details.screen.test.tsx`,
+  > `apps/mobile/src/modules/classes/utils/class-message.ts`, `apps/mobile/src/modules/classes/utils/class-message.test.ts`,
+  > `apps/mobile/src/modules/notices/notices.types.ts`,
+  > `apps/mobile/src/modules/notices/components/class-message-card/index.ts`,
+  > `apps/mobile/src/modules/notices/components/class-message-card/class-message-card.component.tsx`,
+  > `apps/mobile/src/modules/notices/components/class-message-card/class-message-card.types.ts`,
+  > `apps/mobile/src/modules/notices/components/class-message-card/class-message-card.component.test.tsx`,
+  > `apps/mobile/src/modules/notices/components/send-notice-confirm-sheet/send-notice-confirm-sheet.component.tsx`,
+  > `apps/mobile/src/modules/notices/components/send-notice-confirm-sheet/send-notice-confirm-sheet.types.ts`,
+  > `apps/mobile/src/modules/notices/components/send-notice-confirm-sheet/send-notice-confirm-sheet.component.test.tsx`,
+  > `apps/mobile/src/modules/notices/hooks/use-notice-recipients-counts.hook.ts`,
+  > `apps/mobile/src/modules/notices/hooks/use-notice-recipients-counts.hook.test.tsx`,
+  > `apps/mobile/src/modules/notices/hooks/use-send-class-message.hook.ts`,
+  > `apps/mobile/src/modules/notices/hooks/use-send-class-message.hook.test.tsx`,
+  > `apps/mobile/src/modules/notices/screens/send-notice.screen.tsx`,
+  > `apps/mobile/src/modules/notices/screens/send-notice.screen.hook.ts`,
+  > `apps/mobile/src/modules/notices/screens/send-notice.screen.types.ts`,
+  > `apps/mobile/src/modules/notices/screens/send-notice.screen.test.tsx`,
+  > `apps/mobile/src/modules/notices/screens/send-notice.screen.hook.test.tsx`; verified: `npx jest src/modules/notices`
+  > with the class-message, `use-class`, admin and class details tests (13 suites, 334 passed; every notices file,
+  > `class-message.ts` and `use-class.hook.ts` 100% covered), `npx tsc --noEmit` and `npx eslint` clean;
+  > deviations: the class-mode screen tests render with their own `QueryClient` (`gcTime: Infinity`), because the
+  > default 5-minute cache time of a query or a mutation keeps Jest running for 5 minutes when that file runs alone —
+  > the notice-mode send tests already do this with `renderWithProviders` (left as is, a follow-up).
 - [ ] **T-06** — In `src/modules/classes/screens/class-details.screen.hook.ts`, make the tools card's "Send
   message" open the Send notice screen with the class id instead of the plain notice route, and leave the
   admin out of `messageCount` when they teach the class (D-07), with tests in `class-details.screen.test.tsx`

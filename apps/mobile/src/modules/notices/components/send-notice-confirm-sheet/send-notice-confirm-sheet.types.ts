@@ -1,8 +1,7 @@
-import type { NoticeAudience } from "../../notices.types";
-
 export type SendNoticeConfirmSheetProps = {
   visible: boolean;
-  audience: NoticeAudience;
+  /** Who receives it: the audience of a notice, or the class's people for a class message (spec 069). */
+  description: string;
   count: number;
   /** The notice as it will be sent, shown in the preview card. */
   title: string;

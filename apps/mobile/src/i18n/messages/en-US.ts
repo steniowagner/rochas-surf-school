@@ -470,6 +470,27 @@ const messages = {
       send: "Yes, send",
       cancel: "Back to editing",
     },
+    classMessage: {
+      title: "Message to the class",
+      description:
+        "Write a title and a message. The instructors and students of this class get it as a notification.",
+      instructors: "Instructors",
+      students: "Students",
+      pending_one: "+ {{count}} pending request",
+      pending_other: "+ {{count}} pending requests",
+      count: {
+        loading: "Loading the class…",
+        error: "Couldn't load the class.",
+      },
+      confirm:
+        "The instructors and students of {{classLine}} get a notification. Once it's sent, it can't be deleted.",
+      sent: "Message sent",
+      sendError: "Couldn't send the message. Try again.",
+      errors: {
+        finished: "This class has already finished. The message wasn't sent.",
+        cancelled: "This class was cancelled. The message wasn't sent.",
+      },
+    },
   },
   schoolSettings: {
     title: "School settings",

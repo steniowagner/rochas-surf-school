@@ -53,7 +53,7 @@ export function RoleChangeConfirmation({
         >
           {t(`people.roleConfirm.${action}.confirm`)}
         </Button>
-        <Button variant="subtle" disabled={loading} onPress={onBack}>
+        <Button variant="ghost" disabled={loading} onPress={onBack}>
           {t("people.roleConfirm.back")}
         </Button>
       </View>

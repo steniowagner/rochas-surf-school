@@ -267,13 +267,21 @@ shared between mobile and web, the phone frame and the mock UI pieces.
 
 ### App messages (`packages/app-messages`)
 
-- [ ] **T-04** — Create `packages/app-messages` (`@rochas-surf-school/app-messages`) set up like
+- [x] **T-04** — Create `packages/app-messages` (`@rochas-surf-school/app-messages`) set up like
   `packages/shared` (`package.json` with `build`, `check-types` and `test` scripts, `tsconfig.json`,
   `jest.config.ts`); `git mv apps/mobile/src/i18n/messages/{en-US,es-ES,pt-BR}.ts packages/app-messages/src/`;
   `src/index.ts` exports `enUS`, `esES`, `ptBR`, a `messages` record keyed by `en-US` / `es-ES` / `pt-BR` and the
   `Messages` type; `test/messages.test.ts` checks the three locales have the same keys, naming any difference.
   Covers: ER-03 · Done when: `npm test --workspace @rochas-surf-school/app-messages` and its `check-types` and
   `build` pass.
+  > ✅ 2026-10-28 14:40 — created `@rochas-surf-school/app-messages` like `packages/shared`; the three message files moved with
+  > `git mv` (content unchanged); `src/index.ts` exports `enUS`, `esES`, `ptBR`, `messages` (keyed `en-US`/`es-ES`/`pt-BR`) and
+  > the `Messages` type; `test/messages.test.ts` compares the key sets and names missing/extra keys; files:
+  > `packages/app-messages/{package.json,tsconfig.json,jest.config.ts}`, `packages/app-messages/src/{index,en-US,es-ES,pt-BR}.ts`,
+  > `packages/app-messages/test/messages.test.ts`, `package-lock.json`; verified: `npm test -w @rochas-surf-school/app-messages`
+  > (4 passed), `npm run check-types` and `npm run build` for it (exit 0); deviations: T-04 executed before T-02/T-03 (independent,
+  > and the design copy reads from this package); relative imports stay extensionless as in `packages/shared` (CJS output), not
+  > `.js`
 
 ### Mobile (`apps/mobile`)
 

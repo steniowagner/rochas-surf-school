@@ -51,7 +51,7 @@ describe("app.config", () => {
   it("falls back to the app name and slug when the base config has none", () => {
     const config = createConfig(contextOf({}));
 
-    expect(config.name).toBe("Rocha's Surf School");
+    expect(config.name).toBe("RSS");
     expect(config.slug).toBe("rochas-surf-school");
     expect(config.plugins).toHaveLength(1);
   });

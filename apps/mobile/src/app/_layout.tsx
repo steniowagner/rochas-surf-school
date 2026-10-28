@@ -37,7 +37,7 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       {/* Sets the --ds-* variables behind the NativeWind color utilities for the OS color scheme. */}
-      <View className="flex-1" style={themeVariables[scheme]}>
+      <View className="flex-1 bg-page" style={themeVariables[scheme]}>
         <BottomSheetModalProvider>
           <QueryClientProvider client={queryClient}>
             <ThemeProvider value={scheme === "dark" ? DarkTheme : DefaultTheme}>

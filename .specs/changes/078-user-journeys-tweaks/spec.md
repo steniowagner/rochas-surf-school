@@ -3,7 +3,7 @@ id: "078"
 slug: user-journeys-tweaks
 title: Reorder the flow page buttons and drop the set label
 template: quick
-status: in-progress
+status: in-review
 created: 2026-10-29
 started: 2026-10-29
 base_commit: f1c075cd18d1cd547bf4db989e81ac3b86371c68
@@ -116,8 +116,17 @@ email, `testeNN.…`).
 
 ### Verification
 
-- [ ] **T-03** — Run every command in the Verification Plan from the repo root; all pass. Record the output
+- [x] **T-03** — Run every command in the Verification Plan from the repo root; all pass. Record the output
   summary as evidence. Covers: all · Done when: every command exits 0.
+  > ✅ 2026-10-29 20:50 — every Verification Plan command run from the repo root, all passing:
+  > `node .specs/scripts/run-related-tests.mjs 078` → RELATED TESTS PASSED (apps/web, 11 changed files);
+  > `node .specs/scripts/check-coverage.mjs 078` → COVERAGE OK (no changed line to measure: the 8 source files are
+  > under `apps/web/src/**`, excluded by technical-context; the other 3 are tests); `node .specs/scripts/run-e2e.mjs
+  > 078` → E2E PASSED (web, 74 Playwright tests); `npx turbo run lint check-types build
+  > --filter=@rochas-surf-school/web` → 9 successful. User journeys, in the browser at the dev server:
+  > `/pt-br/user-journeys/student` shows "Todos os fluxos" then "Ver os designs"; `/pt-br/user-journeys/test-accounts`
+  > at 375 × 812 shows 12 cards with no heading, no "Conjunto" and no horizontal scroll; files:
+  > `.specs/changes/078-user-journeys-tweaks/spec.md`; deviations: none
 
 ## Verification Plan
 

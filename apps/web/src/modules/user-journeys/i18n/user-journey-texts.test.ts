@@ -2,9 +2,11 @@ import { describe, expect, it } from "vitest";
 
 import { flowRows, userJourneyFlowSlugs, userJourneyFlows } from "../data/user-journey-flows";
 import { en } from "./en";
+import { ptBr } from "./pt-br";
 import type { UserJourneyTexts } from "./user-journey-texts.types";
 
-const textsByLocale: Record<string, UserJourneyTexts> = { en };
+const textsByLocale: Record<string, UserJourneyTexts> = { en, "pt-br": ptBr };
+const translations: Record<string, UserJourneyTexts> = { "pt-br": ptBr };
 
 describe.each(Object.entries(textsByLocale))("user journey texts (%s)", (_locale, texts) => {
   it("gives every flow a title, a description, an account and a title per group", () => {
@@ -44,6 +46,17 @@ describe("user journey texts (en)", () => {
   it("says in each role flow that a missing push alone isn't a failure (D-18)", () => {
     for (const flow of ["student", "instructor", "admin"] as const) {
       expect(en.flows[flow].description).toContain("isn't a failure");
+    }
+  });
+});
+
+describe.each(Object.entries(translations))("user journey texts (%s)", (_locale, texts) => {
+  it("translates every row title and flow title (none repeats the English one)", () => {
+    for (const flow of userJourneyFlowSlugs) {
+      expect(texts.flows[flow].title, flow).not.toBe(en.flows[flow].title);
+      for (const row of flowRows(flow)) {
+        expect(texts.rows[row.id].title, row.id).not.toBe(en.rows[row.id].title);
+      }
     }
   });
 });

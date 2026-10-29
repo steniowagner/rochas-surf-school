@@ -404,10 +404,21 @@ script prints, so no sign-in code ever reaches the public repository.
   > verified: `npx vitest run src/modules/user-journeys` (3 files, 18 passed), `npx tsc --noEmit` exit 0; deviations:
   > none.
 
-- [ ] **T-05** — Translate them into Brazilian Portuguese in `apps/web/src/modules/user-journeys/i18n/pt-br.ts`,
+- [x] **T-05** — Translate them into Brazilian Portuguese in `apps/web/src/modules/user-journeys/i18n/pt-br.ts`,
   using the `pt-BR` app and notification strings (D-11), and extend `user-journey-texts.test.ts` to `pt-br`
   (non-empty, titles differ from `en`).
   Covers: ER-11 · Done when: `npx vitest run src/modules/user-journeys` passes and `check-types` exits 0.
+  > ✅ 2026-10-29 15:52 — `pt-br.ts` translates the 4 flows (titles "Acesso", "App do aluno", "App do instrutor",
+  > "App do admin"), their groups and the 96 rows; each quoted label was mapped by its key path from `en-US.ts` to
+  > `pt-BR.ts` (e.g. "Pedir para entrar", "Anular pedido", "Terminar sessão" on the pending screen and "Sair" on
+  > "Profile", "Promover a instrutor", "Retirar") and each notification title taken from `push-messages.ts`
+  > ("Inscrição recusada", "Você foi retirado de uma aula", "Seu papel mudou"…); the Notifications screen is "Avisos".
+  > `user-journey-texts.test.ts` now runs on `en` and `pt-br` and checks that no `pt-br` flow or row title repeats
+  > the English one. Also fixed in `en.ts` a label T-04 missed: AD-28's "Talk to the school" → "Contact the school".
+  > Files: `apps/web/src/modules/user-journeys/i18n/pt-br.ts`,
+  > `apps/web/src/modules/user-journeys/i18n/user-journey-texts.test.ts`, `apps/web/src/modules/user-journeys/i18n/en.ts`;
+  > verified: `npx vitest run src/modules/user-journeys` (3 files, 21 passed), `npx tsc --noEmit` exit 0; deviations:
+  > none.
 
 - [ ] **T-06** — Translate them into Spanish in `apps/web/src/modules/user-journeys/i18n/es.ts`, using the `es-ES`
   app and notification strings, and extend `user-journey-texts.test.ts` to `es`.

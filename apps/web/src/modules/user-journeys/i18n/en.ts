@@ -601,7 +601,7 @@ export const en = {
       title: "School settings",
       beforeYouStart: "You are on \"School settings\".",
       steps: "Turn the waiting list off. Type the school's WhatsApp number. Tap \"Save\".",
-      expected: "The explanation under the switch changes when it is off. \"Save\" is on only when something changed and the number is valid. You see \"Settings saved\"; students then can't join the waiting list of a full class, and \"Talk to the school\" uses the new number.",
+      expected: "The explanation under the switch changes when it is off. \"Save\" is on only when something changed and the number is valid. You see \"Settings saved\"; students then can't join the waiting list of a full class, and \"Contact the school\" uses the new number.",
     },
     "AD-29": {
       title: "Cancellation rules",

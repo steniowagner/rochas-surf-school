@@ -2,10 +2,11 @@
 id: "074"
 slug: designs-instructor-app
 title: Instructor app designs page
-status: in-review
+status: accepted
 created: 2026-10-29
 started: 2026-10-29
 base_commit: 00b7be834f502e3f1ec2645ae078a7d9719a6a9e
+reviewed_commit: fb8425bbf199ef0366e379f26a9a96d66bc355cd
 fronts: [web, designs]
 depends_on: []
 ---
@@ -306,3 +307,50 @@ prototype and its ratings.
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-29 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (apps/web: `npx turbo run lint check-types build --filter=@rochas-surf-school/web`, 9 tasks)
+- related tests ✅ 75 files, 283 tests passed (apps/web, Vitest with coverage) · whole web suite ✅ 158 files, 526 tests
+- coverage of the changed lines ✅ `COVERAGE OK` — no changed line to measure (117 files excluded by technical-context:
+  `apps/web/src/**`, `.docs/designs/**`; 39 always excluded); no coverage-ignore comment in the diff
+- e2e: web Playwright suite ✅ 46 passed (`E2E PASSED`; backend not affected)
+- designs ✅ `node --test .docs/designs/scripts/*.test.mjs` 7 passed · `pack.mjs --check` exit 0 · old prototype gone ·
+  the European-Portuguese grep finds nothing
+- regenerating `instructor-app` with `build-design.mjs` from the reviewed build left `git status` clean: the committed
+  `.html` is the web page's output
+
+**Expected Results**
+
+- ER-01 ✅ — `instructor-app.html` served locally: 49 ids `IN-01-01`…`IN-06-06`, 98 frames (light and dark), pt-BR,
+  tall frames at full height (up to 1970 px), no `{{…}}`, none of the old wording; `App Instrutor.dc.html` gone; the
+  other three templates are byte-identical to the base once their `<style>` blocks are set aside
+- ER-02 ✅ — `index lists the design pages in every language` (fourth card, title, description, href) and
+  `redirects /designs/instructor-app to the browser language` (es → `/es/…`, de → `/pt-br/…`, both 307)
+- ER-03 ✅ — `instructor app shows every inventory entry` (pt-br, es, en: every id with frame, title and note, the
+  count, section order, `<title>`, description, the instructor tab bar, no enrolment banner or enrolment/tools button
+  in IN-03-*) and `student app shows every inventory entry`; walked IN-01, IN-03-01/02, IN-04-01, IN-05-01/02 against
+  `instructor.screen.tsx`, `class-details.screen{,.hook}.tsx` (`readOnlyNoteKey`, `showTrialCount={canEdit}`, the full
+  banner's `canEdit` line), `occupancy-map` (`showsTime` rows) and `push-messages.ts` (assigned, unassigned, deleted
+  texts); the student page's generated markup is unchanged (D-03)
+- ER-04 ✅ — `instructor app follows the language` (IN-03-01's `readOnly.teaches`, IN-01-01's assigned count, the
+  notification row and "other messages" per language; the header picker opens `/en/…`); no `{{…}}` or raw tags
+- ER-05 ✅ — `instructor app follows the theme toggle` (light → dark → kept on reload); with no stored choice and an OS
+  dark scheme the page rendered without `data-theme` and IN-01-01's frame on the dark `page` value
+- ER-06 ✅ — `design pages are wide` and `design pages fit a phone viewport` both visit the instructor page (no
+  horizontal scroll at 375 px; widest frame under 375 px, tall ones included)
+
+**Findings**
+
+None.
+
+**Notes**
+
+- Two frames follow the code rather than the inventory's wording, by 071 D-08, as T-02's deviations record: IN-03-05
+  shows no `classDetails.includesTrial` (the app shows it only with `canEdit`) and IN-03-10's person sheet has no
+  e-mail (class details opens `PersonSheet` from the class's people, without one). The entries' notes say so; the
+  inventory table itself still lists them.
+- The Playwright web server logged one `NoFallbackError` during the run; every test passed (most likely a request to a
+  route outside the static params, such as the unknown-slug 404 check; not traced further).

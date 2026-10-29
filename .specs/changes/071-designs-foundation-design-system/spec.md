@@ -2,7 +2,7 @@
 id: "071"
 slug: designs-foundation-design-system
 title: Public designs area and the design system page
-status: in-review
+status: changes-requested
 started: 2026-10-28
 base_commit: 276ffc29014c5113e8451f9bba1dac669c353719
 created: 2026-10-28
@@ -547,3 +547,39 @@ shared between mobile and web, the phone frame and the mock UI pieces.
 - D-13 asks for a typed slug list with `generateStaticParams`/`dynamicParams = false`; per-page static routes (T-07 deviation) give the same 404 and static output — not a finding, but the decision text could be amended.
 - An already-running Metro must be restarted (`expo start --clear`) after checking out this branch: one started before `node_modules/@rochas-surf-school/app-messages` existed fails with "Unable to resolve module @rochas-surf-school/app-messages".
 - At narrow cells the entry id badge wraps ("DS-06-" / "04"); `whitespace-nowrap` on the badge would keep it on one line.
+
+### Round 2 — 2026-10-28 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (web, mobile, app-messages: `npx turbo run lint check-types build`, 17/17 tasks)
+- related tests ✅ mobile 917 · web 149 · app-messages 4 passed (`RELATED TESTS PASSED`); whole suites ✅ web 171 · app-messages 4 (mobile unchanged since round 1)
+- coverage of the changed lines ✅ `COVERAGE OK` (1 measured file, `packages/app-messages/src/index.ts` 100%; the rest excluded by technical-context); no coverage-ignore comments in the diff
+- e2e: web suite ✅ 33 passed (`E2E PASSED`); backend not affected
+- designs: `node --test .docs/designs/scripts/*.test.mjs` ✅ 7 passed · `pack.mjs --check` ✅ 5 files match · `empty-and-error-states.html` gone ✅ · no European Portuguese in `src/design-system` ✅ · `build-design-system.mjs` against the current web build leaves the committed sources unchanged ✅
+- web walked in the browser: DS-09-04, DS-09-02 and DS-04-01 on `/pt-br/designs/design-system`; the same DS-09-04 text in the generated `template.html`
+
+**Expected Results**
+
+- ER-01 ✅ — script tests pass; `--check` exits 0
+- ER-02 ❌ — F-01 and F-02 are fixed (admin classes screen with title, `add` HeaderButton, week calendar, sport filter, staff tab bar; "Criar aula" with `add`), but the sport filter is drawn with the wrong radius (F-05)
+- ER-03 ✅ — key-parity test and `check-types` pass (package unchanged since round 1)
+- ER-04 ✅ — mobile suite passes; mobile unchanged since the round 1 simulator check
+- ER-05 ✅ — redirect, fallback and 404 e2e tests pass
+- ER-06 ✅ — e2e now asserts the Designs row title and description per language (F-03 fixed)
+- ER-07 ✅ — e2e asserts the index h1, intro, card title/description, `<title>` and meta description per language (F-03 fixed)
+- ER-08 ❌ — every id present in the three languages; DS-09-04's filter radius doesn't match the code (F-05)
+- ER-09 ✅ — e2e asserts the retry button, the page h1 and the section 01/09 titles and section 01 description per language
+- ER-10 ✅ — new e2e test: OS dark without a stored choice gives `rgb(22, 27, 39)` on the `page` swatch and a phone frame, and DS-01-01 prints `#FDF8F3` and `#161B27` (F-04 fixed)
+- ER-11 ✅ — width and phone-viewport e2e tests pass
+
+**Findings**
+
+- [ ] **F-05** (ER-08, ER-02 · D-08) — DS-09-04's floating sport filter is drawn `rounded-full` (a circle, with `shadow-primary`); the app's `DisciplineFilterButton` (`apps/mobile/src/modules/classes/components/discipline-filter-button/discipline-filter-button.component.tsx`) is a 56×56 `rounded-card` (radius 20) `bg-grape` button with `shadowStyle("fab")`, so the frames show a different radius token than the code. Reproduce: DS-09-04 on `/pt-br/designs/design-system`, the `span` with `Ionicons:filter` in `design-system-states.component.tsx`. Expected: `rounded-card` (and the fab elevation if a utility exists for it); then regenerate and repack `design-system.html`.
+- [ ] **F-06** (convention · `.claude/rules/react.md` §1) — the F-01 fix copies into `design-system-states.component.tsx` a third site→app locale map (`{ "pt-br": "pt-BR", es: "es-ES", en: "en-US" }`, already exported as `appLocaleBySiteLocale` in `i18n/app-locale.ts` and copied once more as `appLocaleByLocale` in `design-system-structure.component.tsx`) and the same weekday/month `Intl` formatting and calendar-props builder that `design-system-structure.component.tsx` already has; react.md keeps calculations out of `*.component.tsx`. Reproduce: `grep -rn "DateTimeFormat\|\"pt-br\": \"pt-BR\"" apps/web/src/modules/designs`. Expected: one helper (for example in `src/modules/designs/data/`) that builds the mock `WeekMonthCalendar` props for a locale using `appLocaleBySiteLocale`, used by both sections, and no local copies of the locale map.
+
+**Notes**
+
+- In DS-09-04 the calendar selects Wednesday 9 while the empty and error copy say "12/09"; the app fills `{{date}}` with `formatLongDay` of the selected day ("quarta-feira, 9 de setembro"). Mock values aren't judged by D-08, but using the selected day in the app's long format would make the frame read like the app.
+- The loading frame shows 2 skeletons where the app renders 4 (`LOADING_CARDS`); the frame's height hides the rest, so this is not judged.
+- Still open from round 1: Memory Impact misses A-01 (`design-system.html` generated by `build-design-system.mjs` from the web on port 3100), `CLAUDE.md` → `packages/design-tokens` still says the tokens are "taken from `.docs/designs/design-system.html`", and `build-design-system.mjs` resolves `jsdom` only through the backend's hoisted copy. `spec-finish` should cover the first two.

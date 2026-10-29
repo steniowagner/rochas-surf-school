@@ -1330,6 +1330,8 @@ _Implemented in spec 076-user-journeys-pages._
 
 _Implemented in spec 077-test-accounts-page._
 
+_Implemented in spec 078-user-journeys-tweaks._
+
 Publishes the public web pages the app stores require: the privacy policy, the terms of use and a way to request account deletion without the app. The same site also hosts a designs area (`/{lang}/designs`), linked from its home page, that shows the app's design system, its auth flow (the screens before a person reaches their role's home), the student app (every screen an approved student sees), the instructor app (every screen an approved instructor sees) and the admin app (every screen an approved admin sees) to anyone interested, in the site's language and theme. It also hosts user journey pages (`/{lang}/user-journeys`) for invited test users, linked from nowhere and hidden from search engines: one page per app flow (auth, student, instructor, admin) lists its test cases with links to their design frames, and the tester marks each case approved or denied, adds notes, keeps their progress in their own browser and copies a summary to send to the school. A test accounts page (`/{lang}/user-journeys/test-accounts`), linked from the user journeys index and from each flow page, lists the 12 test sets' email addresses and names, each email with a copy button, and never a sign-in code.
 
 #### Privacy policy page

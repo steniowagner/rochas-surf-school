@@ -94,6 +94,14 @@ test.describe("user journeys visibility", () => {
 const STUDENT_KEY = "rochas-surf-school:user-journeys:student";
 const rowsOf = (page: Page) => page.locator("tr[data-row-id]");
 const counterOf = (page: Page) => page.getByTestId("journey-counter");
+// The flow page's "All flows" and "See the designs" links, in page order (spec 078: "All flows" first).
+const flowCtasOf = (page: Page, labels: { allFlows: string; seeDesigns: string }) =>
+  page
+    .locator("main a")
+    .evaluateAll(
+      (links, names) => links.map((link) => link.textContent?.trim() ?? "").filter((name) => names.includes(name)),
+      [labels.allFlows, labels.seeDesigns],
+    );
 
 test.describe("user journey flow pages", () => {
   test("flow pages show every test case", async ({ page, request }) => {
@@ -109,6 +117,10 @@ test.describe("user journey flow pages", () => {
       await expect(rowsOf(page).first()).toHaveAttribute("data-row-id", ids[0]);
       await expect(rowsOf(page).last()).toHaveAttribute("data-row-id", ids.at(-1)!);
       await expect(page.getByRole("link", { name: en.userJourneys.labels.allFlows })).toHaveAttribute("href", "/en/user-journeys");
+      expect(await flowCtasOf(page, en.userJourneys.labels), flow).toEqual([
+        en.userJourneys.labels.allFlows,
+        en.userJourneys.labels.seeDesigns,
+      ]);
       for (const group of Object.values(userJourneyTexts.en.flows[flow].groups)) {
         await expect(page.getByRole("heading", { level: 2, name: group, exact: true })).toBeVisible();
       }
@@ -299,6 +311,7 @@ test.describe("user journey flow pages", () => {
       for (const label of [labels.seeDesigns, labels.allFlows]) {
         await expect(page.getByRole("link", { name: label })).toBeVisible();
       }
+      expect(await flowCtasOf(page, labels)).toEqual([labels.allFlows, labels.seeDesigns]);
       for (const label of [labels.copyResults, labels.clearResults]) {
         await expect(page.getByRole("button", { name: label })).toBeVisible();
       }
@@ -393,9 +406,9 @@ test.describe("test accounts page", () => {
 
       const cards = page.getByTestId("test-account-sets").locator(":scope > section");
       await expect(cards).toHaveCount(12);
-      for (const [index, { set, accounts }] of testAccountSets.entries()) {
+      for (const [index, { accounts }] of testAccountSets.entries()) {
         const card = cards.nth(index);
-        await expect(card.getByRole("heading", { level: 2 })).toHaveText(text.testAccounts.set.replace("{set}", set));
+        await expect(card.getByRole("heading")).toHaveCount(0);
         const rows = card.getByRole("listitem");
         await expect(rows).toHaveCount(3);
         for (const [row, account] of accounts.entries()) {

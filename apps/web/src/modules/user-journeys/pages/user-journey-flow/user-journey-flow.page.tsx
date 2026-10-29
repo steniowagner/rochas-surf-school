@@ -31,6 +31,14 @@ export function UserJourneyFlowPage({ locale, flow, text, siteName }: UserJourne
       </ContentCard>
       <div className="flex flex-col gap-2 sm:flex-row">
         <Button
+          href={`/${locale}/user-journeys`}
+          variant="subtle"
+          icon={<ArrowLeft size={18} strokeWidth={2} aria-hidden />}
+          className="sm:w-auto"
+        >
+          {text.labels.allFlows}
+        </Button>
+        <Button
           href={`/${locale}/designs/${userJourneyFlows[flow].designPage}`}
           target="_blank"
           rel="noopener"
@@ -39,14 +47,6 @@ export function UserJourneyFlowPage({ locale, flow, text, siteName }: UserJourne
           className="sm:w-auto"
         >
           {text.labels.seeDesigns}
-        </Button>
-        <Button
-          href={`/${locale}/user-journeys`}
-          variant="subtle"
-          icon={<ArrowLeft size={18} strokeWidth={2} aria-hidden />}
-          className="sm:w-auto"
-        >
-          {text.labels.allFlows}
         </Button>
       </div>
       <JourneyBoard

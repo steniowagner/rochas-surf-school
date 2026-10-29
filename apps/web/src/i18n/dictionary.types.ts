@@ -206,8 +206,6 @@ export type Dictionary = {
       metaTitle: string;
       title: string;
       intro: string;
-      /** A set card's title: `{set}` is the set number ("01"). */
-      set: string;
       roles: { admin: string; instructor: string; student: string };
       copyEmail: string;
       copied: string;

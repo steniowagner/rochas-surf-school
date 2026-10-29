@@ -832,7 +832,6 @@ export const en = {
       metaTitle: "Test accounts",
       title: "Test accounts",
       intro: "Each test set has one account per role. Use the set the school sent you: sign in with \"Continue with email\" → \"I have an account\", the account's email address and the code the school gave you. The codes are never on this page.",
-      set: "Set {set}",
       roles: { admin: "Admin", instructor: "Instructor", student: "Student" },
       copyEmail: "Copy email",
       copied: "Copied",

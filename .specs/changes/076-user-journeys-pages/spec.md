@@ -343,11 +343,15 @@ script prints, so no sign-in code ever reaches the public repository.
 
 ### Web (`apps/web`)
 
-- [ ] **T-01** — Give each design frame an anchor: render `id={id}` on the `<article>` of
+- [x] **T-01** — Give each design frame an anchor: render `id={id}` on the `<article>` of
   `apps/web/src/modules/designs/components/design-entry/design-entry.component.tsx`, and assert it in
   `design-entry.component.test.tsx`. Skill:
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-10 · Done when: `npx vitest run src/modules/designs` passes in `apps/web`.
+  > ✅ 2026-10-29 14:56 — the entry's `<article>` renders `id={id}` next to `data-design-id`; a new test (seen
+  > failing first) asserts the `id`. Files: `apps/web/src/modules/designs/components/design-entry/design-entry.component.tsx`,
+  > `apps/web/src/modules/designs/components/design-entry/design-entry.component.test.tsx`; verified:
+  > `npx vitest run src/modules/designs` (222 files, 715 passed); deviations: none.
 
 - [ ] **T-02** — Add the locale-free structure of the four flows (D-13) in
   `apps/web/src/modules/user-journeys/data/user-journey-flows.ts`: per flow its slug, design page slug, groups

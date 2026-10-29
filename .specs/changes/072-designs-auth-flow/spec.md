@@ -157,7 +157,7 @@ side, replacing the outdated European Portuguese prototype.
 
 ### Web (`apps/web`)
 
-- [ ] **T-01** — Add the building blocks the auth screens need to `apps/web/src/modules/designs/components/`, with
+- [x] **T-01** — Add the building blocks the auth screens need to `apps/web/src/modules/designs/components/`, with
   the mobile names and props: `auth-button` (light and primary, loading), `choice-row`, `pending-step` (done,
   current, future), `school-rule-row`, `switch`, `contact-school-button`, `whatsapp-number-form`; copy
   `apps/mobile/assets/images/{team-hero.jpg,google-logo.svg}` to `apps/web/src/modules/designs/assets/` (D-03); add
@@ -165,6 +165,13 @@ side, replacing the outdated European Portuguese prototype.
   rendering its variants. Skill: [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: enabling · Done when: `npx vitest run src/modules/designs/components` passes in `apps/web` and
   `npm run check-types --workspace @rochas-surf-school/web` exits 0.
+  > ✅ 2026-10-28 22:05 — added `auth-button`, `choice-row`, `pending-step`, `school-rule-row`, `switch`, `contact-school-button` and
+  > `whatsapp-number-form` (component, types, index, test each) under `apps/web/src/modules/designs/components/`; copied `team-hero.jpg` and
+  > `google-logo.svg` to `apps/web/src/modules/designs/assets/`; added the glyphs they draw (and the screens' ones: mail, log-in, person-add,
+  > shield, info, whatsapp logo, eye-off, waves, email-check, clock) to `components/app-icon/app-icon.constants.ts`;
+  > verified: `npx vitest run src/modules/designs/components` (52 files, 154 passed) and `npm run check-types` (exit 0);
+  > deviations: `contact-school-button` and `whatsapp-number-form` take their labels as props (the web has no i18n hook), the form is
+  > presentational (state as props)
 
 - [ ] **T-02** — Write the screen mocks of sections 01–02 in `apps/web/src/modules/designs/screens/auth/` (D-05):
   `sign-in-screen` (light palette always, D-06; language sheet, Google loading and toast as props),

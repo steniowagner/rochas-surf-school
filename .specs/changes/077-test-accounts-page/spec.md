@@ -297,8 +297,28 @@ server creates.
 
 ### Verification
 
-- [ ] **T-07** — Run every command in the Verification Plan from the repo root; all pass. Record the output
+- [x] **T-07** — Run every command in the Verification Plan from the repo root; all pass. Record the output
   summary as evidence. Covers: all · Done when: every command exits 0 and the greps give the expected result.
+  > ✅ 2026-10-29 23:59 — every Verification Plan command run from the repo root, all passing:
+  > `node .specs/scripts/run-related-tests.mjs 077` → RELATED TESTS PASSED (backend, web, shared, and the suites of
+  > mobile and every module that imports shared); `node .specs/scripts/check-coverage.mjs 077` → COVERAGE OK
+  > (`test-account-sets.ts` and the changed lines of `test-accounts.ts` 100%; `apps/web/src/**` and the barrels
+  > excluded by technical-context); `node .specs/scripts/run-e2e.mjs 077` (Postgres up) → E2E PASSED (backend 28
+  > files / 817 tests, web 74 Playwright tests); `npm run test-accounts --workspace apps/backend` → one
+  > `REVIEW_ACCOUNTS='[…]'` line and 36 table rows; `grep -rnE "#[0-9a-fA-F]{3,6}\b|rgb\(" apps/web/src/modules/user-journeys`
+  > and `grep -rn "REVIEW_ACCOUNTS" apps/web packages/shared/src` → no match (exit 1);
+  > `npx turbo run lint check-types build --filter=@rochas-surf-school/shared --filter=@rochas-surf-school/web` → 9
+  > successful; `npx turbo run lint check-types --filter=@rochas-surf-school/backend` → 15 successful (the
+  > backend's 11 lint warnings are older ones, none in `prisma/seed`). User journeys, in the built app
+  > (`next start`) at 375 × 812: `/pt-br/user-journeys` → "Contas de teste" opens the page with the 12 sets,
+  > "Admin" / "Instrutor" / "Aluno" and the names as stored ("Instrutor Teste Um"); from the student flow, "Ver as
+  > contas de teste" in "Conta a usar" opens the same page; the theme toggle switches the cards between the dark
+  > (`rgb(33, 39, 54)`) and light (`rgb(254, 252, 249)`) surfaces. Not covered by hand: the in-app browser denies
+  > `clipboard-write` (`permissions.query` → `denied`), so there a tap showed the failure line under that row
+  > only ("Não foi possível copiar o e-mail. Tente de novo."); a successful copy and paste is proven by the
+  > Playwright test `copy an email on the test accounts page` (permission granted, reads the clipboard back). To
+  > check it by hand: open the page on a phone, tap "Copiar e-mail" on any row, paste it in a note → that email;
+  > files: `.specs/changes/077-test-accounts-page/spec.md`; deviations: none
 
 ## Verification Plan
 

@@ -171,7 +171,7 @@ prototype and its ratings.
 
 ### Web (`apps/web`)
 
-- [ ] **T-01** — Add to `apps/web/src/modules/designs/components/` the building blocks of the instructor screens,
+- [x] **T-01** — Add to `apps/web/src/modules/designs/components/` the building blocks of the instructor screens,
   with the mobile names and props: `teaching-classes-entry-row` (assigned count, none, no subtitle),
   `school-rules-entry-row`, `weekly-occupancy-entry-row`, `ongoing-class-card`, `teaching-day-header`,
   `occupancy-week-bar`, `occupancy-stats`, `occupancy-map` (cells by tone, cancelled cell, selected cell, legend),
@@ -181,6 +181,10 @@ prototype and its ratings.
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices). Covers: enabling · Done when:
   `npx vitest run src/modules/designs/components` passes in `apps/web` and
   `npm run check-types --workspace @rochas-surf-school/web` exits 0.
+  > ✅ 2026-10-29 10:52 — added the instructor building blocks with the mobile names, each per `.claude/rules/react.md` with a Vitest test of its variants: `teaching-classes-entry-row` (count, none, no subtitle), `school-rules-entry-row` (instructor/admin subtitle, empty, no subtitle), `weekly-occupancy-entry-row`, `ongoing-class-card`, `teaching-day-header`, `occupancy-week-bar`, `occupancy-stats` (+ its child `occupancy-stat`), `occupancy-map` (+ its children `occupancy-cell`, with the app's tone thresholds in `occupancy-cell.constants.ts`, and `occupancy-legend`), `occupancy-map-skeleton` and `week-picker-sheet`; `class-people` now takes `guests` and `expanded` (a row per student, then the guests, with guest avatars among the stacked ones), with the children `class-student-row`, `class-guest-row` and `guest-avatar`. No new glyph was needed (`MaterialCommunityIcons:surfing`, `SimpleLineIcons:graph`, `Feather:home`, `Feather:user` were already in the registry).
+  > files: `apps/web/src/app/globals.css`, `apps/web/src/modules/designs/utils/entry-row-container.ts`, `apps/web/src/modules/designs/utils/entry-row-container.types.ts`, `apps/web/src/modules/designs/utils/entry-row-container.test.ts`, `apps/web/src/modules/designs/components/{teaching-classes-entry-row,school-rules-entry-row,weekly-occupancy-entry-row,ongoing-class-card,teaching-day-header,occupancy-week-bar,occupancy-stat,occupancy-stats,occupancy-cell,occupancy-legend,occupancy-map,occupancy-map-skeleton,week-picker-sheet,class-student-row,class-guest-row,guest-avatar}/*` (new), `apps/web/src/modules/designs/components/class-people/class-people.{component.tsx,types.ts,component.test.tsx}`, `apps/web/src/modules/designs/components/calendar-month-grid/calendar-month-grid.{component.tsx,types.ts,component.test.tsx}`
+  > verified: `npx vitest run src/modules/designs/components src/modules/designs/utils` in `apps/web` (113 files, 310 tests passed); `npm run check-types --workspace @rochas-surf-school/web` exits 0; the student app page's static markup (`renderToStaticMarkup`, pt-br, es and en) is byte-identical to the base commit's
+  > deviations: small steps added inside the task — `globals.css` maps the `onGrape*` colors and the `occupancyCell` / `swatch` radii (tokens that existed but weren't Tailwind utilities on web); `calendar-month-grid` takes `dotPlacement` (`overlap` for the week picker, as the mobile grid); `utils/entry-row-container` mirrors the mobile helper the three entry rows share; the children `occupancy-stat`, `occupancy-cell`, `occupancy-legend`, `class-student-row`, `class-guest-row` and `guest-avatar` are their own folders (react.md §5), with the mobile names.
 
 - [ ] **T-02** — Give the shared mocks a `role` (D-03): `git mv` `screens/student/agenda-screen` to
   `screens/shared/classes-week-screen` and `screens/student/my-history-screen` to

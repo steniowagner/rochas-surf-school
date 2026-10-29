@@ -32,12 +32,19 @@
   --color-band: var(--ds-band);
   --color-band-line: var(--ds-band-line);
   --color-scrim: var(--ds-scrim);
+  --color-on-grape-tint: var(--ds-on-grape-tint);
+  --color-on-grape-fill: var(--ds-on-grape-fill);
+  --color-on-grape-track: var(--ds-on-grape-track);
+  --color-on-grape-shade: var(--ds-on-grape-shade);
+  --color-on-grape-bad: var(--ds-on-grape-bad);
 
   --radius-checkbox: var(--ds-radius-checkbox);
   --radius-icon-button: var(--ds-radius-icon-button);
   --radius-control: var(--ds-radius-control);
   --radius-card: var(--ds-radius-card);
   --radius-sheet: var(--ds-radius-sheet);
+  --radius-occupancy-cell: var(--ds-radius-occupancy-cell);
+  --radius-swatch: var(--ds-radius-swatch);
 
   --shadow-icon-button: var(--ds-elevation-icon-button);
   --shadow-card: var(--ds-elevation-card);

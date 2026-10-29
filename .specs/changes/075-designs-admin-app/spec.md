@@ -377,9 +377,13 @@ area that specs 071 to 074 started.
 
 ### Verification
 
-- [ ] **T-09** — Run every command in the Verification Plan from the repo root; all pass. Record the output summary
+- [x] **T-09** — Run every command in the Verification Plan from the repo root; all pass. Record the output summary
   as evidence. Covers: all · Done when: every command exits 0, `check-coverage.mjs` prints `COVERAGE OK` and
   `run-e2e.mjs` prints `E2E PASSED`.
+  > ✅ 2026-10-29 13:28 — ran the Verification Plan from the repo root: `node .specs/scripts/run-related-tests.mjs 075` → RELATED TESTS PASSED (apps/web, Vitest with coverage; the root `CLAUDE.md` has no test runner); `node .specs/scripts/check-coverage.mjs 075` → COVERAGE OK (327 changed source files: 245 excluded by technical-context — `apps/web/src/**`, `.docs/designs/**` —, 82 always excluded; no changed line to measure); `node .specs/scripts/run-e2e.mjs 075` → E2E PASSED (apps/web, 50 Playwright tests, the admin, instructor and student app tests among them; apps/backend not affected); `node --test .docs/designs/scripts/*.test.mjs` → 7 passed; `node .docs/designs/scripts/pack.mjs --check` → exit 0 (5 design files match their sources); `test ! -e ".docs/designs/src/admin-app/App Admin.dc.html"` → passes; `grep -rliE "ecrã|As minhas|avaliaç|avaliar" .docs/designs/src/admin-app` → nothing (exit 1); `npm test --workspace @rochas-surf-school/web` → 227 files, 736 tests passed; `npx turbo run lint check-types build --filter=@rochas-surf-school/web --force` → 9 tasks successful. User journeys: `admin-app.html` walked in the browser pane (T-08: 112 entries, light and dark, pt-BR, the tall frames at full height); the web page `/pt-br/designs/admin-app` walked in the browser pane (sections 01, 03, 04, 06 and 08 looked at against the mobile code, which led to the two fixes recorded under T-04 and T-07); the theme and language switching and the student and instructor pages' frames are covered by the e2e tests above.
+  > files: none (verification only)
+  > verified: as above
+  > deviations: none
 
 ## Verification Plan
 

@@ -2,13 +2,14 @@
 id: "076"
 slug: user-journeys-pages
 title: User journey pages for test users
-status: accepted
+status: finished
 created: 2026-10-29
 started: 2026-10-29
 base_commit: 54a34ff6b6cc95d1e0c0909d36a52dc4b68843b4
 reviewed_commit: 4072a45b542c22ed1c71e5bb7e5833ef0c8b7711
 fronts: [backend, web, designs]
 depends_on: []
+finished: 2026-10-29
 ---
 
 # 076 — User journey pages for test users

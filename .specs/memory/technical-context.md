@@ -203,8 +203,8 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
   Docker: `Dockerfile` + `docker-compose.yml` (backend + Postgres).
 - **`apps/web`** — **Next.js 16** (App Router, `src/`), **Tailwind 4**, port **3000**. Only the public web
   pages the app stores require — the privacy policy, the terms of use and the account-deletion page, each in
-  pt-BR, es and en — and, since spec 071, the designs area (`/{lang}/designs`).
-  No sign-in, no private area and no API calls. Build with `next build`; it needs a **Node runtime**
+  pt-BR, es and en — and, since spec 071, the designs area (`/{lang}/designs`) and, since spec 076, the user
+  journey pages for test users (`/{lang}/user-journeys`). No sign-in, no private area and no API calls. Build with `next build`; it needs a **Node runtime**
   (`next start`, or a platform that runs Next) because of the proxy — no static export. Tests (spec 025):
   **Vitest 4** + React Testing Library + jsdom (`src/**/*.test.{ts,tsx}`, next to the file, `npm test`) and
   **Playwright** (Chromium only, `e2e/*.e2e.ts`, `npm run test:e2e`), see Automated validation.
@@ -218,10 +218,33 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     `/{lang}/designs/design-system`, since spec 072 `/{lang}/designs/auth-flow`, since spec 073
     `/{lang}/designs/student-app`, since spec 074 `/{lang}/designs/instructor-app` and, since spec 075,
     `/{lang}/designs/admin-app`. Each design page is its own static route (no `[slug]`), so an unknown slug
-    answers 404; the index lists `designPages` from `src/modules/designs/data/design-pages.ts`.
+    answers 404; the index lists `designPages` from `src/modules/designs/data/design-pages.ts`. Since spec 076
+    `user-journeys/layout.tsx` renders `SiteShell` `wide` and sets `robots: { index: false, follow: false }` for
+    `/{lang}/user-journeys` (the index) and `/{lang}/user-journeys/[flow]`, one dynamic route with
+    `generateStaticParams` over the flows `auth`, `student`, `instructor`, `admin` and `dynamicParams = false`, so
+    another flow answers 404. Nothing on the site links to them.
+  - User journeys (spec 076): `src/modules/user-journeys/` holds `data/user-journey-flows.ts` (the locale-free
+    structure, `as const`: per flow its design page, its groups and their rows — ids `AU-NN`, `ST-NN`, `IN-NN`,
+    `AD-NN`, sequential per flow — with the design ids each row links to, typed as the union of the four `*EntryId`
+    types so a missing frame is a type error; `RowId`, `flowRows`, `isUserJourneyFlowSlug`), `i18n/{en,pt-br,es}.ts`
+    (each flow's title, description, account and group titles, and each row's title, before-you-start, steps and
+    expected, typed by `UserJourneyTexts` over `RowId` so a missing translation fails `check-types`; the quoted app
+    labels are the app's strings in that language, from `@rochas-surf-school/app-messages` and `push-messages.ts`;
+    `userJourneyTexts` picks them by site locale), the client component `journey-board` (with `journey-row`, a `<tr>`
+    that is a labelled card below `lg` and a table row from `lg`, and `results-summary`), `pages/` (the index and the
+    flow page) and `utils/` (`design-href` maps an id's prefix `AF` / `ST` / `IN` / `AD` to its design page and
+    builds `/{lang}/designs/<page>#<id>`; `results-summary` builds the "Copy results" text; `journey-progress-storage`
+    reads, validates, writes and removes the progress). The page labels live in the site dictionaries under
+    `userJourneys`. Progress is saved on every change, and read only after mount (a `useSyncExternalStore` hydration
+    flag), in `localStorage` under `rochas-surf-school:user-journeys:<flow>` as `{ version: 1, name, results: {
+    [rowId]: "approved" | "denied" }, notes: { [rowId]: string } }` — no language in the key, so the three languages
+    share it; an unparsable value, another version or unknown row ids are ignored, and every storage call is in a
+    try / catch, so a blocked or full storage leaves the page working in memory. "Clear results" asks with
+    `window.confirm` and removes the key. No cookie and no `sessionStorage`.
   - Designs (spec 071): `src/modules/designs/` holds `components/` (presentational mocks of the mobile components
     with the mobile names and props, plus `phone-frame` — an iOS 402 × 874 frame that scales down with a container
-    query —, `design-section`, `design-entry` with `data-design-id`, and one `design-system-<section>` component per
+    query —, `design-section`, `design-entry` with `data-design-id` and, since spec 076, the same id as its `id`, so
+    `/{lang}/designs/<page>#<id>` opens at the frame, and one `design-system-<section>` component per
     section), `data/` (the design pages, the 51 inventory ids `DS-<section>-<entry>`, the fictional Fortaleza mock
     data and `buildMockCalendar`), `i18n/` (`appLocaleBySiteLocale` maps `pt-br`/`es`/`en` to `pt-BR`/`es-ES`/`en-US`;
     `appT(locale, key, params?)` reads the app's copy from `@rochas-surf-school/app-messages` by dotted key, fills
@@ -279,13 +302,14 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     `band`, `scrim`, the `fab` elevation as `shadow-fab`, since spec 073 the `menuOption` elevation as
     `shadow-menu-option` and, since spec 074, the `onGrape*` colors and the `occupancyCell` and `swatch` radii).
   - Language: `src/proxy.ts` (Next 16's replacement for middleware, matching only `/`, `/privacy-policy`,
-    `/terms-of-use`, `/account-deletion`, `/designs` and `/designs/:path*`) redirects with 307 to the same path under the first `Accept-Language` entry, in quality
+    `/terms-of-use`, `/account-deletion`, `/designs`, `/designs/:path*`, `/user-journeys` and `/user-journeys/:path*`) redirects with 307 to the same path under the first `Accept-Language` entry, in quality
     order, whose language is `pt`, `es` or `en` (`matchLocale` in `src/i18n/locales.ts`), **pt-BR** when none
     matches or the header is missing. Copy lives in typed dictionaries (`src/i18n/dictionaries/{pt-br,es,en}.ts`,
     each `satisfies Dictionary` from `src/i18n/dictionary.types.ts`, loaded server-side by `getDictionary`), so a
     missing or extra key fails `check-types` and copy changes are text-only. The header's language picker is a
     `<details>` pill with plain links to the same page in each language, so it works without JavaScript. It and
-    the theme toggle are the only client components.
+    the theme toggle are the site's only client components besides the designs' `phone-frame-tall` and the user
+    journeys' `journey-board`.
   - Theme: the site follows the OS color scheme (the tokens' `prefers-color-scheme` palette) until the visitor
     presses the header's `ThemeToggle`, which sets `data-theme` (`light` or `dark`) on `<html>` and stores it in
     `localStorage` under `theme` (in a try/catch, so it still works for the page when storage is unavailable).
@@ -442,7 +466,7 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
   RESTRICT`: the planned erasure of deleted / removed accounts must decide what happens to an admin who created
   classes before it can delete the row.
 - Seeds (`apps/backend/prisma/seed/main.ts`, one task per module) hold only technical data and the three App
-  Store / Google Play review accounts — never demo data.
+  Store / Google Play review accounts (or, on a test server, the test sets' accounts) — never demo data.
 - **`users.status` is the authority for deleted and removed accounts**, not the `deleted_at` column inherited
   from `EntityState`: the product distinguishes deleted from removed, and two sources would disagree.
 - **An erased account is a storage-only status** (spec 067, migration `20261027184122_users_erasure` — named
@@ -1009,7 +1033,14 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   `REVIEW_ACCOUNTS` is a JSON array of `{ "email", "code", "role", "name" }` (6-digit code; role `student` |
   `instructor` | `admin`), read by `AuthConfig` and by the seed through the same parser (`parseReviewAccounts`);
   a malformed value stops the backend at startup. Requesting a code for a review email stores the hash of its
-  fixed code and sends no email; the cooldown and the lockout apply as for anyone.
+  fixed code and sends no email; the cooldown and the lockout apply as for anyone. The array takes any number of
+  entries (distinct emails): since spec 076, `npm run test-accounts --workspace apps/backend` (`tsx
+  prisma/seed/print-test-accounts.ts`, over `buildTestAccounts` / `formatTestAccounts` in
+  `prisma/seed/test-accounts.ts`) prints a `REVIEW_ACCOUNTS='…'` line for the 12 test sets — `testeNN.admin`,
+  `testeNN.instrutor` and `testeNN.aluno` `@rochas-surf-school.test` (`NN` 01–12; names "Admin / Instrutor / Aluno
+  Teste <Um…Doze>", the number spelled because `PersonNameRule` allows letters only) with distinct random 6-digit
+  codes (`node:crypto` `randomInt`) — and a Markdown hand-out table `| Set | Role | Email | Code |`. The codes live
+  only in the test server's environment: the repository is public, and `.env.example` keeps `REVIEW_ACCOUNTS=""`.
 
 ## Classes
 

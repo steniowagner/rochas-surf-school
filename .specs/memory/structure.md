@@ -239,6 +239,8 @@ prisma/
                                 # the partial unique index enrolments_one_open_per_student_class in SQL
   seed/main.ts                  # seed runner, one task per module
   seed/review-accounts.seed.ts  # upserts the REVIEW_ACCOUNTS users and their email identities
+  seed/test-accounts.ts         # the 12 test sets with random codes; print-test-accounts.ts prints their REVIEW_ACCOUNTS
+                                # line and hand-out table (`npm run test-accounts`, spec 076)
 src/
   main.ts                       # bootstrap (PORT, CORS)
   app.module.ts                 # ConfigModule (global), ScheduleModule, DbModule, JwtAuthModule, AuthModule,
@@ -1016,7 +1018,12 @@ src/
         student-app/page.tsx    # the student app page (metadata + StudentAppPage, spec 073)
         instructor-app/page.tsx # the instructor app page (metadata + InstructorAppPage, spec 074)
         admin-app/page.tsx      # the admin app page (metadata + AdminAppPage, spec 075)
-  proxy.ts                      # redirects /, /privacy-policy, /terms-of-use, /account-deletion, /designs(/…) to the browser's language
+      user-journeys/            # the test users' pages (spec 076), linked from nowhere
+        layout.tsx              # SiteShell wide; robots noindex, nofollow
+        page.tsx                # the index (UserJourneysIndexPage): intro, before you start, one LinkRow per flow
+        [flow]/page.tsx         # auth | student | instructor | admin (any other → 404): UserJourneyFlowPage
+  proxy.ts                      # redirects /, /privacy-policy, /terms-of-use, /account-deletion, /designs(/…),
+                                # /user-journeys(/…) to the browser's language
   modules/designs/              # the public designs (spec 071)
     components/                 # mocks of the mobile components (same names and props: button, class-card, tab-bar,
                                 # bottom-modal, empty-state, enrolment-banner, request-seat-sheet, person-sheet,
@@ -1057,6 +1064,15 @@ src/
     pages/admin-app/            # AdminAppPage: sections 01–11 (spec 075)
     utils/                      # entry-row-container.ts (the classes an entry row takes in a grouped card, spec 074),
                                 # audience.ts (the app's joinAudience, spec 075)
+  modules/user-journeys/        # the user journey pages (spec 076)
+    data/user-journey-flows.ts  # the locale-free flows: design page, groups, rows (AU/ST/IN/AD-NN) and their design ids
+    i18n/                       # en.ts, pt-br.ts, es.ts (flow and row texts, typed by user-journey-texts.types.ts),
+                                # user-journey-texts.ts (by site locale)
+    components/                 # journey-board (client: progress, copy, clear), journey-row, results-summary
+    pages/                      # user-journeys-index, user-journey-flow
+    types/                      # journey-progress.types.ts
+    utils/                      # design-href.ts, results-summary.ts (the copied text), journey-progress-storage.ts
+                                # (localStorage per flow), journey-groups.ts, case-count.ts
   i18n/
     locales.ts                  # locales, defaultLocale (pt-br), hasLocale, matchLocale, html lang, names, flags
     dictionary.types.ts         # Dictionary: every string of the site
@@ -1064,12 +1080,14 @@ src/
     get-dictionary.ts           # server-side loader
   config/school-whatsapp.ts     # SCHOOL_WHATSAPP_NUMBER → formatted number + wa.me link; throws at build if invalid
   config/school-legal.ts        # SCHOOL_LEGAL_NAME, SCHOOL_CNPJ (optional), DPO_NAME, DPO_EMAIL; throws at build if invalid
-  components/                   # one folder each: site-header, language-picker and theme-toggle (the only client
-                                # components), screen-intro, content-card, link-row, site-shell (narrow | wide)
+  components/                   # one folder each: site-header, language-picker and theme-toggle (client components,
+                                # with the user journeys' journey-board), screen-intro, content-card, link-row,
+                                # site-shell (narrow | wide)
   components/ui/{button,chip}/  # design-system components (same names/props as mobile; Button also takes href)
   **/*.test.{ts,tsx}            # Vitest + React Testing Library tests, next to the file (locales, theme-toggle,
                                 # language-picker, button, chip, every designs mock, appT)
-e2e/                            # Playwright suite (*.e2e.ts): pages, redirect, theme-toggle, language-picker, designs
+e2e/                            # Playwright suite (*.e2e.ts): pages, redirect, theme-toggle, language-picker, designs,
+                                # user-journeys
 vitest.config.ts                # jsdom, @/ alias, src/**/*.test.{ts,tsx}, v8 coverage; vitest.setup.ts (jest-dom, cleanup)
 playwright.config.ts            # Chromium; webServer builds and starts the app on port 3100
 ```

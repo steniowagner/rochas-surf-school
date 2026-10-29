@@ -12,6 +12,13 @@ describe("StackHeader", () => {
     expect(screen.getByRole("button", { name: "acao" })).toBeInTheDocument();
   });
 
+  it("centers the title between the two slots, as iOS does", () => {
+    render(<StackHeader title="Aula" />);
+
+    expect(screen.getByRole("heading", { name: "Aula" })).toHaveClass("text-center");
+    expect(screen.getByRole("banner")).toHaveClass("grid");
+  });
+
   it("omits the back chevron when asked", () => {
     const { container } = render(<StackHeader title="Aula" showBack={false} />);
 

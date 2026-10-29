@@ -288,7 +288,7 @@ script prints, so no sign-in code ever reaches the public repository.
 - **Edge and error cases:** besides the `id` attributes (and compiled CSS), the generated sources don't change.
 - **Verify by:** `node .docs/designs/scripts/pack.mjs --check` exits 0; for each of the five sources,
   `grep -o 'data-design-id="[^"]*"' .docs/designs/src/<slug>/template.html | wc -l` equals
-  `grep -oE 'id="(DS|AF|ST|IN|AD)-[0-9]{2}-[0-9]{2}"' .docs/designs/src/<slug>/template.html | wc -l`.
+  `grep -oE ' id="(DS|AF|ST|IN|AD)-[0-9]{2}-[0-9]{2}"' .docs/designs/src/<slug>/template.html | wc -l`.
 
 ### ER-15 — Clear results starts the flow over
 
@@ -521,12 +521,22 @@ script prints, so no sign-in code ever reaches the public repository.
 
 ### Designs (`.docs/designs`)
 
-- [ ] **T-10** — Regenerate the five design files with the frame anchors: build the web and serve it with
+- [x] **T-10** — Regenerate the five design files with the frame anchors: build the web and serve it with
   `next start -p 3100`, run `node .docs/designs/scripts/build-design.mjs <slug>` for `design-system`, `auth-flow`,
   `student-app`, `instructor-app` and `admin-app`, then `node .docs/designs/scripts/pack.mjs`.
   Covers: ER-14 · Done when: `pack.mjs --check` exits 0, the `data-design-id` and `id` counts of ER-14 match in the
   five templates, and `git diff --word-diff` of the templates shows only added `id="…"` attributes besides any
   compiled CSS.
+  > ✅ 2026-10-29 17:58 — built the web (`npx turbo run … build`), served it with `next start -p 3100`, ran
+  > `build-design.mjs` for the five slugs and `pack.mjs`. Files: `.docs/designs/src/{design-system,auth-flow,student-app,instructor-app,admin-app}/template.html`,
+  > `.docs/designs/{design-system,auth-flow,student-app,instructor-app,admin-app}.html`; verified: `pack.mjs --check`
+  > ("5 design file(s) match their sources", exit 0); ER-14 counts (data-design-id = standalone id): design-system
+  > 102 = 102, auth-flow 98 = 98, student-app 172 = 172, instructor-app 98 = 98, admin-app 224 = 224 (each frame is
+  > drawn light and dark); removing every added ` id="XX-NN-NN"` from the new templates gives the old templates
+  > exactly once their `<style>` blocks are set aside, and every element with `data-design-id` carries the same `id`
+  > (script over `git show HEAD:<template>`); the compiled CSS changed (the new pages' utilities, e.g. `lg:table`), as
+  > ER-14 allows; deviations: ER-14's count command amended with the user's approval (see Amendments) — as planned it
+  > also matched the `id="…"` inside `data-design-id="…"` and always counted double.
 
 ### Verification
 
@@ -546,7 +556,7 @@ script prints, so no sign-in code ever reaches the public repository.
   - `node .docs/designs/scripts/pack.mjs --check`: every `.html` matches its sources.
   - The ER-14 counts: for each slug of `design-system auth-flow student-app instructor-app admin-app`,
     `grep -o 'data-design-id="[^"]*"' .docs/designs/src/<slug>/template.html | wc -l` equals
-    `grep -oE 'id="(DS|AF|ST|IN|AD)-[0-9]{2}-[0-9]{2}"' .docs/designs/src/<slug>/template.html | wc -l`.
+    `grep -oE ' id="(DS|AF|ST|IN|AD)-[0-9]{2}-[0-9]{2}"' .docs/designs/src/<slug>/template.html | wc -l`.
   - `grep -rnE "#[0-9a-fA-F]{3,6}\b|rgb\(" apps/web/src/modules/user-journeys`: finds nothing.
   - `grep -rn "REVIEW_ACCOUNTS" apps/web`: finds nothing.
   - `grep -n '^REVIEW_ACCOUNTS=""$' apps/backend/.env.example`: finds the line (no code committed).
@@ -635,5 +645,10 @@ script prints, so no sign-in code ever reaches the public repository.
 - 2026-10-29 — /spec-plan --amend — [journeys.md](journeys.md) changed: each role flow's account → that role's
   account in the tester's test set; AD-26 "The school always keeps an admin" → "Mark yourself as also an
   instructor" (it can't happen with 12 admins). Reason: the test sets. Approved by the user.
+
+- 2026-10-29 — /spec-execute — ER-14's Verify by and the Verification Plan's ER-14 counts: `grep -oE
+  'id="(DS|AF|ST|IN|AD)-[0-9]{2}-[0-9]{2}"'` → `grep -oE ' id="(DS|AF|ST|IN|AD)-[0-9]{2}-[0-9]{2}"'` (a leading space).
+  Reason: without it the pattern also matches the tail of every `data-design-id="…"`, so it counted each frame twice
+  and could never equal the `data-design-id` count. Approved by the user.
 
 ## Review

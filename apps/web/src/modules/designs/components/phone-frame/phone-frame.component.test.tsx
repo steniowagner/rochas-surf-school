@@ -19,4 +19,11 @@ describe("PhoneFrame", () => {
     expect(screen.getByText("10:02")).toBeInTheDocument();
     expect(screen.queryByRole("group")).toBeNull();
   });
+
+  it("draws the status bar over a full-bleed content", () => {
+    render(<PhoneFrame fullBleed><p>screen</p></PhoneFrame>);
+
+    expect(screen.getByText("9:41").parentElement).toHaveClass("absolute", "text-on-color");
+    expect(screen.getByText("screen").parentElement).toHaveClass("h-[874px]");
+  });
 });

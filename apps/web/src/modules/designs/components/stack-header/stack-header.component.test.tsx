@@ -24,4 +24,11 @@ describe("StackHeader", () => {
 
     expect(container.querySelector("svg")).toBeNull();
   });
+
+  it("draws no heading when the screen has no title", () => {
+    render(<StackHeader title="" />);
+
+    expect(screen.queryByRole("heading")).toBeNull();
+    expect(screen.getByRole("banner")).toHaveClass("grid");
+  });
 });

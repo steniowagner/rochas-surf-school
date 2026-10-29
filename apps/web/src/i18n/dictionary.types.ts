@@ -1,3 +1,4 @@
+import type { AuthFlowEntryId } from "@/modules/designs/data/auth-flow-ids";
 import type { DesignSystemEntryId } from "@/modules/designs/data/design-system-ids";
 
 /** Every string of the site, in one language. Each dictionary must satisfy this type exactly. */
@@ -27,7 +28,7 @@ export type Dictionary = {
     metaDescription: string;
     title: string;
     description: string;
-    pages: { designSystem: { title: string; description: string } };
+    pages: { designSystem: { title: string; description: string }; authFlow: { title: string; description: string } };
   };
   designSystem: {
     metaTitle: string;
@@ -38,6 +39,20 @@ export type Dictionary = {
     entries: Record<DesignSystemEntryId, { title: string; note: string }>;
     rules: string[];
     labels: { light: string, dark: string, theme: string, values: string, family: string, weight: string, size: string, spacing: string, caseUpper: string, caseNormal: string, default: string, disabled: string, loading: string, withIcon: string, touchTarget: string, iconSizes: string, guest: string, formerStudent: string };
+  };
+  authFlow: {
+    metaTitle: string;
+    title: string;
+    eyebrow: string;
+    description: string;
+    sections: Record<"signIn" | "email" | "onboarding" | "closedAccount", { title: string; description: string }>;
+    entries: Record<AuthFlowEntryId, { title: string; note: string }>;
+    /** Introduces the list of the other messages an element can show, in an entry's note. */
+    otherMessages: string;
+    /** The mock school rules of the rules frames: text typed by the school, not app copy. */
+    schoolRules: { title: string; description: string }[];
+    /** The mock reason an admin typed when denying an account. */
+    denialReason: string;
   };
   privacyPolicy: {
     metaTitle: string;

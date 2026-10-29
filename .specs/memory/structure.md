@@ -12,7 +12,7 @@ turbo.json            # build / lint / check-types / test / test:e2e / dev tasks
 CLAUDE.md, AGENTS.md  # agent instructions: commands, layout, design system, native builds
 .docs/                # source documents: user-journeys.md, requirements.md, designs/*.html
 .docs/designs/src/    # readable sources of each design file (<name>/) and the vendor assets they share (_shared/)
-.docs/designs/scripts/ # pack.mjs (sources → .html, --check), unpack.mjs, build-design-system.mjs, bundle.mjs; node --test tests
+.docs/designs/scripts/ # pack.mjs (sources → .html, --check), unpack.mjs, build-design.mjs <slug>, bundle.mjs; node --test tests
 .specs/               # project specs and memory (see below)
 .claude/skills/       # project generator skills (module-*, backend-*, config-*) and the spec-* workflow
 .github/workflows/    # ci.yml — runs the test suites of the affected apps on pull requests and pushes to main
@@ -1012,14 +1012,23 @@ src/
         layout.tsx              # SiteShell wide: the same header and footer, up to 1440px
         page.tsx                # the designs index (designPages)
         design-system/page.tsx  # the design system page (metadata + DesignSystemPage)
+        auth-flow/page.tsx      # the auth flow page (metadata + AuthFlowPage, spec 072)
   proxy.ts                      # redirects /, /privacy-policy, /terms-of-use, /account-deletion, /designs(/…) to the browser's language
   modules/designs/              # the public designs (spec 071)
     components/                 # mocks of the mobile components (same names and props: button, class-card, tab-bar,
                                 # bottom-modal, empty-state…), phone-frame, design-section, design-entry, app-icon
-                                # (the app's glyphs via react-icons / @mdi/js) and design-system-<section> per section
-    data/                       # design-pages.ts, design-system-ids.ts (DS-xx-yy), fortaleza.ts (mock data), mock-calendar.ts
-    i18n/                       # app-locale.ts (site → app locale), app-t.ts (appT, appRich over app-messages)
+                                # (the app's glyphs via react-icons / @mdi/js), design-system-<section> and
+                                # auth-flow-<section> per section (sign-in, email, onboarding, closed-account)
+    screens/auth/               # whole-screen mocks, one *-screen folder each, state as props (spec 072): sign-in,
+                                # email-choice, email-sign-in, create-account, confirm-code, google-name, pending,
+                                # whatsapp, school-rules, reactivation, denied, removed
+    assets/                     # team-hero.jpg and google-logo.svg (copied from the app), asset-src.ts
+    data/                       # design-pages.ts, design-system-ids.ts (DS-xx-yy), auth-flow-ids.ts (AF-xx-yy and each
+                                # entry's other messages), fortaleza.ts (mock data), mock-calendar.ts
+    i18n/                       # app-locale.ts (site → app locale), app-t.ts (appT, appRich over app-messages),
+                                # auth-flow-note.ts (an entry's note with its other messages)
     pages/design-system/        # DesignSystemPage: sections 01–09
+    pages/auth-flow/            # AuthFlowPage: sections 01–04
   i18n/
     locales.ts                  # locales, defaultLocale (pt-br), hasLocale, matchLocale, html lang, names, flags
     dictionary.types.ts         # Dictionary: every string of the site

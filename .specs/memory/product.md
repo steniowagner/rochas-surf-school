@@ -1318,6 +1318,17 @@ Fortaleza, and everything follows the theme picked in the site header. Only what
 pages are wider than the legal pages and fit a phone screen without scrolling sideways. The app's copy in the three
 languages now lives in one place shared by the app and the site.
 
+**Auth flow designs page** (spec `072-designs-auth-flow`) — the designs index lists a second page, the auth flow, at
+`/{lang}/designs/auth-flow`. It shows every screen a person goes through before reaching their role's home, in 49
+entries (`AF-<section>-<entry>`) in four sections: sign-in (with the language sheet, Google loading and the error and
+session-expired toasts), email (the choice, signing in, creating an account, confirming the code and the name asked
+after Google), approval and onboarding (pending approval, the WhatsApp number, the school rules and the rules update)
+and the closed-account screens (reactivation, registration denied, removed). Each state the app draws is one frame;
+the other messages the same element can show are listed in the entry's note, with the app's copy. The sign-in
+frames show the app's own team photo and Google logo and stay in the light palette in both themes, as the app draws
+them; every other frame follows the theme and language picked in the site header. The school rules and the
+admin's denial reason in the frames are mock text in the page's language.
+
 Active specs: none.
 
 ## Out of scope (future evolution, recorded in the specs)
@@ -1367,9 +1378,10 @@ Active specs: none.
 - Deploying the public site (host and domain), linking the privacy policy from the store listings, the onboarding
   line linking the terms and the policy, a report button for objectionable content, the
   legal (LGPD) review of the pages' copy.
-- On the designs area (spec 071): the sign-in, student, instructor and admin designs on the site (each to come in its
-  own spec), Android phone frames, clickable prototypes (every state is a static frame), search-engine settings for
-  the design pages, and keeping the Claude Design project in sync with the design files.
+- On the designs area (spec 071): the student, instructor and admin designs on the site (each to come in its own
+  spec), Android phone frames, clickable prototypes (every state is a static frame), search-engine settings for
+  the design pages, and keeping the Claude Design project in sync with the design files. On the auth flow page (spec
+  072): frames with the keyboard open.
 - On the Profile (spec 026): uploading or changing the profile photo (the camera button says "coming soon"),
   splitting the name into first and last name, real data in the
   About sheet (mocked), and keeping the theme, language and push preferences on the account or syncing them across
@@ -1465,7 +1477,10 @@ Active specs: none.
   and the loading, empty and error states (section 09), in pt-BR, every entry in light and dark side by side. Since
   spec 071 it is generated from the site's design system page (`/{lang}/designs/design-system`), which is the
   source of truth for it, and it absorbed the former `empty-and-error-states.html`.
-- `.docs/designs/auth-flow.html` — the designs of the sign-in screens.
+- `.docs/designs/auth-flow.html` — the auth flow: every screen before a person reaches their role's home (sign-in,
+  email and code, approval, onboarding, rules update, closed accounts), in pt-BR, every entry in light and dark side
+  by side. Since spec 072 it is generated from the site's auth flow page (`/{lang}/designs/auth-flow`), like
+  `design-system.html`; the former European Portuguese prototype is gone.
 - `.docs/designs/student-app.html`, `instructor-app.html`, `admin-app.html` — the designs of each role's screens.
 - Since spec 071 the design files are edited through readable sources in `.docs/designs/src/`, rebuilt into the
   `.html` files by a pack script; the Claude Design project is no longer where they are edited.

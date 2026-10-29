@@ -214,8 +214,8 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     `dynamicParams = false`, so another `lang` answers 404) and sets its translated `<title>` and description
     with `generateMetadata`. Since spec 071 those four pages sit in the `(site)` route group, whose layout renders
     `SiteShell` (`src/components/site-shell`: header, footer and the content column) `narrow` (640 px), and
-    `designs/layout.tsx` renders it `wide` (up to 1440 px) for `/{lang}/designs` (the index) and
-    `/{lang}/designs/design-system`. Each design page is its own static route (no `[slug]`), so an unknown slug
+    `designs/layout.tsx` renders it `wide` (up to 1440 px) for `/{lang}/designs` (the index),
+    `/{lang}/designs/design-system` and, since spec 072, `/{lang}/designs/auth-flow`. Each design page is its own static route (no `[slug]`), so an unknown slug
     answers 404; the index lists `designPages` from `src/modules/designs/data/design-pages.ts`.
   - Designs (spec 071): `src/modules/designs/` holds `components/` (presentational mocks of the mobile components
     with the mobile names and props, plus `phone-frame` — an iOS 402 × 874 frame that scales down with a container
@@ -225,7 +225,16 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     `appT(locale, key, params?)` reads the app's copy from `@rochas-surf-school/app-messages` by dotted key, fills
     `{{name}}` and picks i18next plural suffixes with `Intl.PluralRules`, throwing on a missing key; `appRich`
     renders `<tag>` rich text through given components) and `pages/design-system/`. The copy inside the frames is
-    the app's (`appT`); section titles, notes and rules are in the site dictionaries. The app's own glyphs
+    the app's (`appT`); section titles, notes and rules are in the site dictionaries. Since spec 072 it also holds
+    `screens/auth/` (one `*-screen` folder per whole-screen mock — sign-in, email choice and sign-in, create account,
+    confirm code, Google name, pending, WhatsApp, school rules, reactivation, denied, removed — each taking its state
+    as props and staying presentational), `assets/` (the app's `team-hero.jpg` and `google-logo.svg`, drawn with a
+    plain `<img>` through `assetSrc` so the generated `.html` can embed them), `data/auth-flow-ids.ts` (the 49 ids
+    `AF-<section>-<entry>` and each entry's other app messages), `i18n/auth-flow-note.ts` (an entry's note plus those
+    messages in the app's copy), one `auth-flow-<section>` component per section and `pages/auth-flow/`; the mock
+    school rules and denial reason are in the site dictionaries. `phone-frame` takes `fullBleed` for a screen drawn
+    under the status bar, and the sign-in screen sets `data-theme="light"` on itself so it stays light in both
+    themes. The app's own glyphs
     (Ionicons, Feather, FontAwesome, FontAwesome6, MaterialCommunityIcons, SimpleLineIcons) are drawn by `app-icon`
     from a typed `"<set>:<name>"` registry over **`react-icons`** 5 and **`@mdi/js`** 7; Lucide stays for the
     site's own pages. `globals.css` also maps the tokens the mocks need (checkbox and icon-button radii, `sun-tint`,
@@ -307,10 +316,13 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
   assets shared by every file — React 18 UMD, Babel standalone, the `x-dc` runtime, fonts, frames — de-duplicated
   in `src/_shared/`) and rebuilt with `node .docs/designs/scripts/pack.mjs [<name>]` (Node only, `node:zlib`);
   `--check` compares the decoded content and exits 1 naming a stale `.html`; `unpack.mjs` imports a new export.
-  `design-system.html` is the exception: its sources are generated from the web's `/pt-br/designs/design-system`
-  by `build-design-system.mjs` (the web built and served with `next start -p 3100`; every entry drawn light and dark
-  side by side with the web's compiled CSS and the same SVG glyphs; it loads `jsdom` from the repo root), so the
-  web components are its source of truth and it is never hand-edited. The scripts are tested with
+  `design-system.html` and, since spec 072, `auth-flow.html` are the exception: their sources are generated from the
+  web's `/pt-br/designs/<slug>` by `build-design.mjs <slug>` (the web built and served with `next start -p 3100`;
+  every `[data-design-id]` entry drawn light and dark side by side with the web's compiled CSS and the same SVG
+  glyphs; the images the page draws become bundle assets; every design shares the design system's `shell.html`,
+  `fonts.css` and font assets, and any other file in `src/<slug>/` is removed; it loads `jsdom` from the repo root),
+  so the web components are their source of truth and they are never hand-edited. The compiled CSS grows with every
+  page that uses a new utility, so regenerating one design can change another's `<style>` but never its markup. The scripts are tested with
   `node --test .docs/designs/scripts/*.test.mjs`.
 
 ## Persistence

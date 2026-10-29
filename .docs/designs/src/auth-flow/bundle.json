@@ -1,182 +1,119 @@
 {
-  "extResources": [
-    {
-      "id": "./Login%20Screen.dc.html",
-      "uuid": "c7da5b33-a747-4ed3-9836-117c7f7c6745"
-    },
-    {
-      "id": "https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap",
-      "uuid": "12da3c72-fa4f-419c-987a-b1bf61765d1a"
-    },
-    {
-      "id": "https://unpkg.com/react@18.3.1/umd/react.production.min.js",
-      "uuid": "d4995112-99f4-4c5a-980e-0798799ccc98"
-    },
-    {
-      "id": "https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js",
-      "uuid": "f1944aec-850d-41cd-ae54-28092695b1d2"
-    },
-    {
-      "id": "https://unpkg.com/@babel/standalone@7.29.0/babel.min.js",
-      "uuid": "880941d7-7c73-4335-a3fe-cebeefdec08c"
-    }
-  ],
+  "extResources": [],
   "pageOrder": [],
   "assets": [
     {
-      "uuid": "33d15593-54c0-4516-a3f0-dc25038278ed",
-      "file": "_shared/dc-runtime.js",
-      "mime": "text/javascript",
-      "compressed": true
-    },
-    {
-      "uuid": "b845efac-30b0-42ba-bebf-56e8f8e13786",
-      "file": "_shared/icons.js",
-      "mime": "application/javascript",
-      "compressed": true
-    },
-    {
-      "uuid": "d05299a9-fadc-4722-bf3f-a817f3ff05b4",
-      "file": "_shared/android-frame.jsx",
-      "mime": "text/jsx",
-      "compressed": true
-    },
-    {
-      "uuid": "1ffd3937-9847-40da-99ad-f947ebb560cd",
-      "file": "_shared/ios-frame.jsx",
-      "mime": "text/jsx",
-      "compressed": true
-    },
-    {
-      "uuid": "c7da5b33-a747-4ed3-9836-117c7f7c6745",
-      "file": "auth-flow/Login Screen.dc.html",
-      "mime": "text/html",
-      "compressed": true
-    },
-    {
-      "uuid": "12da3c72-fa4f-419c-987a-b1bf61765d1a",
-      "file": "_shared/fonts.css",
-      "mime": "text/css",
-      "compressed": true
-    },
-    {
-      "uuid": "d4995112-99f4-4c5a-980e-0798799ccc98",
-      "file": "_shared/react.production.min.js",
-      "mime": "text/javascript",
-      "compressed": true
-    },
-    {
-      "uuid": "f1944aec-850d-41cd-ae54-28092695b1d2",
-      "file": "_shared/react-dom.production.min.js",
-      "mime": "text/javascript",
-      "compressed": true
-    },
-    {
-      "uuid": "880941d7-7c73-4335-a3fe-cebeefdec08c",
-      "file": "_shared/babel.min.js",
-      "mime": "text/javascript",
-      "compressed": true
-    },
-    {
-      "uuid": "ac8bfe3b-8f4b-47dd-8c6d-634c770351e8",
+      "uuid": "dd5fcc79-d7e2-415e-b874-976770ce085e",
       "file": "_shared/font-bc42ba6f.woff2",
       "mime": "font/woff2",
       "compressed": false
     },
     {
-      "uuid": "47bb13aa-2fba-4ee0-b6c9-d2e9509c485c",
+      "uuid": "d43461b0-721c-4928-b1b4-9a8e7a6cc17c",
       "file": "_shared/font-ed8618e8.woff2",
       "mime": "font/woff2",
       "compressed": false
     },
     {
-      "uuid": "6675c787-54d4-47fd-bef1-142aec80a86d",
+      "uuid": "331f73a5-4f57-44e6-bdb3-ae95682e79cb",
       "file": "_shared/font-0e2a4081.woff2",
       "mime": "font/woff2",
       "compressed": false
     },
     {
-      "uuid": "1ba9205b-3f76-4b39-8eb1-cab4f30c2cb5",
+      "uuid": "683fe794-94ba-414b-948d-057b55e2969f",
       "file": "_shared/font-864c709d.woff2",
       "mime": "font/woff2",
       "compressed": false
     },
     {
-      "uuid": "c0d47e93-c371-4a64-a2df-bf3e1c76a1b1",
+      "uuid": "f5ae4084-ea0e-44fa-b10e-eae6eb87a756",
       "file": "_shared/font-f8ec026d.woff2",
       "mime": "font/woff2",
       "compressed": false
     },
     {
-      "uuid": "d3a33a19-6901-4515-afa6-a8917df3ce7d",
+      "uuid": "f0cb930a-9139-4f1a-9cc4-7f2554d85aa8",
       "file": "_shared/font-31ff5e6e.woff2",
       "mime": "font/woff2",
       "compressed": false
     },
     {
-      "uuid": "c351fb8a-a424-4cc4-8b72-fe917f1a5fc9",
+      "uuid": "1c92e466-f0a0-4d06-bd4f-91a8f2920cb0",
       "file": "_shared/font-50c25f32.woff2",
       "mime": "font/woff2",
       "compressed": false
     },
     {
-      "uuid": "5adf0369-861a-49fe-95a8-a0ad393342f2",
+      "uuid": "00c0b14a-d2d3-4a93-8fd8-93df1ce60bfe",
       "file": "_shared/font-a2f92ada.woff2",
       "mime": "font/woff2",
       "compressed": false
     },
     {
-      "uuid": "6e1b99ed-d637-4dd1-ad04-5ee079d5191c",
+      "uuid": "ef156f89-393a-4f80-b218-146e7045648f",
       "file": "_shared/font-5bc49d41.woff2",
       "mime": "font/woff2",
       "compressed": false
     },
     {
-      "uuid": "21221449-df51-4ea1-8753-cce943e67457",
+      "uuid": "24cccc99-5c9b-454c-89f1-646d0ebbf7ce",
       "file": "_shared/font-960aaed3.woff2",
       "mime": "font/woff2",
       "compressed": false
     },
     {
-      "uuid": "7994ff44-d67e-4f09-9394-b5f63bd0c424",
+      "uuid": "c42eca55-fc78-40c8-a7f3-b41fc7f0af48",
       "file": "_shared/font-0c165565.woff2",
       "mime": "font/woff2",
       "compressed": false
     },
     {
-      "uuid": "dcf2085f-d13b-4abf-b5a9-fde62ef9394d",
+      "uuid": "7fcdfe9c-143e-44da-83d1-8922354b3be0",
       "file": "_shared/font-e3e520cb.woff2",
       "mime": "font/woff2",
       "compressed": false
     },
     {
-      "uuid": "f94ff9fd-531b-4555-850c-0035fa5b28bd",
+      "uuid": "feaa59a8-4db0-44e5-b38d-97f5b156bb52",
       "file": "_shared/font-2d06f2c3.woff2",
       "mime": "font/woff2",
       "compressed": false
     },
     {
-      "uuid": "52a37a92-8e03-47e6-b040-4ebed57a94c8",
+      "uuid": "18f3f429-493b-4377-b710-38ffa7365401",
       "file": "_shared/font-b63651df.woff2",
       "mime": "font/woff2",
       "compressed": false
     },
     {
-      "uuid": "c6f1e71d-d98a-4395-ba14-9be9731ec0b2",
+      "uuid": "7b821712-2ce1-4f2c-9122-9ddc155525e6",
       "file": "_shared/font-d107f726.woff2",
       "mime": "font/woff2",
       "compressed": false
     },
     {
-      "uuid": "dffffd5e-915d-4827-8b04-887a26eaa69a",
+      "uuid": "e07f527b-abd1-42d3-b2f6-387c56c32bfd",
       "file": "_shared/font-511ce967.woff2",
       "mime": "font/woff2",
       "compressed": false
     },
     {
-      "uuid": "ae0f7f36-c242-4bbb-a2ac-7fb1815ae586",
+      "uuid": "a7a3a6db-d20a-463f-b36a-5e0e620a9378",
       "file": "_shared/font-20fc9b6f.woff2",
       "mime": "font/woff2",
+      "compressed": false
+    },
+    {
+      "uuid": "854c6985-89ea-47b7-91fa-cdf7b1b79811",
+      "file": "auth-flow/team-hero.jpg",
+      "mime": "image/jpeg",
+      "compressed": false
+    },
+    {
+      "uuid": "dbc3b4e0-92c0-40f4-a9fd-de0a6b752a69",
+      "file": "auth-flow/google-logo.svg",
+      "mime": "image/svg+xml",
       "compressed": false
     }
   ]

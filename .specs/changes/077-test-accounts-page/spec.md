@@ -188,11 +188,20 @@ server creates.
 
 ### Backend (`apps/backend`)
 
-- [ ] **T-02** — Change `prisma/seed/test-accounts.ts` to build its accounts from `testAccountSets` (D-02),
+- [x] **T-02** — Change `prisma/seed/test-accounts.ts` to build its accounts from `testAccountSets` (D-02),
   removing its own set numbers, roles and domain; add to `prisma/seed/test-accounts.spec.ts` the test
   `mirrors testAccountSets` (emails, names and roles equal the flattened list, in order).
   Covers: ER-01 · Done when: `npx vitest run prisma/seed` passes in `apps/backend` and
   `npm run test-accounts --workspace apps/backend` prints the line and 36 table rows.
+  > ✅ 2026-10-29 22:35 — `buildTestAccounts` now flattens `testAccountSets` and adds one distinct random code per
+  > account; `SET_NUMBERS`, `SET_ROLES` and `EMAIL_DOMAIN` are gone; signature, output and `formatTestAccounts`
+  > unchanged; added the test `mirrors testAccountSets`. It passes both before and after the source change (the
+  > output is the same by design, D-02); it fails as soon as the script's list and the shared one differ; files:
+  > `apps/backend/prisma/seed/test-accounts.ts`, `apps/backend/prisma/seed/test-accounts.spec.ts`; verified:
+  > `npx vitest run prisma/seed` in `apps/backend` (4 files, 20 passed, the existing assertions unchanged),
+  > `npm run test-accounts --workspace apps/backend` (the `REVIEW_ACCOUNTS='[…]'` line and 36 table rows),
+  > `npm run check-types` and `npm run lint` in `apps/backend` (no error, no warning in `prisma/seed`);
+  > deviations: none
 
 ### Web (`apps/web`)
 

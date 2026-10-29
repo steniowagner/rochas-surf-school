@@ -231,7 +231,7 @@ prototype and its ratings.
 
 ### Designs (`.docs/designs`)
 
-- [ ] **T-05** — Add `instructor-app` to the slugs of `.docs/designs/scripts/build-design.mjs`; run it for
+- [x] **T-05** — Add `instructor-app` to the slugs of `.docs/designs/scripts/build-design.mjs`; run it for
   `instructor-app`, which removes the old prototype sources; regenerate `design-system`, `auth-flow` and
   `student-app` so their compiled CSS is current; pack the four files; update the Designs commands in `CLAUDE.md`
   with the new slug. Covers: ER-01 · Done when: `pack.mjs --check` exits 0,
@@ -239,6 +239,10 @@ prototype and its ratings.
   `grep -rliE "ecrã|Já a seguir|As minhas|avaliar" .docs/designs/src/instructor-app` finds nothing, the other three
   designs' sources changed only in their CSS, a second run of the generator changes nothing, and
   `instructor-app.html` opened in a browser shows the 49 entries in light and dark.
+  > ✅ 2026-10-29 12:45 — `instructor-app` added to the slugs listed by `.docs/designs/scripts/build-design.mjs` (its usage comment: the script takes any page slug) and to the Designs commands in `CLAUDE.md`. With the web built and served on port 3100, ran `node .docs/designs/scripts/build-design.mjs instructor-app` (it removed `src/instructor-app/App Instrutor.dc.html` and wrote the template, the shared shell and fonts and the bundle), then `design-system`, `auth-flow` and `student-app`, and `pack.mjs` for the four.
+  > files: `.docs/designs/scripts/build-design.mjs`, `CLAUDE.md`, `.docs/designs/src/instructor-app/{template.html,shell.html,bundle.json,fonts.css}`, `.docs/designs/src/instructor-app/App Instrutor.dc.html` (deleted), `.docs/designs/instructor-app.html`, `.docs/designs/src/{design-system,auth-flow,student-app}/template.html`, `.docs/designs/{design-system,auth-flow,student-app}.html`
+  > verified: `node .docs/designs/scripts/pack.mjs --check` exits 0 ("5 design file(s) match their sources"); `test ! -e ".docs/designs/src/instructor-app/App Instrutor.dc.html"` passes; `grep -rliE "ecrã|Já a seguir|As minhas|avaliar" .docs/designs/src/instructor-app` finds nothing (exit 1); the other three templates are identical to HEAD's once their `<style>` blocks are set aside (only the compiled CSS changed); a second run of the generator for the four slugs left no change in `git status`; `instructor-app.html` served locally and opened in the browser pane: the 49 ids `IN-01-01`…`IN-06-06`, each drawn light and dark (98 frames), in pt-BR, the tall frames at full height (IN-03-01 1243 px, IN-03-12 874 px), no `{{…}}` and none of the old wording
+  > deviations: the browser pane can't open `file://` URLs, so the file was opened through a static server on localhost; the two temporary `.claude/launch.json` entries used to serve the web and the file were reverted.
 
 ### Verification
 

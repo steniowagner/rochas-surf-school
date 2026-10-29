@@ -17,4 +17,17 @@ describe("ClassStudentRow", () => {
     expect(screen.queryByRole("button")).toBeNull();
     expect(screen.getByText("Ex-aluno")).toBeInTheDocument();
   });
+
+  it("draws the admin's take-out button instead of the chevron", () => {
+    const { container } = render(<ClassStudentRow name="Caio Sousa" takeOutLabel="Retirar" />);
+
+    expect(screen.getByRole("button", { name: "Retirar Caio Sousa" })).toHaveTextContent("Retirar");
+    expect(container.querySelectorAll("svg")).toHaveLength(0);
+  });
+
+  it("gives an erased student no take-out button", () => {
+    render(<ClassStudentRow name="Ex-aluno" erased takeOutLabel="Retirar" />);
+
+    expect(screen.queryByRole("button")).toBeNull();
+  });
 });

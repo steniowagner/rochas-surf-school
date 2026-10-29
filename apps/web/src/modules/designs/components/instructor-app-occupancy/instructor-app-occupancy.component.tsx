@@ -1,5 +1,5 @@
 import { instructorAppNote } from "@/modules/designs/i18n/instructor-app-note";
-import { WeeklyOccupancyScreen } from "@/modules/designs/screens/instructor/weekly-occupancy-screen";
+import { WeeklyOccupancyScreen } from "@/modules/designs/screens/shared/weekly-occupancy-screen";
 
 import { DesignEntry } from "../design-entry";
 import { DesignSection } from "../design-section";

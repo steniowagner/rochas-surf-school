@@ -85,4 +85,13 @@ describe("ProfileScreen", () => {
     expect(screen.getByRole("tab", { name: "Perfil" })).toHaveAttribute("aria-selected", "true");
     expect(screen.getByRole("tab", { name: "Início" })).toBeInTheDocument();
   });
+
+  it("AD-11-04: the admin's name and role, on the admin tab bar", () => {
+    render(<ProfileScreen locale="pt-br" state="profile" rules={{ surf: "", skate: "" }} role="admin" />);
+
+    expect(screen.getByText("Juliana Prado")).toBeInTheDocument();
+    expect(screen.getByText("Admin")).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Perfil" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("tab", { name: "Início" })).toBeInTheDocument();
+  });
 });

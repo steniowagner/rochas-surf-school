@@ -161,3 +161,124 @@ export const occupancyClasses: OccupancyClass[] = [
   { ...iracema, id: "sat-0800", day: 5, time: "08:00", seatsTaken: 3, students: students.slice(1, 4).map((student) => ({ ...student })) },
   { ...futuro, id: "sat-0800-skate", day: 5, time: "08:00", timeRange: "08:00 – 09:30", level: "beginner", seatsTaken: 5 },
 ];
+
+/**
+ * The admin the admin app page is signed in as (spec 075 D-01): Juliana Prado, who also teaches (spec 070's
+ * instructor flag). She isn't in the student page's directory, so the admin's directory adds her (`adminDirectory`).
+ */
+export const adminAccount = { id: "juliana", name: "Juliana Prado", firstName: "Juliana", email: "juliana.prado@email.com" } as const;
+
+/**
+ * The day's classes of the admin's "Aulas" tab (D-04), with the admin's flags: one under way, one with no instructor,
+ * one with no cancellation deadline, a full one and a cancelled one.
+ */
+export const adminDayClasses: CardBase[] = [
+  { ...iracema, state: "started", timeRange: "06:30 – 08:00", seatsTaken: 6 },
+  { ...iracema, showFlags: true, withoutInstructor: true },
+  { ...iracema, level: "advanced", timeRange: "10:00 – 11:30", locationName: "Praia do Futuro", seatsTaken: 3, students: students.slice(1, 4).map((student) => ({ ...student })), showFlags: true, withoutDeadline: true },
+  { ...futuro, showFlags: true },
+  { ...futuro, level: "beginner", state: "cancelled", timeRange: "17:30 – 19:00", seatsTaken: 2, students: students.slice(0, 2).map((student) => ({ ...student })), showFlags: true },
+];
+
+/** The counts of the admin's home (D-04): what waits for her, the classes she teaches and the school's rules. */
+export const adminHome = { classRequests: 5, registrations: 3, removedAccounts: 2, reactivations: 2, assignedClasses: 4, schoolRules: 3, unreadNotifications: 4 } as const;
+
+/** The school's saved locations (D-04), and the one a class keeps after it was removed. */
+export const classLocations = {
+  iracema: { id: "iracema", name: "Praia de Iracema", address: "Av. Beira Mar, 2200 – Meireles, Fortaleza" },
+  futuro: { id: "futuro", name: "Praia do Futuro", address: "Av. Zezé Diogo, 3500 – Praia do Futuro, Fortaleza" },
+  skatePark: { id: "skate-park", name: "Skate Park do Aterrinho", address: "Av. Almirante Barroso, 901 – Praia de Iracema, Fortaleza" },
+  removed: { id: "cumbuco", name: "Praia do Cumbuco", address: "Av. dos Coqueiros – Cumbuco, Caucaia", archived: true },
+} as const;
+
+/** The approved instructors and admins a class can be given to (D-04), by name. */
+export const classTeachers = [
+  { id: "bruno", name: "Bruno Costa" },
+  { id: "carla", name: "Carla Mendes" },
+  { id: "juliana", name: "Juliana Prado" },
+  { id: "marcos", name: "Marcos Lima" },
+  { id: "marina", name: "Marina Teixeira" },
+  { id: "rafael", name: "Rafael Rocha" },
+];
+
+/** How many people each notice audience reaches (D-04). */
+export const noticeAudienceCounts = { all: 48, students: 42, instructors: 6 } as const;
+
+/** Who a message to the class of the details reaches: its instructor, its four students and the one pending request. */
+export const classMessagePeople = [
+  { id: "rafael", label: "Rafael Rocha", erased: false, role: "instructor" as const },
+  ...students.slice(0, 4).map((student) => ({ id: student.id, label: student.label, erased: false, role: "student" as const })),
+  { id: "pending-paulo", label: "Paulo Freitas", erased: false, role: "pending" as const },
+];
+
+/** The pending requests of the admin's "Inscrições em aulas" (D-04), by class: an open surf class, a full skate one and another surf one. */
+export const pendingRequestGroups = [
+  {
+    id: "wed-0800",
+    date: "2026-09-09",
+    discipline: "surf" as const,
+    level: "beginner" as const,
+    timeRange: "08:00 – 09:30",
+    locationName: "Praia de Iracema",
+    seatsTaken: 5,
+    capacity: 8,
+    requests: [
+      { id: "gabriel", name: "Gabriel Moura", askedAt: { time: "14:20", date: "2026-09-05" } },
+      { id: "helena", name: "Helena Duarte", askedAt: { time: "09:05", date: "2026-09-06" } },
+    ],
+  },
+  {
+    id: "wed-1600",
+    date: "2026-09-09",
+    discipline: "skate" as const,
+    level: "advanced" as const,
+    timeRange: "16:00 – 17:30",
+    locationName: "Skate Park do Aterrinho",
+    seatsTaken: 8,
+    capacity: 8,
+    requests: [
+      { id: "igor", name: "Igor Santos", askedAt: { time: "18:40", date: "2026-09-04" } },
+      { id: "lara", name: "Lara Vieira", askedAt: { time: "07:15", date: "2026-09-06" } },
+    ],
+  },
+  {
+    id: "thu-1000",
+    date: "2026-09-10",
+    discipline: "surf" as const,
+    level: "advanced" as const,
+    timeRange: "10:00 – 11:30",
+    locationName: "Praia do Futuro",
+    seatsTaken: 3,
+    capacity: 8,
+    requests: [{ id: "paulo", name: "Paulo Freitas", askedAt: { time: "21:10", date: "2026-09-06" } }],
+  },
+];
+
+/** The new accounts waiting to join the school (D-04). */
+export const registrationRequests = [
+  { id: "renata", name: "Renata Coelho", email: "renata.coelho@email.com" },
+  { id: "thiago", name: "Thiago Barros", email: "thiago.barros@email.com" },
+  { id: "vitoria", name: "Vitória Pinheiro", email: "vitoria.pinheiro@email.com" },
+];
+
+/** The deleted accounts that asked to come back (D-04): when each was deleted and how many classes it took. */
+export const reactivationRequests = [
+  { id: "fernanda", name: "Fernanda Rocha", email: "fernanda.rocha@email.com", deletedAt: "2026-08-12", classesTaken: 14 },
+  { id: "otavio", name: "Otávio Lins", email: "otavio.lins@email.com", deletedAt: "2026-07-28", classesTaken: 1 },
+];
+
+/** The accounts removed in the last 30 days (D-04), and when. */
+export const removedAccounts = [
+  { id: "sergio", name: "Sérgio Matos", role: "student" as const, removedAt: "2026-09-02" },
+  { id: "patricia", name: "Patrícia Leal", role: "instructor" as const, removedAt: "2026-08-20" },
+];
+
+/** The students the admin can enrol (D-04), as the search lists them. */
+export const enrolStudents = ["Ana Beatriz Lima", "Caio Sousa", "Daniela Reis", "Elisa Alves", "Gabriel Moura", "Helena Duarte"].map((name) => ({ id: name.split(" ")[0]?.toLowerCase() ?? name, name }));
+
+/** Today's classes the admin can enrol in (the ones still to start): two with room and a full one, faded. */
+export const enrolDayClasses: CardBase[] = [
+  iracema,
+  { ...iracema, level: "advanced", timeRange: "10:00 – 11:30", locationName: "Praia do Futuro", seatsTaken: 3, students: students.slice(1, 4).map((student) => ({ ...student })) },
+  futuro,
+];

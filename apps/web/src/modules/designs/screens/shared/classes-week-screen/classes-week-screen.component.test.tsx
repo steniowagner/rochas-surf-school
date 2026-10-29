@@ -115,4 +115,61 @@ describe("ClassesWeekScreen", () => {
       expect(screen.getByRole("button", { name: "Tentar de novo" })).toBeInTheDocument();
     });
   });
+
+  describe("as an admin", () => {
+    const newClass = () => screen.queryByRole("button", { name: "Nova aula" });
+
+    it("AD-02-01: the title, the + button, today selected, the cards with the admin's flags and the admin tab bar", () => {
+      render(<ClassesWeekScreen locale="pt-br" state="week" role="admin" />);
+
+      expect(screen.getByTestId("phone-frame")).toHaveAttribute("data-tall");
+      expect(screen.getByRole("heading", { name: "Aulas" })).toBeInTheDocument();
+      expect(newClass()).toBeInTheDocument();
+      expect(screen.queryByText("Bom dia,")).toBeNull();
+      expect(screen.getByTestId("calendar-day-2026-09-07")).toHaveAttribute("aria-selected", "true");
+      expect(screen.getAllByTestId("class-card")).toHaveLength(5);
+      expect(screen.getByText("Sem instrutor")).toBeInTheDocument();
+      expect(screen.getByText("Sem prazo")).toBeInTheDocument();
+      expect(screen.getByText("Sem vagas", { selector: "span" })).toBeInTheDocument();
+      expect(screen.getByText("Em andamento")).toBeInTheDocument();
+      expect(screen.getByText("Cancelada")).toBeInTheDocument();
+      expect(screen.getAllByRole("tab").map((tab) => tab.getAttribute("aria-label"))).toEqual(["Início", "Aulas", "Pessoas", "Perfil"]);
+      expect(screen.getByRole("tab", { name: "Aulas" })).toHaveAttribute("aria-selected", "true");
+    });
+
+    it("AD-02-04: only the skate classes", () => {
+      render(<ClassesWeekScreen locale="pt-br" state="filtered" role="admin" />);
+
+      expect(screen.getAllByTestId("class-card")).toHaveLength(2);
+    });
+
+    it("AD-02-05: an empty day from today on, with the create action and the + button", () => {
+      render(<ClassesWeekScreen locale="pt-br" state="empty" role="admin" />);
+
+      expect(screen.getByTestId("calendar-day-2026-09-08")).toHaveAttribute("aria-selected", "true");
+      expect(screen.getByText("Ainda não há aulas marcadas para terça-feira, 8 de setembro.")).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Criar aula" })).toBeInTheDocument();
+      expect(newClass()).toBeInTheDocument();
+    });
+
+    it("AD-02-06: a past empty day, in the week before, without the action or the + button", () => {
+      render(<ClassesWeekScreen locale="pt-br" state="pastEmpty" role="admin" />);
+
+      expect(screen.getByText("31 AGO – 6 SET")).toBeInTheDocument();
+      expect(screen.getByTestId("calendar-day-2026-09-04")).toHaveAttribute("aria-selected", "true");
+      expect(screen.getByText("Ainda não há aulas marcadas para sexta-feira, 4 de setembro.")).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Criar aula" })).toBeNull();
+      expect(newClass()).toBeNull();
+    });
+
+    it("AD-02-07..08: the skeletons and the load error, the + button kept", () => {
+      const loading = render(<ClassesWeekScreen locale="pt-br" state="loading" role="admin" />);
+      expect(screen.getAllByTestId("class-card-skeleton")).toHaveLength(4);
+      expect(newClass()).toBeInTheDocument();
+      loading.unmount();
+
+      render(<ClassesWeekScreen locale="pt-br" state="error" role="admin" />);
+      expect(screen.getByRole("button", { name: "Tentar de novo" })).toBeInTheDocument();
+    });
+  });
 });

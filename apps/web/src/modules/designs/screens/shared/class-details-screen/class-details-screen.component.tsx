@@ -1,5 +1,6 @@
 import { AppIcon } from "@/modules/designs/components/app-icon";
 import { Button } from "@/modules/designs/components/button";
+import { CancelClassSheet } from "@/modules/designs/components/cancel-class-sheet";
 import { CancellationRulesSheet } from "@/modules/designs/components/cancellation-rules-sheet";
 import { Chip } from "@/modules/designs/components/chip";
 import { ClassDetailsSkeleton } from "@/modules/designs/components/class-details-skeleton";
@@ -8,17 +9,21 @@ import { ClassInfoCard } from "@/modules/designs/components/class-info-card";
 import { ClassLocationCard } from "@/modules/designs/components/class-location-card";
 import { ClassPeople } from "@/modules/designs/components/class-people";
 import { ClassRuleRow } from "@/modules/designs/components/class-rule-row";
+import { ClassToolsSheet } from "@/modules/designs/components/class-tools-sheet";
 import { ContactSchoolButton } from "@/modules/designs/components/contact-school-button";
 import { CancelSeatSheet } from "@/modules/designs/components/cancel-seat-sheet";
+import { DeleteClassSheet } from "@/modules/designs/components/delete-class-sheet";
 import { DenialReasonSheet } from "@/modules/designs/components/denial-reason-sheet";
 import { EmptyState } from "@/modules/designs/components/empty-state";
 import { EnrolmentBanner } from "@/modules/designs/components/enrolment-banner";
 import { ErrorState } from "@/modules/designs/components/error-state";
+import { HeaderButton } from "@/modules/designs/components/header-button";
 import { PersonSheet } from "@/modules/designs/components/person-sheet";
 import { PhoneFrame } from "@/modules/designs/components/phone-frame";
 import { RequestSeatSheet } from "@/modules/designs/components/request-seat-sheet";
 import { ScreenToast } from "@/modules/designs/components/screen-toast";
 import { StackHeader } from "@/modules/designs/components/stack-header";
+import { TakeOutSheet } from "@/modules/designs/components/take-out-sheet";
 import { WithdrawRequestSheet } from "@/modules/designs/components/withdraw-request-sheet";
 import { instructorAccount, otherInstructor, students, trialGuests } from "@/modules/designs/data/fortaleza";
 import { studentDates } from "@/modules/designs/data/student-app";
@@ -29,12 +34,13 @@ import type { ClassDetailsScreenProps } from "./class-details-screen.types";
 
 /**
  * The class details: the class, the enrolment banner, the people, the rules, the notes, the place and the footer button
- * in the student's form; read-only in the instructor's, with the note of `readOnlyNoteKey` and no enrolment or footer.
+ * in the student's form; read-only in the instructor's, with the note of `readOnlyNoteKey` and no enrolment or footer;
+ * in the admin's, the tools, the take-out and the admin's banners, with no enrolment or footer either.
  */
 export function ClassDetailsScreen(props: ClassDetailsScreenProps) {
   const { locale, state, sheet, texts } = props;
   const toast = props.role === "instructor" ? undefined : props.toast;
-  const withoutReason = props.role === "instructor" ? false : (props.withoutReason ?? false);
+  const withoutReason = props.role === "instructor" || props.role === "admin" ? false : (props.withoutReason ?? false);
   const t = (key: string, params?: Record<string, string | number>) => appT(locale, key, params);
   const dates = studentDates(locale);
 
@@ -59,21 +65,30 @@ export function ClassDetailsScreen(props: ClassDetailsScreenProps) {
     );
   }
 
-  const view = getClassDetailsView(props.role === "instructor" ? { role: "instructor", state: props.state } : { state: props.state });
+  const view = getClassDetailsView(props.role === "instructor" ? { role: "instructor", state: props.state } : props.role === "admin" ? { role: "admin", state: props.state } : { state: props.state });
   const teacher = view.teacher === "none" ? [] : props.role === "instructor" ? [view.teacher === "viewer" ? { ...instructorAccount, isViewer: true } : otherInstructor] : [{ id: "rafael", name: "Rafael Rocha" }];
   const deadline = view.deadline === "ahead" ? dates.deadlineAhead : dates.deadlinePassed;
   const guests = view.guests ? trialGuests : [];
-  const seatsTaken = view.noStudents ? 0 : (view.full ? 8 : view.classState === "finished" ? 5 : 4) + guests.length;
-  const people = view.noStudents ? [] : view.inClass ? students.slice(0, 4) : students.slice(1, 5);
+  const seatsTaken = view.noStudents ? 0 : (view.full ? 8 : view.classState === "finished" ? 5 : 4) + guests.length - (view.takenOut ? 1 : 0);
+  const classStudents = view.noStudents ? [] : view.inClass ? students.slice(0, 4) : students.slice(1, 5);
+  // After a take-out, Caio is no longer in the class.
+  const people = view.takenOut ? classStudents.filter((student) => student.id !== "caio") : classStudents;
   const classCard = { discipline: "surf", level: "beginner", weekday: dates.weekdayLabel, date: dates.dayLabel, duration: `1 h 30 min`, timeRange: "08:00 – 09:30", locationName: "Praia de Iracema" } as const;
   const showRules = view.classState !== "cancelled";
+  // The admin's tools and sheets: who a message or a cancellation reaches (the other instructor, the students and the one
+  // pending request), and the class in one line.
+  const pendingRequests = view.noStudents ? 0 : 1;
+  const messageCount = teacher.length + people.length + pendingRequests;
+  const deleteState = view.classState !== "not-started" ? "started" : seatsTaken > 0 ? "enrolled" : "available";
+  const summary = `${t("newClass.discipline.surf")} ${t("newClass.level.beginner")} · ${dates.dateLine}, 08:00 – 09:30`;
   // D-02: a sheet or a toast is drawn over the phone's screen, so the content is clipped to it.
   const overPhone = Boolean(sheet || toast);
 
   return (
-    <PhoneFrame tall={!overPhone}>
+    // The admin's page grows only the open class to its whole content (spec 075 inventory); the others are phone-height.
+    <PhoneFrame tall={!overPhone && (props.role !== "admin" || props.state === "open")}>
       <div className={`flex flex-1 flex-col bg-page${overPhone ? " min-h-0" : ""}`}>
-        <StackHeader title="" />
+        <StackHeader title="" right={view.showTools ? <HeaderButton icon="Ionicons:construct-outline" label={t("classDetails.tools")} /> : undefined} />
         <div className={`flex flex-col gap-6 px-5 pb-6 pt-4${overPhone ? " min-h-0 flex-1 overflow-hidden" : ""}`}>
           <div className="flex flex-col gap-2">
             <div className="mb-1 flex flex-wrap gap-2">
@@ -83,9 +98,27 @@ export function ClassDetailsScreen(props: ClassDetailsScreenProps) {
             <p className="ds-text-list-title text-ink-2">{dates.dateLine}</p>
             <p className="ds-text-kpi text-ink">08:00 – 09:30</p>
           </div>
+          {view.showNoInstructor ? (
+            <div role="button" className="flex min-h-11 items-center gap-3 rounded-card bg-warn-tint p-4">
+              <AppIcon name="Ionicons:person-remove-outline" size={24} className="text-ink" />
+              <div className="flex flex-1 flex-col gap-1">
+                <p className="ds-text-list-title text-ink">{t("classDetails.noInstructor.title")}</p>
+                <p className="ds-text-list-subtitle text-ink-2">{t("classDetails.noInstructor.description")}</p>
+              </div>
+            </div>
+          ) : null}
+          {view.showNoDeadline ? (
+            <div role="button" className="flex min-h-11 items-center gap-3 rounded-card bg-warn-tint p-4">
+              <AppIcon name="Ionicons:calendar-clear-outline" size={24} className="text-ink" />
+              <div className="flex flex-1 flex-col gap-1">
+                <p className="ds-text-list-title text-ink">{t("classDetails.noDeadline.title")}</p>
+                <p className="ds-text-list-subtitle text-ink-2">{t("classDetails.noDeadline.description", { discipline: t("cancellationRules.screen.discipline.surf") })}</p>
+              </div>
+            </div>
+          ) : null}
           {view.classState === "started" ? <ClassInfoCard locale={locale} variant="started" start="08:00" end="09:30" /> : null}
           {view.classState === "cancelled" ? <ClassInfoCard locale={locale} variant="cancelled" /> : null}
-          {view.showFullBanner ? <ClassFullBanner locale={locale} waitingList={view.fullBannerWaitingList} /> : null}
+          {view.showFullBanner ? <ClassFullBanner locale={locale} waitingList={view.fullBannerWaitingList} adminLine={view.fullBannerAdminLine} /> : null}
           {view.bannerStatus ? <EnrolmentBanner locale={locale} status={view.bannerStatus} reason={texts.takeOutReason} pressable={view.bannerStatus === "denied"} /> : null}
           {view.classState === "finished" ? <ClassInfoCard locale={locale} variant="finished" end="09:30" /> : null}
           <ClassPeople
@@ -97,6 +130,8 @@ export function ClassDetailsScreen(props: ClassDetailsScreenProps) {
             capacity={8}
             state={view.classState}
             expanded={view.expanded || undefined}
+            showTrialCount={view.showTrialCount || undefined}
+            canTakeOut={view.canTakeOut || undefined}
           />
           {view.readOnlyNoteKey ? (
             <div className="flex items-center gap-3 rounded-card bg-dim p-4">
@@ -139,9 +174,14 @@ export function ClassDetailsScreen(props: ClassDetailsScreenProps) {
             ) : null}
           </div>
         ) : null}
-        {toast ? <ScreenToast message={t(toast.key)} tone={toast.tone} /> : null}
+        {toast ? <ScreenToast message={t(toast.key, toast.params)} tone={toast.tone} /> : null}
         {sheet === "person" ? <PersonSheet locale={locale} name="Caio Sousa" role="student" whatsapp="+55 85 98888 7777" /> : null}
         {sheet === "rules" ? <CancellationRulesSheet locale={locale} status="ready" rules={texts.cancellationRules} /> : null}
+        {sheet === "tools" ? <ClassToolsSheet locale={locale} messageCount={messageCount} deleteState={deleteState} /> : null}
+        {sheet === "cancel" ? <CancelClassSheet locale={locale} guestCount={guests.length} studentCount={people.length} pendingCount={pendingRequests} instructorCount={teacher.length} /> : null}
+        {sheet === "delete" || sheet === "deleteNotEmpty" ? <DeleteClassSheet locale={locale} variant={sheet === "delete" ? "confirm" : "notEmpty"} classLine={`${summary} · Praia de Iracema`} /> : null}
+        {sheet === "takeOut" ? <TakeOutSheet locale={locale} firstName="Caio" summary={summary} /> : null}
+        {sheet === "takeOutGuest" ? <TakeOutSheet locale={locale} trial firstName={trialGuests[0]?.name ?? ""} summary={summary} /> : null}
         {sheet === "denial" ? <DenialReasonSheet locale={locale} discipline="surf" level="beginner" start={dates.classStart} reason={withoutReason ? undefined : texts.denialReason} /> : null}
         {sheet === "withdraw" ? <WithdrawRequestSheet locale={locale} /> : null}
         {sheet === "cancelSeat" ? <CancelSeatSheet locale={locale} deadline={dates.deadlineAhead} /> : null}

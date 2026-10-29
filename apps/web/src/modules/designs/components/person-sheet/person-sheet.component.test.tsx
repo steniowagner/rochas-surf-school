@@ -30,4 +30,26 @@ describe("PersonSheet", () => {
     expect(screen.getByText("rafael@email.com")).toBeInTheDocument();
     expect(screen.queryByText("Número não compartilhado.")).toBeNull();
   });
+
+  it("draws the admin's role actions and the instructor flag", () => {
+    render(<PersonSheet {...props} role="admin" whatsapp={null} canChangeRole instructorFlag />);
+
+    expect(screen.getByRole("checkbox", { name: "Também é instrutor" })).toHaveAttribute("aria-checked", "true");
+    expect(screen.getByRole("button", { name: "Passar a instrutor" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Remover da plataforma" })).toBeInTheDocument();
+  });
+
+  it("draws the role change's confirmation in place of the details, by the first name", () => {
+    render(<PersonSheet {...props} name="Caio Sousa" role="student" whatsapp={null} canChangeRole step={{ roleAction: "promoteAdmin" }} />);
+
+    expect(screen.getByRole("heading", { name: "Promover Caio a admin?" })).toBeInTheDocument();
+    expect(screen.getByText("As vagas e pedidos que tinha em aulas futuras, como aluno, são cancelados.")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Fechar" })).toBeNull();
+  });
+
+  it("draws the removal's confirmation", () => {
+    render(<PersonSheet {...props} whatsapp={null} canChangeRole step="remove" />);
+
+    expect(screen.getByRole("heading", { name: "Remover Rafael?" })).toBeInTheDocument();
+  });
 });

@@ -65,4 +65,45 @@ describe("PeopleScreen", () => {
     expect(screen.queryByRole("tab", { name: "Escola" })).toBeNull();
     expect(screen.getByText("Rafael Rocha")).toBeInTheDocument();
   });
+
+  describe("as an admin", () => {
+    it("AD-09-01: the directory with the admin among the people, on the admin tab bar", () => {
+      render(<PeopleScreen locale="pt-br" state="list" role="admin" />);
+
+      expect(screen.getByTestId("phone-frame")).toHaveAttribute("data-tall");
+      expect(screen.getByText("10 na plataforma")).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Juliana Prado" })).toBeInTheDocument();
+      expect(screen.getAllByRole("tab").map((tab) => tab.getAttribute("aria-label"))).toEqual(["Início", "Aulas", "Pessoas", "Perfil"]);
+      expect(screen.getByRole("tab", { name: "Pessoas" })).toHaveAttribute("aria-selected", "true");
+    });
+
+    it("AD-09-02..04: a student's, an instructor's and another admin's sheet, with their role actions", () => {
+      const student = render(<PeopleScreen locale="pt-br" state="list" role="admin" adminSheet="student" />);
+      expect(screen.getByTestId("phone-frame")).not.toHaveAttribute("data-tall");
+      expect(screen.getByRole("dialog")).toHaveTextContent("Caio Sousa");
+      expect(screen.getByRole("button", { name: "Promover a instrutor" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Promover a admin" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Remover da plataforma" })).toBeInTheDocument();
+      student.unmount();
+
+      const instructor = render(<PeopleScreen locale="pt-br" state="list" role="admin" adminSheet="instructor" />);
+      expect(screen.getByRole("dialog")).toHaveTextContent("Marcos Lima");
+      expect(screen.getByRole("button", { name: "Rebaixar a aluno" })).toBeInTheDocument();
+      instructor.unmount();
+
+      render(<PeopleScreen locale="pt-br" state="list" role="admin" adminSheet="admin" />);
+      expect(screen.getByRole("dialog")).toHaveTextContent("Bruno Costa");
+      expect(screen.getByRole("checkbox", { name: "Também é instrutor" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Passar a instrutor" })).toBeInTheDocument();
+    });
+
+    it("AD-09-05..06: the role change's and the removal's confirmations", () => {
+      const role = render(<PeopleScreen locale="pt-br" state="list" role="admin" adminSheet="roleConfirm" />);
+      expect(screen.getByRole("heading", { name: "Promover Caio a admin?" })).toBeInTheDocument();
+      role.unmount();
+
+      render(<PeopleScreen locale="pt-br" state="list" role="admin" adminSheet="removeConfirm" />);
+      expect(screen.getByRole("heading", { name: "Remover Caio?" })).toBeInTheDocument();
+    });
+  });
 });

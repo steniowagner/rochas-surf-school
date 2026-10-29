@@ -17,4 +17,12 @@ describe("ClassGuestRow", () => {
     expect(container.querySelector("p")).toBeNull();
     expect(screen.getByText("Trial")).toBeInTheDocument();
   });
+
+  it("draws the admin's take-out button, named after the guest or the chip", () => {
+    const { rerender } = render(<ClassGuestRow locale="pt-br" name="Lucas Martins" takeOut />);
+
+    expect(screen.getByRole("button", { name: "Retirar Lucas Martins" })).toHaveTextContent("Retirar");
+    rerender(<ClassGuestRow locale="pt-br" name={null} takeOut />);
+    expect(screen.getByRole("button", { name: "Retirar Trial" })).toBeInTheDocument();
+  });
 });

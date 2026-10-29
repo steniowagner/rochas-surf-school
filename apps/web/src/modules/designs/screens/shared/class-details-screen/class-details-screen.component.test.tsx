@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { ClassDetailsScreen } from "./class-details-screen.component";
-import type { ClassDetailsScreenProps, InstructorClassDetailsSheet, InstructorClassDetailsState } from "./class-details-screen.types";
+import type { AdminClassDetailsSheet, AdminClassDetailsState, ClassDetailsScreenProps, ClassDetailsToast, InstructorClassDetailsSheet, InstructorClassDetailsState } from "./class-details-screen.types";
 
 const texts = { denialReason: "Turma reservada.", takeOutReason: "Aula reorganizada.", notes: "Traga protetor solar." };
 const open = (props: Omit<Extract<ClassDetailsScreenProps, { role?: "student" }>, "locale" | "texts">) => render(<ClassDetailsScreen locale="pt-br" texts={texts} {...props} />);
@@ -255,6 +255,143 @@ describe("ClassDetailsScreen", () => {
       notFound.unmount();
 
       openAs("error");
+      expect(screen.getByRole("button", { name: "Tentar de novo" })).toBeInTheDocument();
+    });
+  });
+
+  describe("as an admin", () => {
+    const asAdmin = (state: AdminClassDetailsState, sheet?: AdminClassDetailsSheet, toast?: ClassDetailsToast) =>
+      render(<ClassDetailsScreen locale="pt-br" role="admin" state={state} sheet={sheet} toast={toast} texts={texts} />);
+    const tools = () => screen.queryByRole("button", { name: "Ferramentas da aula" });
+
+    it("AD-03-01: the tools button, the people with their take-out buttons and the trial count, no enrolment or footer", () => {
+      asAdmin("open");
+
+      expect(screen.getByTestId("phone-frame")).toHaveAttribute("data-tall");
+      expect(tools()).toBeInTheDocument();
+      expect(screen.getByText("Máx. 8 alunos · 2 vagas livres · inclui 2 trial")).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Retirar Caio Sousa" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Retirar Lucas Martins" })).toBeInTheDocument();
+      expect(screen.getAllByText("Trial")).toHaveLength(2);
+      expect(screen.getByText("Rafael Rocha")).toBeInTheDocument();
+      expect(screen.queryByTestId("enrolment-banner")).toBeNull();
+      expect(screen.queryByRole("button", { name: /Pedir para entrar|Cancelar inscrição/ })).toBeNull();
+      expect(screen.queryByText(/somente leitura|feitos pela escola/)).toBeNull();
+      expect(screen.queryByText("Sem instrutor")).toBeNull();
+      expect(screen.getByText("Traga protetor solar.")).toBeInTheDocument();
+    });
+
+    it("AD-03-02..03: the no-instructor banner, and the no-deadline banner with the sport and the rule to read", () => {
+      const noInstructor = asAdmin("noInstructor");
+      // Only the open class grows to its content on the admin's page.
+      expect(screen.getByTestId("phone-frame")).not.toHaveAttribute("data-tall");
+      expect(screen.getByText("Sem instrutor")).toBeInTheDocument();
+      expect(screen.getByText("Atribua um instrutor antes da aula.")).toBeInTheDocument();
+      expect(screen.getByText("Sem instrutor atribuído")).toBeInTheDocument();
+      noInstructor.unmount();
+
+      asAdmin("noDeadline");
+      expect(screen.getByText("Sem prazo de cancelamento")).toBeInTheDocument();
+      expect(screen.getByText(/Confira a regra de surf\./)).toBeInTheDocument();
+      expect(screen.getByText("Ler a regra")).toBeInTheDocument();
+    });
+
+    it("AD-03-04..05: the full banner with the admin's line, and a class nobody joined yet", () => {
+      const full = asAdmin("full");
+      expect(screen.getByText("Turma cheia")).toBeInTheDocument();
+      expect(screen.getByText("Novos pedidos entram na lista de espera.")).toBeInTheDocument();
+      expect(screen.queryByText("Você pode entrar na lista de espera.")).toBeNull();
+      full.unmount();
+
+      asAdmin("noStudents");
+      expect(screen.getByText("Máx. 8 alunos · 8 vagas livres")).toBeInTheDocument();
+      expect(screen.getByText("Ainda sem alunos")).toBeInTheDocument();
+      expect(tools()).toBeInTheDocument();
+    });
+
+    it("AD-03-06..08: a started class keeps the tools but no take-out; a finished or cancelled one has no tools", () => {
+      const started = asAdmin("started");
+      expect(screen.getByText("Começou às 08:00 e termina às 09:30.")).toBeInTheDocument();
+      expect(tools()).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /^Retirar/ })).toBeNull();
+      expect(screen.getByRole("button", { name: "Ana Beatriz Lima" })).toBeInTheDocument();
+      started.unmount();
+
+      const finished = asAdmin("finished");
+      expect(screen.getByText("Aula finalizada")).toBeInTheDocument();
+      expect(tools()).toBeNull();
+      // The list of a class that already happened stays closed.
+      expect(screen.queryByRole("button", { name: "Ana Beatriz Lima" })).toBeNull();
+      finished.unmount();
+
+      asAdmin("classCancelled");
+      expect(screen.getByText("Aula cancelada")).toBeInTheDocument();
+      expect(tools()).toBeNull();
+    });
+
+    it("AD-03-09..10: the tools sheet of a class with people, and of an empty one", () => {
+      const enrolled = asAdmin("open", "tools");
+      expect(screen.getByTestId("phone-frame")).not.toHaveAttribute("data-tall");
+      expect(screen.getByText("6 pessoas")).toBeInTheDocument();
+      expect(screen.getByText("Avisa 6 pessoas")).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Excluir aula" })).toBeDisabled();
+      expect(screen.getByText("Tem inscritos")).toBeInTheDocument();
+      enrolled.unmount();
+
+      asAdmin("noStudents", "tools");
+      expect(screen.getByRole("button", { name: "Excluir aula" })).toBeEnabled();
+      expect(screen.getByText("Ninguém inscrito")).toBeInTheDocument();
+    });
+
+    it("AD-03-11..13: the cancel sheet with its audience and the guests warning, and the delete sheet in both forms", () => {
+      const cancel = asAdmin("open", "cancel");
+      expect(screen.getByText("Avisamos 4 inscritos, 1 pessoa com pedido pendente e 1 instrutor. A aula fica na agenda, marcada como cancelada.")).toBeInTheDocument();
+      expect(screen.getByTestId("guests-warning")).toBeInTheDocument();
+      cancel.unmount();
+
+      const remove = asAdmin("noStudents", "delete");
+      expect(screen.getByRole("heading", { name: "Excluir esta aula?" })).toBeInTheDocument();
+      expect(screen.getByText("Surf Iniciante · Quarta-feira · 9 set, 08:00 – 09:30 · Praia de Iracema")).toBeInTheDocument();
+      remove.unmount();
+
+      asAdmin("noStudents", "deleteNotEmpty");
+      expect(screen.getByRole("heading", { name: "Não dá para excluir" })).toBeInTheDocument();
+    });
+
+    it("AD-03-14..16: taking a student or a guest out, and a student's person sheet", () => {
+      const student = asAdmin("open", "takeOut");
+      expect(screen.getByRole("heading", { name: "Retirar Caio da aula?" })).toBeInTheDocument();
+      expect(screen.getByText("Motivo (opcional)")).toBeInTheDocument();
+      student.unmount();
+
+      const guest = asAdmin("open", "takeOutGuest");
+      expect(screen.getByRole("heading", { name: "Retirar Lucas Martins da aula?" })).toBeInTheDocument();
+      expect(screen.queryByText("Motivo (opcional)")).toBeNull();
+      guest.unmount();
+
+      asAdmin("open", "person");
+      expect(screen.getByRole("dialog")).toHaveTextContent("Caio Sousa");
+    });
+
+    it("AD-03-17: the class after the take-out, with the toast", () => {
+      asAdmin("takenOut", undefined, { key: "takeOutSheet.done", tone: "success", params: { name: "Caio Sousa" } });
+
+      expect(screen.getByTestId("screen-toast")).toHaveTextContent("Caio Sousa retirado · aluno avisado");
+      expect(screen.queryByRole("button", { name: "Retirar Caio Sousa" })).toBeNull();
+      expect(screen.getByText("Máx. 8 alunos · 3 vagas livres · inclui 2 trial")).toBeInTheDocument();
+    });
+
+    it("AD-03-18..20: loading, not found and error, without the tools", () => {
+      const loading = asAdmin("loading");
+      expect(screen.getByRole("status", { name: "Carregando a aula" })).toBeInTheDocument();
+      expect(tools()).toBeNull();
+      loading.unmount();
+
+      const notFound = asAdmin("notFound");
+      expect(screen.getByRole("heading", { name: "Aula não encontrada" })).toBeInTheDocument();
+      notFound.unmount();
+
+      asAdmin("error");
       expect(screen.getByRole("button", { name: "Tentar de novo" })).toBeInTheDocument();
     });
   });

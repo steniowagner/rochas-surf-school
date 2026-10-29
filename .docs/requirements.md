@@ -1320,7 +1320,9 @@ _Implemented in spec 073-designs-student-app._
 
 _Implemented in spec 074-designs-instructor-app._
 
-Publishes the public web pages the app stores require: the privacy policy, the terms of use and a way to request account deletion without the app. The same site also hosts a designs area (`/{lang}/designs`), linked from its home page, that shows the app's design system, its auth flow (the screens before a person reaches their role's home), the student app (every screen an approved student sees) and the instructor app (every screen an approved instructor sees) to anyone interested, in the site's language and theme.
+_Implemented in spec 075-designs-admin-app._
+
+Publishes the public web pages the app stores require: the privacy policy, the terms of use and a way to request account deletion without the app. The same site also hosts a designs area (`/{lang}/designs`), linked from its home page, that shows the app's design system, its auth flow (the screens before a person reaches their role's home), the student app (every screen an approved student sees), the instructor app (every screen an approved instructor sees) and the admin app (every screen an approved admin sees) to anyone interested, in the site's language and theme.
 
 #### Privacy policy page
 

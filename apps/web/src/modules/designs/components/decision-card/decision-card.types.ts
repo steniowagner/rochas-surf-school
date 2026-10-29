@@ -12,4 +12,8 @@ export type DecisionCardProps = {
   /** Disables the approve button alone. */
   approveDisabled?: boolean;
   loading?: "approve" | "deny";
+  /** Drawn with no card of its own (border, background, shadow), to sit inside another card. */
+  embedded?: boolean;
+  /** The upper row opens the person's details: it is a button with a chevron. */
+  pressable?: boolean;
 };

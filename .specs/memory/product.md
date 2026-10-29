@@ -1356,6 +1356,20 @@ Screens an instructor sees exactly as a student does are drawn once, in their ma
 student page's frames that show their other states. As the app draws them, an instructor sees no trial count on a
 class and no e-mail on a student's person sheet.
 
+**Admin app designs page** (spec `075-designs-admin-app`) — the designs index lists a fifth page, the admin app, at
+`/{lang}/designs/admin-app`, the last page of the designs area. It shows every screen an approved admin sees, in 112
+entries (`AD-<section>-<entry>`) in eleven sections: the home (the "Ferramentas" card with the six tools and what
+waits as badges, the "Escola" card, an admin who doesn't teach, loading), the "Aulas" tab with its title, the "+"
+button on today and later days and the admin's flags (no instructor, no deadline), a class with its tools (the tools,
+cancel, delete and take-out sheets, the no-instructor and no-deadline banners, the people with "Retirar"; no enrolment
+banner or footer), the forms that create and edit classes and locations (the location map is drawn, not a real map),
+the notices to everyone and to one class, the class enrolment requests, the accounts (join the school, reactivations,
+removed accounts), enrolling a student or a trial guest, the people tab with the role changes, removal and the
+instructor flag, the school's settings, cancellation rules and school rules, and the teaching, profile and
+notifications screens (one row per notification type the backend sends an admin who also teaches). Screens an admin
+sees exactly as a student or an instructor does are drawn once, and their note names the other page's frames. Every
+design file is now generated from the site.
+
 Active specs: none.
 
 ## Out of scope (future evolution, recorded in the specs)
@@ -1405,10 +1419,10 @@ Active specs: none.
 - Deploying the public site (host and domain), linking the privacy policy from the store listings, the onboarding
   line linking the terms and the policy, a report button for objectionable content, the
   legal (LGPD) review of the pages' copy.
-- On the designs area (spec 071): the admin designs on the site (to come in its own spec, with the admin's form of
-  the shared screens), Android phone frames, clickable prototypes (every state is a static frame), search-engine
-  settings for the design pages, and keeping the Claude Design project in sync with the design files. On the auth
-  flow, student app and instructor app pages (specs 072–074): frames with the keyboard open.
+- On the designs area (spec 071): Android phone frames, clickable prototypes (every state is a static frame),
+  search-engine settings for the design pages, and keeping the Claude Design project in sync with the design files.
+  On the auth flow, student, instructor and admin app pages (specs 072–075): frames with the keyboard open. On the
+  admin app page (spec 075): a real map in the location form (it is drawn with the design tokens).
 - On the Profile (spec 026): uploading or changing the profile photo (the camera button says "coming soon"),
   splitting the name into first and last name, real data in the
   About sheet (mocked), and keeping the theme, language and push preferences on the account or syncing them across
@@ -1518,6 +1532,11 @@ Active specs: none.
   every entry in light and dark side by side, the tall frames at their full height. Since spec 074 it is generated
   from the site's instructor app page (`/{lang}/designs/instructor-app`), like `design-system.html`; the former
   European Portuguese prototype, with its ratings screen, is gone.
-- `.docs/designs/admin-app.html` — the designs of the admin's screens.
+- `.docs/designs/admin-app.html` — the admin app: every screen an approved admin sees (home and tools, classes, a
+  class with its tools, the class and location forms, notices, enrolment requests, accounts, enrolling a student,
+  people and roles, the school's settings and rules, teaching, profile, notifications), in pt-BR, every entry in light
+  and dark side by side, the tall frames at their full height. Since spec 075 it is generated from the site's admin
+  app page (`/{lang}/designs/admin-app`), like `design-system.html`; the former European Portuguese prototype, with
+  its ratings, is gone. Every design file is now generated from the site.
 - Since spec 071 the design files are edited through readable sources in `.docs/designs/src/`, rebuilt into the
   `.html` files by a pack script; the Claude Design project is no longer where they are edited.

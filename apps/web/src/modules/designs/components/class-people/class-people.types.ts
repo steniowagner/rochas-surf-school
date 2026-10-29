@@ -20,4 +20,8 @@ export type ClassPeopleProps = {
   state: "not-started" | "started" | "finished" | "cancelled";
   /** The list opened under the avatars: a row per student, then one per guest. */
   expanded?: boolean;
+  /** Admins only: the capacity line says how many seats are trial guests. */
+  showTrialCount?: boolean;
+  /** Admins only, on a class that hasn't started: each student row (but an erased one's) and each guest row gets a "Retirar" button. */
+  canTakeOut?: boolean;
 };

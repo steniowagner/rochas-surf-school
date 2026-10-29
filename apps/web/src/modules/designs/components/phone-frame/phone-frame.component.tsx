@@ -1,3 +1,5 @@
+"use client";
+
 import { useTallFrame } from "./phone-frame.hook";
 import type { PhoneFrameProps } from "./phone-frame.types";
 

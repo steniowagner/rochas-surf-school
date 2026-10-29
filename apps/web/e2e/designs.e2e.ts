@@ -5,6 +5,7 @@ import { es } from "../src/i18n/dictionaries/es";
 import { ptBr } from "../src/i18n/dictionaries/pt-br";
 import { authFlowIds } from "../src/modules/designs/data/auth-flow-ids";
 import { designSystemIds } from "../src/modules/designs/data/design-system-ids";
+import { studentAppIds } from "../src/modules/designs/data/student-app-ids";
 
 const locales = ["pt-br", "es", "en"] as const;
 const dictionaries = { "pt-br": ptBr, es, en };
@@ -31,6 +32,16 @@ test.describe("designs redirects", () => {
       const fallback = await request.get("/designs/auth-flow", { maxRedirects: 0, headers: { "accept-language": "de" } });
       expect(fallback.headers().location).toBe("/pt-br/designs/auth-flow");
     });
+
+    test("redirects /designs/student-app to the browser language", async ({ request }) => {
+      const page = await request.get("/designs/student-app", { maxRedirects: 0, headers: { "accept-language": "es" } });
+      expect(page.status()).toBe(307);
+      expect(page.headers().location).toBe("/es/designs/student-app");
+
+      const fallback = await request.get("/designs/student-app", { maxRedirects: 0, headers: { "accept-language": "de" } });
+      expect(fallback.status()).toBe(307);
+      expect(fallback.headers().location).toBe("/pt-br/designs/student-app");
+    });
   });
 
   test("falls back to pt-br", async ({ request }) => {
@@ -51,13 +62,16 @@ test("index lists the design pages in every language", async ({ page }) => {
 
     const { designs, site } = dictionaries[locale];
     const cards = page.getByTestId("design-pages").getByRole("link");
-    await expect(cards).toHaveCount(2);
+    await expect(cards).toHaveCount(3);
     await expect(cards.nth(0)).toHaveAttribute("href", `/${locale}/designs/design-system`);
     await expect(cards.nth(0)).toContainText(designs.pages.designSystem.title);
     await expect(cards.nth(0)).toContainText(designs.pages.designSystem.description);
     await expect(cards.nth(1)).toHaveAttribute("href", `/${locale}/designs/auth-flow`);
     await expect(cards.nth(1)).toContainText(designs.pages.authFlow.title);
     await expect(cards.nth(1)).toContainText(designs.pages.authFlow.description);
+    await expect(cards.nth(2)).toHaveAttribute("href", `/${locale}/designs/student-app`);
+    await expect(cards.nth(2)).toContainText(designs.pages.studentApp.title);
+    await expect(cards.nth(2)).toContainText(designs.pages.studentApp.description);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(designs.title);
     await expect(page.getByText(designs.description, { exact: true })).toBeVisible();
     expect(await page.title()).toBe(`${designs.metaTitle} | ${site.name}`);
@@ -84,7 +98,7 @@ test.describe("design page width", () => {
   test.use({ viewport: { width: 1600, height: 900 } });
 
   test("design pages are wide", async ({ page }) => {
-    for (const path of ["/pt-br/designs", "/pt-br/designs/auth-flow"]) {
+    for (const path of ["/pt-br/designs", "/pt-br/designs/auth-flow", "/pt-br/designs/student-app"]) {
       await page.goto(path);
       const wide = await page.locator("main").evaluate((element) => element.getBoundingClientRect().width);
       expect(wide, path).toBeGreaterThan(1000);
@@ -228,11 +242,93 @@ test.describe("auth flow page", () => {
   });
 });
 
+test.describe("student app page", () => {
+  test("student app shows every inventory entry", async ({ page }) => {
+    for (const locale of locales) {
+      await page.goto(`/${locale}/designs/student-app`);
+
+      const { studentApp, site } = dictionaries[locale];
+      for (const id of studentAppIds) {
+        await expect(page.locator(`[data-design-id="${id}"]`), `${locale} ${id}`).toBeVisible();
+        await expect(page.locator(`[data-design-id="${id}"]`).getByTestId("phone-frame")).toBeVisible();
+        await expect(page.locator(`[data-design-id="${id}"]`)).toContainText(studentApp.entries[id].title);
+      }
+      await expect(page.locator("[data-design-id]")).toHaveCount(studentAppIds.length);
+      await expect(page.locator('h2[id^="section-"]')).toHaveText([
+        `01 — ${studentApp.sections.agenda.title}`,
+        `02 — ${studentApp.sections.class.title}`,
+        `03 — ${studentApp.sections.myClasses.title}`,
+        `04 — ${studentApp.sections.school.title}`,
+        `05 — ${studentApp.sections.profile.title}`,
+        `06 — ${studentApp.sections.notifications.title}`,
+      ]);
+      expect(await page.title()).toBe(`${studentApp.metaTitle} | ${site.name}`);
+      await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", studentApp.description);
+      expect(await page.locator("body").innerText()).not.toMatch(/\{\{|<\/?[a-z]+>/);
+    }
+  });
+
+  test("student app draws tall frames", async ({ page }) => {
+    await page.goto("/pt-br/designs/student-app");
+
+    const frame = page.locator('[data-design-id="ST-05-01"] [data-testid="phone-frame"]');
+    const bounds = (await frame.boundingBox())!;
+    const phone = (await page.locator('[data-design-id="ST-05-02"] [data-testid="phone-frame"]').boundingBox())!;
+    expect(bounds.width).toBeCloseTo(phone.width, 0);
+    expect(bounds.height).toBeGreaterThan(phone.height * 1.2);
+
+    const remove = (await frame.getByText("Remover a conta").boundingBox())!;
+    const tabs = (await frame.getByRole("tablist").boundingBox())!;
+    expect(remove.y).toBeGreaterThan(bounds.y + phone.height);
+    expect(tabs.y).toBeGreaterThan(remove.y);
+    expect(tabs.y + tabs.height).toBeLessThanOrEqual(bounds.y + bounds.height);
+  });
+
+  test("student app follows the language", async ({ page }) => {
+    const request = { "pt-br": "Pedir para entrar", es: "Pedir plaza", en: "Request a seat" } as const;
+
+    for (const locale of locales) {
+      await page.goto(`/${locale}/designs/student-app`);
+
+      const { studentApp } = dictionaries[locale];
+      await expect(page.locator('[data-design-id="ST-02-01"]').getByRole("button", { name: request[locale] })).toBeVisible();
+      await expect(page.getByRole("heading", { level: 1 }).first()).toHaveText(studentApp.title);
+      await expect(page.locator('[data-design-id="ST-02-18"]')).toContainText(studentApp.denialReason);
+      await expect(page.locator('[data-design-id="ST-06-01"]')).toContainText(studentApp.notifications[1]!.title);
+      await expect(page.locator('[data-design-id="ST-06-01"]')).toContainText(studentApp.notifications[1]!.body!);
+    }
+
+    await page.goto("/pt-br/designs/student-app");
+    await page.locator("summary").click();
+    await page.getByRole("link", { name: /English/ }).click();
+    await expect(page).toHaveURL(/\/en\/designs\/student-app$/);
+    await expect(page.locator('[data-design-id="ST-02-01"]').getByRole("button", { name: request.en })).toBeVisible();
+  });
+
+  test("student app follows the theme toggle", async ({ page }) => {
+    await page.emulateMedia({ colorScheme: "light" });
+    await page.goto("/en/designs/student-app");
+
+    const frame = '[data-design-id="ST-01-01"] [data-testid="phone-frame"]';
+    const background = () => page.locator(frame).evaluate((element) => getComputedStyle(element).backgroundColor);
+    const light = await background();
+    expect(light).toBe("rgb(253, 248, 243)");
+
+    await page.getByRole("button", { name: "Toggle theme" }).click();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+    expect(await background()).toBe("rgb(22, 27, 39)");
+
+    await page.reload();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+    expect(await background()).toBe("rgb(22, 27, 39)");
+  });
+});
+
 test.describe("design pages on a phone", () => {
   test.use({ viewport: { width: 375, height: 800 } });
 
   test("design pages fit a phone viewport", async ({ page }) => {
-    for (const path of ["/pt-br/designs", "/pt-br/designs/design-system", "/pt-br/designs/auth-flow"]) {
+    for (const path of ["/pt-br/designs", "/pt-br/designs/design-system", "/pt-br/designs/auth-flow", "/pt-br/designs/student-app"]) {
       await page.goto(path);
 
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);

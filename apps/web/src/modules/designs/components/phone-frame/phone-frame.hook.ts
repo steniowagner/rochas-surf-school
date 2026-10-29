@@ -19,7 +19,8 @@ export const useTallFrame = (enabled: boolean): UseTallFrameResult => {
     }
 
     const measure = () => {
-      setScaledHeight((content.offsetHeight * frame.clientWidth) / FRAME_WIDTH);
+      // The content scales with the frame's outer width (the container query) and the frame has a 1 point border.
+      setScaledHeight((content.offsetHeight * frame.offsetWidth) / FRAME_WIDTH + 2);
     };
 
     measure();

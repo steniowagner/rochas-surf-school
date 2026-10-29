@@ -228,7 +228,7 @@ with light and dark side by side, replacing the outdated European Portuguese pro
   > verified: `npx vitest run src/modules/designs` in `apps/web` (116 files, 386 tests passed); `npm run check-types` (exit 0); `npx eslint src/modules/designs` (clean);
   > deviations: the tab bar's second tab reads "Reservas" as the app does (the inventory calls it "Minhas aulas", which is the screen's title); the school rules read screen is tall only when the rules show; the mock texts (reasons, rules, notes, notification items) are props, filled by the page (T-05)
 
-- [ ] **T-05** — Write the student app page: the six section components composed by `pages/student-app/`, the
+- [x] **T-05** — Write the student app page: the six section components composed by `pages/student-app/`, the
   route `src/app/[lang]/designs/student-app/page.tsx` with `generateMetadata`, the 86 ids in
   `data/student-app-ids.ts` set as `data-design-id`; the section titles, entry titles, notes (with the other
   messages), the mock texts (D-04), the notification texts copied from `push-messages.ts` (D-05) and the index card
@@ -240,6 +240,10 @@ with light and dark side by side, replacing the outdated European Portuguese pro
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices). Covers: ER-02, ER-03, ER-04,
   ER-05, ER-06 · Done when: `npm run test:e2e --workspace @rochas-surf-school/web` passes and
   `npx turbo run lint check-types build --filter=@rochas-surf-school/web` succeeds.
+  > ✅ 2026-10-28 23:13 — the student app page: six section components (`student-app-{agenda,class,my-classes,school,profile,notifications}`) composed by `pages/student-app/`, the route `src/app/[lang]/designs/student-app/page.tsx` with `generateMetadata`, the 86 ids and the other messages in `data/student-app-ids.ts`, `studentAppNote`, the `studentApp` section (section titles, 86 titles and notes, mock texts, the 15 notification texts copied from `push-messages.ts`) and the index card in the three dictionaries and `dictionary.types.ts`, `student-app` in `data/design-pages.ts`; `phone-frame` became a client component (its tall hook) and sizes the frame from its outer width; e2e: index lists the third card, `redirects /designs/student-app to the browser language`, `student app shows every inventory entry`, `student app draws tall frames`, `student app follows the language`, `student app follows the theme toggle`, and `design pages are wide` / `design pages fit a phone viewport` cover the student app page;
+  > files: `apps/web/src/modules/designs/data/{student-app-ids.ts,design-pages.ts}`, `apps/web/src/modules/designs/i18n/{student-app-note.ts,student-app-note.test.ts}`, `apps/web/src/modules/designs/components/student-app-*/` (index, component, types, test each), `apps/web/src/modules/designs/pages/student-app/{index.ts,student-app.page.tsx,student-app.types.ts,student-app.page.test.tsx}`, `apps/web/src/app/[lang]/designs/student-app/page.tsx`, `apps/web/src/i18n/{dictionary.types.ts,dictionaries/pt-br.ts,dictionaries/es.ts,dictionaries/en.ts}`, `apps/web/src/modules/designs/components/phone-frame/{phone-frame.component.tsx,phone-frame.hook.ts,phone-frame.component.test.tsx}`, `apps/web/e2e/designs.e2e.ts`;
+  > verified: `npm run test:e2e --workspace @rochas-surf-school/web` (42 passed); `npx turbo run lint check-types build --filter=@rochas-surf-school/web` (9 tasks successful); `npx vitest run` in `apps/web` (129 files, 434 tests passed);
+  > deviations: the mock school rules of section 05 come from the auth flow dictionary (`authFlow.schoolRules`, passed by the route) as D-04 says; the e2e tall-frame test compares the ST-05-01 frame with a phone-height frame because the frames scale to the grid column; notification times ("Agora", "há 5 min"…) are mock text in each dictionary
 
 ### Designs (`.docs/designs`)
 

@@ -1,4 +1,5 @@
 import type { AuthFlowEntryId } from "@/modules/designs/data/auth-flow-ids";
+import type { StudentAppEntryId } from "@/modules/designs/data/student-app-ids";
 import type { DesignSystemEntryId } from "@/modules/designs/data/design-system-ids";
 
 /** Every string of the site, in one language. Each dictionary must satisfy this type exactly. */
@@ -28,7 +29,7 @@ export type Dictionary = {
     metaDescription: string;
     title: string;
     description: string;
-    pages: { designSystem: { title: string; description: string }; authFlow: { title: string; description: string } };
+    pages: { designSystem: { title: string; description: string }; authFlow: { title: string; description: string }; studentApp: { title: string; description: string } };
   };
   designSystem: {
     metaTitle: string;
@@ -53,6 +54,26 @@ export type Dictionary = {
     schoolRules: { title: string; description: string }[];
     /** The mock reason an admin typed when denying an account. */
     denialReason: string;
+  };
+  studentApp: {
+    metaTitle: string;
+    title: string;
+    eyebrow: string;
+    description: string;
+    sections: Record<"agenda" | "class" | "myClasses" | "school" | "profile" | "notifications", { title: string; description: string }>;
+    entries: Record<StudentAppEntryId, { title: string; note: string }>;
+    /** Introduces the list of the other messages an element can show, in an entry's note. */
+    otherMessages: string;
+    /** The mock reason the school typed when denying a request. */
+    denialReason: string;
+    /** The mock reason the school typed when taking a student out of a class. */
+    takeOutReason: string;
+    /** The mock notes of the class. */
+    classNotes: string;
+    /** The mock cancellation rule of each sport. */
+    cancellationRules: { surf: string; skate: string };
+    /** The in-app text the backend writes for each notification type a student gets (`push-messages.ts`), with the mock class's values. */
+    notifications: { type: string; title: string; body?: string; bodyFrom?: "denialReason" | "takeOutReason"; time: string }[];
   };
   privacyPolicy: {
     metaTitle: string;

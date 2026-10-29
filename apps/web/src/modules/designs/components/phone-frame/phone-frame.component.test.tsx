@@ -52,17 +52,17 @@ describe("PhoneFrame", () => {
         disconnect() {}
       });
       const offsetHeight = vi.spyOn(HTMLElement.prototype, "offsetHeight", "get").mockReturnValue(1608);
-      const clientWidth = vi.spyOn(HTMLElement.prototype, "clientWidth", "get").mockReturnValue(201);
+      const offsetWidth = vi.spyOn(HTMLElement.prototype, "offsetWidth", "get").mockReturnValue(201);
       render(<PhoneFrame tall><p>screen</p></PhoneFrame>);
 
       expect(observed).toHaveLength(2);
-      expect(screen.getByTestId("phone-frame")).toHaveStyle({ height: "804px" });
+      expect(screen.getByTestId("phone-frame")).toHaveStyle({ height: "806px" });
 
-      clientWidth.mockReturnValue(402);
+      offsetWidth.mockReturnValue(402);
       act(() => notify());
-      expect(screen.getByTestId("phone-frame")).toHaveStyle({ height: "1608px" });
+      expect(screen.getByTestId("phone-frame")).toHaveStyle({ height: "1610px" });
       offsetHeight.mockRestore();
-      clientWidth.mockRestore();
+      offsetWidth.mockRestore();
     });
   });
 });

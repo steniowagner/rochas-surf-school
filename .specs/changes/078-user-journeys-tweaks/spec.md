@@ -3,10 +3,11 @@ id: "078"
 slug: user-journeys-tweaks
 title: Reorder the flow page buttons and drop the set label
 template: quick
-status: in-review
+status: accepted
 created: 2026-10-29
 started: 2026-10-29
 base_commit: f1c075cd18d1cd547bf4db989e81ac3b86371c68
+reviewed_commit: 9362aeb41fb9dbdc384593326a62fb3234d2b479
 fronts: [web]
 depends_on: []
 ---
@@ -150,3 +151,36 @@ email, `testeNN.…`).
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-29 — accepted (self-review)
+
+This round ran in the session that executed the spec, as a quick spec allows.
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (apps/web, `turbo --force`: 9 successful)
+- related tests ✅ apps/web (11 changed files)
+- coverage of the changed lines ✅ `COVERAGE OK` — no changed line to measure: the 8 source files are under
+  `apps/web/src/**` (excluded by technical-context), the other 3 are tests; no coverage-ignore comments
+- e2e ✅ web: 74 Playwright tests
+- diff: every changed file belongs to T-01 or T-02; no debug leftovers, no TODOs
+
+**Expected Results**
+
+- ER-01 ✅ — the page test checks "All flows" precedes "See the designs" and keeps both links' `href` /
+  `target`; the e2e helper `flowCtasOf` asserts the order on all four flows in en (`flow pages show every test
+  case`) and on the student flow in es and pt-br (`flow pages follow the language`); both e2e tests failed with
+  the old order during execution; by hand `/pt-br/user-journeys/student` → "Todos os fluxos", "Ver os designs"
+- ER-02 ✅ — the page test finds no heading in any of the 12 cards and no "Conjunto" in pt-BR, with the rows,
+  names, emails and copy buttons unchanged; the e2e test asserts no heading per card in every language; the
+  edge case holds: "Account to use" is still a titled card (`index and flow pages link to the test accounts`
+  and the flow page test find it by its heading), and every other `ContentCard` caller still passes `title`;
+  by hand at 375 × 812: 12 cards, 0 headings, no horizontal scroll
+
+**Findings**
+
+None.
+
+**Notes**
+
+- T-03's commit also set `status: in-review`, instead of a separate `docs(spec-078): ready for review` commit.

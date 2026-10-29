@@ -10,11 +10,13 @@ export function ScreenIntro({
 }: ScreenIntroProps) {
   return (
     <div className="flex flex-col gap-3">
-      <div
-        className={`flex h-16 w-16 items-center justify-center rounded-card text-grape ${iconTileClassName}`}
-      >
-        {icon}
-      </div>
+      {icon ? (
+        <div
+          className={`flex h-16 w-16 items-center justify-center rounded-card text-grape ${iconTileClassName}`}
+        >
+          {icon}
+        </div>
+      ) : null}
       <div className="flex flex-col gap-1">
         {eyebrow ? (
           <p className={`ds-text-section-label ${eyebrowClassName}`}>{eyebrow}</p>

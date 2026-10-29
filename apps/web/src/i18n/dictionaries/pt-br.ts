@@ -32,6 +32,10 @@ export const ptBr = {
       title: "Designs",
       description: "Como o app é desenhado: o sistema de design com cores, tipografia e componentes.",
     },
+    userJourneys: {
+      title: "Jornadas de usuário",
+      description: "Os casos de teste de cada fluxo do app, para quem está testando antes do lançamento.",
+    },
   },
   designs: {
     metaTitle: "Designs",

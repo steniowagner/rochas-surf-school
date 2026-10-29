@@ -70,14 +70,18 @@ test.describe("user journeys redirects", () => {
 });
 
 test.describe("user journeys visibility", () => {
-  test("user journey pages are noindex and not linked", async ({ page }) => {
+  test("user journey pages are noindex and linked only from home", async ({ page }) => {
     for (const locale of locales) {
       for (const path of ["", ...flows.map((flow) => `/${flow}`)]) {
         await page.goto(`/${locale}/user-journeys${path}`);
         await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "noindex, nofollow");
       }
 
-      for (const path of [`/${locale}`, `/${locale}/designs`, `/${locale}/privacy-policy`, `/${locale}/designs/student-app`]) {
+      await page.goto(`/${locale}`);
+      await expect(page.locator('meta[name="robots"]')).toHaveCount(0);
+      await expect(page.locator('a[href*="/user-journeys"]')).toHaveCount(1);
+
+      for (const path of [`/${locale}/designs`, `/${locale}/privacy-policy`, `/${locale}/designs/student-app`]) {
         await page.goto(path);
         await expect(page.locator('meta[name="robots"]')).toHaveCount(0);
         await expect(page.locator('a[href*="/user-journeys"]')).toHaveCount(0);

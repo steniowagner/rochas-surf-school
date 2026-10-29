@@ -112,13 +112,16 @@ test("home links to the designs in every language", async ({ page }) => {
     await page.goto(`/${locale}`);
 
     const rows = page.locator("main a");
-    await expect(rows).toHaveCount(4);
+    await expect(rows).toHaveCount(5);
     await expect(rows.nth(0)).toHaveAttribute("href", `/${locale}/privacy-policy`);
     await expect(rows.nth(1)).toHaveAttribute("href", `/${locale}/terms-of-use`);
     await expect(rows.nth(2)).toHaveAttribute("href", `/${locale}/account-deletion`);
     await expect(rows.nth(3)).toHaveAttribute("href", `/${locale}/designs`);
     await expect(rows.nth(3)).toContainText(dictionaries[locale].home.designs.title);
     await expect(rows.nth(3)).toContainText(dictionaries[locale].home.designs.description);
+    await expect(rows.nth(4)).toHaveAttribute("href", `/${locale}/user-journeys`);
+    await expect(rows.nth(4)).toContainText(dictionaries[locale].home.userJourneys.title);
+    await expect(rows.nth(4)).toContainText(dictionaries[locale].home.userJourneys.description);
   }
 });
 

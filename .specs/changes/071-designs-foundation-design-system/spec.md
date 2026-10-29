@@ -2,7 +2,7 @@
 id: "071"
 slug: designs-foundation-design-system
 title: Public designs area and the design system page
-status: in-progress
+status: in-review
 started: 2026-10-28
 base_commit: 276ffc29014c5113e8451f9bba1dac669c353719
 created: 2026-10-28

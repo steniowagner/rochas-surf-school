@@ -1013,22 +1013,32 @@ src/
         page.tsx                # the designs index (designPages)
         design-system/page.tsx  # the design system page (metadata + DesignSystemPage)
         auth-flow/page.tsx      # the auth flow page (metadata + AuthFlowPage, spec 072)
+        student-app/page.tsx    # the student app page (metadata + StudentAppPage, spec 073)
   proxy.ts                      # redirects /, /privacy-policy, /terms-of-use, /account-deletion, /designs(/…) to the browser's language
   modules/designs/              # the public designs (spec 071)
     components/                 # mocks of the mobile components (same names and props: button, class-card, tab-bar,
-                                # bottom-modal, empty-state…), phone-frame, design-section, design-entry, app-icon
-                                # (the app's glyphs via react-icons / @mdi/js), design-system-<section> and
-                                # auth-flow-<section> per section (sign-in, email, onboarding, closed-account)
+                                # bottom-modal, empty-state, enrolment-banner, request-seat-sheet, person-sheet,
+                                # notification-row…), phone-frame and phone-frame-tall (the client frame of a tall
+                                # screen, spec 073), design-section, design-entry, app-icon (the app's glyphs via
+                                # react-icons / @mdi/js), design-system-<section>, auth-flow-<section> per section
+                                # (sign-in, email, onboarding, closed-account) and student-app-<section> (agenda, class,
+                                # my-classes, school, profile, notifications)
     screens/auth/               # whole-screen mocks, one *-screen folder each, state as props (spec 072): sign-in,
                                 # email-choice, email-sign-in, create-account, confirm-code, google-name, pending,
                                 # whatsapp, school-rules, reactivation, denied, removed
+    screens/shared/             # screens every role has, a role's differences as props (spec 073): class-details,
+                                # people, profile, edit-profile, profile-whatsapp, school-rules-read, notifications
+    screens/student/            # student-only screens (spec 073): agenda, my-classes, my-history
     assets/                     # team-hero.jpg and google-logo.svg (copied from the app), asset-src.ts
     data/                       # design-pages.ts, design-system-ids.ts (DS-xx-yy), auth-flow-ids.ts (AF-xx-yy and each
-                                # entry's other messages), fortaleza.ts (mock data), mock-calendar.ts
+                                # entry's other messages), student-app-ids.ts (ST-xx-yy and each entry's other
+                                # messages), fortaleza.ts (mock data), student-app.ts (the student page's mock data),
+                                # mock-calendar.ts
     i18n/                       # app-locale.ts (site → app locale), app-t.ts (appT, appRich over app-messages),
-                                # auth-flow-note.ts (an entry's note with its other messages)
+                                # auth-flow-note.ts, student-app-note.ts (an entry's note with its other messages)
     pages/design-system/        # DesignSystemPage: sections 01–09
     pages/auth-flow/            # AuthFlowPage: sections 01–04
+    pages/student-app/          # StudentAppPage: sections 01–06
   i18n/
     locales.ts                  # locales, defaultLocale (pt-br), hasLocale, matchLocale, html lang, names, flags
     dictionary.types.ts         # Dictionary: every string of the site

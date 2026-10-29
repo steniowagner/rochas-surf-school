@@ -2,13 +2,14 @@
 id: "073"
 slug: designs-student-app
 title: Student app designs page
-status: accepted
+status: finished
 created: 2026-10-28
 started: 2026-10-28
 base_commit: 4be1936df6c3a33e8dc6b0e0bfcf946c4145ec51
 reviewed_commit: 27e9a36a5334bbe7924d9d0b5d9c268da59ce0cd
 fronts: [web, designs]
 depends_on: []
+finished: 2026-10-28
 ---
 
 # 073 — Student app designs page

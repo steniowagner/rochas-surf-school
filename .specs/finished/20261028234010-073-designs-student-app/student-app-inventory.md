@@ -40,7 +40,9 @@ render for an approved student, `apps/mobile/src/components/**`, the toasts of `
 Every frame is the student's class details screen (`/student/class/[id]`): the stack header with the back button, the
 class (sport, level, date and time, instructor), the enrolment banner when there is one, the people of the class, the
 rules card (cancellation rule with its deadline, school rules), the notes when there are some, the location card and
-the footer with the enrolment button that `getEnrolmentCta` gives. Every class-details frame is *tall*.
+the footer with the enrolment button that `getEnrolmentCta` gives. Every class-details frame is *tall*, except the
+frames with a sheet or a toast, drawn over a phone-height frame (D-02), and loading, not found and load error
+(ST-02-27..29), which fill the screen and don't scroll.
 
 | Id | Entry | State |
 | --- | --- | --- |
@@ -59,7 +61,7 @@ the footer with the enrolment button that `getEnrolmentCta` gives. Every class-d
 | ST-02-13 | Cancel seat sheet | The cancel sheet over ST-02-12: title, the description with the deadline, "Sim, cancelar" and "Manter inscrição". |
 | ST-02-14 | Seat cancelled | ST-02-20's form with the toast `enrolment.cancelSeatSheet.done`. |
 | ST-02-15 | Approved, deadline passed | The approved banner; no footer button, the note `enrolment.cancelSeatNote.passed` and "Falar com a escola". |
-| ST-02-16 | Approved, no deadline | The "no deadline" card (`classDetails.noDeadline`); the note `enrolment.cancelSeatNote.missing` and "Falar com a escola". |
+| ST-02-16 | Approved, no deadline | The approved banner; the note `enrolment.cancelSeatNote.missing` and "Falar com a escola". The "no deadline" card (`classDetails.noDeadline`) is shown to admins only, so it isn't drawn. |
 | ST-02-17 | Denied | The denied banner, pressable; footer "Pedir novamente". |
 | ST-02-18 | Denial reason sheet | The denial sheet with the school's reason (mock text, D-04). Other messages: `enrolment.denialSheet.noReason` when there is no reason. |
 | ST-02-19 | Withdrawn | The withdrawn banner; footer "Pedir novamente". |
@@ -69,7 +71,7 @@ the footer with the enrolment button that `getEnrolmentCta` gives. Every class-d
 | ST-02-23 | Started | The started card (`classDetails.started`); no footer. |
 | ST-02-24 | Finished | The finished card (`classDetails.finished`); no footer. |
 | ST-02-25 | Class cancelled | The cancelled card (`classDetails.cancelled`); no footer. |
-| ST-02-26 | No instructor | The "no instructor" card (`classDetails.noInstructor`) in place of the instructor. |
+| ST-02-26 | No instructor | `classDetails.noInstructorAssigned` in the instructor band. The "no instructor" card (`classDetails.noInstructor`) is shown to admins only, so it isn't drawn. |
 | ST-02-27 | Loading | The class details skeleton. |
 | ST-02-28 | Not found | The empty state `classDetails.notFoundState`. |
 | ST-02-29 | Load error | The error state `classDetails.errorState` with the retry button. |

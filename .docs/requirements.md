@@ -1316,7 +1316,9 @@ _Implemented in spec 071-designs-foundation-design-system._
 
 _Implemented in spec 072-designs-auth-flow._
 
-Publishes the public web pages the app stores require: the privacy policy, the terms of use and a way to request account deletion without the app. The same site also hosts a designs area (`/{lang}/designs`), linked from its home page, that shows the app's design system and its auth flow (the screens before a person reaches their role's home) to anyone interested, in the site's language and theme.
+_Implemented in spec 073-designs-student-app._
+
+Publishes the public web pages the app stores require: the privacy policy, the terms of use and a way to request account deletion without the app. The same site also hosts a designs area (`/{lang}/designs`), linked from its home page, that shows the app's design system, its auth flow (the screens before a person reaches their role's home) and the student app (every screen an approved student sees) to anyone interested, in the site's language and theme.
 
 #### Privacy policy page
 

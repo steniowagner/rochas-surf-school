@@ -6,10 +6,12 @@ _Implemented in spec 071-designs-foundation-design-system._
 
 _Implemented in spec 072-designs-auth-flow._
 
+_Implemented in spec 073-designs-student-app._
+
 Rocha's Surf School is a cross-platform mobile app (Android and iOS) for managing surf and skate classes between instructors, students and admins. It's three apps in one: what each person sees depends on their role.
 
 - Detailed requirements: [requirements.md](requirements.md), by area. Specs planned from them live in `.specs/`.
-- Designs: in [`.docs/designs/`](designs/): `design-system.html` (the design system), `auth-flow.html` (the screens before a person reaches their role's home: sign-in, email and code, approval, onboarding, closed accounts) and `student-app.html`, `instructor-app.html`, `admin-app.html` (each role's screens). They started as exports of the Claude Design project "Rocha's Surf School App" (https://claude.ai/design/p/5359a9f1-ab7a-4ff8-9beb-3ef5e4947c80), which is no longer where they are edited: each file is rebuilt from its readable sources in `.docs/designs/src/` with `node .docs/designs/scripts/pack.mjs`, and `design-system.html` and `auth-flow.html` are generated from the public site's design pages (`/{lang}/designs/design-system`, `/{lang}/designs/auth-flow`).
+- Designs: in [`.docs/designs/`](designs/): `design-system.html` (the design system), `auth-flow.html` (the screens before a person reaches their role's home: sign-in, email and code, approval, onboarding, closed accounts) `student-app.html` (every screen an approved student sees: agenda, class and enrolment, my classes and history, people, profile, notifications) and `instructor-app.html`, `admin-app.html` (the instructor's and the admin's screens). They started as exports of the Claude Design project "Rocha's Surf School App" (https://claude.ai/design/p/5359a9f1-ab7a-4ff8-9beb-3ef5e4947c80), which is no longer where they are edited: each file is rebuilt from its readable sources in `.docs/designs/src/` with `node .docs/designs/scripts/pack.mjs`, and `design-system.html`, `auth-flow.html` and `student-app.html` are generated from the public site's design pages (`/{lang}/designs/design-system`, `/{lang}/designs/auth-flow`, `/{lang}/designs/student-app`).
 
 ## General User Journeys
 

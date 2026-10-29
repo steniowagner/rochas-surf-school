@@ -22,9 +22,10 @@ describe("TestAccountsPage", () => {
     render(<TestAccountsPage locale="en" text={en.userJourneys} />);
 
     expect(cards()).toHaveLength(12);
-    expect(cards().map((card) => within(card).getByRole("heading", { level: 2 }).textContent)).toEqual(
-      testAccountSets.map(({ set }) => `Set ${set}`),
-    );
+    // The cards carry no set label: the set number is in each email.
+    for (const card of cards()) {
+      expect(within(card).queryByRole("heading")).not.toBeInTheDocument();
+    }
     testAccountSets.forEach(({ accounts }, index) => {
       const rows = within(cards()[index]).getAllByRole("listitem");
       expect(rows).toHaveLength(3);
@@ -44,7 +45,7 @@ describe("TestAccountsPage", () => {
     expect(screen.getByRole("heading", { level: 1, name: "Contas de teste" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Todos os fluxos" })).toHaveAttribute("href", "/pt-br/user-journeys");
     const firstCard = cards()[0];
-    expect(within(firstCard).getByRole("heading", { level: 2 })).toHaveTextContent("Conjunto 01");
+    expect(firstCard).not.toHaveTextContent("Conjunto");
     const rows = within(firstCard).getAllByRole("listitem");
     expect(rows.map((row) => row.firstElementChild?.textContent)).toEqual(["Admin", "Instrutor", "Aluno"]);
     expect(rows[1]).toHaveTextContent("Instrutor Teste Um");

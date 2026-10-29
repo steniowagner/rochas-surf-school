@@ -832,7 +832,6 @@ export const ptBr = {
       metaTitle: "Contas de teste",
       title: "Contas de teste",
       intro: "Cada conjunto de teste tem uma conta por papel. Use o conjunto que a escola enviou para você: entre com \"Continuar com e-mail\" → \"Já tenho conta\", o e-mail da conta e o código que a escola passou. Os códigos nunca aparecem nesta página.",
-      set: "Conjunto {set}",
       roles: { admin: "Admin", instructor: "Instrutor", student: "Aluno" },
       copyEmail: "Copiar e-mail",
       copied: "Copiado",

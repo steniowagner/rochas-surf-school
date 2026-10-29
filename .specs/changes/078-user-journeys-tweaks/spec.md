@@ -92,13 +92,27 @@ email, `testeNN.…`).
   > `npx eslint e2e/user-journeys.e2e.ts` (clean); deviations: the order is also asserted in
   > `flow pages show every test case`, because `flow pages follow the language` only opens es and pt-br
 
-- [ ] **T-02** — Make `title` optional in `src/components/content-card/` (D-01); stop passing it in
+- [x] **T-02** — Make `title` optional in `src/components/content-card/` (D-01); stop passing it in
   `src/modules/user-journeys/pages/test-accounts/test-accounts.page.tsx`; remove `testAccounts.set` from
   `src/i18n/dictionary.types.ts` and `src/i18n/dictionaries/{en,es,pt-br}.ts` (D-02); update
   `test-accounts.page.test.tsx` and `e2e/user-journeys.e2e.ts` → `test accounts page lists the 12 sets in every
   language` to assert the cards have no heading.
   Covers: ER-02 · Done when: `npx vitest run src/modules/user-journeys src/components`, `npm run check-types` and
   `npx playwright test e2e/user-journeys.e2e.ts -g "test accounts"` pass in `apps/web`.
+  > ✅ 2026-10-29 20:40 — `ContentCard`'s `title` is optional and its `h2` renders only when a title is given (every
+  > other caller still passes one); the test accounts page renders its 12 cards without a title; `testAccounts.set`
+  > is gone from `Dictionary` and the three dictionaries (no reference left in `src/` or `e2e/`). The page test
+  > asserts no card has a heading and the pt-BR card shows no "Conjunto"; the e2e test asserts each card has no
+  > heading in every language, while `index and flow pages link to the test accounts` still finds the titled
+  > "Account to use" card; files: `apps/web/src/components/content-card/content-card.component.tsx`,
+  > `apps/web/src/components/content-card/content-card.types.ts`,
+  > `apps/web/src/modules/user-journeys/pages/test-accounts/test-accounts.page.tsx`,
+  > `apps/web/src/modules/user-journeys/pages/test-accounts/test-accounts.page.test.tsx`,
+  > `apps/web/src/i18n/dictionary.types.ts`, `apps/web/src/i18n/dictionaries/en.ts`,
+  > `apps/web/src/i18n/dictionaries/es.ts`, `apps/web/src/i18n/dictionaries/pt-br.ts`,
+  > `apps/web/e2e/user-journeys.e2e.ts`; verified: `npx vitest run src/modules/user-journeys src/components`
+  > (16 files, 84 passed), `npm run check-types` (exit 0), `npx playwright test e2e/user-journeys.e2e.ts -g
+  > "test accounts"` (8 passed), `npx eslint` on the touched files (clean); deviations: none
 
 ### Verification
 

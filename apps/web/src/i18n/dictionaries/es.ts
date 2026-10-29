@@ -832,7 +832,6 @@ export const es = {
       metaTitle: "Cuentas de prueba",
       title: "Cuentas de prueba",
       intro: "Cada conjunto de prueba tiene una cuenta por rol. Usa el conjunto que te envió la escuela: entra con \"Continuar con email\" → \"Ya tengo cuenta\", el email de la cuenta y el código que te dio la escuela. Los códigos nunca aparecen en esta página.",
-      set: "Conjunto {set}",
       roles: { admin: "Admin", instructor: "Instructor", student: "Alumno" },
       copyEmail: "Copiar email",
       copied: "Copiado",

@@ -32,7 +32,7 @@ export function TestAccountsPage({ locale, text }: TestAccountsPageProps) {
       </div>
       <div className="grid items-start gap-4 md:grid-cols-2 lg:grid-cols-3" data-testid="test-account-sets">
         {testAccountSets.map(({ set, accounts }) => (
-          <ContentCard key={set} title={labels.set.replace("{set}", set)}>
+          <ContentCard key={set}>
             <ul className="flex flex-col gap-4">
               {accounts.map((account) => (
                 <li key={account.email} className="flex min-w-0 flex-col gap-1">

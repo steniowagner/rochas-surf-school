@@ -406,9 +406,9 @@ test.describe("test accounts page", () => {
 
       const cards = page.getByTestId("test-account-sets").locator(":scope > section");
       await expect(cards).toHaveCount(12);
-      for (const [index, { set, accounts }] of testAccountSets.entries()) {
+      for (const [index, { accounts }] of testAccountSets.entries()) {
         const card = cards.nth(index);
-        await expect(card.getByRole("heading", { level: 2 })).toHaveText(text.testAccounts.set.replace("{set}", set));
+        await expect(card.getByRole("heading")).toHaveCount(0);
         const rows = card.getByRole("listitem");
         await expect(rows).toHaveCount(3);
         for (const [row, account] of accounts.entries()) {

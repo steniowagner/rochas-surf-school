@@ -372,11 +372,19 @@ script prints, so no sign-in code ever reaches the public repository.
   > `apps/web/src/modules/user-journeys/utils/design-href.test.ts`; verified: `npx vitest run src/modules/user-journeys`
   > (2 files, 14 passed), `npx tsc --noEmit` and `npx eslint src/modules/user-journeys` exit 0; deviations: none.
 
-- [ ] **T-03** — Add the page labels of D-20 (with "Notes", "Clear results" and its confirmation, and the saved-progress
+- [x] **T-03** — Add the page labels of D-20 (with "Notes", "Clear results" and its confirmation, and the saved-progress
   line) and the index's texts (intro and "Before you start" of D-06 / D-08: the test sets, no code) to
   the site dictionaries under `userJourneys`: `apps/web/src/i18n/dictionary.types.ts` and
   `apps/web/src/i18n/dictionaries/{en,pt-br,es}.ts`, in the three languages.
   Covers: ER-11 · Done when: `npm run check-types --workspace @rochas-surf-school/web` exits 0.
+  > ✅ 2026-10-29 15:14 — `Dictionary` gains `userJourneys` (meta title and description, `title`, the D-08 `intro`
+  > paragraphs, the D-06 `beforeYouStart` block — the test sets, "Continue with email" → "I have an account" with
+  > each language's app string, no email and no code —, `caseCount` one / other, and the D-20 `labels`), filled in en,
+  > pt-br and es. Files: `apps/web/src/i18n/dictionary.types.ts`, `apps/web/src/i18n/dictionaries/en.ts`,
+  > `apps/web/src/i18n/dictionaries/pt-br.ts`, `apps/web/src/i18n/dictionaries/es.ts`; verified:
+  > `npm run check-types --workspace @rochas-surf-school/web` (exit 0); deviations: three labels beyond D-20's list,
+  > needed by D-04 / D-09 — `id` ("ID") and `testCase` ("Title") for the table's first two column headers, and
+  > `accountToUse` ("Account to use") for the flow page's account block.
 
 - [ ] **T-04** — Write the English texts of the flows and rows in `apps/web/src/modules/user-journeys/i18n/en.ts`
   with their type in `apps/web/src/modules/user-journeys/i18n/user-journey-texts.types.ts` (per flow: title,

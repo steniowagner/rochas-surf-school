@@ -162,4 +162,43 @@ export type Dictionary = {
     kept: { title: string; intro: string; items: string[] };
     timing: { title: string; text: string };
   };
+  /** The user journey pages for test users (spec 076): the index and the labels of every flow page. */
+  userJourneys: {
+    metaTitle: string;
+    metaDescription: string;
+    /** "User journeys": the index's title and the flow pages' eyebrow. */
+    title: string;
+    /** The index's intro, one string per paragraph. */
+    intro: string[];
+    beforeYouStart: { title: string; items: string[] };
+    /** The case count of a flow card: `{count}` is the number of rows. */
+    caseCount: { one: string; other: string };
+    labels: {
+      id: string;
+      testCase: string;
+      beforeYouStart: string;
+      steps: string;
+      expectedBehavior: string;
+      design: string;
+      result: string;
+      approved: string;
+      denied: string;
+      notTested: string;
+      notes: string;
+      yourName: string;
+      accountToUse: string;
+      copyResults: string;
+      copied: string;
+      copyFailed: string;
+      clearResults: string;
+      clearConfirm: string;
+      savedProgress: string;
+      seeDesigns: string;
+      allFlows: string;
+      tester: string;
+      date: string;
+      /** `{approved}`, `{denied}` and `{notTested}` are the counts. */
+      counter: string;
+    };
+  };
 };

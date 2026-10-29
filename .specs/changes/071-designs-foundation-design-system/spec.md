@@ -2,7 +2,7 @@
 id: "071"
 slug: designs-foundation-design-system
 title: Public designs area and the design system page
-status: in-review
+status: changes-requested
 started: 2026-10-28
 base_commit: 276ffc29014c5113e8451f9bba1dac669c353719
 created: 2026-10-28
@@ -502,3 +502,44 @@ shared between mobile and web, the phone frame and the mock UI pieces.
   work and could drift from it.
 
 ## Review
+
+### Round 1 — 2026-10-28 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (web, mobile, app-messages: `npx turbo run lint check-types build`, 17/17 tasks)
+- related tests ✅ mobile 917 · web 149 · app-messages 4 passed (`RELATED TESTS PASSED`); whole suites ✅ mobile 3443 · web 171 · app-messages 4
+- coverage of the changed lines ✅ `COVERAGE OK` (1 measured file, `packages/app-messages/src/index.ts` 100%; the rest excluded by technical-context); no coverage-ignore comments in the diff
+- e2e: web suite ✅ 32 passed (`E2E PASSED`); backend not affected
+- designs: `node --test .docs/designs/scripts/*.test.mjs` ✅ 7 passed · `pack.mjs --check` ✅ 5 files match · `empty-and-error-states.html` gone ✅ · `design-system.html` regenerated from the current web build is byte-identical to the committed sources ✅ · the four other `.html` files decode to the same content as at `base_commit` ✅
+- web walked in the browser (pt-br, es, en; light, dark; 1440 px and 375 px) and `design-system.html` opened in the browser (51 entries, each light and dark, pt-BR)
+- mobile in the iOS simulator (iPhone 18 Pro): sign-in in English, then Português from the language sheet ("Continuar com o Google"), restored to English; the fresh iOS bundle (`expo export`) carries the en-US, es-ES and pt-BR sign-in copy
+
+**Expected Results**
+
+- ER-01 ✅ — script tests (round trip, stale, missing asset, no bundle data) pass; `--check` exits 0
+- ER-02 ❌ — 51 ids, pt-BR, light/dark pairs, no European Portuguese, states file gone; but DS-09-04 and DS-09-02 don't match the code (F-01, F-02)
+- ER-03 ✅ — key-parity test and `check-types` pass; es-ES/pt-BR are typed `Messages`, so a missing or extra key fails `tsc`; files moved with 100 % similarity
+- ER-04 ✅ — mobile suite passes; simulator shows the sign-in from the package in English and Portuguese; stored preference applied on relaunch
+- ER-05 ✅ — `/designs`, `/designs/design-system` → 307 to `/es/...` with `Accept-Language: es-AR`, `/pt-br/...` without the header; `/pt-br/designs/unknown` and `/fr/designs` → 404
+- ER-06 ✅ — fourth row after account deletion, title and description in each language (checked by hand; see F-03 for the test)
+- ER-07 ✅ — one card (design system) per language, translated `<title>` and meta description (checked by hand; see F-03)
+- ER-08 ❌ — every id present and visible in the three languages; class cards, chips, controls, tab bars and sheets match the components; DS-09-04 and DS-09-02 don't (F-01, F-02)
+- ER-09 ✅ — DS-09-03 reads "Tentar de novo" / "Intentar de nuevo" / "Try again"; section text in each language; picker keeps the page; no `{{…}}` or raw tags
+- ER-10 ✅ — OS dark with no stored choice draws the dark palette; the toggle switches swatches and frames and survives reload; swatches print both values (the OS case is not tested, F-04)
+- ER-11 ✅ — `main` ≤ 1440 px on design pages, 640 px on privacy policy; at 375 px `scrollWidth == innerWidth`, frames scaled to ~307 px
+
+**Findings**
+
+- [ ] **F-01** (ER-08, ER-02 · D-08) — DS-09-04 "States in a screen" draws a screen the app never renders: the header title is "Nova aula" (the label of the `+` header button), there is no `WeekMonthCalendar` under the header and no floating `DisciplineFilter`, and the student tab bar is paired with the "Criar aula" empty-state action, which only `canCreate` (admin) screens show. Reproduce: open DS-09-04 on `/pt-br/designs/design-system` (or the same entry in `design-system.html`) and compare with `apps/mobile/src/modules/classes/screens/classes-week.screen.tsx` and `src/app/(private)/admin/(tabs)/classes/index.tsx`. Expected: the three frames reproduce one role's classes screen as the app renders it — for admin: title "Aulas" (`tabs.classes`) with the `add` HeaderButton, the week calendar, then the skeletons / the empty state with "Criar aula" / the error state under it, the sport filter, and the instructor/admin tab bar (or the student agenda without the create action); then regenerate and repack `design-system.html`.
+- [ ] **F-02** (ER-08, ER-02 · D-08, D-09) — the "Criar aula" action is drawn with the `Ionicons:calendar-outline` glyph in DS-09-02 ("with an action") and in the DS-04-01 "with icon" sample; every `EmptyState` action in the app (classes week, manage school rules) uses `add`. Reproduce: DS-09-02 and DS-04-01 on `/pt-br/designs/design-system`; `grep -rn -A6 "<EmptyState" apps/mobile/src`. Expected: `Ionicons:add` next to "Criar aula" (or another label/glyph pair the app actually renders); regenerate and repack `design-system.html`.
+- [ ] **F-03** (tests · ER-06, ER-07, ER-09) — the e2e tests don't check the page language of the site's own text: `home links to the designs in every language` only checks the four hrefs, `index lists the design system in every language` only checks the card count/href, a visible `h1` and that the title contains "|", and `design system follows the language` checks only the retry button (app copy), not the section titles/notes. They would still pass with an untranslated or swapped dictionary entry. Expected: per locale, assert the Designs row title and description on the home, the index title, intro, card title/description, `<title>` and meta description, and at least one section title of the design system page against the dictionary values.
+- [ ] **F-04** (tests · ER-10) — `design system follows the theme toggle` emulates a light OS and only checks that the colors change after the toggle; the edge case "without a stored choice the page follows the OS color scheme" is never asserted, and "both values printed" is checked with a single dark value. Expected: with `colorScheme: "dark"` and no stored choice, the `page` swatch and a phone frame compute to the dark `page` token; the DS-01-01 `page` swatch contains both `#FDF8F3` and `#161B27`.
+
+**Notes**
+
+- Memory Impact misses A-01: `technical-context.md` and `product.md` should say that `design-system.html` is generated from the web page by `build-design-system.mjs` (needs the web on port 3100) and is not hand-edited; `CLAUDE.md` → `packages/design-tokens` still says the tokens are "taken from `.docs/designs/design-system.html`", which is now the other way round.
+- `build-design-system.mjs` `require`s `jsdom` from the repo root, where it resolves only through the hoisted `jsdom@20` that the backend's Vitest pulls in (`apps/web` declares `jsdom@30`); declaring it where the script lives would make it independent of the backend.
+- D-13 asks for a typed slug list with `generateStaticParams`/`dynamicParams = false`; per-page static routes (T-07 deviation) give the same 404 and static output — not a finding, but the decision text could be amended.
+- An already-running Metro must be restarted (`expo start --clear`) after checking out this branch: one started before `node_modules/@rochas-surf-school/app-messages` existed fails with "Unable to resolve module @rochas-surf-school/app-messages".
+- At narrow cells the entry id badge wraps ("DS-06-" / "04"); `whitespace-nowrap` on the badge would keep it on one line.

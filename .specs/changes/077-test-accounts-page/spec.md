@@ -170,13 +170,21 @@ server creates.
 
 ### Shared (`packages/shared`)
 
-- [ ] **T-01** — Add `src/test-accounts/test-account-sets.ts` (`testAccountSets`, `TestAccountSet`, `TestAccount`,
+- [x] **T-01** — Add `src/test-accounts/test-account-sets.ts` (`testAccountSets`, `TestAccountSet`, `TestAccount`,
   D-01) and `src/test-accounts/index.ts`, export them from `src/index.ts`, and add
   `test/test-accounts/test-account-sets.test.ts`: 12 sets `"01"`–`"12"`, three accounts each in role order, the
   D-21 emails and names (a few literal checks plus the generated pattern), distinct emails passing `EmailRule`,
   names passing `PersonNameRule`, no `code` property.
   Covers: ER-01 · Done when: `npm test --workspace @rochas-surf-school/shared` passes and
   `npm run build --workspace @rochas-surf-school/shared` emits `dist/test-accounts/`.
+  > ✅ 2026-10-29 22:20 — `testAccountSets` (12 sets built from the Portuguese set names, readonly, no code) with
+  > `TestAccountSet` / `TestAccount`, exported through the `test-accounts` barrel; the test was written first and
+  > failed (`testAccountSets` undefined) before the source existed; files:
+  > `packages/shared/src/test-accounts/test-account-sets.ts`, `packages/shared/src/test-accounts/index.ts`,
+  > `packages/shared/src/index.ts`, `packages/shared/test/test-accounts/test-account-sets.test.ts`; verified:
+  > `npm test --workspace @rochas-surf-school/shared` (26 suites, 128 passed; `test-account-sets.ts` 100% covered),
+  > `npm run build --workspace @rochas-surf-school/shared` (emits `dist/test-accounts/index.js`,
+  > `test-account-sets.js` and their `.d.ts`); deviations: none
 
 ### Backend (`apps/backend`)
 

@@ -2,11 +2,12 @@ import { describe, expect, it } from "vitest";
 
 import { flowRows, userJourneyFlowSlugs, userJourneyFlows } from "../data/user-journey-flows";
 import { en } from "./en";
+import { es } from "./es";
 import { ptBr } from "./pt-br";
 import type { UserJourneyTexts } from "./user-journey-texts.types";
 
-const textsByLocale: Record<string, UserJourneyTexts> = { en, "pt-br": ptBr };
-const translations: Record<string, UserJourneyTexts> = { "pt-br": ptBr };
+const textsByLocale: Record<string, UserJourneyTexts> = { en, "pt-br": ptBr, es };
+const translations: Record<string, UserJourneyTexts> = { "pt-br": ptBr, es };
 
 describe.each(Object.entries(textsByLocale))("user journey texts (%s)", (_locale, texts) => {
   it("gives every flow a title, a description, an account and a title per group", () => {

@@ -420,9 +420,18 @@ script prints, so no sign-in code ever reaches the public repository.
   > verified: `npx vitest run src/modules/user-journeys` (3 files, 21 passed), `npx tsc --noEmit` exit 0; deviations:
   > none.
 
-- [ ] **T-06** — Translate them into Spanish in `apps/web/src/modules/user-journeys/i18n/es.ts`, using the `es-ES`
+- [x] **T-06** — Translate them into Spanish in `apps/web/src/modules/user-journeys/i18n/es.ts`, using the `es-ES`
   app and notification strings, and extend `user-journey-texts.test.ts` to `es`.
   Covers: ER-11 · Done when: `npx vitest run src/modules/user-journeys` passes and `check-types` exits 0.
+  > ✅ 2026-10-29 16:10 — `es.ts` translates the 4 flows (titles "Acceso", "App del alumno", "App del instructor",
+  > "App del admin"), their groups and the 96 rows; quoted labels mapped by key path from `en-US.ts` to `es-ES.ts`
+  > (e.g. "Pedir plaza", "Anular solicitud", "Cómo llegar", "Eliminar la cuenta", "Normas de la escuela" on the
+  > rules-update screen and "Reglas de la escuela" on "Perfil", "Ascender a instructor") and notification titles
+  > from `push-messages.ts` ("Inscripción rechazada", "Acceso quitado", "Te retiraron de una clase", "Tu rol
+  > cambió"…); the Notifications screen is "Avisos". `user-journey-texts.test.ts` now covers `es` too (non-empty texts,
+  > no title repeating the English one). Files: `apps/web/src/modules/user-journeys/i18n/es.ts`,
+  > `apps/web/src/modules/user-journeys/i18n/user-journey-texts.test.ts`; verified: `npx vitest run
+  > src/modules/user-journeys` (3 files, 24 passed), `npx tsc --noEmit` exit 0; deviations: none.
 
 - [ ] **T-07** — Build the results board, a client component following `.claude/rules/react.md`, in
   `apps/web/src/modules/user-journeys/components/`: `journey-board` (state for name, results and notes, restored

@@ -4,7 +4,7 @@ import { PhoneFrame } from "@/modules/designs/components/phone-frame";
 import { ProfileAvatar } from "@/modules/designs/components/profile-avatar";
 import { StackHeader } from "@/modules/designs/components/stack-header";
 import { TextInput } from "@/modules/designs/components/text-input";
-import { instructorAccount, people } from "@/modules/designs/data/fortaleza";
+import { adminAccount, instructorAccount, people } from "@/modules/designs/data/fortaleza";
 import { appT } from "@/modules/designs/i18n/app-t";
 
 import type { EditProfileScreenProps } from "./edit-profile-screen.types";
@@ -12,7 +12,7 @@ import type { EditProfileScreenProps } from "./edit-profile-screen.types";
 /** The name field, the read-only e-mail and "Salvar", which waits for a new valid name. */
 export function EditProfileScreen({ locale, state, role = "student" }: EditProfileScreenProps) {
   const t = (key: string) => appT(locale, key);
-  const account = role === "instructor" ? instructorAccount : people;
+  const account = role === "admin" ? adminAccount : role === "instructor" ? instructorAccount : people;
   const invalid = state === "invalidName";
   const saving = state === "saving";
   const name = invalid ? "A1" : saving ? `${account.name} Souza` : account.name;

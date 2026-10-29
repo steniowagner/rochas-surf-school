@@ -18,7 +18,7 @@ import type { TeachingClassesScreenProps } from "./teaching-classes-screen.types
 
 const LOADING_CARDS = [0, 1, 2, 3];
 
-/** "Minhas aulas" of an instructor: the intro, the class under way on grape, then the next classes by day, and the sport filter. */
+/** "Minhas aulas" of an instructor (and of an admin who teaches, the same screen): the intro, the class under way on grape, then the next classes by day, and the sport filter. */
 export function TeachingClassesScreen({ locale, state }: TeachingClassesScreenProps) {
   const t = (key: string, params?: Record<string, string | number>) => appT(locale, key, params);
   const dates = instructorDates(locale);

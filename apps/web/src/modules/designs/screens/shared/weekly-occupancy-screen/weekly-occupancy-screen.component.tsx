@@ -19,7 +19,7 @@ const THIS_WEEK = "2026-09-07";
 const NEXT_WEEK = "2026-09-14";
 const FULL_CLASS = "wed-1600";
 
-/** "Ocupação semanal": the week bar, the week's stats, the map of how full each class is and the selected class's card. */
+/** "Ocupação semanal" of an instructor or an admin (the same screen): the week bar, the week's stats, the map of how full each class is and the selected class's card. */
 export function WeeklyOccupancyScreen({ locale, state }: WeeklyOccupancyScreenProps) {
   const t = (key: string, params?: Record<string, string | number>) => appT(locale, key, params);
   const dates = instructorDates(locale);

@@ -1,4 +1,4 @@
-import type { ClassDetailsState, ClassDetailsView, EnrolmentCta, InstructorClassDetailsState, InstructorScenario, LoadedClassDetails, Scenario } from "./class-details-screen.types";
+import type { AdminClassDetailsState, AdminScenario, ClassDetailsState, ClassDetailsView, EnrolmentCta, InstructorClassDetailsState, InstructorScenario, LoadedClassDetails, Scenario } from "./class-details-screen.types";
 
 const CTAS = {
   request: { key: "request", variant: "primary" },
@@ -74,8 +74,58 @@ export const instructorScenarios: Record<Exclude<InstructorClassDetailsState, "l
   classCancelled: { ...teaches, classState: "cancelled" },
 };
 
-/** What a loaded class's details draw: the student's scenario with their enrolment, or the instructor's read-only one. */
+const adminOpen = { classState: "not-started", teacher: "other" } as const;
+
+/** What each state of the admin's class details is made of. */
+export const adminScenarios: Record<Exclude<AdminClassDetailsState, "loading" | "notFound" | "error">, AdminScenario> = {
+  open: adminOpen,
+  noInstructor: { ...adminOpen, teacher: "none" },
+  noDeadline: { ...adminOpen, noDeadline: true },
+  full: { ...adminOpen, full: true },
+  noStudents: { ...adminOpen, noStudents: true },
+  started: { ...adminOpen, classState: "started" },
+  finished: { ...adminOpen, classState: "finished" },
+  classCancelled: { ...adminOpen, classState: "cancelled" },
+  takenOut: { ...adminOpen, takenOut: true },
+};
+
+/** The admin's fields, off for the student and the instructor. */
+const notAdmin = { showTools: false, showNoInstructor: false, showNoDeadline: false, canTakeOut: false, showTrialCount: false, takenOut: false } as const;
+
+/** What a loaded class's details draw: the student's scenario with their enrolment, the instructor's read-only one, or the admin's with the tools. */
 export const getClassDetailsView = (details: LoadedClassDetails): ClassDetailsView => {
+  if (details.role === "admin") {
+    const scenario = adminScenarios[details.state];
+    const notStarted = scenario.classState === "not-started";
+    const full = scenario.full ?? false;
+
+    return {
+      classState: scenario.classState,
+      full,
+      deadline: scenario.noDeadline ? "none" : "ahead",
+      bannerStatus: null,
+      showFullBanner: notStarted && full,
+      // The school's waiting list is on in the mock: new requests wait (`classDetails.full.waitingListOff` is in the note).
+      fullBannerAdminLine: "newRequestsWait",
+      cta: null,
+      deadlineNote: null,
+      teacher: scenario.teacher,
+      inClass: true,
+      // The trial guests sit in the classes that still have room.
+      guests: !full && !scenario.noStudents,
+      noStudents: scenario.noStudents ?? false,
+      // The admin's list is open, with the "Retirar" buttons.
+      expanded: !scenario.noStudents,
+      readOnlyNoteKey: null,
+      showTools: scenario.classState !== "finished" && scenario.classState !== "cancelled",
+      showNoInstructor: notStarted && scenario.teacher === "none",
+      showNoDeadline: notStarted && (scenario.noDeadline ?? false),
+      canTakeOut: notStarted,
+      showTrialCount: true,
+      takenOut: scenario.takenOut ?? false,
+    };
+  }
+
   if (details.role === "instructor") {
     const scenario = instructorScenarios[details.state];
 
@@ -93,6 +143,7 @@ export const getClassDetailsView = (details: LoadedClassDetails): ClassDetailsVi
       noStudents: scenario.noStudents ?? false,
       expanded: scenario.expanded ?? false,
       readOnlyNoteKey: scenario.teacher === "viewer" ? "classDetails.readOnly.teaches" : "classDetails.readOnly.notAssigned",
+      ...notAdmin,
     };
   }
 
@@ -114,5 +165,6 @@ export const getClassDetailsView = (details: LoadedClassDetails): ClassDetailsVi
     noStudents: false,
     expanded: false,
     readOnlyNoteKey: null,
+    ...notAdmin,
   };
 };

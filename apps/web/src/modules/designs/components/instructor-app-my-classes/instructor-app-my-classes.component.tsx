@@ -1,6 +1,6 @@
 import { instructorAppNote } from "@/modules/designs/i18n/instructor-app-note";
-import { TeachingClassesScreen } from "@/modules/designs/screens/instructor/teaching-classes-screen";
 import { ClassHistoryScreen } from "@/modules/designs/screens/shared/class-history-screen";
+import { TeachingClassesScreen } from "@/modules/designs/screens/shared/teaching-classes-screen";
 
 import { DesignEntry } from "../design-entry";
 import { DesignSection } from "../design-section";

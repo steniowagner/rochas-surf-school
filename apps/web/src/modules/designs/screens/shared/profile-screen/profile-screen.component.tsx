@@ -11,7 +11,8 @@ import { SignOutSheet } from "@/modules/designs/components/sign-out-sheet";
 import { Switch } from "@/modules/designs/components/switch";
 import { TabBar } from "@/modules/designs/components/tab-bar";
 import { ThemeSheet } from "@/modules/designs/components/theme-sheet";
-import { instructorAccount, localeOptions, people } from "@/modules/designs/data/fortaleza";
+import { adminTabs } from "@/modules/designs/data/admin-app";
+import { adminAccount, instructorAccount, localeOptions, people } from "@/modules/designs/data/fortaleza";
 import { instructorTabs } from "@/modules/designs/data/instructor-app";
 import { studentTabs } from "@/modules/designs/data/student-app";
 import { appLocaleBySiteLocale } from "@/modules/designs/i18n/app-locale";
@@ -30,7 +31,7 @@ export function ProfileScreen({ locale, state, rules, role = "student" }: Profil
     <PhoneFrame tall={state === "profile"}>
       <div className="flex flex-1 flex-col bg-page">
         <div className="flex flex-1 flex-col gap-6 px-5 pb-6 pt-6">
-          <ProfileHeader locale={locale} name={role === "instructor" ? instructorAccount.name : people.name} role={role} />
+          <ProfileHeader locale={locale} name={role === "admin" ? adminAccount.name : role === "instructor" ? instructorAccount.name : people.name} role={role} />
           <ProfileCard>
             <ProfileRow icon="Ionicons:pencil-outline" label={t("profile.editProfile")} />
             <ProfileRow icon="Ionicons:logo-whatsapp" label={t("profile.whatsapp")} value={t("profile.whatsappVisible")} />
@@ -57,7 +58,7 @@ export function ProfileScreen({ locale, state, rules, role = "student" }: Profil
             <ProfileRow icon="Ionicons:trash-outline" label={t("profile.removeAccount")} hideChevron destructive />
           </ProfileCard>
         </div>
-        <TabBar tabs={role === "instructor" ? instructorTabs(locale) : studentTabs(locale)} selected="profile" />
+        <TabBar tabs={role === "admin" ? adminTabs(locale) : role === "instructor" ? instructorTabs(locale) : studentTabs(locale)} selected="profile" />
         {state === "pushDenied" ? <ScreenToast message={t("profile.pushDenied")} /> : null}
         {state === "languageSheet" ? (
           <LanguageSheet title={t("language.title")} description={t("language.description")} locales={localeOptions.map((option) => ({ flag: option.flag, name: option.name, selected: option.key === current }))} />

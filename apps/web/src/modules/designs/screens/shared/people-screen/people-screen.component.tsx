@@ -10,6 +10,7 @@ import { ScreenIntro } from "@/modules/designs/components/screen-intro";
 import { ScreenToast } from "@/modules/designs/components/screen-toast";
 import { TabBar } from "@/modules/designs/components/tab-bar";
 import { TextInput } from "@/modules/designs/components/text-input";
+import { adminDirectory, adminTabs } from "@/modules/designs/data/admin-app";
 import { instructorTabs } from "@/modules/designs/data/instructor-app";
 import { directory, studentDates, studentTabs } from "@/modules/designs/data/student-app";
 import { appT } from "@/modules/designs/i18n/app-t";
@@ -18,12 +19,14 @@ import type { PeopleScreenProps } from "./people-screen.types";
 
 const SEARCH = "mar";
 
-/** The school's directory as a student or an instructor sees it: the intro, the search, the role filters and the people by initial. */
-export function PeopleScreen({ locale, state, role = "student" }: PeopleScreenProps) {
+/** The school's directory as a student, an instructor or an admin sees it: the intro, the search, the role filters and the people by initial. */
+export function PeopleScreen({ locale, state, role = "student", adminSheet }: PeopleScreenProps) {
   const t = (key: string, params?: Record<string, string | number>) => appT(locale, key, params);
   const dates = studentDates(locale);
   const filtered = state === "filtered";
-  const people = filtered ? directory.filter((person) => person.role === "instructor" && person.name.toLowerCase().includes(SEARCH)) : directory;
+  const admin = role === "admin";
+  const everyone = admin ? adminDirectory : directory;
+  const people = filtered ? everyone.filter((person) => person.role === "instructor" && person.name.toLowerCase().includes(SEARCH)) : everyone;
   const empty = state === "empty";
   const groups = people.reduce<Record<string, typeof directory>>((acc, person) => {
     const letter = person.name.charAt(0).toUpperCase();
@@ -34,13 +37,13 @@ export function PeopleScreen({ locale, state, role = "student" }: PeopleScreenPr
   const rafael = directory.find((person) => person.name === "Rafael Rocha");
 
   return (
-    <PhoneFrame tall={state === "list"}>
+    <PhoneFrame tall={state === "list" && !adminSheet}>
       <div className="flex flex-1 flex-col bg-page">
         <div className="flex flex-1 flex-col px-5 pb-6 pt-2">
           <div className="flex flex-col gap-4 pb-3">
             <ScreenIntro
               icon={<AppIcon name="Ionicons:people-outline" size={28} className="text-grape" />}
-              eyebrow={t("people.count", { count: directory.length })}
+              eyebrow={t("people.count", { count: everyone.length })}
               title={t("people.title")}
               description={t("people.description")}
             />
@@ -77,9 +80,21 @@ export function PeopleScreen({ locale, state, role = "student" }: PeopleScreenPr
             ))
           )}
         </div>
-        {role === "instructor" ? <TabBar tabs={instructorTabs(locale)} selected="people" /> : <TabBar tabs={studentTabs(locale)} selected="school" />}
+        {admin ? <TabBar tabs={adminTabs(locale)} selected="people" /> : role === "instructor" ? <TabBar tabs={instructorTabs(locale)} selected="people" /> : <TabBar tabs={studentTabs(locale)} selected="school" />}
         {sheetOpen && rafael ? <PersonSheet locale={locale} name={rafael.name} role={rafael.role} whatsapp={state === "sheetNotShared" ? null : "+55 85 99999 8888"} /> : null}
         {state === "whatsappUnavailable" ? <ScreenToast message={t("people.whatsappUnavailable")} /> : null}
+        {adminSheet === "student" || adminSheet === "roleConfirm" || adminSheet === "removeConfirm" ? (
+          <PersonSheet
+            locale={locale}
+            name="Caio Sousa"
+            role="student"
+            whatsapp="+55 85 98888 7777"
+            canChangeRole
+            step={adminSheet === "roleConfirm" ? { roleAction: "promoteAdmin" } : adminSheet === "removeConfirm" ? "remove" : undefined}
+          />
+        ) : null}
+        {adminSheet === "instructor" ? <PersonSheet locale={locale} name="Marcos Lima" role="instructor" whatsapp="+55 85 99876 5432" canChangeRole /> : null}
+        {adminSheet === "admin" ? <PersonSheet locale={locale} name="Bruno Costa" role="admin" whatsapp={null} canChangeRole instructorFlag={false} /> : null}
       </div>
     </PhoneFrame>
   );

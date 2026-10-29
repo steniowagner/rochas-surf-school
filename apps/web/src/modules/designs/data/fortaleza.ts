@@ -161,3 +161,21 @@ export const occupancyClasses: OccupancyClass[] = [
   { ...iracema, id: "sat-0800", day: 5, time: "08:00", seatsTaken: 3, students: students.slice(1, 4).map((student) => ({ ...student })) },
   { ...futuro, id: "sat-0800-skate", day: 5, time: "08:00", timeRange: "08:00 – 09:30", level: "beginner", seatsTaken: 5 },
 ];
+
+/**
+ * The admin the admin app page is signed in as (spec 075 D-01): Juliana Prado, who also teaches (spec 070's
+ * instructor flag). She isn't in the student page's directory, so the admin's directory adds her (`adminDirectory`).
+ */
+export const adminAccount = { id: "juliana", name: "Juliana Prado", firstName: "Juliana", email: "juliana.prado@email.com" } as const;
+
+/**
+ * The day's classes of the admin's "Aulas" tab (D-04), with the admin's flags: one under way, one with no instructor,
+ * one with no cancellation deadline, a full one and a cancelled one.
+ */
+export const adminDayClasses: CardBase[] = [
+  { ...iracema, state: "started", timeRange: "06:30 – 08:00", seatsTaken: 6 },
+  { ...iracema, showFlags: true, withoutInstructor: true },
+  { ...iracema, level: "advanced", timeRange: "10:00 – 11:30", locationName: "Praia do Futuro", seatsTaken: 3, students: students.slice(1, 4).map((student) => ({ ...student })), showFlags: true, withoutDeadline: true },
+  { ...futuro, showFlags: true },
+  { ...futuro, level: "beginner", state: "cancelled", timeRange: "17:30 – 19:00", seatsTaken: 2, students: students.slice(0, 2).map((student) => ({ ...student })), showFlags: true },
+];

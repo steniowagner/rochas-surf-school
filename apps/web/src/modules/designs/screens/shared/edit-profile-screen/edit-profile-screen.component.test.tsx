@@ -36,4 +36,11 @@ describe("EditProfileScreen", () => {
     expect(screen.getByText("Rafael Rocha", { selector: "span" })).toBeInTheDocument();
     expect(screen.getByText("rafael.rocha@email.com")).toBeInTheDocument();
   });
+
+  it("AD-11-05: the admin's name and e-mail", () => {
+    render(<EditProfileScreen locale="pt-br" state="idle" role="admin" />);
+
+    expect(screen.getByText("Juliana Prado")).toBeInTheDocument();
+    expect(screen.getByText("juliana.prado@email.com")).toBeInTheDocument();
+  });
 });

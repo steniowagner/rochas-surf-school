@@ -2,7 +2,8 @@
 id: "075"
 slug: designs-admin-app
 title: Admin app designs page
-status: in-review
+status: accepted
+reviewed_commit: d222d98acddfd44892632ac58ab2b4a1d2ff0cc7
 started: 2026-10-29
 base_commit: 0a47dbb52cb9d9a40eec0781a1c1e4b2a9151e77
 created: 2026-10-29
@@ -439,3 +440,33 @@ area that specs 071 to 074 started.
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-29 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`npx turbo run lint check-types build --filter=@rochas-surf-school/web --force`, 9 tasks, none cached)
+- related tests ✅ `run-related-tests.mjs 075`: RELATED TESTS PASSED (apps/web, 183 files, 625 tests)
+- coverage of the changed lines ✅ `check-coverage.mjs 075`: COVERAGE OK (327 changed files: 245 excluded by technical-context — `apps/web/src/**`, `.docs/designs/**` —, 82 always excluded); no coverage-ignore comments in the diff
+- e2e ✅ `run-e2e.mjs 075`: E2E PASSED (apps/web, 50 Playwright tests)
+- designs ✅ `pack.mjs --check` exits 0 (5 files) · `node --test .docs/designs/scripts/*.test.mjs` 7 passed · the old prototype is gone · the Portuguese-from-Portugal grep finds nothing
+- the other four designs' templates are identical to the base commit's once their `<style>` blocks are set aside (only the compiled CSS changed)
+- rerunning `build-design.mjs admin-app` against the current web build, then `pack.mjs admin-app`, leaves no change: the `.html` matches the page
+
+**Expected Results**
+
+- ER-01 ✅ — `admin-app.html` served locally: 112 ids `AD-01-01`…`AD-11-08`, 224 phone frames (light and dark), `lang="pt-BR"`, no `{{…}}` and no old wording; exactly the inventory's 21 tall entries are taller than 874 px or sized to their content, every other frame 874 px; the edge cases above pass
+- ER-02 ✅ — `index lists the design pages in every language` (fifth card, its href, title and description in pt-br, es, en) and `redirects /designs/admin-app to the browser language` (307 to `/es/…`, and to `/pt-br/…` for `de`)
+- ER-03 ✅ — `admin app shows every inventory entry` (pt-br, es, en: every id visible with its frame, title and note, 112 entries, the eleven sections in order, `<title>` and description, the `ST-…` / `IN-…` references, the admin tab bar, no enrolment banner or button on the AD-03 frames), and the student and instructor tests still pass. Walked the page against the mobile code: the home's two cards (rows, order, icons, badges, "Minhas aulas" only for an admin who teaches — `admin.screen.tsx`, `TeachingClassesEntryRow`), the class tools sheet (cards, subtitles, delete states — `class-tools-sheet.hook.ts`), the class details flags (`showTools`, `canTakeOut`, the banners — `class-details.screen.hook.ts`), the role actions per role and their looks (`constants/role-actions.ts`), the instructor flag only on an admin's sheet (`use-people-screen.hook.ts`), the location form's token-drawn map (D-07) and the 17 notification rows against `push-messages.ts`'s types
+- ER-04 ✅ — `admin app follows the language`: AD-01-01's "Ferramentas" / "Herramientas" / "Tools", AD-06-01's interpolated counts, the notification row, the "other messages" label, and the header's language switch keeping the page
+- ER-05 ✅ — `admin app follows the theme toggle` (AD-01-01's frame light → dark → kept on reload); and in the browser, with no stored choice and the OS set to dark, AD-01-01's frame draws the dark `page` (rgb(22, 27, 39))
+- ER-06 ✅ — `design pages are wide` and `design pages fit a phone viewport` visit `/pt-br/designs/admin-app`; the rest of the suite passes
+
+**Findings**
+
+None.
+
+**Notes**
+
+- Eight tall entries (AD-07-01, AD-07-07, AD-07-12, AD-08-01, AD-10-05, AD-10-09, AD-11-03, AD-11-07) are 700–867 px high, shorter than a phone, because a tall frame is as high as its content (073 D-02); the instructor page draws IN-05-01..03 and IN-06-05 the same way (822 and 723 px). It follows the contract, but a stubby phone reads oddly, and the T-07 fix treated the same symptom on AD-03-08 as a defect. A minimum height of 874 px on tall frames, in the shared `phone-frame`, would fix both pages in a later spec.
+- The deviations recorded under T-04 to T-07 (the code over the inventory, by 071 D-08) were checked where sampled and hold.

@@ -4,6 +4,7 @@ export const designPages = [
   { slug: "auth-flow", dictionaryKey: "authFlow" },
   { slug: "student-app", dictionaryKey: "studentApp" },
   { slug: "instructor-app", dictionaryKey: "instructorApp" },
+  { slug: "admin-app", dictionaryKey: "adminApp" },
 ] as const;
 
 export type DesignPage = (typeof designPages)[number];

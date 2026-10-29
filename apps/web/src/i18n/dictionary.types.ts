@@ -1,3 +1,4 @@
+import type { AdminAppEntryId } from "@/modules/designs/data/admin-app-ids";
 import type { AuthFlowEntryId } from "@/modules/designs/data/auth-flow-ids";
 import type { InstructorAppEntryId } from "@/modules/designs/data/instructor-app-ids";
 import type { StudentAppEntryId } from "@/modules/designs/data/student-app-ids";
@@ -30,7 +31,7 @@ export type Dictionary = {
     metaDescription: string;
     title: string;
     description: string;
-    pages: { designSystem: { title: string; description: string }; authFlow: { title: string; description: string }; studentApp: { title: string; description: string }; instructorApp: { title: string; description: string } };
+    pages: { designSystem: { title: string; description: string }; authFlow: { title: string; description: string }; studentApp: { title: string; description: string }; instructorApp: { title: string; description: string }; adminApp: { title: string; description: string } };
   };
   designSystem: {
     metaTitle: string;
@@ -90,6 +91,24 @@ export type Dictionary = {
     /** The mock cancellation rule of each sport. */
     cancellationRules: { surf: string; skate: string };
     /** The in-app text the backend writes for each notification type an instructor gets (`push-messages.ts`), with the mock classes' values. */
+    notifications: { type: string; title: string; body: string; time: string }[];
+  };
+  adminApp: {
+    metaTitle: string;
+    title: string;
+    eyebrow: string;
+    description: string;
+    sections: Record<"home" | "classes" | "class" | "classForms" | "notices" | "classRequests" | "accounts" | "enrolStudent" | "people" | "school" | "more", { title: string; description: string }>;
+    entries: Record<AdminAppEntryId, { title: string; note: string }>;
+    /** Introduces the list of the other messages an element can show, in an entry's note. */
+    otherMessages: string;
+    /** The mock notes of the class. */
+    classNotes: string;
+    /** The mock cancellation rule of each sport. */
+    cancellationRules: { surf: string; skate: string };
+    /** The mock notice the admin writes: its title and message. */
+    notice: { title: string; message: string };
+    /** The in-app text the backend writes for each notification type an admin gets (`push-messages.ts`), with the mock values. */
     notifications: { type: string; title: string; body: string; time: string }[];
   };
   privacyPolicy: {

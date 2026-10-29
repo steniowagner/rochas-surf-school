@@ -490,7 +490,7 @@ script prints, so no sign-in code ever reaches the public repository.
   > verified: `npm run test:e2e --workspace apps/web -- user-journeys` (6 passed), `npx vitest run
   > src/modules/user-journeys` (57 passed), `npm run check-types` and `npx eslint src` exit 0; deviations: none.
 
-- [ ] **T-09** — Add the flow pages: `apps/web/src/app/[lang]/user-journeys/[flow]/page.tsx` (D-12: the 12 static
+- [x] **T-09** — Add the flow pages: `apps/web/src/app/[lang]/user-journeys/[flow]/page.tsx` (D-12: the 12 static
   params, `dynamicParams = false`, `generateMetadata` with the flow title) rendering
   `apps/web/src/modules/user-journeys/pages/user-journey-flow/` (D-09), which picks the locale's texts from
   `i18n/{en,pt-br,es}.ts` and renders the intro, the account, "See the designs", "All flows" and the
@@ -501,6 +501,23 @@ script prints, so no sign-in code ever reaches the public repository.
   Covers: ER-04, ER-05, ER-07, ER-08, ER-10, ER-11, ER-12, ER-13, ER-15 · Done when:
   `npm run test:e2e --workspace apps/web -- user-journeys` passes and
   `npx turbo run lint check-types build --filter=@rochas-surf-school/web` succeeds.
+  > ✅ 2026-10-29 17:40 — `[lang]/user-journeys/[flow]/page.tsx` (`dynamicParams = false`, `generateStaticParams` over
+  > the 4 flows under the `[lang]` params → 12 static pages, `generateMetadata` "<flow title> — <User journeys> |
+  > <site>", 404 for any other flow) renders `UserJourneyFlowPage`: eyebrow "User journeys", the flow's title and
+  > description, the "Account to use" card, "See the designs" (outline button, new tab) and "All flows" (subtle
+  > button), then the `JourneyBoard` with `buildJourneyGroups(flow, texts)`. While checking the 375 px layout the
+  > title's `wordmark` style didn't wrap ("Instructor app" scrolled to 473 px), so the title uses `screen-title`; the
+  > rows drop their card background from `lg` so the table keeps its rounded corners. `e2e/user-journeys.e2e.ts` gains
+  > `flow pages show every test case`, `results and counter`, `copy results puts the summary on the clipboard`,
+  > `progress is saved in this browser` (plus `a broken saved value is ignored`), `clear results`, `design links point
+  > at their frames`, `flow pages follow the language`, `fits a phone and a desktop`, `follows the theme toggle`, and
+  > the noindex test now covers the 12 flow pages. Files: `apps/web/src/app/[lang]/user-journeys/[flow]/page.tsx`,
+  > `apps/web/src/modules/user-journeys/pages/user-journey-flow/{index.ts,user-journey-flow.page.tsx,user-journey-flow.types.ts,user-journey-flow.page.test.tsx}`,
+  > `apps/web/src/modules/user-journeys/components/journey-row/journey-row.component.tsx`, `apps/web/e2e/user-journeys.e2e.ts`;
+  > verified: `npm run test:e2e --workspace apps/web -- user-journeys` (16 passed), `npx vitest run
+  > src/modules/user-journeys` (59 passed), `npx turbo run lint check-types build --filter=@rochas-surf-school/web`
+  > (9 successful; the build lists `/{pt-br,es,en}/user-journeys` and the 12 flow pages as static); screenshots at
+  > 375 px (pt-br, light) and 1280 px (en, dark) read correctly; deviations: none.
 
 ### Designs (`.docs/designs`)
 

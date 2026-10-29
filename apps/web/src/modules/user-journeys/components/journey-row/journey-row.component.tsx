@@ -10,7 +10,7 @@ export function JourneyRow({ locale, row, result, note, labels, onToggleResult, 
   return (
     <tr
       data-row-id={row.id}
-      className="flex flex-col gap-3 rounded-card border border-line bg-surface p-4 wrap-break-word lg:table-row lg:rounded-none lg:border-0 lg:p-0"
+      className="flex flex-col gap-3 rounded-card border border-line bg-surface p-4 wrap-break-word lg:table-row lg:rounded-none lg:border-0 lg:bg-transparent lg:p-0"
     >
       <th scope="row" className="ds-text-list-title text-left text-ink lg:border-t lg:border-line lg:p-3 lg:align-top">
         {row.id}

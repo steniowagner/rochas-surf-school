@@ -14,7 +14,8 @@ The students, instructors and admins of **one** school, Rocha's Surf School, in 
 time). Students are adults trying or practising surf and skate; instructors teach the classes; admins run the
 schedule, the people and the rules. Everyone uses the **same mobile app** (Android and iOS), and what each
 person sees depends on their role. The only web surface is a small public site with the privacy policy, the terms of
-use and the account-deletion page, for the app stores and for people without the app.
+use and the account-deletion page, for the app stores and for people without the app, plus a designs area that shows
+anyone interested how the app is designed.
 
 Nobody gets in on their own: every account signs up in the app and then waits for an admin's approval before
 it can see anything. The app is in Brazilian Portuguese, Spanish and English.
@@ -1305,6 +1306,18 @@ the flag is cleared. Every admin already on the platform kept the flag. The "Pro
 gerenciar a escola." and its description no longer says the admin can also teach. All copy is in pt-BR, es-ES and
 en-US.
 
+**Public designs area and the design system** (spec `071-designs-foundation-design-system`) — the public site has a
+designs area at `/{lang}/designs` (`/designs` without a language opens in the browser's language, like the other
+pages), linked from a fourth "Designs" row on the home page. Its index lists the design pages that exist — so far
+only the design system — and `/{lang}/designs/design-system` shows the app's design system as it is built: colors
+(each with its light and dark value), typography, shape and elevation, controls, chips, the class cards in every
+state, the screen structure (headers, tab bars, calendars, sheets, toasts), the usage rules (section 08) and the
+loading, empty and error states (section 09), each entry with a stable id (`DS-<section>-<entry>`). The phones are
+iOS frames; the copy inside them is the app's real copy in the page's language, the mock data is fictional and from
+Fortaleza, and everything follows the theme picked in the site header. Only what the app has is shown. The design
+pages are wider than the legal pages and fit a phone screen without scrolling sideways. The app's copy in the three
+languages now lives in one place shared by the app and the site.
+
 Active specs: none.
 
 ## Out of scope (future evolution, recorded in the specs)
@@ -1353,8 +1366,10 @@ Active specs: none.
   requested" and "requested" states.
 - Deploying the public site (host and domain), linking the privacy policy from the store listings, the onboarding
   line linking the terms and the policy, a report button for objectionable content, the
-  legal (LGPD) review of the pages' copy, and a light/dark
-  switch on the site (it follows the system theme).
+  legal (LGPD) review of the pages' copy.
+- On the designs area (spec 071): the sign-in, student, instructor and admin designs on the site (each to come in its
+  own spec), Android phone frames, clickable prototypes (every state is a static frame), search-engine settings for
+  the design pages, and keeping the Claude Design project in sync with the design files.
 - On the Profile (spec 026): uploading or changing the profile photo (the camera button says "coming soon"),
   splitting the name into first and last name, real data in the
   About sheet (mocked), and keeping the theme, language and push preferences on the account or syncing them across
@@ -1446,5 +1461,11 @@ Active specs: none.
 - `.docs/user-journeys.md` — the product brief: user journeys per role, platform rules, out of scope.
 - `.docs/requirements.md` — the detailed requirements by area (accounts, notifications, scheduling,
   enrolment, ratings and photos, public web pages), each with testable scenarios.
-- `.docs/designs/design-system.html` — the design system: colors, typography, components and usage rules.
+- `.docs/designs/design-system.html` — the design system: colors, typography, components, usage rules (section 08)
+  and the loading, empty and error states (section 09), in pt-BR, every entry in light and dark side by side. Since
+  spec 071 it is generated from the site's design system page (`/{lang}/designs/design-system`), which is the
+  source of truth for it, and it absorbed the former `empty-and-error-states.html`.
 - `.docs/designs/auth-flow.html` — the designs of the sign-in screens.
+- `.docs/designs/student-app.html`, `instructor-app.html`, `admin-app.html` — the designs of each role's screens.
+- Since spec 071 the design files are edited through readable sources in `.docs/designs/src/`, rebuilt into the
+  `.html` files by a pack script; the Claude Design project is no longer where they are edited.

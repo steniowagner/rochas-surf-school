@@ -1,3 +1,5 @@
+import type { DesignSystemEntryId } from "@/modules/designs/data/design-system-ids";
+
 /** Every string of the site, in one language. Each dictionary must satisfy this type exactly. */
 export type Dictionary = {
   site: {
@@ -18,6 +20,24 @@ export type Dictionary = {
     privacyPolicy: { title: string; description: string };
     termsOfUse: { title: string; description: string };
     accountDeletion: { title: string; description: string };
+    designs: { title: string; description: string };
+  };
+  designs: {
+    metaTitle: string;
+    metaDescription: string;
+    title: string;
+    description: string;
+    pages: { designSystem: { title: string; description: string } };
+  };
+  designSystem: {
+    metaTitle: string;
+    title: string;
+    eyebrow: string;
+    description: string;
+    sections: Record<"color" | "typography" | "shape" | "controls" | "chips" | "classCard" | "structure" | "rules" | "states", { title: string; description: string }>;
+    entries: Record<DesignSystemEntryId, { title: string; note: string }>;
+    rules: string[];
+    labels: { light: string, dark: string, theme: string, values: string, family: string, weight: string, size: string, spacing: string, caseUpper: string, caseNormal: string, default: string, disabled: string, loading: string, withIcon: string, touchTarget: string, iconSizes: string, guest: string, formerStudent: string };
   };
   privacyPolicy: {
     metaTitle: string;

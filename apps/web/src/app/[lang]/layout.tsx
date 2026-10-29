@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Barlow_Condensed, Nunito } from "next/font/google";
 import { notFound } from "next/navigation";
 
-import { SiteHeader } from "@/components/site-header";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { hasLocale, htmlLang, locales } from "@/i18n/locales";
 
@@ -49,8 +48,6 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
     notFound();
   }
 
-  const dictionary = await getDictionary(lang);
-
   return (
     <html
       lang={htmlLang[lang]}
@@ -60,20 +57,7 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
-      <body className="min-h-full">
-        <div className="mx-auto flex min-h-screen w-full max-w-160 flex-col px-5">
-          <SiteHeader
-            locale={lang}
-            homeLabel={dictionary.header.homeLabel}
-            languageLabel={dictionary.header.languageLabel}
-            themeLabel={dictionary.header.themeLabel}
-          />
-          <main className="flex flex-1 flex-col gap-[22px] pb-8 pt-2">{children}</main>
-          <footer className="ds-text-list-subtitle py-6 text-center text-ink-2">
-            {dictionary.footer.text}
-          </footer>
-        </div>
-      </body>
+      <body className="min-h-full">{children}</body>
     </html>
   );
 }

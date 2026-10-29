@@ -1312,7 +1312,9 @@ Both app stores require a privacy policy at a public web address, and Google Pla
 
 ### 6.1 Public web pages
 
-Publishes the public web pages the app stores require: the privacy policy, the terms of use and a way to request account deletion without the app.
+_Implemented in spec 071-designs-foundation-design-system._
+
+Publishes the public web pages the app stores require: the privacy policy, the terms of use and a way to request account deletion without the app. The same site also hosts a designs area (`/{lang}/designs`), linked from its home page, that shows the app's design system to anyone interested, in the site's language and theme.
 
 #### Privacy policy page
 

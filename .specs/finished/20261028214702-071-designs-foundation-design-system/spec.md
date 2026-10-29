@@ -1,0 +1,624 @@
+---
+id: "071"
+slug: designs-foundation-design-system
+title: Public designs area and the design system page
+status: finished
+started: 2026-10-28
+base_commit: 276ffc29014c5113e8451f9bba1dac669c353719
+reviewed_commit: 95693f291a885e8379111af1c5b3f8527167ce0f
+created: 2026-10-28
+fronts: [designs, app-messages, mobile, web]
+depends_on: []
+finished: 2026-10-28
+---
+
+# 071 — Public designs area and the design system page
+
+## Goal
+
+People interested in the app can open `/{lang}/designs` on the public site and browse the app's design system
+as it is built today, in the theme and language picked in the site header. Before the web gets it, the design
+files in `.docs/designs` become editable and reviewable (readable sources and a pack script), and
+`design-system.html` is brought in line with the code, absorbing `empty-and-error-states.html`. The spec also
+lays the groundwork the next four design specs (auth flow, student, instructor, admin) reuse: the app's copy
+shared between mobile and web, the phone frame and the mock UI pieces.
+
+## Context
+
+- Product: [product.md](../../memory/product.md) — relevant concepts: roles (student, instructor, admin),
+  the three app languages (pt-BR, es-ES, en-US), "The only web surface is a small public site", which this spec
+  widens; Out of scope → ratings and photos and the dashboard metrics, which the designs drop (D-07).
+- Requirements: [requirements.md → 6.1 Public web pages](../../../.docs/requirements.md#61-public-web-pages)
+  — the public site this spec adds a designs area to;
+  [user-journeys.md → header](../../../.docs/user-journeys.md#surf--skate-school-scheduling-platform---user-journeys)
+  — its "Designs" line says the designs are exported from the Claude Design project into `.docs/designs/`, which
+  D-02 changes.
+- Technical: [technical-context.md](../../memory/technical-context.md) — relevant sections: Applications →
+  `apps/web` (routes under `src/app/[lang]/`, `src/proxy.ts`, the dictionaries, the theme toggle and language
+  picker), Applications → `apps/mobile` (i18next with `src/i18n/messages/*.ts`), Automated validation (Vitest
+  and Playwright on web, Jest on mobile), Coverage (`apps/web/src/**` and, since this spec's planning,
+  `.docs/designs/**` are excluded).
+- Design tokens: `packages/design-tokens/src/tokens.ts` — the source the design system page shows; the web
+  already maps them to Tailwind utilities in `apps/web/src/app/globals.css`.
+- Existing design files: `.docs/designs/{design-system,auth-flow,student-app,instructor-app,admin-app,empty-and-error-states}.html`.
+  Each is a bundled Claude Design export: a `__bundler/manifest` of base64 (some gzip-compressed) assets keyed
+  by UUID, an `__bundler/ext_resources` map of names to UUIDs, a `__bundler/template` (the canvas page) and an
+  unpacking script. The canvases place `<dc-import name="…" screen="…" theme="light|dark">` frames of one
+  prototype page per app (`App Admin.dc.html`, `App Aluno.dc.html`, `App Instrutor.dc.html`,
+  `Login Screen.dc.html`), written in an `x-dc` template language with `React.createElement` code, run by a
+  bundled `support.js` runtime, React 18 UMD and Babel standalone. Their copy is hard-coded European
+  Portuguese with Portuguese places (Nazaré, Cascais). The vendor assets (React, ReactDOM, Babel, the fonts
+  CSS and woff2 files, `support.js`, the flags) are byte-identical across the files.
+- Existing app code the designs reproduce: `apps/mobile/src/components/**` (shared components, props in each
+  `*.types.ts`), `apps/mobile/src/modules/classes/components/{class-card,class-card-skeleton}`, the role tab
+  layouts in `apps/mobile/src/app/(private)/<role>/(tabs)/_layout.tsx`, the copy in
+  `apps/mobile/src/i18n/messages/{en-US,es-ES,pt-BR}.ts` (`Messages` is declared by `en-US.ts`; i18next
+  interpolation `{{name}}`, plural suffixes and `<tag>` rich text).
+- The inventory of what the design system shows: [design-system-inventory.md](design-system-inventory.md).
+
+## Scope
+
+### In scope
+
+- Readable sources of all six design files under `.docs/designs/src/`, with unpack and pack scripts and a
+  `--check` mode.
+- `design-system.html` updated to match the code (pt-BR, light and dark side by side, every inventory entry),
+  with the content of `empty-and-error-states.html` merged in and that file deleted.
+- A new package `@rochas-surf-school/app-messages` holding the app's three message files, imported by the
+  mobile app instead of its local copies.
+- On the web: `/designs` redirects, a wide layout for the design pages, the `/{lang}/designs` index, a
+  "Designs" row on the home page, the app-copy helper, the phone frame and the mock components of the
+  inventory, and the `/{lang}/designs/design-system` page.
+
+### Out of scope
+
+- The auth-flow, student, instructor and admin designs, in `.html` and on the web (specs 072–075; until
+  then, those `.html` files are only unpacked, not changed, and the index doesn't list them).
+- Android frames and any platform toggle.
+- Features the app doesn't have (ratings, photos, instructor notes, dashboard metrics, profile photos).
+- Clickable prototypes: every state is a static frame.
+- Publishing the sources to the Claude Design project, or keeping that project in sync.
+- Changing any mobile screen, component or copy (the mobile change is where the messages are imported from).
+- Search-engine settings (robots, sitemap) for the design pages.
+
+## Decisions
+
+| ID   | Decision | Reason |
+| ---- | -------- | ------ |
+| D-01 | The `.html` files are updated first and stay in `.docs/designs`; the web pages then reproduce them in React. Both are maintained. | The user's choice: the `.html` files remain the reference designs, and the web makes them public and follows the header's theme and language. |
+| D-02 | The `.html` files are edited through readable sources in `.docs/designs/src/<name>/` and rebuilt with `node .docs/designs/scripts/pack.mjs`; the vendor assets shared by every file are committed once, de-duplicated, in `.docs/designs/src/_shared/`. `pack.mjs --check` exits 1 when an `.html` doesn't match its sources. The Claude Design project is no longer where the designs are edited. | A packed `.html` is one multi-megabyte base64 line, so a change can't be reviewed; committed vendor assets make the pack work offline and give the same output every time. |
+| D-03 | Only iOS phone frames, 402 × 874 points, as the prototypes draw them. | Halves the work; the platform differences are small and the product's designs were made on iOS. |
+| D-04 | The `.html` files are in pt-BR only and show every frame in light and dark side by side. The web pages show one theme, the header's, and the language of the URL. | A static file can't read the site header; the web can, and the user asked for the header to drive it. pt-BR is the product's language (the prototypes' European Portuguese is not). |
+| D-05 | The labels inside the frames are the app's real copy, from `@rochas-surf-school/app-messages`, in the page's language. The web's own text (section titles, explanations, each entry's note) lives in the web dictionaries (`apps/web/src/i18n/dictionaries/*.ts`) in pt-BR, es and en. | The copy can never drift from the app, and every word on the page follows the header's language. |
+| D-06 | `@rochas-surf-school/app-messages` is built like `packages/shared` (TypeScript compiled with `tsc` to `dist/`, Jest tests in `test/`); the message files move there with `git mv`, keeping their content, and `Messages` stays the type declared by `en-US`. | Metro, Jest and Next all consume a compiled workspace package the way they already consume `@rochas-surf-school/shared` and `@rochas-surf-school/classes`. |
+| D-07 | Screens, components and states the app doesn't have are left out of the designs. | The designs show what the app does today. |
+| D-08 | Fidelity rule: an entry matches the code when it shows the same elements in the same order, the same copy, the same color, type and radius tokens and the same icon glyphs as the app renders for that state (on the iOS simulator, or as its component code draws it). Pixel-exact sizes, font antialiasing and the mock data's values aren't judged. | Gives the reviewer a pass/fail rule for "matches the code" without pixel diffs. |
+| D-09 | The designs draw the app's own icon glyphs (Ionicons, Feather, FontAwesome, FontAwesome6, MaterialCommunityIcons, SimpleLineIcons) by name: on the web through the npm packages of those icon sets (for example `react-icons` and `@mdi/js`), in the `.html` as inline SVG paths in the shared icons script. Lucide stays only for the site's own pages. | The prototypes and the web use Lucide, which doesn't match the app. |
+| D-10 | The mock data is fictional and Brazilian: Brazilian names, Fortaleza places (for example Praia de Iracema, Praia do Futuro), dates and times in America/Fortaleza. The same data in the `.html` and on the web. | The school is in Fortaleza; the prototypes' Portuguese places don't fit. |
+| D-11 | The design system keeps the section numbers 01–08 it has today, with "08 — Regras" as the rules; the empty, loading and error states become section 09. Every entry has the id from the inventory (`DS-<section number>-<entry number>`), printed in the `.html` and set as `data-design-id` on the web. | `CLAUDE.md` points at section 08 for the usage rules; stable ids let the reviewer and the e2e suite check every entry. |
+| D-12 | The web's designs code lives in `apps/web/src/modules/designs/` (`components/`, `i18n/`, `data/`, `pages/`), routes in `apps/web/src/app/[lang]/designs/`. The mock components keep the mobile component names and props and follow `.claude/rules/react.md`; they are presentational (no state, no effects) and styled with the web's token utilities. | One place for the designs, separate from the site's real components (`src/components/ui/{button,chip}`), which keep their own role. |
+| D-13 | The index lists only the design pages that exist: after this spec, the design system. Each later spec adds its own entry. Design page slugs are fixed in a typed list (`generateStaticParams`, `dynamicParams = false`), so another slug answers 404. | No "coming soon" pages, and the pages stay statically generated like the rest of the site. |
+| D-14 | `/designs` and `/designs/<slug>` without a language go through the existing language redirect (307, pt-BR fallback): `src/proxy.ts` adds `/designs` and `/designs/:path*` to its matcher. | Same behavior as the other public paths. |
+| D-15 | The design pages use a container up to 1440 px wide; the privacy policy, terms, account deletion and home keep their 640 px column, header and footer. On viewports narrower than a phone frame, the frames scale down to fit, so the page never scrolls sideways. | The canvases need room for rows of frames; the legal pages must not change. |
+| D-16 | `.docs/designs/**` is excluded from coverage (technical-context → Coverage); the pack scripts are tested with `node --test` round-trip tests. | Decided with the user while planning: the prototypes are checked by opening them, and the coverage tooling doesn't measure `node --test`. |
+
+## Expected Results
+
+### ER-01 — The design files rebuild from their sources
+
+- **Front:** designs
+- **Behavior:** Given the committed sources in `.docs/designs/src/`, when
+  `node .docs/designs/scripts/pack.mjs --check` runs from the repo root, then it exits 0. Unpacking any
+  current `.html` and packing it again gives an `.html` whose template, assets and pages decode to the same
+  content as before, and that renders the same canvas when opened in a browser.
+- **Edge and error cases:** after one source file changes without packing, `--check` exits 1 and names the
+  `.html` that is stale; a source folder whose asset is missing makes `pack.mjs` exit 1 naming the asset; an
+  `.html` without bundle data makes `unpack.mjs` exit 1.
+- **Verify by:** `node --test .docs/designs/scripts/*.test.mjs` (the round-trip, stale and missing-asset
+  tests) and `node .docs/designs/scripts/pack.mjs --check` exiting 0.
+
+### ER-02 — The design system file shows the code's design system
+
+- **Front:** designs
+- **Behavior:** Given `.docs/designs/design-system.html` opened in a browser, then it shows every entry of
+  [design-system-inventory.md](design-system-inventory.md) with its id, in pt-BR, each in light and dark side
+  by side, and each entry matches the code by D-08. Section numbers 01–08 are kept, with the rules in 08 and the
+  loading, empty and error states in 09; the icons are the app's glyphs (D-09).
+- **Edge and error cases:** `.docs/designs/empty-and-error-states.html` and its source folder no longer
+  exist; no European Portuguese wording is left (for example "ecrã", "folha", "Já a seguir", "As minhas");
+  no entry shows a feature the app doesn't have (D-07).
+- **Verify by:** open the file in a browser and walk the inventory, comparing each entry with the component
+  code (and the simulator where a state is easy to reach); `node .docs/designs/scripts/pack.mjs --check`
+  exits 0; `test ! -e .docs/designs/empty-and-error-states.html`.
+
+### ER-03 — The app's copy lives in one package
+
+- **Front:** app-messages
+- **Behavior:** Given `@rochas-surf-school/app-messages`, when it is imported, then it exports the en-US,
+  es-ES and pt-BR messages and the `Messages` type, and the three locales have exactly the same set of keys,
+  with the same text the mobile app had before this spec.
+- **Edge and error cases:** a key missing from or added to one locale fails `check-types`; the Jest test
+  fails naming the key when the key sets differ.
+- **Verify by:** `npm test --workspace @rochas-surf-school/app-messages` (the key-parity test) and
+  `npm run check-types --workspace @rochas-surf-school/app-messages`.
+
+### ER-04 — The mobile app reads its copy from the package
+
+- **Front:** mobile
+- **Behavior:** Given the mobile app, when it starts in any of its three languages, then every label is the
+  same as before this spec, read from `@rochas-surf-school/app-messages`; `apps/mobile/src/i18n/messages/` no
+  longer exists.
+- **Edge and error cases:** the fallback language stays en-US; the stored language preference still applies.
+- **Verify by:** `npm test --workspace @rochas-surf-school/mobile` (the whole suite passes unchanged, including
+  `src/i18n/index.test.ts`) and launching the app in the iOS simulator: the sign-in screen shows "Continuar
+  com o Google" with the phone in Portuguese.
+
+### ER-05 — Designs URLs without a language redirect
+
+- **Front:** web
+- **Behavior:** Given a browser whose first matching language is Spanish, when it opens `/designs`, then it
+  is redirected with 307 to `/es/designs`; `/designs/design-system` is redirected to
+  `/es/designs/design-system`.
+- **Edge and error cases:** no `Accept-Language` or no matching language → `/pt-br/...`;
+  `/{lang}/designs/unknown` answers 404; `/fr/designs` answers 404.
+- **Verify by:** `apps/web/e2e/designs.e2e.ts` → `redirects /designs to the browser language`,
+  `falls back to pt-br`, `answers 404 for an unknown design page`, run by `node .specs/scripts/run-e2e.mjs 071`.
+
+### ER-06 — The home page links to the designs
+
+- **Front:** web
+- **Behavior:** Given `/{lang}` for each of `pt-br`, `es` and `en`, then the page shows a fourth row, after
+  account deletion, titled and described in that language, linking to `/{lang}/designs`.
+- **Edge and error cases:** the three existing rows and their order don't change.
+- **Verify by:** `apps/web/e2e/designs.e2e.ts` → `home links to the designs in every language`.
+
+### ER-07 — The designs index lists the design pages
+
+- **Front:** web
+- **Behavior:** Given `/{lang}/designs`, then it shows a title and introduction in that language and one card
+  per existing design page — after this spec only "design system" — with its title, description and a link to
+  `/{lang}/designs/design-system`; the page sets its translated `<title>` and description.
+- **Edge and error cases:** no card for the auth flow, student, instructor or admin pages (D-13).
+- **Verify by:** `apps/web/e2e/designs.e2e.ts` → `index lists the design system in every language`.
+
+### ER-08 — The design system page shows every inventory entry
+
+- **Front:** web
+- **Behavior:** Given `/{lang}/designs/design-system`, then for every id in
+  [design-system-inventory.md](design-system-inventory.md) an element with `data-design-id="<id>"` is
+  visible, showing the entry's title, its note and its samples or frames, which match the code by D-08 and the
+  `.html` file's entry.
+- **Edge and error cases:** entries that need a screen around them (sheets, toasts, tab bars, DS-09-04) are
+  drawn in the iOS phone frame (D-03); no entry shows a feature the app doesn't have.
+- **Verify by:** `apps/web/e2e/designs.e2e.ts` → `design system shows every inventory entry` (pt-br, es and
+  en), and the reviewer walking the page in a browser against the `.html` and the component code.
+
+### ER-09 — The design system page follows the page language
+
+- **Front:** web
+- **Behavior:** Given `/{lang}/designs/design-system`, then the copy inside the samples and frames is the
+  app's copy in that language and the section titles, explanations and notes are in that language: for
+  example the ErrorState retry button (DS-09-03) reads "Tentar de novo" on `/pt-br`, the es-ES text on `/es`
+  and "Try again" on `/en`.
+- **Edge and error cases:** choosing another language in the header's picker opens the same design page in
+  that language; interpolated values and plurals are filled (no `{{…}}` or raw tags on the page).
+- **Verify by:** `apps/web/e2e/designs.e2e.ts` → `design system follows the language`, and
+  `apps/web/src/modules/designs/i18n/app-t.test.ts` (interpolation, plurals and rich-text tags).
+
+### ER-10 — The design system page follows the header theme
+
+- **Front:** web
+- **Behavior:** Given `/{lang}/designs/design-system`, when the visitor presses the header's theme toggle,
+  then every sample and frame switches to the other palette (one theme at a time, no light/dark pairs), and the
+  choice is kept on reload like on the other pages.
+- **Edge and error cases:** without a stored choice the page follows the OS color scheme; the color swatches
+  (DS-01-01) still print both the light and dark value of each token.
+- **Verify by:** `apps/web/e2e/designs.e2e.ts` → `design system follows the theme toggle` (the computed
+  background of the `DS-01-01` `page` swatch and of a phone frame changes between the light and dark token
+  values).
+
+### ER-11 — Design pages are wide and never scroll sideways
+
+- **Front:** web
+- **Behavior:** Given a 1600 px wide viewport, then the design pages' content is up to 1440 px wide while
+  `/{lang}/privacy-policy` keeps its 640 px column; given a 375 px wide viewport, then
+  `/{lang}/designs/design-system` has no horizontal scroll and the phone frames are scaled down to fit.
+- **Edge and error cases:** the header and footer of the legal pages don't change; the existing e2e tests
+  keep passing.
+- **Verify by:** `apps/web/e2e/designs.e2e.ts` → `design pages are wide` and
+  `design pages fit a phone viewport` (`document.documentElement.scrollWidth <= innerWidth`), and the existing
+  `apps/web/e2e/*.e2e.ts` suite passing.
+
+## Tasks
+
+### Designs (`.docs/designs`)
+
+- [x] **T-01** — Write `.docs/designs/scripts/unpack.mjs` (an `.html` → `src/<name>/`: the template with
+  asset UUIDs replaced by readable file names, the prototype pages, the `.jsx` frames and the file's own
+  images; assets shared by every file into `src/_shared/`, de-duplicated by content) and
+  `.docs/designs/scripts/pack.mjs` (sources → `.html`, every file or one by name, with `--check` comparing the
+  decoded content of each `.html` with its sources), Node only (`node:zlib`, no dependencies), plus
+  `.docs/designs/scripts/pack.test.mjs` (`node --test`: round trip on a small fixture bundle, a stale `.html`
+  makes `--check` exit 1 naming it, a missing asset makes `pack` exit 1, an `.html` without bundle data makes
+  `unpack` exit 1). Unpack all six current files, pack them again, and commit the sources and the repacked
+  files; add the commands to `CLAUDE.md` (a "Designs" line under Commands). Covers: ER-01 · Done when:
+  `node --test .docs/designs/scripts/*.test.mjs` passes, `node .docs/designs/scripts/pack.mjs --check` exits 0,
+  and each repacked `.html` opens in a browser showing the same canvas as before.
+  > ✅ 2026-10-28 14:10 — `unpack.mjs`/`pack.mjs` (+ shared `bundle.mjs`) written; the six files unpacked into
+  > `src/<name>/{shell.html,template.html,bundle.json,assets}` with `asset://<file>` in place of UUIDs and shared
+  > assets (fonts, React, Babel, flags, dc-runtime, iOS/Android frames) de-duplicated in `src/_shared/`; each
+  > unpack verifies its own rebuild; all six repacked; `--check` compares the decoded content (not the gzip bytes);
+  > files: `.docs/designs/scripts/{bundle,pack,unpack}.mjs`, `.docs/designs/scripts/pack.test.mjs`,
+  > `.docs/designs/src/**`, `.docs/designs/{admin-app,auth-flow,design-system,empty-and-error-states,instructor-app,student-app}.html`,
+  > `CLAUDE.md`; verified: `node --test .docs/designs/scripts/*.test.mjs` (7 passed),
+  > `node .docs/designs/scripts/pack.mjs --check` (6 match, exit 0), design-system.html and student-app.html
+  > opened in the browser pane and render their canvas; deviations: `--root <dir>` option added for the tests
+
+- [x] **T-02** — Bring sections 01–05 of `.docs/designs/src/design-system/` in line with the inventory
+  (DS-01-01 to DS-05-03): pt-BR copy from the app's messages, the tokens' current values, the app's icon glyphs
+  as inline SVG in the shared icons script (D-09), every entry labelled with its id, light and dark side by
+  side; then repack `design-system.html`. Covers: ER-02 · Done when: the file opens in a browser showing every
+  entry of sections 01–05 with its id, and `pack.mjs --check` exits 0.
+  > ✅ 2026-10-28 21:40 — per amendment A-01 (approved by the user) the sources of design-system.html are now generated by
+  > `.docs/designs/scripts/build-design-system.mjs` from the web's design system page in pt-BR: all 51 entries (sections 01–09, which
+  > covers DS-01-01 to DS-05-03) drawn light and dark side by side, with the app's real copy, the tokens' current values and the app's
+  > glyphs (the same SVG the web draws); the old x-dc template, icons script and Lucide icons are gone, fonts kept in
+  > `src/design-system/fonts.css`; repacked `design-system.html`; files: `.docs/designs/scripts/build-design-system.mjs`,
+  > `.docs/designs/src/design-system/{template.html,fonts.css,bundle.json}` (icons.js and the flag png removed),
+  > `.docs/designs/design-system.html`, `CLAUDE.md`; verified: opened design-system.html in the browser pane (51 `.ds-pair` entries,
+  > Barlow Condensed applied, dark cells render), `node .docs/designs/scripts/pack.mjs --check` (5 files match); deviations: A-01
+
+- [x] **T-03** — Bring sections 06–09 of the design-system sources in line with the inventory (DS-06-01 to
+  DS-09-04), merging the loading, empty and error states of `empty-and-error-states` into section 09 (D-11),
+  with the Fortaleza mock data (D-10); delete `.docs/designs/empty-and-error-states.html` and
+  `.docs/designs/src/empty-and-error-states/`; repack `design-system.html`. Covers: ER-02 · Done when: the file
+  opens in a browser showing every entry of sections 06–09 with its id, `grep -rlE "ecrã|Já a seguir|As minhas" .docs/designs/src/design-system`
+  finds nothing, the states file is gone and `pack.mjs --check` exits 0.
+  > ✅ 2026-10-28 21:40 — sections 06–09 (DS-06-01 to DS-09-04) come out of the same generation (Fortaleza mock data, loading/empty/error
+  > states of section 09 including the three-frame list screen DS-09-04); `.docs/designs/empty-and-error-states.html` and
+  > `.docs/designs/src/empty-and-error-states/` deleted; files: `.docs/designs/src/design-system/template.html`,
+  > `.docs/designs/design-system.html`, deleted `.docs/designs/empty-and-error-states.html` and `.docs/designs/src/empty-and-error-states/**`;
+  > verified: `grep -rlE "ecrã|Já a seguir|As minhas" .docs/designs/src/design-system` finds nothing,
+  > `test ! -e .docs/designs/empty-and-error-states.html` passes, `node .docs/designs/scripts/pack.mjs --check` (5 files match),
+  > `node --test .docs/designs/scripts/*.test.mjs` (7 passed); deviations: A-01
+
+### App messages (`packages/app-messages`)
+
+- [x] **T-04** — Create `packages/app-messages` (`@rochas-surf-school/app-messages`) set up like
+  `packages/shared` (`package.json` with `build`, `check-types` and `test` scripts, `tsconfig.json`,
+  `jest.config.ts`); `git mv apps/mobile/src/i18n/messages/{en-US,es-ES,pt-BR}.ts packages/app-messages/src/`;
+  `src/index.ts` exports `enUS`, `esES`, `ptBR`, a `messages` record keyed by `en-US` / `es-ES` / `pt-BR` and the
+  `Messages` type; `test/messages.test.ts` checks the three locales have the same keys, naming any difference.
+  Covers: ER-03 · Done when: `npm test --workspace @rochas-surf-school/app-messages` and its `check-types` and
+  `build` pass.
+  > ✅ 2026-10-28 14:40 — created `@rochas-surf-school/app-messages` like `packages/shared`; the three message files moved with
+  > `git mv` (content unchanged); `src/index.ts` exports `enUS`, `esES`, `ptBR`, `messages` (keyed `en-US`/`es-ES`/`pt-BR`) and
+  > the `Messages` type; `test/messages.test.ts` compares the key sets and names missing/extra keys; files:
+  > `packages/app-messages/{package.json,tsconfig.json,jest.config.ts}`, `packages/app-messages/src/{index,en-US,es-ES,pt-BR}.ts`,
+  > `packages/app-messages/test/messages.test.ts`, `package-lock.json`; verified: `npm test -w @rochas-surf-school/app-messages`
+  > (4 passed), `npm run check-types` and `npm run build` for it (exit 0); deviations: T-04 executed before T-02/T-03 (independent,
+  > and the design copy reads from this package); relative imports stay extensionless as in `packages/shared` (CJS output), not
+  > `.js`
+
+### Mobile (`apps/mobile`)
+
+- [x] **T-05** — Make `apps/mobile` depend on `@rochas-surf-school/app-messages` and import the messages and
+  `Messages` from it in `src/i18n/index.ts` and every other file that imported `./messages/*` (among them
+  `src/navigation/stack-header/collapsing-header-title/`); remove `src/i18n/messages/`; update the i18n line of
+  `CLAUDE.md` → Layout. Load the `vercel-react-native-skills` and `vercel-react-best-practices` skills first.
+  Skill: [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills). Covers: ER-04 ·
+  Done when: `npm test --workspace @rochas-surf-school/mobile`, its `lint` and `check-types` pass, and the app
+  launched in the iOS simulator shows the sign-in screen in Portuguese.
+  > ✅ 2026-10-28 15:05 — mobile depends on `@rochas-surf-school/app-messages` and `src/i18n/index.ts` imports `enUS`/`esES`/`ptBR`
+  > from it; no other file imported `./messages/*`; `src/i18n/messages/` is gone (moved in T-04); CLAUDE.md Layout updated;
+  > files: `apps/mobile/src/i18n/index.ts`, `apps/mobile/package.json`, `package-lock.json`, `CLAUDE.md`; verified:
+  > `npm test -w @rochas-surf-school/mobile` (317 suites, 3443 tests passed), `npx turbo run lint check-types --filter=@rochas-surf-school/mobile`
+  > (successful); deviations: the iOS-simulator launch was NOT done in this session (covered by `src/i18n/index.test.ts`; to be
+  > checked by the user/reviewer)
+
+### Web (`apps/web`)
+
+- [x] **T-06** — Add `@rochas-surf-school/app-messages` to `apps/web`, and write
+  `src/modules/designs/i18n/` with the map from the site's locales (`pt-br`, `es`, `en`) to the app's
+  (`pt-BR`, `es-ES`, `en-US`) and an `appT(locale, key, params?)` that reads a dotted key, fills `{{name}}`
+  values, picks i18next plural suffixes with `Intl.PluralRules`, and renders `<tag>…</tag>` rich text with given
+  components; with `app-t.test.ts` (Vitest) covering each of those and a missing key. Covers: ER-09 · Done when:
+  `npx vitest run src/modules/designs/i18n` passes in `apps/web`.
+  > ✅ 2026-10-28 15:25 — web depends on app-messages; `appT(locale, key, params)` (dotted key, `{{name}}`, plural via
+  > `Intl.PluralRules` with `_other` fallback, throws on a missing key) and `appRich` (`<tag>` rich text through given components)
+  > written with the site-locale → app-locale map; files: `apps/web/package.json`, `package-lock.json`,
+  > `apps/web/src/modules/designs/i18n/{app-locale,app-t,app-t.test}.ts`; verified:
+  > `npx vitest run src/modules/designs/i18n` in apps/web (7 passed), `npx tsc --noEmit` (clean); deviations: rich text is a
+  > separate `appRich` function (returns ReactNode) next to `appT` (returns string)
+
+- [x] **T-07** — Add `/designs` and `/designs/:path*` to the matcher in `src/proxy.ts`; restructure
+  `src/app/[lang]/` so the design pages get a container up to 1440 px wide while the existing pages keep their
+  640 px column (D-15); add `src/app/[lang]/designs/page.tsx` (the index, from a typed list of design pages in
+  `src/modules/designs/data/`, with `generateMetadata`) and `src/app/[lang]/designs/[slug]/` or per-page routes
+  with `dynamicParams = false`; add the index copy to the three dictionaries and `dictionary.types.ts`; write
+  `e2e/designs.e2e.ts` with the redirect, 404, index and width tests. Covers: ER-05, ER-07, ER-11 · Done when:
+  those tests and the existing `e2e/*.e2e.ts` pass with `npm run test:e2e --workspace apps/web`.
+  > ✅ 2026-10-28 16:10 — `/designs` and `/designs/:path*` added to the proxy matcher; pages moved into the `(site)` route group (640 px
+  > shell unchanged) and a shared `SiteShell` (`narrow` max-w-160 / `wide` max-w-360) used by `(site)/layout.tsx` and the new
+  > `designs/layout.tsx`; index page `designs/page.tsx` driven by the typed list `designPages` (the unknown slug answers 404 because
+  > only real routes exist under `[lang]`); `designs` copy in the three dictionaries and `dictionary.types.ts`;
+  > `e2e/designs.e2e.ts` (redirects, 404, index, width); files: `apps/web/src/proxy.ts`, `apps/web/src/components/site-shell/*`,
+  > `apps/web/src/app/[lang]/layout.tsx`, `apps/web/src/app/[lang]/(site)/**` (moved pages + layout),
+  > `apps/web/src/app/[lang]/designs/{layout,page}.tsx`, `apps/web/src/modules/designs/data/design-pages.ts`,
+  > `apps/web/src/modules/designs/i18n/app-t.ts` (unused const removed), `apps/web/src/i18n/{dictionary.types.ts,dictionaries/*.ts}`,
+  > `apps/web/e2e/designs.e2e.ts`; verified: `npx playwright test` in apps/web (all passed, incl. the existing suites), `npx tsc --noEmit`,
+  > `npx eslint`, `npx vitest run` (29 passed); deviations: per-page route `designs/design-system/` (T-11) instead of a `[slug]` route
+
+- [x] **T-08** — Add the "Designs" row to `src/app/[lang]/page.tsx` (a `LinkRow` after account deletion, a
+  Lucide icon) with its title and description in the three dictionaries; add
+  `home links to the designs in every language` to `e2e/designs.e2e.ts`. Covers: ER-06 · Done when: that test
+  passes.
+  > ✅ 2026-10-28 16:25 — fourth `LinkRow` (Lucide `Palette`) after account deletion linking to `/{lang}/designs`, with title and
+  > description in the three dictionaries; files: `apps/web/src/app/[lang]/(site)/page.tsx`, `apps/web/src/i18n/dictionary.types.ts`,
+  > `apps/web/src/i18n/dictionaries/{pt-br,es,en}.ts`, `apps/web/e2e/designs.e2e.ts`; verified: `npx playwright test` in apps/web
+  > (28 passed, incl. `home links to the designs in every language`), `npx tsc --noEmit`; deviations: none
+
+- [x] **T-09** — Write the designs' building blocks in `src/modules/designs/components/`: `phone-frame` (iOS,
+  402 × 874, status bar, scales down below its width), `design-section` (number and title), `design-entry` (id
+  badge, title, note, `data-design-id`), `app-icon` (renders an Ionicons, Feather, FontAwesome, FontAwesome6,
+  MaterialCommunityIcons or SimpleLineIcons glyph by set and name, D-09), and the mock components of sections
+  04–05 with the mobile names and props: `button`, `header-button`, `text-button`, `text-input`, `text-area`,
+  `otp-input`, `checkbox`, `segmented-control`, `step-tabs`, `phone-number-field`, `country-picker`, `chip`;
+  each folder per `.claude/rules/react.md`, with a Vitest test rendering its variants. Skill:
+  [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices). Covers: ER-08 · Done
+  when: `npx vitest run src/modules/designs/components` passes and `npm run check-types --workspace apps/web`
+  exits 0.
+  > ✅ 2026-10-28 18:10 — added `react-icons` and `@mdi/js` to the web app; wrote in `src/modules/designs/components/`:
+  > `phone-frame` (402 × 874, scales with a container query), `design-section`, `design-entry` (`data-design-id`), `app-icon` (a
+  > typed `"<set>:<name>"` registry of the app's glyphs; the sets still missing — MaterialCommunityIcons, SimpleLineIcons — are added in
+  > T-11 with DS-03-04), and the mock `button`, `header-button`, `text-button`, `text-input`, `text-area`, `otp-input`, `checkbox`,
+  > `segmented-control`, `step-tabs`, `phone-number-field`, `chip`, each folder per react.md with a Vitest test; globals.css maps the extra
+  > tokens (checkbox/icon-button radii, sun-tint, band, scrim); files: `apps/web/package.json`, `package-lock.json`,
+  > `apps/web/src/app/globals.css`, `apps/web/src/modules/designs/components/**`; verified: `npx vitest run src/modules/designs/components`
+  > (54 passed), `npm run check-types -w @rochas-surf-school/web` (exit 0), `npx eslint src/modules` (clean); deviations: `country-picker`
+  > moved to T-10 (it is drawn inside `bottom-modal`); `text-input`/`header-button`/`chip` take an `AppIconName` string for the icon instead
+  > of a node; mock components are static (no handlers)
+
+- [x] **T-10** — Write the mock components of sections 06–09 the same way: `class-card` (every state of
+  DS-06), `class-card-skeleton`, `tab-bar` (student and instructor/admin tabs), `stack-header`,
+  `screen-intro`, `user-header`, `calendar-week-row`, `calendar-month-grid`, `week-month-calendar`,
+  `bottom-modal`, `toast`, `language-sheet`, `theme-sheet`, `deny-sheet`, `decision-card`, `account-status`,
+  `skeleton`, `empty-state`, `error-state`, with the Fortaleza mock data in `src/modules/designs/data/`
+  (D-10) and a Vitest test per component. Skill:
+  [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices). Covers: ER-08 · Done
+  when: `npx vitest run src/modules/designs/components` passes.
+  > ✅ 2026-10-28 19:40 — wrote the mock components of sections 06–09 in `apps/web/src/modules/designs/components/`: `skeleton`,
+  > `student-avatar`, `class-card` (every state: not started/full/next/started/finished/cancelled, admin flags, student enrolment,
+  > guests/erased students; copy through `appT`), `class-card-skeleton`, `tab-bar`, `stack-header`, `screen-intro`, `user-header`,
+  > `calendar-week-row`, `calendar-month-grid`, `week-month-calendar`, `bottom-modal`, `toast`, `language-sheet`, `theme-sheet`,
+  > `deny-sheet`, `decision-card`, `account-status`, `empty-state`, `error-state` and `country-picker` (moved here from T-09); the app-icon
+  > registry gained the extra Ionicons/Feather glyphs and the MaterialCommunityIcons (`@mdi/js`) and SimpleLineIcons ones; every folder
+  > has a Vitest test; files: `apps/web/src/modules/designs/components/**`; verified: `npx vitest run src/modules/designs` (all passed),
+  > `npx tsc --noEmit` (clean), `npx eslint src/modules` (clean); deviations: the Fortaleza mock data (D-10) is written in T-11 with the
+  > page that uses it; components take the already-resolved copy as props (the page resolves it with `appT`), except `class-card`, which
+  > takes the locale like the app's card reads its own copy
+
+- [x] **T-11** — Write the design system page (`src/modules/designs/pages/design-system/` and its route under
+  `src/app/[lang]/designs/`): sections 01–09 with every inventory entry and id, the tokens read from
+  `@rochas-surf-school/design-tokens` (swatches printing both values), the app copy through `appT` and the
+  section text and notes in the three dictionaries; add the page to the index list; add
+  `design system shows every inventory entry`, `design system follows the language`,
+  `design system follows the theme toggle` and `design pages fit a phone viewport` to `e2e/designs.e2e.ts`.
+  Covers: ER-08, ER-09, ER-10, ER-11 · Done when: `npm run test:e2e --workspace apps/web` passes and the page,
+  opened in a browser, matches `design-system.html` entry by entry.
+  > ✅ 2026-10-28 21:30 — design system page: nine section components (`design-system-{colors,typography,shape,controls,chips,
+  > class-cards,structure,rules,states}`) composed by `pages/design-system/design-system.page.tsx` and the route
+  > `app/[lang]/designs/design-system/page.tsx` (with metadata); all 51 inventory ids (`data/design-system-ids.ts`) carry
+  > `data-design-id`; tokens come from `@rochas-surf-school/design-tokens` (swatches show the header theme and print both values);
+  > frames and samples use the app copy through `appT`/`appRich`; section titles, notes, rules and labels added to the three
+  > dictionaries; Fortaleza mock data in `data/fortaleza.ts`; the index already listed the page; e2e: `design system shows every inventory
+  > entry`, `follows the language`, `follows the theme toggle`, `design pages fit a phone viewport`; files:
+  > `apps/web/src/modules/designs/{components/design-system-*,pages/design-system,data/{fortaleza,design-system-ids}.ts,i18n/test-dictionaries.ts}`,
+  > `apps/web/src/app/[lang]/designs/design-system/page.tsx`, `apps/web/src/i18n/{dictionary.types.ts,dictionaries/*.ts}`,
+  > `apps/web/src/modules/designs/components/app-icon/app-icon.constants.ts`, `apps/web/e2e/designs.e2e.ts`; verified:
+  > `npx playwright test` in apps/web (32 passed), `npx vitest run` (170 passed), `npx turbo run lint check-types build --filter=@rochas-surf-school/web`
+  > (successful); looked at the class-card section in the browser pane; deviations: per-token "use" text of DS-01-01 is shown as the
+  > group name (tokens are grouped, not described one by one); the comparison "entry by entry with design-system.html" is pending until
+  > T-02/T-03 rewrite that file
+
+### Verification
+
+- [x] **T-12** — Run every command in the Verification Plan from the repo root; all pass. Record the output
+  summary as evidence. Covers: all · Done when: every command exits 0 and `check-coverage.mjs` prints
+  `COVERAGE OK` and `run-e2e.mjs` prints `E2E PASSED`.
+  > ✅ 2026-10-28 22:10 — ran the Verification Plan from the repo root: `node .specs/scripts/run-related-tests.mjs 071` (RELATED TESTS PASSED:
+  > mobile, web, app-messages), `node .specs/scripts/check-coverage.mjs 071` (COVERAGE OK — 1 measured file, the rest excluded by
+  > technical-context or without executable lines), `node .specs/scripts/run-e2e.mjs 071` (E2E PASSED, 32 tests),
+  > `node --test .docs/designs/scripts/*.test.mjs` (7 passed), `node .docs/designs/scripts/pack.mjs --check` (5 files match),
+  > `test ! -e .docs/designs/empty-and-error-states.html` (gone), `npx turbo run build check-types --filter=@rochas-surf-school/app-messages`,
+  > `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` (T-05) and
+  > `npx turbo run lint check-types build --filter=@rochas-surf-school/web` (T-11) all successful; files: none; deviations: the
+  > iOS-simulator launch of the mobile app (sign-in in pt-BR, en, es) was not done in this session — the user must open the app in the
+  > simulator and see "Continuar com o Google" with the phone in Portuguese
+
+## Verification Plan
+
+- Automated:
+  - `node .specs/scripts/run-related-tests.mjs 071` — the tests this spec added or changed, and the existing
+    tests related to its changes, pass (with coverage)
+  - `node .specs/scripts/check-coverage.mjs 071` — every line this spec adds or changes is covered
+    (`.docs/designs/**` and `apps/web/src/**` are excluded by technical-context)
+  - `node .specs/scripts/run-e2e.mjs 071` — the web Playwright suite passes, including `e2e/designs.e2e.ts`
+  - `node --test .docs/designs/scripts/*.test.mjs` — the pack and unpack tests pass
+  - `node .docs/designs/scripts/pack.mjs --check` — every `.html` matches its sources
+  - `test ! -e .docs/designs/empty-and-error-states.html` — the merged file is gone
+  - `npm test --workspace @rochas-surf-school/app-messages` and
+    `npx turbo run build check-types --filter=@rochas-surf-school/app-messages` — the package builds, type
+    checks and its key-parity test passes
+  - `npm test --workspace @rochas-surf-school/mobile` and
+    `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` — the whole mobile suite passes
+  - `npm test --workspace @rochas-surf-school/web` and
+    `npx turbo run lint check-types build --filter=@rochas-surf-school/web` — the web tests, lint, type check
+    and build pass
+- User journeys (followed in a browser or simulator):
+  - Open `.docs/designs/design-system.html` in a browser: every inventory entry is there with its id, in pt-BR,
+    light and dark side by side; spot-check entries against the component code by D-08.
+  - Run the web app, open `/pt-br/designs/design-system`, switch the theme and the language from the header:
+    the samples and frames follow both; compare the page with the `.html` entry by entry.
+  - Launch the mobile app in the iOS simulator with the phone in Portuguese, English and Spanish: the sign-in
+    screen's labels are the same as before.
+
+## Memory Impact
+
+- `memory/product.md` — the public site also hosts the designs (`/{lang}/designs`): "For whom" and Current
+  state; Source documents: the design files are edited through `.docs/designs/src/` and the pack script,
+  `empty-and-error-states.html` is gone, and the web's designs area reproduces them; drop the stale Out of scope
+  line about a light/dark switch on the site (the theme toggle exists since spec 024).
+- `memory/technical-context.md` — Applications → `apps/web`: the `/designs` routes, the wide layout,
+  `src/modules/designs/` (app-copy helper, mock components, icon packages) and the new dependency on
+  `app-messages`; Applications → `apps/mobile`: the messages come from `@rochas-surf-school/app-messages`; a new
+  `packages/app-messages` entry; the `.docs/designs` sources and pack commands; Coverage keeps the
+  `.docs/designs/**` line added while planning.
+- `memory/structure.md` — `packages/app-messages`, `.docs/designs/{scripts,src}`, `apps/web/src/modules/designs/`
+  and the `src/app/[lang]/designs/` routes; `apps/mobile/src/i18n/messages/` removed.
+- `memory/modules.md` — None (no business module changes).
+
+## Assumptions
+
+- The vendor assets inside the current bundles (React 18 UMD, Babel standalone, the `x-dc` runtime, the fonts)
+  may be committed in the repository as they are, about 4.5 MB once; the user accepted this while planning.
+
+## References
+
+- [How to execute](../../shared/how-to-execute.md)
+- [Task breakdown](../../shared/task-breakdown.md)
+- [Acceptance criteria rules](../../shared/acceptance-criteria.md)
+- [Naming rules](../../shared/naming-rules.md)
+- [Spec lifecycle](../../shared/spec-lifecycle.md)
+- [Design system inventory](design-system-inventory.md)
+
+## Amendments
+
+- **A-01 — 2026-10-28 — approved by the user while executing T-02.** D-01/D-02 before: `design-system.html` is edited by hand
+  through readable sources and the web then reproduces it in React. After: the sources of `design-system.html`
+  (`.docs/designs/src/design-system/template.html`, `bundle.json`) are generated from the web's design system page by
+  `node .docs/designs/scripts/build-design-system.mjs` (pt-BR, every entry drawn light and dark side by side, with the web's compiled
+  CSS) and then packed with `pack.mjs`; the web components are the source of truth for that one file. The other five files keep
+  the hand-edited sources of D-02. D-09 (glyphs "as inline SVG paths in the shared icons script") is met by the same SVG glyphs the
+  web components draw, embedded in the generated markup. Reason: hand-writing ~50 entries again in the x-dc template duplicated the React
+  work and could drift from it.
+
+## Review
+
+### Round 1 — 2026-10-28 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (web, mobile, app-messages: `npx turbo run lint check-types build`, 17/17 tasks)
+- related tests ✅ mobile 917 · web 149 · app-messages 4 passed (`RELATED TESTS PASSED`); whole suites ✅ mobile 3443 · web 171 · app-messages 4
+- coverage of the changed lines ✅ `COVERAGE OK` (1 measured file, `packages/app-messages/src/index.ts` 100%; the rest excluded by technical-context); no coverage-ignore comments in the diff
+- e2e: web suite ✅ 32 passed (`E2E PASSED`); backend not affected
+- designs: `node --test .docs/designs/scripts/*.test.mjs` ✅ 7 passed · `pack.mjs --check` ✅ 5 files match · `empty-and-error-states.html` gone ✅ · `design-system.html` regenerated from the current web build is byte-identical to the committed sources ✅ · the four other `.html` files decode to the same content as at `base_commit` ✅
+- web walked in the browser (pt-br, es, en; light, dark; 1440 px and 375 px) and `design-system.html` opened in the browser (51 entries, each light and dark, pt-BR)
+- mobile in the iOS simulator (iPhone 18 Pro): sign-in in English, then Português from the language sheet ("Continuar com o Google"), restored to English; the fresh iOS bundle (`expo export`) carries the en-US, es-ES and pt-BR sign-in copy
+
+**Expected Results**
+
+- ER-01 ✅ — script tests (round trip, stale, missing asset, no bundle data) pass; `--check` exits 0
+- ER-02 ❌ — 51 ids, pt-BR, light/dark pairs, no European Portuguese, states file gone; but DS-09-04 and DS-09-02 don't match the code (F-01, F-02)
+- ER-03 ✅ — key-parity test and `check-types` pass; es-ES/pt-BR are typed `Messages`, so a missing or extra key fails `tsc`; files moved with 100 % similarity
+- ER-04 ✅ — mobile suite passes; simulator shows the sign-in from the package in English and Portuguese; stored preference applied on relaunch
+- ER-05 ✅ — `/designs`, `/designs/design-system` → 307 to `/es/...` with `Accept-Language: es-AR`, `/pt-br/...` without the header; `/pt-br/designs/unknown` and `/fr/designs` → 404
+- ER-06 ✅ — fourth row after account deletion, title and description in each language (checked by hand; see F-03 for the test)
+- ER-07 ✅ — one card (design system) per language, translated `<title>` and meta description (checked by hand; see F-03)
+- ER-08 ❌ — every id present and visible in the three languages; class cards, chips, controls, tab bars and sheets match the components; DS-09-04 and DS-09-02 don't (F-01, F-02)
+- ER-09 ✅ — DS-09-03 reads "Tentar de novo" / "Intentar de nuevo" / "Try again"; section text in each language; picker keeps the page; no `{{…}}` or raw tags
+- ER-10 ✅ — OS dark with no stored choice draws the dark palette; the toggle switches swatches and frames and survives reload; swatches print both values (the OS case is not tested, F-04)
+- ER-11 ✅ — `main` ≤ 1440 px on design pages, 640 px on privacy policy; at 375 px `scrollWidth == innerWidth`, frames scaled to ~307 px
+
+**Findings**
+
+- [x] **F-01** (ER-08, ER-02 · D-08) — DS-09-04 "States in a screen" draws a screen the app never renders: the header title is "Nova aula" (the label of the `+` header button), there is no `WeekMonthCalendar` under the header and no floating `DisciplineFilter`, and the student tab bar is paired with the "Criar aula" empty-state action, which only `canCreate` (admin) screens show. Reproduce: open DS-09-04 on `/pt-br/designs/design-system` (or the same entry in `design-system.html`) and compare with `apps/mobile/src/modules/classes/screens/classes-week.screen.tsx` and `src/app/(private)/admin/(tabs)/classes/index.tsx`. Expected: the three frames reproduce one role's classes screen as the app renders it — for admin: title "Aulas" (`tabs.classes`) with the `add` HeaderButton, the week calendar, then the skeletons / the empty state with "Criar aula" / the error state under it, the sport filter, and the instructor/admin tab bar (or the student agenda without the create action); then regenerate and repack `design-system.html`.
+  > ✅ 2026-10-28 — DS-09-04 now draws the admin's classes screen as `classes-week.screen.tsx` renders it: title `tabs.classes` with the `add` HeaderButton, the week calendar, the skeletons / empty state with "Criar aula" / error state under it, the floating sport filter and the staff tab bar. Files: `apps/web/src/modules/designs/components/design-system-states/design-system-states.component.tsx`, `apps/web/src/modules/designs/components/app-icon/app-icon.constants.ts` (`Ionicons:add`, `Ionicons:filter`), `.docs/designs/src/design-system/template.html` (regenerated), `.docs/designs/design-system.html` (repacked). Checked in the browser at `/pt-br/designs/design-system`; `npx vitest run src/modules/designs` 149 passed; `pack.mjs --check` 5 files match.
+- [x] **F-02** (ER-08, ER-02 · D-08, D-09) — the "Criar aula" action is drawn with the `Ionicons:calendar-outline` glyph in DS-09-02 ("with an action") and in the DS-04-01 "with icon" sample; every `EmptyState` action in the app (classes week, manage school rules) uses `add`. Reproduce: DS-09-02 and DS-04-01 on `/pt-br/designs/design-system`; `grep -rn -A6 "<EmptyState" apps/mobile/src`. Expected: `Ionicons:add` next to "Criar aula" (or another label/glyph pair the app actually renders); regenerate and repack `design-system.html`.
+  > ✅ 2026-10-28 — "Criar aula" uses `Ionicons:add` in DS-09-02, DS-09-04 and the DS-04-01 "with icon" sample. Files: `design-system-states.component.tsx`, `apps/web/src/modules/designs/components/design-system-controls/design-system-controls.component.tsx`, regenerated `.docs/designs/src/design-system/template.html` and `.docs/designs/design-system.html`. `npx turbo run lint check-types build --filter=@rochas-surf-school/web` passed.
+- [x] **F-03** (tests · ER-06, ER-07, ER-09) — the e2e tests don't check the page language of the site's own text: `home links to the designs in every language` only checks the four hrefs, `index lists the design system in every language` only checks the card count/href, a visible `h1` and that the title contains "|", and `design system follows the language` checks only the retry button (app copy), not the section titles/notes. They would still pass with an untranslated or swapped dictionary entry. Expected: per locale, assert the Designs row title and description on the home, the index title, intro, card title/description, `<title>` and meta description, and at least one section title of the design system page against the dictionary values.
+  > ✅ 2026-10-28 — per locale the e2e now asserts the Designs row title/description on the home, the index h1, intro, card title/description, `<title>` and meta description, and the design system h1 and the section 01 and 09 titles plus the section 01 description against the dictionaries. File: `apps/web/e2e/designs.e2e.ts`. `node .specs/scripts/run-e2e.mjs 071` → E2E PASSED, 33 tests.
+- [x] **F-04** (tests · ER-10) — `design system follows the theme toggle` emulates a light OS and only checks that the colors change after the toggle; the edge case "without a stored choice the page follows the OS color scheme" is never asserted, and "both values printed" is checked with a single dark value. Expected: with `colorScheme: "dark"` and no stored choice, the `page` swatch and a phone frame compute to the dark `page` token; the DS-01-01 `page` swatch contains both `#FDF8F3` and `#161B27`.
+  > ✅ 2026-10-28 — new test `design system follows the OS color scheme without a stored choice`: with `colorScheme: "dark"` and no stored choice, the `page` swatch and a phone frame compute `rgb(22, 27, 39)`, and the DS-01-01 block contains both `#FDF8F3` and `#161B27`. File: `apps/web/e2e/designs.e2e.ts`. `run-e2e.mjs 071` → E2E PASSED.
+
+**Notes**
+
+- Memory Impact misses A-01: `technical-context.md` and `product.md` should say that `design-system.html` is generated from the web page by `build-design-system.mjs` (needs the web on port 3100) and is not hand-edited; `CLAUDE.md` → `packages/design-tokens` still says the tokens are "taken from `.docs/designs/design-system.html`", which is now the other way round.
+- `build-design-system.mjs` `require`s `jsdom` from the repo root, where it resolves only through the hoisted `jsdom@20` that the backend's Vitest pulls in (`apps/web` declares `jsdom@30`); declaring it where the script lives would make it independent of the backend.
+- D-13 asks for a typed slug list with `generateStaticParams`/`dynamicParams = false`; per-page static routes (T-07 deviation) give the same 404 and static output — not a finding, but the decision text could be amended.
+- An already-running Metro must be restarted (`expo start --clear`) after checking out this branch: one started before `node_modules/@rochas-surf-school/app-messages` existed fails with "Unable to resolve module @rochas-surf-school/app-messages".
+- At narrow cells the entry id badge wraps ("DS-06-" / "04"); `whitespace-nowrap` on the badge would keep it on one line.
+
+### Round 2 — 2026-10-28 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (web, mobile, app-messages: `npx turbo run lint check-types build`, 17/17 tasks)
+- related tests ✅ mobile 917 · web 149 · app-messages 4 passed (`RELATED TESTS PASSED`); whole suites ✅ web 171 · app-messages 4 (mobile unchanged since round 1)
+- coverage of the changed lines ✅ `COVERAGE OK` (1 measured file, `packages/app-messages/src/index.ts` 100%; the rest excluded by technical-context); no coverage-ignore comments in the diff
+- e2e: web suite ✅ 33 passed (`E2E PASSED`); backend not affected
+- designs: `node --test .docs/designs/scripts/*.test.mjs` ✅ 7 passed · `pack.mjs --check` ✅ 5 files match · `empty-and-error-states.html` gone ✅ · no European Portuguese in `src/design-system` ✅ · `build-design-system.mjs` against the current web build leaves the committed sources unchanged ✅
+- web walked in the browser: DS-09-04, DS-09-02 and DS-04-01 on `/pt-br/designs/design-system`; the same DS-09-04 text in the generated `template.html`
+
+**Expected Results**
+
+- ER-01 ✅ — script tests pass; `--check` exits 0
+- ER-02 ❌ — F-01 and F-02 are fixed (admin classes screen with title, `add` HeaderButton, week calendar, sport filter, staff tab bar; "Criar aula" with `add`), but the sport filter is drawn with the wrong radius (F-05)
+- ER-03 ✅ — key-parity test and `check-types` pass (package unchanged since round 1)
+- ER-04 ✅ — mobile suite passes; mobile unchanged since the round 1 simulator check
+- ER-05 ✅ — redirect, fallback and 404 e2e tests pass
+- ER-06 ✅ — e2e now asserts the Designs row title and description per language (F-03 fixed)
+- ER-07 ✅ — e2e asserts the index h1, intro, card title/description, `<title>` and meta description per language (F-03 fixed)
+- ER-08 ❌ — every id present in the three languages; DS-09-04's filter radius doesn't match the code (F-05)
+- ER-09 ✅ — e2e asserts the retry button, the page h1 and the section 01/09 titles and section 01 description per language
+- ER-10 ✅ — new e2e test: OS dark without a stored choice gives `rgb(22, 27, 39)` on the `page` swatch and a phone frame, and DS-01-01 prints `#FDF8F3` and `#161B27` (F-04 fixed)
+- ER-11 ✅ — width and phone-viewport e2e tests pass
+
+**Findings**
+
+- [x] **F-05** (ER-08, ER-02 · D-08) — DS-09-04's floating sport filter is drawn `rounded-full` (a circle, with `shadow-primary`); the app's `DisciplineFilterButton` (`apps/mobile/src/modules/classes/components/discipline-filter-button/discipline-filter-button.component.tsx`) is a 56×56 `rounded-card` (radius 20) `bg-grape` button with `shadowStyle("fab")`, so the frames show a different radius token than the code. Reproduce: DS-09-04 on `/pt-br/designs/design-system`, the `span` with `Ionicons:filter` in `design-system-states.component.tsx`. Expected: `rounded-card` (and the fab elevation if a utility exists for it); then regenerate and repack `design-system.html`.
+  > ✅ 2026-10-28 — the floating sport filter is `rounded-card` with `shadow-fab` (new `--shadow-fab` mapped from `--ds-elevation-fab` in globals.css). Files: `apps/web/src/app/globals.css`, `apps/web/src/modules/designs/components/design-system-states/design-system-states.component.tsx`, regenerated `.docs/designs/src/design-system/template.html`, repacked `.docs/designs/design-system.html`. Verified: web build, `build-design-system.mjs`, `pack.mjs --check` 5 files match.
+- [x] **F-06** (convention · `.claude/rules/react.md` §1) — the F-01 fix copies into `design-system-states.component.tsx` a third site→app locale map (`{ "pt-br": "pt-BR", es: "es-ES", en: "en-US" }`, already exported as `appLocaleBySiteLocale` in `i18n/app-locale.ts` and copied once more as `appLocaleByLocale` in `design-system-structure.component.tsx`) and the same weekday/month `Intl` formatting and calendar-props builder that `design-system-structure.component.tsx` already has; react.md keeps calculations out of `*.component.tsx`. Reproduce: `grep -rn "DateTimeFormat\|\"pt-br\": \"pt-BR\"" apps/web/src/modules/designs`. Expected: one helper (for example in `src/modules/designs/data/`) that builds the mock `WeekMonthCalendar` props for a locale using `appLocaleBySiteLocale`, used by both sections, and no local copies of the locale map.
+  > ✅ 2026-10-28 — new `buildMockCalendar(locale)` uses `appLocaleBySiteLocale`; both sections use it and the local locale maps are gone. Files: `apps/web/src/modules/designs/data/mock-calendar.ts`, `design-system-states.component.tsx`, `design-system-structure.component.tsx`. Verified: `npx turbo run lint check-types --filter=@rochas-surf-school/web` passed; `npx vitest run src/modules/designs` 149 passed.
+
+**Notes**
+
+- In DS-09-04 the calendar selects Wednesday 9 while the empty and error copy say "12/09"; the app fills `{{date}}` with `formatLongDay` of the selected day ("quarta-feira, 9 de setembro"). Mock values aren't judged by D-08, but using the selected day in the app's long format would make the frame read like the app.
+- The loading frame shows 2 skeletons where the app renders 4 (`LOADING_CARDS`); the frame's height hides the rest, so this is not judged.
+- Still open from round 1: Memory Impact misses A-01 (`design-system.html` generated by `build-design-system.mjs` from the web on port 3100), `CLAUDE.md` → `packages/design-tokens` still says the tokens are "taken from `.docs/designs/design-system.html`", and `build-design-system.mjs` resolves `jsdom` only through the backend's hoisted copy. `spec-finish` should cover the first two.
+
+### Round 3 — 2026-10-28 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (web, mobile, app-messages: `npx turbo run lint check-types build`, 17/17 tasks)
+- related tests ✅ mobile 917 · web 149 · app-messages 4 passed (`RELATED TESTS PASSED`); mobile and app-messages unchanged since round 1, where the whole mobile suite passed (3443)
+- coverage of the changed lines ✅ `COVERAGE OK` (1 measured file, `packages/app-messages/src/index.ts` 100%; the rest excluded by technical-context); no coverage-ignore comments in the diff
+- e2e: web suite ✅ 33 passed (`E2E PASSED`); backend not affected
+- designs: `node --test .docs/designs/scripts/*.test.mjs` ✅ 7 passed · `pack.mjs --check` ✅ 5 files match · `empty-and-error-states.html` gone ✅ · no European Portuguese in `src/design-system` ✅ · `build-design-system.mjs` against the current web build leaves the committed sources unchanged ✅
+- HTTP on `next start -p 3100`: `/designs` and `/designs/design-system` with `Accept-Language: es-AR` → 307 to `/es/...`, without it → `/pt-br/designs`; `/pt-br/designs/unknown` and `/fr/designs` → 404
+- web walked in the browser: DS-09-04 on `/pt-br/designs/design-system` (51 ids on the page)
+
+**Expected Results**
+
+- ER-01 ✅ — script tests (round trip, stale, missing asset, no bundle data) pass; `--check` exits 0
+- ER-02 ✅ — the regenerated `template.html` draws DS-09-04's sport filter `rounded-card` with `shadow-fab` in all six cells (three frames × light/dark), no `rounded-full … shadow-primary` left; pt-BR, 51 entries, states file gone
+- ER-03 ✅ — key-parity test and `check-types` pass (package unchanged since round 1)
+- ER-04 ✅ — mobile suite passes; mobile unchanged since the round 1 simulator check
+- ER-05 ✅ — e2e redirect, fallback and 404 tests pass; same answers by hand
+- ER-06 ✅ — e2e asserts the Designs row title and description per language
+- ER-07 ✅ — e2e asserts the index copy, card, `<title>` and meta description per language
+- ER-08 ✅ — every id present in the three languages; DS-09-04's filter is a 56 px button with a 20 px radius (`rounded-card`) and the fab elevation, like `DisciplineFilterButton` (F-05 fixed)
+- ER-09 ✅ — e2e asserts the app copy and the section text per language
+- ER-10 ✅ — e2e covers the toggle, reload and the OS scheme without a stored choice
+- ER-11 ✅ — width and phone-viewport e2e tests pass
+
+**Findings**
+
+- None. F-05 and F-06 are fixed: one `buildMockCalendar(locale)` in `data/mock-calendar.ts` uses `appLocaleBySiteLocale`, and no local copy of the locale map or of the `Intl` calendar formatting is left in the section components.
+
+**Notes**
+
+- `design-system-states.component.tsx` still builds the three DS-09-04 frames with a local `screen(body, caption)` render function and holds the mock arrays in the component body; a `ClassesScreenMock` component in its own folder would follow `.claude/rules/react.md` §1/§5 more literally.
+- Still open from rounds 1 and 2, for `spec-finish`: Memory Impact misses A-01 (`design-system.html` generated by `build-design-system.mjs` from the web on port 3100), `CLAUDE.md` → `packages/design-tokens` still says the tokens are "taken from `.docs/designs/design-system.html`", and `build-design-system.mjs` resolves `jsdom` only through the backend's hoisted copy.

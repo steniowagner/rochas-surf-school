@@ -238,7 +238,7 @@ server creates.
   > three runs: accessible name and 44 px, copied then reset after 2 s with fake timers, failure until the next
   > tap, only the tapped button changes), `npx eslint` on the folder (clean); deviations: none
 
-- [ ] **T-05** — Add `src/app/[lang]/user-journeys/test-accounts/page.tsx` (`generateMetadata` with the D-07
+- [x] **T-05** — Add `src/app/[lang]/user-journeys/test-accounts/page.tsx` (`generateMetadata` with the D-07
   metaTitle, `notFound()` for an unknown language) and `src/modules/user-journeys/pages/test-accounts/`
   (`test-accounts.page.tsx`, `.types.ts`, `index.ts`) implementing D-03 and D-04 from `testAccountSets`, with
   `test-accounts.page.test.tsx`; add to `e2e/user-journeys.e2e.ts` the tests `test accounts page lists the 12 sets
@@ -247,6 +247,32 @@ server creates.
   to the visibility test's `noindex` loop.
   Covers: ER-02, ER-03, ER-05 · Done when: `npx vitest run src/modules/user-journeys/pages/test-accounts` passes
   and those e2e tests pass in `apps/web`.
+  > ✅ 2026-10-29 23:25 — static route `test-accounts/page.tsx` (`generateMetadata` titled
+  > "<metaTitle> — <User journeys> | <site>", `notFound()` for an unknown language; inherits the layout's wide
+  > `SiteShell` and `noindex, nofollow`) rendering `TestAccountsPage`: `ScreenIntro` (title + intro), a subtle
+  > "All flows" button link to `/{lang}/user-journeys`, and a `grid` (one column, two from `md` 768 px, three
+  > from `lg` 1024 px, `data-testid="test-account-sets"`) of 12 `ContentCard`s titled `set` ("Set 01"…), each a
+  > list of three rows: translated role, the stored name, the email (`wrap-anywhere`,
+  > `data-testid="test-account-email"`) and its `CopyEmailButton` (only its three labels are passed to the client
+  > component). The page test was written first and failed (no page). e2e: added `test accounts page lists the 12
+  > sets in every language` (pt-br, es, en; title, intro, "All flows", 12 cards × 3 rows from `testAccountSets`,
+  > no 6-digit number in `main`), `test accounts page answers 404 for an unknown language`,
+  > `redirects /user-journeys/test-accounts to the browser language`, `copy an email on the test accounts page`
+  > (clipboard granted: reads `teste05.aluno@…` back, only that button reads "Copied", ≥ 44 px, back to "Copy
+  > email" after 2 s) and `test accounts page fits a phone and a desktop` (375 × 812 and 1280 × 800: no
+  > horizontal scroll, every email inside its card; the theme toggle changes the card's background and
+  > border), and `/test-accounts` to the visibility test's `noindex` loop. Checked that the fit test can fail: with
+  > the emails forced to `whitespace-nowrap` it fails at 260 px (at 375 px the longest email already fits in its
+  > card); files: `apps/web/src/app/[lang]/user-journeys/test-accounts/page.tsx`,
+  > `apps/web/src/modules/user-journeys/pages/test-accounts/test-accounts.page.tsx`,
+  > `apps/web/src/modules/user-journeys/pages/test-accounts/test-accounts.types.ts`,
+  > `apps/web/src/modules/user-journeys/pages/test-accounts/index.ts`,
+  > `apps/web/src/modules/user-journeys/pages/test-accounts/test-accounts.page.test.tsx`,
+  > `apps/web/e2e/user-journeys.e2e.ts`; verified: `npx vitest run src/modules/user-journeys/pages/test-accounts`
+  > (4 passed), `npx playwright test e2e/user-journeys.e2e.ts -g "test accounts|visibility|redirects"` (9 passed),
+  > `npm run check-types` and `npx eslint` on the touched files (clean); deviations: the 404 check is its own test
+  > (`test accounts page answers 404 for an unknown language`); in the copy test the "no alert" check is scoped to
+  > `main`, because Next's route announcer is a `role="alert"` outside it
 
 - [ ] **T-06** — Add the "Test accounts" `LinkRow` to `src/modules/user-journeys/pages/user-journeys-index/` and the
   "See the test accounts" link to the "Account to use" card of `src/modules/user-journeys/pages/user-journey-flow/`

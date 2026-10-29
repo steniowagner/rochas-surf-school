@@ -2,15 +2,33 @@ import { appT } from "@/modules/designs/i18n/app-t";
 
 import { AppIcon } from "../app-icon";
 import { BottomModal } from "../bottom-modal";
+import { Checkbox } from "../checkbox";
 import { Chip } from "../chip";
 import { PersonAvatar } from "../person-avatar";
+import { PersonRoleActions } from "../person-role-actions";
 import { roleChips } from "../person-row/person-row.component";
+import { RemoveConfirmation } from "../remove-confirmation";
+import { RoleChangeConfirmation } from "../role-change-confirmation";
 
 import type { PersonSheetProps } from "./person-sheet.types";
 
-/** A person of the directory in a sheet: who they are, how to reach them, and nothing an admin could do. */
-export function PersonSheet({ locale, name, role, whatsapp, email }: PersonSheetProps) {
+/** A person of the directory in a sheet: who they are, how to reach them, and for an admin what they can change. */
+export function PersonSheet({ locale, name, role, whatsapp, email, canChangeRole = false, instructorFlag, step }: PersonSheetProps) {
   const t = (key: string) => appT(locale, key);
+  // The name up to its first space, in the confirmations' titles.
+  const firstName = name.split(" ")[0] ?? name;
+
+  if (step) {
+    return (
+      <BottomModal>
+        {step === "remove" ? (
+          <RemoveConfirmation locale={locale} role={role} name={firstName} />
+        ) : (
+          <RoleChangeConfirmation locale={locale} action={step.roleAction} name={firstName} showSeatsNote={step.roleAction === "promoteAdmin" && role === "student"} />
+        )}
+      </BottomModal>
+    );
+  }
 
   return (
     <BottomModal>
@@ -49,6 +67,8 @@ export function PersonSheet({ locale, name, role, whatsapp, email }: PersonSheet
             </div>
           </div>
         )}
+        {instructorFlag === undefined ? null : <Checkbox checked={instructorFlag} label={t("people.instructorFlag.label")} helper={t("people.instructorFlag.helper")} variant="boxed" />}
+        {canChangeRole ? <PersonRoleActions locale={locale} role={role} /> : null}
         <span role="button" aria-label={t("common.close")} className="ds-text-button flex min-h-11 items-center justify-center text-ink">
           {t("common.close")}
         </span>

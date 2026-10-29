@@ -42,4 +42,11 @@ describe("DecisionCard", () => {
     expect(screen.getByRole("button", { name: "Aprovar" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Recusar" })).toBeEnabled();
   });
+
+  it("sits inside another card when embedded, and opens the person's details when pressable", () => {
+    const { container } = render(<DecisionCard {...props} embedded pressable />);
+
+    expect(container.firstElementChild).not.toHaveClass("rounded-card");
+    expect(screen.getByRole("button", { name: "Ana Lima" })).toBeInTheDocument();
+  });
 });

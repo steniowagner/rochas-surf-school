@@ -191,7 +191,7 @@ with light and dark side by side, replacing the outdated European Portuguese pro
   > verified: `npx vitest run src/modules/designs/components` in `apps/web` (72 files, 218 tests passed); `npm run check-types --workspace @rochas-surf-school/web` (exit 0); `npx eslint src/modules/designs` (clean);
   > deviations: the mobile class details show the no-instructor and no-deadline cards to admins only (`canEdit`), so the student page (T-03) draws ST-02-26 with `classDetails.noInstructorAssigned` in the instructor band and ST-02-16 with the cancel-seat note; the two card variants exist in `class-info-card` for the admin page (spec 075); `request-seat-class-card` was split from the sheet by the react rules (one component per folder)
 
-- [ ] **T-02** — Add the building blocks of sections 03–06 the same way: `my-classes-filters`,
+- [x] **T-02** — Add the building blocks of sections 03–06 the same way: `my-classes-filters`,
   `history-list-header` and `history-day-label`; `person-avatar`, `person-row`, `role-filters`, `person-sheet`
   (student form: WhatsApp shared or not, e-mail, no admin actions) and `people-skeleton`; `profile-header`,
   `profile-card`, `profile-row`, `about-sheet`, `sign-out-sheet`, `delete-account-sheet` (with its removing state)
@@ -199,6 +199,10 @@ with light and dark side by side, replacing the outdated European Portuguese pro
   by type). Skill: [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices). Covers:
   enabling · Done when: `npx vitest run src/modules/designs/components` passes in `apps/web` and
   `npm run check-types --workspace @rochas-surf-school/web` exits 0.
+  > ✅ 2026-10-28 22:58 — the section 03–06 building blocks: `my-classes-filters`, `history-list-header`, `history-day-label`, `person-avatar`, `person-row`, `role-filters`, `person-sheet` (WhatsApp shared or not, optional e-mail row, no admin actions), `people-skeleton`, `profile-avatar` (with the camera button of the edit screen), `profile-header`, `profile-card`, `profile-row`, `about-sheet`, `sign-out-sheet`, `delete-account-sheet` (with its removing state), `cancellation-rules-sheet` (ready, loading, empty rule, error) and `notification-row` (unread and read, tinted icon per type);
+  > files: for each of those folders under `apps/web/src/modules/designs/components/<name>/`: `index.ts`, `<name>.component.tsx`, `<name>.types.ts`, `<name>.component.test.tsx`;
+  > verified: `npx vitest run src/modules/designs/components` in `apps/web` (89 files, 257 tests passed); `npm run check-types --workspace @rochas-surf-school/web` (exit 0); `npx eslint src/modules/designs` (clean);
+  > deviations: `profile-avatar` was added because `profile-header` and the edit-profile screen draw it; the mobile `PersonSheet` shows the e-mail row only where `email` is passed and the student's people list passes none, so `person-sheet` takes `email` as an option and the student page (T-04) leaves it out; the people list's "loading more" spinner and the app's "unread" accessibility suffix are not drawn (no visible element)
 
 - [ ] **T-03** — Write the screen mocks of sections 01–02 (D-07): `screens/student/agenda-screen` (week, month,
   filter open, filtered, loading, empty day, error) and `screens/shared/class-details-screen` (the class, its

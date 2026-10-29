@@ -36,6 +36,19 @@ export function adminDates(locale: Locale) {
     },
     /** "14 set": a day of the class form's range (the app's "d MMM"). */
     shortDay: (date: string) => `${format(date, { day: "numeric" })} ${format(date, { month: "short" }).replace(".", "")}`,
+    /** The class requests group's day block: "QUA", "9", "SET" and "2026" (the app's `formatDayBlock`). */
+    dayBlock: (date: string) => ({ weekday: weekday(date), day: format(date, { day: "numeric" }), month: monthShort(date), year: format(date, { year: "numeric" }) }),
+    /** "12 de ago. de 2026": the day a deleted account was deleted (the app's `formatReactivationDate`). */
+    longDate: (date: string) => format(date, { day: "numeric", month: "short", year: "numeric" }),
+    /** "2 set" / "Sep 2": a removed account's dates, the month first in English (the app's `formatRemovalDates`). */
+    removalDay: (date: string) => {
+      const day = format(date, { day: "numeric" });
+      const month = format(date, { month: "short" }).replace(".", "");
+
+      return locale === "en" ? `${month} ${day}` : `${day} ${month}`;
+    },
+    /** The day a removed account is deleted for good: 30 days after it was removed. */
+    deletedOn: (removedAt: string) => addDays(removedAt, 30),
     /** The week before today's, 31 Aug – 6 Sep, with Friday 4 selected: a past day. */
     pastWeek: {
       caption: `${format("2026-08-31", { day: "numeric" })} ${monthShort("2026-08-31")} – ${format("2026-09-06", { day: "numeric" })} ${monthShort("2026-09-06")}`,

@@ -210,3 +210,75 @@ export const classMessagePeople = [
   ...students.slice(0, 4).map((student) => ({ id: student.id, label: student.label, erased: false, role: "student" as const })),
   { id: "pending-paulo", label: "Paulo Freitas", erased: false, role: "pending" as const },
 ];
+
+/** The pending requests of the admin's "Inscrições em aulas" (D-04), by class: an open surf class, a full skate one and another surf one. */
+export const pendingRequestGroups = [
+  {
+    id: "wed-0800",
+    date: "2026-09-09",
+    discipline: "surf" as const,
+    level: "beginner" as const,
+    timeRange: "08:00 – 09:30",
+    locationName: "Praia de Iracema",
+    seatsTaken: 5,
+    capacity: 8,
+    requests: [
+      { id: "gabriel", name: "Gabriel Moura", askedAt: { time: "14:20", date: "2026-09-05" } },
+      { id: "helena", name: "Helena Duarte", askedAt: { time: "09:05", date: "2026-09-06" } },
+    ],
+  },
+  {
+    id: "wed-1600",
+    date: "2026-09-09",
+    discipline: "skate" as const,
+    level: "advanced" as const,
+    timeRange: "16:00 – 17:30",
+    locationName: "Skate Park do Aterrinho",
+    seatsTaken: 8,
+    capacity: 8,
+    requests: [
+      { id: "igor", name: "Igor Santos", askedAt: { time: "18:40", date: "2026-09-04" } },
+      { id: "lara", name: "Lara Vieira", askedAt: { time: "07:15", date: "2026-09-06" } },
+    ],
+  },
+  {
+    id: "thu-1000",
+    date: "2026-09-10",
+    discipline: "surf" as const,
+    level: "advanced" as const,
+    timeRange: "10:00 – 11:30",
+    locationName: "Praia do Futuro",
+    seatsTaken: 3,
+    capacity: 8,
+    requests: [{ id: "paulo", name: "Paulo Freitas", askedAt: { time: "21:10", date: "2026-09-06" } }],
+  },
+];
+
+/** The new accounts waiting to join the school (D-04). */
+export const registrationRequests = [
+  { id: "renata", name: "Renata Coelho", email: "renata.coelho@email.com" },
+  { id: "thiago", name: "Thiago Barros", email: "thiago.barros@email.com" },
+  { id: "vitoria", name: "Vitória Pinheiro", email: "vitoria.pinheiro@email.com" },
+];
+
+/** The deleted accounts that asked to come back (D-04): when each was deleted and how many classes it took. */
+export const reactivationRequests = [
+  { id: "fernanda", name: "Fernanda Rocha", email: "fernanda.rocha@email.com", deletedAt: "2026-08-12", classesTaken: 14 },
+  { id: "otavio", name: "Otávio Lins", email: "otavio.lins@email.com", deletedAt: "2026-07-28", classesTaken: 1 },
+];
+
+/** The accounts removed in the last 30 days (D-04), and when. */
+export const removedAccounts = [
+  { id: "sergio", name: "Sérgio Matos", role: "student" as const, removedAt: "2026-09-02" },
+  { id: "patricia", name: "Patrícia Leal", role: "instructor" as const, removedAt: "2026-08-20" },
+];
+
+/** The students the admin can enrol (D-04), as the search lists them. */
+export const enrolStudents = ["Ana Beatriz Lima", "Caio Sousa", "Daniela Reis", "Elisa Alves", "Gabriel Moura", "Helena Duarte"].map((name) => ({ id: name.split(" ")[0]?.toLowerCase() ?? name, name }));
+
+/** Today's classes the admin can enrol in (the ones still to start): two with room and a full one, faded. */
+export const enrolDayClasses: CardBase[] = [
+  iracema,
+  { ...iracema, level: "advanced", timeRange: "10:00 – 11:30", locationName: "Praia do Futuro", seatsTaken: 3, students: students.slice(1, 4).map((student) => ({ ...student })) },
+  futuro,
+];

@@ -215,12 +215,28 @@ server creates.
   > `apps/web/src/i18n/dictionaries/pt-br.ts`, `apps/web/src/i18n/dictionaries/es.ts`; verified:
   > `npx turbo run check-types --filter=@rochas-surf-school/web` (4 successful); deviations: none
 
-- [ ] **T-04** — Add `src/modules/user-journeys/components/copy-email-button/` (`copy-email-button.component.tsx`,
+- [x] **T-04** — Add `src/modules/user-journeys/components/copy-email-button/` (`copy-email-button.component.tsx`,
   `.hook.ts`, `.types.ts`, `index.ts`, following `.claude/rules/react.md`) implementing D-05, with
   `copy-email-button.component.test.tsx` (copied, the 2 s reset, failure, accessible name).
   Skill: [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-03 · Done when: `npx vitest run src/modules/user-journeys/components/copy-email-button` passes in
   `apps/web`.
+  > ✅ 2026-10-29 22:55 — `CopyEmailButton` (client component, outline `Button`, so `min-h-11` = 44 px): the visible
+  > label is "Copy email" / "Copied", and a `sr-only` copy of the email makes each button's name unique
+  > ("Copy email teste01.admin@…"); `useCopyEmailButton` holds its own `CopyState` (reusing the "Copy results"
+  > type), clears a failure on the next tap, writes the email with `navigator.clipboard.writeText`, and resets
+  > "Copied" after 2 s; the failure shows as a `role="alert"` line under the button. Applied from
+  > `vercel-react-best-practices`: only the email and three labels cross into the client component
+  > (`server-serialization`), ternary conditional rendering (`rendering-conditional-render`). The test was
+  > written first and failed (no component); files:
+  > `apps/web/src/modules/user-journeys/components/copy-email-button/copy-email-button.component.tsx`,
+  > `apps/web/src/modules/user-journeys/components/copy-email-button/copy-email-button.hook.ts`,
+  > `apps/web/src/modules/user-journeys/components/copy-email-button/copy-email-button.types.ts`,
+  > `apps/web/src/modules/user-journeys/components/copy-email-button/index.ts`,
+  > `apps/web/src/modules/user-journeys/components/copy-email-button/copy-email-button.component.test.tsx`;
+  > verified: `npx vitest run src/modules/user-journeys/components/copy-email-button` in `apps/web` (4 passed,
+  > three runs: accessible name and 44 px, copied then reset after 2 s with fake timers, failure until the next
+  > tap, only the tapped button changes), `npx eslint` on the folder (clean); deviations: none
 
 - [ ] **T-05** — Add `src/app/[lang]/user-journeys/test-accounts/page.tsx` (`generateMetadata` with the D-07
   metaTitle, `notFound()` for an unknown language) and `src/modules/user-journeys/pages/test-accounts/`

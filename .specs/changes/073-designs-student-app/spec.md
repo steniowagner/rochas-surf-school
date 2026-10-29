@@ -216,13 +216,17 @@ with light and dark side by side, replacing the outdated European Portuguese pro
   > verified: `npx vitest run src/modules/designs/screens` in `apps/web` (14 files, 77 tests passed); `npm run check-types` (exit 0); `npx eslint src/modules/designs` (clean);
   > deviations: ST-02-26 draws "Sem instrutor atribuído" in the instructor band and ST-02-16 the cancel note without the warn card, because the app shows those cards to admins only; ST-02-27..29 (loading, not found, error) are phone-height frames because the app fills the screen with them and they don't scroll; the class-details sheet frames are tall (the sheet sits at the bottom of the tall frame) as the inventory says "every class-details frame is tall"; the "Reservas" tab is labelled as the app does (`tabs.myClasses`)
 
-- [ ] **T-04** — Write the screen mocks of sections 03–06 the same way: `screens/student/my-classes-screen`,
+- [x] **T-04** — Write the screen mocks of sections 03–06 the same way: `screens/student/my-classes-screen`,
   `screens/student/my-history-screen`, `screens/shared/people-screen`, `screens/shared/profile-screen` (with its
   sheets and the push states), `screens/shared/edit-profile-screen`, `screens/shared/profile-whatsapp-screen`,
   `screens/shared/school-rules-read-screen` and `screens/shared/notifications-screen`, with a Vitest test per screen
   covering every state of ST-03-01 to ST-06-05. Skill:
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices). Covers: ER-03 · Done when:
   `npx vitest run src/modules/designs/screens` passes in `apps/web`.
+  > ✅ 2026-10-28 23:05 — the screen mocks of sections 03–06: `screens/student/{my-classes-screen,my-history-screen}` and `screens/shared/{people-screen,profile-screen,edit-profile-screen,profile-whatsapp-screen,school-rules-read-screen,notifications-screen}`, each taking the state of its inventory entries (ST-03-01..ST-06-05) and reading the app copy through `appT`; mock data (`directory`, `historyWeeks`, `dayLine`) added to `data/student-app.ts`; `discipline-filter` got `aboveTabBar` (the history has no tab bar);
+  > files: `apps/web/src/modules/designs/data/student-app.ts`, `apps/web/src/modules/designs/components/discipline-filter/{discipline-filter.component.tsx,discipline-filter.types.ts,discipline-filter.component.test.tsx}`, and `apps/web/src/modules/designs/screens/<student|shared>/<screen>/{index.ts,<screen>.component.tsx,<screen>.types.ts,<screen>.component.test.tsx}` for the 8 screens;
+  > verified: `npx vitest run src/modules/designs` in `apps/web` (116 files, 386 tests passed); `npm run check-types` (exit 0); `npx eslint src/modules/designs` (clean);
+  > deviations: the tab bar's second tab reads "Reservas" as the app does (the inventory calls it "Minhas aulas", which is the screen's title); the school rules read screen is tall only when the rules show; the mock texts (reasons, rules, notes, notification items) are props, filled by the page (T-05)
 
 - [ ] **T-05** — Write the student app page: the six section components composed by `pages/student-app/`, the
   route `src/app/[lang]/designs/student-app/page.tsx` with `generateMetadata`, the 86 ids in

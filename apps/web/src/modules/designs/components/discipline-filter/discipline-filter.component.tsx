@@ -7,13 +7,13 @@ import type { DisciplineFilterProps, DisciplineFilterValue } from "./discipline-
 const options: DisciplineFilterValue[] = ["all", "surf", "skate"];
 
 /** The floating sport filter: a grape button at the bottom right, and the three options over a scrim while open. */
-export function DisciplineFilter({ locale, value, open = false }: DisciplineFilterProps) {
+export function DisciplineFilter({ locale, value, open = false, aboveTabBar = true }: DisciplineFilterProps) {
   const t = (key: string) => appT(locale, key);
 
   return (
     <>
       {open ? <div data-testid="discipline-filter-scrim" className="absolute inset-0 z-10 bg-scrim" /> : null}
-      <div className={`absolute bottom-28 right-5 z-10 flex flex-col items-end gap-2.5`}>
+      <div className={`absolute right-5 z-10 flex flex-col items-end gap-2.5 ${aboveTabBar ? "bottom-28" : "bottom-12"}`}>
         {open
           ? options.map((option) => {
               const selected = option === value;

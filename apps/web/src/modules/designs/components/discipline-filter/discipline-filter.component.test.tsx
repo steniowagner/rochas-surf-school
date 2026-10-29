@@ -28,4 +28,13 @@ describe("DisciplineFilter", () => {
 
     expect(screen.getByRole("button", { name: "Surf" })).toHaveClass("bg-grape");
   });
+
+  it("floats above the tab bar, or near the bottom edge without one", () => {
+    const { container, rerender } = render(<DisciplineFilter locale="pt-br" value="all" />);
+    expect(container.querySelector(".bottom-28")).not.toBeNull();
+
+    rerender(<DisciplineFilter locale="pt-br" value="all" aboveTabBar={false} />);
+    expect(container.querySelector(".bottom-28")).toBeNull();
+    expect(container.querySelector(".bottom-12")).not.toBeNull();
+  });
 });

@@ -38,6 +38,8 @@ export function studentDates(locale: Locale) {
     classStart: `${weekdayShort("2026-09-09")}, ${dayMonth("2026-09-09")} · 08:00`,
     historyDay: `${capitalize(format("2026-09-02", { weekday: "long" }))} · ${dayMonth("2026-09-02")}`,
     historyCaption: format("2026-09-09", { month: "long", year: "numeric" }).toUpperCase(),
+    dayLine: (date: string) => `${capitalize(format(date, { weekday: "long" }))} · ${dayMonth(date)}`,
+    shortDay: (date: string) => dayMonth(date),
     since: (date: string) => format(date, { month: "short", year: "numeric" }).replace(".", ""),
   };
 }
@@ -99,3 +101,28 @@ export const septemberWeeks = [
   [21, 22, 23, 24, 25, 26, 27].map((n) => monthDay(`2026-09-${n}`, n)),
   [...[28, 29, 30].map((n) => monthDay(`2026-09-${n}`, n)), ...[1, 2, 3, 4].map((n) => monthDay(`2026-10-0${n}`, n, true))],
 ];
+
+export type DirectoryPerson = { name: string; role: "student" | "instructor" | "admin"; since: string };
+
+/** The people of the school the directory lists, by name. */
+export const directory: DirectoryPerson[] = [
+  { name: "Ana Beatriz Lima", role: "student", since: "2026-03-10" },
+  { name: "Bruno Costa", role: "admin", since: "2025-11-02" },
+  { name: "Caio Sousa", role: "student", since: "2026-05-18" },
+  { name: "Carla Mendes", role: "instructor", since: "2025-12-01" },
+  { name: "Daniela Reis", role: "student", since: "2026-06-22" },
+  { name: "Elisa Alves", role: "student", since: "2026-07-05" },
+  { name: "Marcos Lima", role: "instructor", since: "2026-01-14" },
+  { name: "Marina Teixeira", role: "instructor", since: "2026-02-09" },
+  { name: "Rafael Rocha", role: "instructor", since: "2025-10-20" },
+];
+
+/** September 2026 as the history's month grid draws it: the days the student took a class are marked, none is selected. */
+export const historyWeeks = (selected: number | null) =>
+  septemberWeeks.map((week) =>
+    week.map((day) => ({
+      ...day,
+      selected: day.date === `2026-09-0${selected}`,
+      marked: !day.adjacent && [1, 3, 5].includes(day.number),
+    })),
+  );

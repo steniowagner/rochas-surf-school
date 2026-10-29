@@ -179,3 +179,34 @@ export const adminDayClasses: CardBase[] = [
   { ...futuro, showFlags: true },
   { ...futuro, level: "beginner", state: "cancelled", timeRange: "17:30 – 19:00", seatsTaken: 2, students: students.slice(0, 2).map((student) => ({ ...student })), showFlags: true },
 ];
+
+/** The counts of the admin's home (D-04): what waits for her, the classes she teaches and the school's rules. */
+export const adminHome = { classRequests: 5, registrations: 3, removedAccounts: 2, reactivations: 2, assignedClasses: 4, schoolRules: 3, unreadNotifications: 4 } as const;
+
+/** The school's saved locations (D-04), and the one a class keeps after it was removed. */
+export const classLocations = {
+  iracema: { id: "iracema", name: "Praia de Iracema", address: "Av. Beira Mar, 2200 – Meireles, Fortaleza" },
+  futuro: { id: "futuro", name: "Praia do Futuro", address: "Av. Zezé Diogo, 3500 – Praia do Futuro, Fortaleza" },
+  skatePark: { id: "skate-park", name: "Skate Park do Aterrinho", address: "Av. Almirante Barroso, 901 – Praia de Iracema, Fortaleza" },
+  removed: { id: "cumbuco", name: "Praia do Cumbuco", address: "Av. dos Coqueiros – Cumbuco, Caucaia", archived: true },
+} as const;
+
+/** The approved instructors and admins a class can be given to (D-04), by name. */
+export const classTeachers = [
+  { id: "bruno", name: "Bruno Costa" },
+  { id: "carla", name: "Carla Mendes" },
+  { id: "juliana", name: "Juliana Prado" },
+  { id: "marcos", name: "Marcos Lima" },
+  { id: "marina", name: "Marina Teixeira" },
+  { id: "rafael", name: "Rafael Rocha" },
+];
+
+/** How many people each notice audience reaches (D-04). */
+export const noticeAudienceCounts = { all: 48, students: 42, instructors: 6 } as const;
+
+/** Who a message to the class of the details reaches: its instructor, its four students and the one pending request. */
+export const classMessagePeople = [
+  { id: "rafael", label: "Rafael Rocha", erased: false, role: "instructor" as const },
+  ...students.slice(0, 4).map((student) => ({ id: student.id, label: student.label, erased: false, role: "student" as const })),
+  { id: "pending-paulo", label: "Paulo Freitas", erased: false, role: "pending" as const },
+];

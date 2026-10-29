@@ -215,8 +215,8 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     with `generateMetadata`. Since spec 071 those four pages sit in the `(site)` route group, whose layout renders
     `SiteShell` (`src/components/site-shell`: header, footer and the content column) `narrow` (640 px), and
     `designs/layout.tsx` renders it `wide` (up to 1440 px) for `/{lang}/designs` (the index),
-    `/{lang}/designs/design-system`, since spec 072 `/{lang}/designs/auth-flow` and, since spec 073,
-    `/{lang}/designs/student-app`. Each design page is its own static route (no `[slug]`), so an unknown slug
+    `/{lang}/designs/design-system`, since spec 072 `/{lang}/designs/auth-flow`, since spec 073
+    `/{lang}/designs/student-app` and, since spec 074, `/{lang}/designs/instructor-app`. Each design page is its own static route (no `[slug]`), so an unknown slug
     answers 404; the index lists `designPages` from `src/modules/designs/data/design-pages.ts`.
   - Designs (spec 071): `src/modules/designs/` holds `components/` (presentational mocks of the mobile components
     with the mobile names and props, plus `phone-frame` — an iOS 402 × 874 frame that scales down with a container
@@ -238,8 +238,8 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     themes. Since spec 073 it also holds the student app page: whole-screen mocks shared by the three roles in
     `screens/shared/` (class details, people, profile, edit profile, profile WhatsApp, school rules, notifications —
     each takes what a role changes as props, e.g. the enrolment part of class details, so the instructor and admin
-    pages add their variants there) and student-only ones in `screens/student/` (agenda, my classes, history);
-    `data/student-app.ts` (the student tab bar, mock dates in the app's language, the agenda, my-classes, directory
+    pages add their variants there) and student-only ones in `screens/student/` (my classes; the agenda and the
+    history moved to `screens/shared/` in spec 074); `data/student-app.ts` (the student tab bar, mock dates in the app's language, the agenda, my-classes, directory
     and history mock data) and `data/student-app-ids.ts` (the 86 ids `ST-<section>-<entry>` and each entry's other
     messages); `i18n/student-app-note.ts`; one `student-app-<section>` component per section and
     `pages/student-app/`. The mock school texts (reasons, rules, class notes) and the notification rows' texts —
@@ -248,12 +248,23 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     renders the client component `phone-frame-tall`, as high as its content at 402 points and measured with a
     `ResizeObserver` (stubbed in `vitest.setup.ts`); keeping `PhoneFrame` itself a server component keeps React's
     `<!-- -->` text separators out of the other designs' generated markup. A frame with a sheet or a toast stays
-    phone-height with its content clipped, so the sheet sits over the screen. The app's own glyphs
+    phone-height with its content clipped, so the sheet sits over the screen. Since spec 074 it also holds the
+    instructor app page: the shared mocks take a `role` (`student` by default) and draw the instructor's form from it
+    — the student's agenda and history moved to `screens/shared/classes-week-screen` and
+    `screens/shared/class-history-screen`, and `class-details-screen`'s props are a union by `role`, resolved by
+    `getClassDetailsView` into what the screen draws —; instructor-only mocks in `screens/instructor/` (home,
+    teaching classes, weekly occupancy); the occupancy building blocks with the app's tone thresholds
+    (`occupancy-cell.constants.ts`); `utils/entry-row-container` (the classes an entry row takes in a grouped card,
+    as the mobile helper); `data/instructor-app.ts` (the instructor tab bar, dates and the occupancy week) and
+    `data/instructor-app-ids.ts` (the 49 ids `IN-<section>-<entry>` and each entry's other messages);
+    `i18n/instructor-app-note.ts`; one `instructor-app-<section>` component per section and `pages/instructor-app/`.
+    The instructor's notification texts are copied from `push-messages.ts` into the dictionaries like the
+    student's. The app's own glyphs
     (Ionicons, Feather, FontAwesome, FontAwesome6, MaterialCommunityIcons, SimpleLineIcons) are drawn by `app-icon`
     from a typed `"<set>:<name>"` registry over **`react-icons`** 5 and **`@mdi/js`** 7; Lucide stays for the
     site's own pages. `globals.css` also maps the tokens the mocks need (checkbox and icon-button radii, `sun-tint`,
-    `band`, `scrim`, the `fab` elevation as `shadow-fab` and, since spec 073, the `menuOption` elevation as
-    `shadow-menu-option`).
+    `band`, `scrim`, the `fab` elevation as `shadow-fab`, since spec 073 the `menuOption` elevation as
+    `shadow-menu-option` and, since spec 074, the `onGrape*` colors and the `occupancyCell` and `swatch` radii).
   - Language: `src/proxy.ts` (Next 16's replacement for middleware, matching only `/`, `/privacy-policy`,
     `/terms-of-use`, `/account-deletion`, `/designs` and `/designs/:path*`) redirects with 307 to the same path under the first `Accept-Language` entry, in quality
     order, whose language is `pt`, `es` or `en` (`matchLocale` in `src/i18n/locales.ts`), **pt-BR** when none
@@ -331,7 +342,8 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
   assets shared by every file — React 18 UMD, Babel standalone, the `x-dc` runtime, fonts, frames — de-duplicated
   in `src/_shared/`) and rebuilt with `node .docs/designs/scripts/pack.mjs [<name>]` (Node only, `node:zlib`);
   `--check` compares the decoded content and exits 1 naming a stale `.html`; `unpack.mjs` imports a new export.
-  `design-system.html`, since spec 072 `auth-flow.html` and, since spec 073, `student-app.html` are the exception: their sources are generated from the
+  `design-system.html`, since spec 072 `auth-flow.html`, since spec 073 `student-app.html` and, since spec 074,
+  `instructor-app.html` are the exception: their sources are generated from the
   web's `/pt-br/designs/<slug>` by `build-design.mjs <slug>` (the web built and served with `next start -p 3100`;
   every `[data-design-id]` entry drawn light and dark side by side with the web's compiled CSS and the same SVG
   glyphs; the images the page draws become bundle assets; every design shares the design system's `shell.html`,

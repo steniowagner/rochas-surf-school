@@ -1014,6 +1014,7 @@ src/
         design-system/page.tsx  # the design system page (metadata + DesignSystemPage)
         auth-flow/page.tsx      # the auth flow page (metadata + AuthFlowPage, spec 072)
         student-app/page.tsx    # the student app page (metadata + StudentAppPage, spec 073)
+        instructor-app/page.tsx # the instructor app page (metadata + InstructorAppPage, spec 074)
   proxy.ts                      # redirects /, /privacy-policy, /terms-of-use, /account-deletion, /designs(/…) to the browser's language
   modules/designs/              # the public designs (spec 071)
     components/                 # mocks of the mobile components (same names and props: button, class-card, tab-bar,
@@ -1021,24 +1022,31 @@ src/
                                 # notification-row…), phone-frame and phone-frame-tall (the client frame of a tall
                                 # screen, spec 073), design-section, design-entry, app-icon (the app's glyphs via
                                 # react-icons / @mdi/js), design-system-<section>, auth-flow-<section> per section
-                                # (sign-in, email, onboarding, closed-account) and student-app-<section> (agenda, class,
-                                # my-classes, school, profile, notifications)
+                                # (sign-in, email, onboarding, closed-account), student-app-<section> (agenda, class,
+                                # my-classes, school, profile, notifications) and instructor-app-<section> (home,
+                                # classes, class, my-classes, occupancy, more, spec 074)
     screens/auth/               # whole-screen mocks, one *-screen folder each, state as props (spec 072): sign-in,
                                 # email-choice, email-sign-in, create-account, confirm-code, google-name, pending,
                                 # whatsapp, school-rules, reactivation, denied, removed
-    screens/shared/             # screens every role has, a role's differences as props (spec 073): class-details,
-                                # people, profile, edit-profile, profile-whatsapp, school-rules-read, notifications
-    screens/student/            # student-only screens (spec 073): agenda, my-classes, my-history
+    screens/shared/             # screens every role has, a role's differences as props (spec 073; `role` since spec
+                                # 074): class-details, classes-week, class-history, people, profile, edit-profile,
+                                # profile-whatsapp, school-rules-read, notifications
+    screens/student/            # student-only screens (spec 073): my-classes
+    screens/instructor/         # instructor-only screens (spec 074): home, teaching-classes, weekly-occupancy
     assets/                     # team-hero.jpg and google-logo.svg (copied from the app), asset-src.ts
     data/                       # design-pages.ts, design-system-ids.ts (DS-xx-yy), auth-flow-ids.ts (AF-xx-yy and each
                                 # entry's other messages), student-app-ids.ts (ST-xx-yy and each entry's other
-                                # messages), fortaleza.ts (mock data), student-app.ts (the student page's mock data),
-                                # mock-calendar.ts
+                                # messages), instructor-app-ids.ts (IN-xx-yy and each entry's other messages),
+                                # fortaleza.ts (mock data), student-app.ts and instructor-app.ts (each page's mock
+                                # data), mock-calendar.ts
     i18n/                       # app-locale.ts (site → app locale), app-t.ts (appT, appRich over app-messages),
-                                # auth-flow-note.ts, student-app-note.ts (an entry's note with its other messages)
+                                # auth-flow-note.ts, student-app-note.ts, instructor-app-note.ts (an entry's note
+                                # with its other messages)
     pages/design-system/        # DesignSystemPage: sections 01–09
     pages/auth-flow/            # AuthFlowPage: sections 01–04
     pages/student-app/          # StudentAppPage: sections 01–06
+    pages/instructor-app/       # InstructorAppPage: sections 01–06 (spec 074)
+    utils/                      # entry-row-container.ts (the classes an entry row takes in a grouped card, spec 074)
   i18n/
     locales.ts                  # locales, defaultLocale (pt-br), hasLocale, matchLocale, html lang, names, flags
     dictionary.types.ts         # Dictionary: every string of the site

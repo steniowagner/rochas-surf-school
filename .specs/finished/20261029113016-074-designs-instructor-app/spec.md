@@ -2,13 +2,14 @@
 id: "074"
 slug: designs-instructor-app
 title: Instructor app designs page
-status: accepted
+status: finished
 created: 2026-10-29
 started: 2026-10-29
 base_commit: 00b7be834f502e3f1ec2645ae078a7d9719a6a9e
 reviewed_commit: fb8425bbf199ef0366e379f26a9a96d66bc355cd
 fronts: [web, designs]
 depends_on: []
+finished: 2026-10-29
 ---
 
 # 074 — Instructor app designs page

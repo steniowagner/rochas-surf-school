@@ -95,7 +95,7 @@ side, replacing the outdated European Portuguese prototype.
   matching the web page `/pt-br/designs/auth-flow`; the sign-in frames show the team photo and the Google logo.
 - **Edge and error cases:** `.docs/designs/src/auth-flow/Login Screen.dc.html` no longer exists; no European
   Portuguese wording is left (for example "registo", "ecrã", "Iniciar sessão"); no Apple button; running
-  `build-design.mjs design-system` leaves `.docs/designs/src/design-system/` unchanged; `pack.mjs --check` exits 0.
+  `build-design.mjs design-system` changes `.docs/designs/src/design-system/` only in the compiled CSS (the new pages' utilities), never in its markup, and a second run changes nothing; `pack.mjs --check` exits 0.
 - **Verify by:** `node .docs/designs/scripts/pack.mjs --check` exiting 0,
   `test ! -e ".docs/designs/src/auth-flow/Login Screen.dc.html"`,
   `grep -rlE "registo|ecrã|Iniciar sessão|com a Apple" .docs/designs/src/auth-flow` finding nothing, and opening the file
@@ -227,15 +227,24 @@ side, replacing the outdated European Portuguese prototype.
 
 ### Designs (`.docs/designs`)
 
-- [ ] **T-05** — Generalize `.docs/designs/scripts/build-design-system.mjs` into `build-design.mjs <slug>` (reads
+- [x] **T-05** — Generalize `.docs/designs/scripts/build-design-system.mjs` into `build-design.mjs <slug>` (reads
   `/pt-br/designs/<slug>`, pairs every `[data-design-id]` entry in light and dark, writes
   `.docs/designs/src/<slug>/`, copies the page's images into the bundle's assets), delete the old script, and check
-  that `build-design.mjs design-system` leaves `src/design-system/` unchanged; run it for `auth-flow`, deleting the
+  that `build-design.mjs design-system` changes `src/design-system/` only in the compiled CSS (A-01); run it for `auth-flow`, deleting the
   old prototype sources (`Login Screen.dc.html` and anything the new sources don't use); pack `auth-flow.html`;
-  update the Designs commands in `CLAUDE.md`. Covers: ER-01 · Done when: `git diff --exit-code .docs/designs/src/design-system`
-  passes after regenerating it, `pack.mjs --check` exits 0, `test ! -e ".docs/designs/src/auth-flow/Login Screen.dc.html"`
+  update the Designs commands in `CLAUDE.md`. Covers: ER-01 · Done when: regenerating `design-system` leaves its markup outside `<style>` as it was and,
+  once committed, a second run passes `git diff --exit-code .docs/designs/src/design-system`, `pack.mjs --check` exits 0, `test ! -e ".docs/designs/src/auth-flow/Login Screen.dc.html"`
   passes, `grep -rlE "registo|ecrã|Iniciar sessão|com a Apple" .docs/designs/src/auth-flow` finds nothing, and
   `auth-flow.html` opened in a browser shows the 49 entries in light and dark.
+  > ✅ 2026-10-28 22:30 — renamed `.docs/designs/scripts/build-design-system.mjs` to `build-design.mjs <slug>` (pairs every `[data-design-id]` entry in
+  > light and dark, copies the page's images into the bundle, shares the design system's shell, fonts and font assets, removes the other files of
+  > `src/<slug>/`); ran it for `design-system` (CSS-only change, A-01) and `auth-flow` (49 ids × 2 themes, 5 sign-in frames with the photo and the
+  > logo); deleted `.docs/designs/src/auth-flow/Login Screen.dc.html`; new `src/auth-flow/{template.html,shell.html,fonts.css,bundle.json,team-hero.jpg,google-logo.svg}`;
+  > repacked `.docs/designs/auth-flow.html` and `.docs/designs/design-system.html`; `CLAUDE.md` Designs commands updated; `components/phone-frame` class
+  > strings restored to the 071 markup for existing frames; verified: `pack.mjs --check` (5 files match), `node --test .docs/designs/scripts/*.test.mjs`
+  > (7 passed), the old prototype file is gone, the grep for European Portuguese and the Apple button finds nothing, a second run of both generators
+  > leaves `git diff --exit-code .docs/designs/src` clean, and `auth-flow.html` opened over http in the browser shows 98 entries (49 × light and dark)
+  > with all 18 images loaded; deviations: A-01 (design-system sources change in CSS only)
 
 ### Verification
 
@@ -290,5 +299,11 @@ side, replacing the outdated European Portuguese prototype.
 - [Auth flow inventory](auth-flow-inventory.md)
 
 ## Amendments
+
+- **A-01** (2026-10-28, approved by the user in chat) — ER-01 edge case and T-05: "running `build-design.mjs design-system` leaves
+  `.docs/designs/src/design-system/` unchanged" → "changes it only in the compiled CSS (the utilities the new pages add), never in its markup,
+  and a second run changes nothing"; T-05's `git diff --exit-code` check became the same two checks. Reason: the generator embeds the web's
+  whole compiled stylesheet, which grows with every page that uses a new utility, so the old sources can't stay byte-identical; the
+  regenerated design-system sources and `design-system.html` are committed so the next run shows no diff.
 
 ## Review

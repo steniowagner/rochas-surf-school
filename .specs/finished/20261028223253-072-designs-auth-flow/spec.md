@@ -2,13 +2,14 @@
 id: "072"
 slug: designs-auth-flow
 title: Auth flow designs page
-status: accepted
+status: finished
 created: 2026-10-28
 started: 2026-10-28
 base_commit: f95c96594988ce6b9e7d7cbe12a1cf34341d3c3d
 reviewed_commit: 854c36d3156e1512f035fb37dcb86d5cad2a694c
 fronts: [web, designs]
 depends_on: []
+finished: 2026-10-28
 ---
 
 # 072 — Auth flow designs page

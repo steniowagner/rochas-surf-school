@@ -2,10 +2,11 @@
 id: "072"
 slug: designs-auth-flow
 title: Auth flow designs page
-status: in-review
+status: accepted
 created: 2026-10-28
 started: 2026-10-28
 base_commit: f95c96594988ce6b9e7d7cbe12a1cf34341d3c3d
+reviewed_commit: 854c36d3156e1512f035fb37dcb86d5cad2a694c
 fronts: [web, designs]
 depends_on: []
 ---
@@ -314,3 +315,34 @@ side, replacing the outdated European Portuguese prototype.
   regenerated design-system sources and `design-system.html` are committed so the next run shows no diff.
 
 ## Review
+
+### Round 1 — 2026-10-28 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`npx turbo run lint check-types build --filter=@rochas-surf-school/web --force`: 9 tasks, none cached, no warnings)
+- related tests ✅ 200 passed in 62 files (apps/web), `RELATED TESTS PASSED`
+- coverage of the changed lines ✅ `COVERAGE OK`: every changed source is under `apps/web/src/**` or `.docs/designs/**`, both excluded by technical-context; no coverage-ignore comments in the diff
+- e2e ✅ web Playwright suite, 37 passed, `E2E PASSED`
+- `node --test .docs/designs/scripts/*.test.mjs` ✅ 7 passed · `pack.mjs --check` ✅ 5 files match · the old prototype file is gone ✅ · the European Portuguese / Apple grep finds nothing ✅
+- generator: with the web built and served on port 3100, `build-design.mjs design-system` and then `build-design.mjs auth-flow` leave `git status` clean, so the committed sources match the web page and a second run changes nothing. Since `base_commit`, `src/design-system/template.html` changed in one line only, the compiled CSS inside `<style>` (A-01)
+- `team-hero.jpg` and `google-logo.svg` in `apps/web/src/modules/designs/assets/` are byte-identical to the mobile's (D-03)
+
+**Expected Results**
+
+- ER-01 ✅: `auth-flow.html` opened in the browser: 49 pairs (98 entries), unique ids in inventory order, `lang="pt-BR"`, all 18 images loaded (photo and Google logo in the 5 sign-in pairs), no "Apple", no European Portuguese, no `{{`. The AF-01-01 phone frame is light in both cells, and AF-02-01's is light/dark
+- ER-02 ✅: `index lists the design pages in every language` and `redirects /designs/auth-flow to the browser language` (es → `/es/…`, de → `/pt-br/…`, 307) pass
+- ER-03 ✅: `auth flow shows every inventory entry` (all 3 languages: id, phone frame, title, 49 entries, the 4 section headings in order, translated `<title>` and description, no Apple); notes and other messages are covered by `auth-flow-note.test.ts` and the page test. Fidelity checked against the mobile code: sign-in (`auth.component.tsx`, `auth-button`), email choice, email sign-in, confirm code (the wrong code clears the boxes and disables the button, as `confirm-code.hook.ts` does), pending, WhatsApp, school rules acceptance and list, reactivation, denied and removed (tones and icons match `AccountStatus` usage)
+- ER-04 ✅: `auth flow follows the language` (the Google button in all 3 languages, the D-04 denial reason, the interpolated email, the language picker switch to `/en`)
+- ER-05 ✅: `auth flow follows the theme toggle` (AF-02-01 changes, AF-01-01 stays light, kept on reload); in the browser the page followed the OS dark scheme with no stored choice
+- ER-06 ✅: `design pages are wide` and `design pages fit a phone viewport` both include `/pt-br/designs/auth-flow`
+
+**Findings**
+
+None.
+
+**Notes**
+
+- The T-03 deviations from the inventory text are right by 071 D-08: the hide-number switch starts on (`useWhatsappNumberForm` hides by default), and the outdated-rules toast unchecks the box (`onOutdated: () => setIsChecked(false)`). `spec-finish` may want to align the inventory's AF-03-02 / AF-03-13 wording when it archives the spec.
+- The e2e test for ER-03 checks each entry's title but not its note; the note text is checked by the Vitest tests (`auth-flow-note.test.ts`, `auth-flow.page.test.tsx`). Asserting one note per section in the e2e test would close that gap cheaply.
+- `## Memory Impact` matches what was built. `spec-finish` should also update the "Designs" line of the `user-journeys.md` header (Context → Requirements), since `auth-flow.html` is now generated.

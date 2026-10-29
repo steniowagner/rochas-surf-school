@@ -423,6 +423,35 @@ test.describe("test accounts page", () => {
     expect(response.headers().location).toBe("/es/user-journeys/test-accounts");
   });
 
+  test("index and flow pages link to the test accounts", async ({ page }) => {
+    for (const locale of locales) {
+      const text = dictionaries[locale].userJourneys;
+      const href = `/${locale}/user-journeys/test-accounts`;
+
+      await page.goto(`/${locale}/user-journeys`);
+      const row = page.getByRole("link", { name: new RegExp(`^${text.testAccounts.indexRow.title}`) });
+      await expect(row).toHaveAttribute("href", href);
+      await expect(row).toContainText(text.testAccounts.indexRow.description);
+      await expect(page.getByTestId("user-journey-flows").getByRole("link")).toHaveCount(4);
+      expect(await page.locator("main").innerText()).not.toMatch(emailOrCode);
+
+      for (const flow of flows) {
+        await page.goto(`/${locale}/user-journeys/${flow}`);
+        const account = page.locator("section").filter({ has: page.getByRole("heading", { name: text.labels.accountToUse }) });
+        await expect(account.getByRole("link", { name: text.testAccounts.seeTestAccounts })).toHaveAttribute("href", href);
+        expect(await page.locator("main").innerText(), flow).not.toMatch(emailOrCode);
+      }
+
+      await page.goto(`/${locale}`);
+      await expect(page.locator('a[href*="/test-accounts"]')).toHaveCount(0);
+    }
+
+    await page.goto("/en/user-journeys/student");
+    await page.getByRole("link", { name: en.userJourneys.testAccounts.seeTestAccounts }).click();
+    await expect(page).toHaveURL(/\/en\/user-journeys\/test-accounts$/);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(en.userJourneys.testAccounts.title);
+  });
+
   test("copy an email on the test accounts page", async ({ page, context }) => {
     await context.grantPermissions(["clipboard-read", "clipboard-write"]);
     await page.goto("/en/user-journeys/test-accounts");

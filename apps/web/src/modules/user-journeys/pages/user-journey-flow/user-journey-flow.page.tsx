@@ -22,6 +22,12 @@ export function UserJourneyFlowPage({ locale, flow, text, siteName }: UserJourne
       </header>
       <ContentCard title={text.labels.accountToUse}>
         <p>{flowTexts.account}</p>
+        <a
+          href={`/${locale}/user-journeys/test-accounts`}
+          className="inline-flex min-h-11 items-center self-start font-bold text-ink underline"
+        >
+          {text.testAccounts.seeTestAccounts}
+        </a>
       </ContentCard>
       <div className="flex flex-col gap-2 sm:flex-row">
         <Button

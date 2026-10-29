@@ -26,6 +26,9 @@ describe("UserJourneyFlowPage", () => {
     expect(designs).toHaveAttribute("href", "/en/designs/instructor-app");
     expect(designs).toHaveAttribute("target", "_blank");
     expect(screen.getByRole("link", { name: "All flows" })).toHaveAttribute("href", "/en/user-journeys");
+    const testAccounts = screen.getByRole("link", { name: "See the test accounts" });
+    expect(testAccounts).toHaveAttribute("href", "/en/user-journeys/test-accounts");
+    expect(screen.getByRole("heading", { name: "Account to use" }).closest("section")).toContainElement(testAccounts);
 
     expect(screen.getAllByRole("row").filter((row) => row.hasAttribute("data-row-id"))).toHaveLength(16);
     expect(screen.getByRole("heading", { level: 2, name: "Classes" })).toBeInTheDocument();
@@ -37,6 +40,10 @@ describe("UserJourneyFlowPage", () => {
     expect(screen.getByRole("heading", { level: 1, name: "App do admin" })).toBeInTheDocument();
     expect(screen.getByText(ptBrTexts.rows["AD-01"].title)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Ver os designs" })).toHaveAttribute("href", "/pt-br/designs/admin-app");
+    expect(screen.getByRole("link", { name: "Ver as contas de teste" })).toHaveAttribute(
+      "href",
+      "/pt-br/user-journeys/test-accounts",
+    );
     expect(screen.getByRole("checkbox", { name: "Aprovado — AD-33" })).toBeInTheDocument();
   });
 });

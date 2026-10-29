@@ -274,11 +274,26 @@ server creates.
   > (`test accounts page answers 404 for an unknown language`); in the copy test the "no alert" check is scoped to
   > `main`, because Next's route announcer is a `role="alert"` outside it
 
-- [ ] **T-06** — Add the "Test accounts" `LinkRow` to `src/modules/user-journeys/pages/user-journeys-index/` and the
+- [x] **T-06** — Add the "Test accounts" `LinkRow` to `src/modules/user-journeys/pages/user-journeys-index/` and the
   "See the test accounts" link to the "Account to use" card of `src/modules/user-journeys/pages/user-journey-flow/`
   (D-06), updating their page tests; add to `e2e/user-journeys.e2e.ts` the test
   `index and flow pages link to the test accounts`.
   Covers: ER-04 · Done when: `npm test --workspace @rochas-surf-school/web` and the user journeys e2e file pass.
+  > ✅ 2026-10-29 23:40 — the index renders a `LinkRow` (icon `UsersRound`, `indexRow.title` / `.description`) to
+  > `/{lang}/user-journeys/test-accounts` between the "Before you start" card and `data-testid="user-journey-flows"`
+  > (still four links); the flow page's "Account to use" `ContentCard` gets, after its text, a "See the test
+  > accounts" link (bold, underlined `text-ink`, `min-h-11`) to the same page. Page tests updated first and failed
+  > before the change (the index row and the flow links missing). e2e: added `index and flow pages link to the
+  > test accounts` (every language: the index row and its href, four flow cards, the link inside each flow's
+  > "Account to use" section, no email or 6-digit code in the index's and flow pages' `main`, no
+  > `/test-accounts` link on the home; then the student flow's link opens the page); files:
+  > `apps/web/src/modules/user-journeys/pages/user-journeys-index/user-journeys-index.page.tsx`,
+  > `apps/web/src/modules/user-journeys/pages/user-journeys-index/user-journeys-index.page.test.tsx`,
+  > `apps/web/src/modules/user-journeys/pages/user-journey-flow/user-journey-flow.page.tsx`,
+  > `apps/web/src/modules/user-journeys/pages/user-journey-flow/user-journey-flow.page.test.tsx`,
+  > `apps/web/e2e/user-journeys.e2e.ts`; verified: `npm test --workspace @rochas-surf-school/web` (239 files, 805
+  > passed), `npx playwright test e2e/user-journeys.e2e.ts` (24 passed), `npx eslint` on the touched files
+  > (clean); deviations: none
 
 ### Verification
 

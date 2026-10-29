@@ -1,4 +1,4 @@
-import { ClipboardCheck } from "lucide-react";
+import { ClipboardCheck, UsersRound } from "lucide-react";
 
 import { ContentCard } from "@/components/content-card";
 import { LinkRow } from "@/components/link-row";
@@ -32,6 +32,12 @@ export function UserJourneysIndexPage({ locale, text }: UserJourneysIndexPagePro
           ))}
         </ul>
       </ContentCard>
+      <LinkRow
+        href={`/${locale}/user-journeys/test-accounts`}
+        icon={<UsersRound size={24} strokeWidth={2} aria-hidden />}
+        title={text.testAccounts.indexRow.title}
+        description={text.testAccounts.indexRow.description}
+      />
       <div className="flex flex-col gap-3" data-testid="user-journey-flows">
         {userJourneyFlowSlugs.map((flow) => (
           <LinkRow

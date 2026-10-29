@@ -76,4 +76,20 @@ describe("ClassPeople", () => {
     expect(screen.getAllByRole("img", { name: "Trial" })).toHaveLength(1);
     expect(container.querySelectorAll("svg").length).toBeGreaterThan(1);
   });
+
+  it("adds the trial count to the capacity line and the take-out buttons for the admin", () => {
+    render(<ClassPeople {...props} seatsTaken={4} guests={[{ id: "g1", name: "Lucas Martins" }, { id: "g2", name: "Beatriz Nunes" }]} expanded showTrialCount canTakeOut />);
+
+    expect(screen.getByText("Máx. 8 alunos · 4 vagas livres · inclui 2 trial")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Retirar Ana Beatriz Lima" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Retirar Caio Sousa" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Retirar Lucas Martins" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Retirar Beatriz Nunes" })).toBeInTheDocument();
+  });
+
+  it("leaves the trial count out without guests", () => {
+    render(<ClassPeople {...props} showTrialCount />);
+
+    expect(screen.getByText("Máx. 8 alunos · 6 vagas livres")).toBeInTheDocument();
+  });
 });

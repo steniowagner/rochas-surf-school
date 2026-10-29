@@ -24,4 +24,12 @@ describe("ClassFullBanner", () => {
     expect(screen.getByText("Class full")).toBeInTheDocument();
     expect(container.querySelectorAll("p")).toHaveLength(1);
   });
+
+  it("tells the admin where new requests go, or that the waiting list is off", () => {
+    const { rerender } = render(<ClassFullBanner locale="pt-br" adminLine="newRequestsWait" />);
+
+    expect(screen.getByText("Novos pedidos entram na lista de espera.")).toBeInTheDocument();
+    rerender(<ClassFullBanner locale="pt-br" adminLine="waitingListOff" />);
+    expect(screen.getByText("A lista de espera está desligada — ninguém pode pedir.")).toBeInTheDocument();
+  });
 });

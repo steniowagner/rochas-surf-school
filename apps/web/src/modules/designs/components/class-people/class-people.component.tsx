@@ -12,7 +12,7 @@ const MAX_AVATARS = 5;
 const AVATAR_SIZE = 30;
 
 /** The "A aula" group of the class details: who teaches, who is enrolled, and how many seats are left. */
-export function ClassPeople({ locale, instructors, students, guests = [], seatsTaken, capacity, state, expanded = false }: ClassPeopleProps) {
+export function ClassPeople({ locale, instructors, students, guests = [], seatsTaken, capacity, state, expanded = false, showTrialCount = false, canTakeOut = false }: ClassPeopleProps) {
   const t = (key: string, params?: Record<string, string | number>) => appT(locale, key, params);
   // The first seats, students first and then guests; "+N" counts the others.
   const shown = [...students.map((student) => ({ kind: "student" as const, ...student })), ...guests.map((guest) => ({ kind: "guest" as const, id: guest.id }))].slice(0, MAX_AVATARS);
@@ -21,6 +21,7 @@ export function ClassPeople({ locale, instructors, students, guests = [], seatsT
   const showCapacityLine = state !== "finished" && state !== "cancelled";
   const labelKey = seatsTaken === 0 ? "none" : state === "finished" ? "present" : "confirmed";
   const canExpand = students.length > 0 || guests.length > 0;
+  const trialCount = showTrialCount && guests.length > 0 ? ` · ${t("classDetails.includesTrial", { count: guests.length })}` : "";
 
   return (
     <div className="flex flex-col gap-2">
@@ -28,7 +29,7 @@ export function ClassPeople({ locale, instructors, students, guests = [], seatsT
         <p className="ds-text-section-label text-ink-2">{t("classDetails.theClass")}</p>
         {showCapacityLine ? (
           <p className={`ds-text-section-label text-right ${full ? "text-bad" : "text-ink-2"}`}>
-            {`${t("classDetails.capacity", { count: capacity })} · ${full ? t("classDetails.soldOut") : t("classDetails.spotsLeft", { count: capacity - seatsTaken })}`}
+            {`${t("classDetails.capacity", { count: capacity })} · ${full ? t("classDetails.soldOut") : t("classDetails.spotsLeft", { count: capacity - seatsTaken })}${trialCount}`}
           </p>
         ) : null}
       </div>
@@ -66,8 +67,8 @@ export function ClassPeople({ locale, instructors, students, guests = [], seatsT
           <p className="ds-text-section-label flex-1 text-ink-2">{t(`classesWeek.students.${labelKey}`, { count: seatsTaken })}</p>
           {canExpand ? <AppIcon name={expanded ? "Ionicons:chevron-up" : "Ionicons:chevron-down"} size={18} className="text-ink-2" /> : null}
         </div>
-        {expanded ? students.map((student) => <ClassStudentRow key={student.id} name={student.label} erased={student.erased} />) : null}
-        {expanded ? guests.map((guest) => <ClassGuestRow key={guest.id} locale={locale} name={guest.name} />) : null}
+        {expanded ? students.map((student) => <ClassStudentRow key={student.id} name={student.label} erased={student.erased} takeOutLabel={canTakeOut ? t("takeOutSheet.action") : undefined} />) : null}
+        {expanded ? guests.map((guest) => <ClassGuestRow key={guest.id} locale={locale} name={guest.name} takeOut={canTakeOut} />) : null}
       </div>
     </div>
   );

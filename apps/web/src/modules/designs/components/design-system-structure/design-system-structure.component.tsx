@@ -1,4 +1,6 @@
-import { localeOptions, monthWeeks, people, weekDays } from "@/modules/designs/data/fortaleza";
+import { localeOptions, people } from "@/modules/designs/data/fortaleza";
+import { buildMockCalendar } from "@/modules/designs/data/mock-calendar";
+import { appLocaleBySiteLocale } from "@/modules/designs/i18n/app-locale";
 import { appRich, appT } from "@/modules/designs/i18n/app-t";
 
 import { AccountStatus } from "../account-status";
@@ -24,22 +26,12 @@ import { CalendarWeekRow } from "../calendar-week-row";
 
 import type { DesignSystemSectionProps } from "./design-system-structure.types";
 
-const appLocaleByLocale = { "pt-br": "pt-BR", es: "es-ES", en: "en-US" } as const;
-
 export function DesignSystemStructure({ locale, text }: DesignSystemSectionProps) {
   const t = (key: string, params?: Record<string, string | number>) => appT(locale, key, params);
   const e = text.entries;
-  const weekday = (date: string, style: "short" | "narrow") =>
-    new Intl.DateTimeFormat(appLocaleByLocale[locale], { weekday: style, timeZone: "UTC" }).format(new Date(`${date}T12:00:00Z`)).replace(".", "").toUpperCase();
-  const week = { days: weekDays.map((day) => ({ ...day, weekday: weekday(day.date, "short") })) };
-  const month = {
-    initials: monthWeeks[1]?.map((day) => weekday(day.date, "narrow")) ?? [],
-    weeks: monthWeeks,
-    selectedWeekIndex: 1,
-  };
-  const monthName = new Intl.DateTimeFormat(appLocaleByLocale[locale], { month: "long", timeZone: "UTC" }).format(new Date("2026-09-09T12:00:00Z"));
-  const calendar = { caption: monthName, previousLabel: t("weekMonthCalendar.previousWeek"), nextLabel: t("weekMonthCalendar.nextWeek"), week, month };
-  const current = appLocaleByLocale[locale];
+  const { caption, week, month } = buildMockCalendar(locale);
+  const calendar = { caption, previousLabel: t("weekMonthCalendar.previousWeek"), nextLabel: t("weekMonthCalendar.nextWeek"), week, month };
+  const current = appLocaleBySiteLocale[locale];
   const studentTabs = [
     { key: "agenda", label: t("tabs.agenda"), icon: "Ionicons:calendar-outline" },
     { key: "myClasses", label: t("tabs.myClasses"), icon: "Ionicons:ticket-outline" },

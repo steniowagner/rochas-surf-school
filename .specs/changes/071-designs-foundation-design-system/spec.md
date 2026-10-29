@@ -2,7 +2,7 @@
 id: "071"
 slug: designs-foundation-design-system
 title: Public designs area and the design system page
-status: changes-requested
+status: in-progress
 started: 2026-10-28
 base_commit: 276ffc29014c5113e8451f9bba1dac669c353719
 created: 2026-10-28
@@ -575,8 +575,10 @@ shared between mobile and web, the phone frame and the mock UI pieces.
 
 **Findings**
 
-- [ ] **F-05** (ER-08, ER-02 · D-08) — DS-09-04's floating sport filter is drawn `rounded-full` (a circle, with `shadow-primary`); the app's `DisciplineFilterButton` (`apps/mobile/src/modules/classes/components/discipline-filter-button/discipline-filter-button.component.tsx`) is a 56×56 `rounded-card` (radius 20) `bg-grape` button with `shadowStyle("fab")`, so the frames show a different radius token than the code. Reproduce: DS-09-04 on `/pt-br/designs/design-system`, the `span` with `Ionicons:filter` in `design-system-states.component.tsx`. Expected: `rounded-card` (and the fab elevation if a utility exists for it); then regenerate and repack `design-system.html`.
-- [ ] **F-06** (convention · `.claude/rules/react.md` §1) — the F-01 fix copies into `design-system-states.component.tsx` a third site→app locale map (`{ "pt-br": "pt-BR", es: "es-ES", en: "en-US" }`, already exported as `appLocaleBySiteLocale` in `i18n/app-locale.ts` and copied once more as `appLocaleByLocale` in `design-system-structure.component.tsx`) and the same weekday/month `Intl` formatting and calendar-props builder that `design-system-structure.component.tsx` already has; react.md keeps calculations out of `*.component.tsx`. Reproduce: `grep -rn "DateTimeFormat\|\"pt-br\": \"pt-BR\"" apps/web/src/modules/designs`. Expected: one helper (for example in `src/modules/designs/data/`) that builds the mock `WeekMonthCalendar` props for a locale using `appLocaleBySiteLocale`, used by both sections, and no local copies of the locale map.
+- [x] **F-05** (ER-08, ER-02 · D-08) — DS-09-04's floating sport filter is drawn `rounded-full` (a circle, with `shadow-primary`); the app's `DisciplineFilterButton` (`apps/mobile/src/modules/classes/components/discipline-filter-button/discipline-filter-button.component.tsx`) is a 56×56 `rounded-card` (radius 20) `bg-grape` button with `shadowStyle("fab")`, so the frames show a different radius token than the code. Reproduce: DS-09-04 on `/pt-br/designs/design-system`, the `span` with `Ionicons:filter` in `design-system-states.component.tsx`. Expected: `rounded-card` (and the fab elevation if a utility exists for it); then regenerate and repack `design-system.html`.
+  > ✅ 2026-10-28 — the floating sport filter is `rounded-card` with `shadow-fab` (new `--shadow-fab` mapped from `--ds-elevation-fab` in globals.css). Files: `apps/web/src/app/globals.css`, `apps/web/src/modules/designs/components/design-system-states/design-system-states.component.tsx`, regenerated `.docs/designs/src/design-system/template.html`, repacked `.docs/designs/design-system.html`. Verified: web build, `build-design-system.mjs`, `pack.mjs --check` 5 files match.
+- [x] **F-06** (convention · `.claude/rules/react.md` §1) — the F-01 fix copies into `design-system-states.component.tsx` a third site→app locale map (`{ "pt-br": "pt-BR", es: "es-ES", en: "en-US" }`, already exported as `appLocaleBySiteLocale` in `i18n/app-locale.ts` and copied once more as `appLocaleByLocale` in `design-system-structure.component.tsx`) and the same weekday/month `Intl` formatting and calendar-props builder that `design-system-structure.component.tsx` already has; react.md keeps calculations out of `*.component.tsx`. Reproduce: `grep -rn "DateTimeFormat\|\"pt-br\": \"pt-BR\"" apps/web/src/modules/designs`. Expected: one helper (for example in `src/modules/designs/data/`) that builds the mock `WeekMonthCalendar` props for a locale using `appLocaleBySiteLocale`, used by both sections, and no local copies of the locale map.
+  > ✅ 2026-10-28 — new `buildMockCalendar(locale)` uses `appLocaleBySiteLocale`; both sections use it and the local locale maps are gone. Files: `apps/web/src/modules/designs/data/mock-calendar.ts`, `design-system-states.component.tsx`, `design-system-structure.component.tsx`. Verified: `npx turbo run lint check-types --filter=@rochas-surf-school/web` passed; `npx vitest run src/modules/designs` 149 passed.
 
 **Notes**
 

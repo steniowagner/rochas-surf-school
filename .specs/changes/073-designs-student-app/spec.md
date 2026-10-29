@@ -2,7 +2,7 @@
 id: "073"
 slug: designs-student-app
 title: Student app designs page
-status: in-review
+status: changes-requested
 created: 2026-10-28
 started: 2026-10-28
 base_commit: 4be1936df6c3a33e8dc6b0e0bfcf946c4145ec51
@@ -321,3 +321,67 @@ with light and dark side by side, replacing the outdated European Portuguese pro
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-28 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`npx turbo run lint check-types build --filter=@rochas-surf-school/web`, 9 tasks)
+- related tests ✅ 435 passed (apps/web, 130 files). On the first run `student-app.page.test.tsx › shows the title
+  and every inventory entry in pt-br` timed out at 5 s under coverage; it passed on the rerun (see Notes)
+- coverage of the changed lines ✅ `COVERAGE OK`: no changed line to measure (`apps/web/src/**` and `.docs/designs/**`
+  are excluded by technical-context); no coverage-ignore comments in the diff
+- e2e ✅ `E2E PASSED`: apps/web, 42 passed
+- `node --test .docs/designs/scripts/*.test.mjs` ✅ 7 passed · `pack.mjs --check` ✅ 5 files match
+- old prototype gone ✅ · `ph*` photos 0 ✅ · European Portuguese and rating wording: none ✅
+- `design-system` and `auth-flow` sources changed only on their compiled CSS line ✅
+
+**Expected Results**
+
+- ER-01 ✅ — `student-app.html` served from `.docs/designs` over http (the browser pane refuses `file://`): 86
+  distinct ids, light and dark side by side, the 35 tall entries (70 frames) at their full content height at 402 px,
+  no `{{`, no "ecrã / Já a seguir / As minhas / Avaliar"
+- ER-02 ✅ — `index lists the design pages in every language` (third card, title, description, link) and `redirects
+  /designs/student-app to the browser language` (307 to `es`, pt-br fallback) pass
+- ER-03 ❌ — every id, title, phone frame and the section order are there (e2e, page test); profile rows match the
+  mobile `Profile` component; the footer buttons follow `getEnrolmentCta`'s rules; the 15 notification rows cover
+  every type the backend sends a student (`class.deleted` goes to instructors only). But the sheet and toast frames
+  break D-02: see F-01
+- ER-04 ✅ — `student app follows the language`: the ST-02-01 button in each language, the mock reason and the
+  notification texts, and the header language switch
+- ER-05 ✅ — `student app follows the theme toggle`: light page token, dark after the toggle, kept on reload,
+  following the OS scheme with no stored choice
+- ER-06 ✅ — `design pages are wide` and `design pages fit a phone viewport` cover the student app page; the widest
+  frame there is under 375 px
+
+**Findings**
+
+- [ ] **F-01** (D-02) — D-02 says "Sheets and toasts are drawn over phone-height (402 × 874) frames", but these
+  sheet and toast entries are drawn on *tall* frames: ST-02-02, ST-02-03, ST-02-04, ST-02-05, ST-02-07, ST-02-09,
+  ST-02-13, ST-02-14, ST-02-18, ST-02-30 and ST-06-05. Their sheets then sit at the bottom of the whole scrolled
+  content, not over the phone's screen. In ST-02-18, for example, the denial sheet starts about 1,000 pt down a
+  ~1,040 pt frame, below where a 874 pt screen ends. T-03 names the inventory's "every class-details frame is tall"
+  as the reason, but the inventory itself repeats D-02's rule in its header, and ST-06-05 has no stated reason. No
+  amendment covers it. Reproduce: open `/pt-br/designs/student-app` (or `student-app.html`) and evaluate
+  `[...document.querySelectorAll('[data-tall]')].map(f => f.closest('[data-design-id]').dataset.designId)`.
+  Expected: those 11 entries draw their sheet or toast over a 402 × 874 frame, like ST-04-06 to ST-04-08 and ST-05-02
+  to ST-05-12 already do. Then regenerate `student-app.html` with `build-design.mjs student-app` and `pack.mjs`, and
+  update the tall-frame list in `student-app.page.test.tsx`. Or, if the tall form is what's wanted, record it as an
+  amendment to D-02 and the inventory through `/spec-plan --amend 073`.
+
+**Notes**
+
+- The inventory's ST-02-16 (the `classDetails.noDeadline` card) and ST-02-26 (the `classDetails.noInstructor` card)
+  describe cards that the mobile class details show to admins only (`showNoDeadline` / `showNoInstructor` need
+  `canEdit`). T-01/T-03 drew what a student actually sees, which ER-03's fidelity rule asks for. So the page is right
+  and the inventory is wrong. The same goes for ST-02-27..29, which are phone-height because the app's
+  loading/not-found/error states don't scroll. If F-01 is solved by an amendment, fix these inventory rows in the same
+  amendment.
+- `student-app.page.test.tsx` renders all 86 frames in each test and came within reach of Vitest's 5 s default
+  under the coverage run (it timed out once in two runs). A per-test timeout there would keep the suite from flaking.
+- `class-details-screen.constants.ts` types `scenarios` with an inline
+  `import("./class-details-screen.types").ClassDetailsState`; importing `ClassDetailsState` in the existing top-level
+  `import type` would read like the rest of the code.
+- T-06's evidence says 15 `ph*.jpg` photos were removed; the diff deletes 16. Everything else matches.
+- `## Memory Impact` matches what was built. `spec-finish` can also mention the client `phone-frame-tall` component
+  under the tall phone frame.

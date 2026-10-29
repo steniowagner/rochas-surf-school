@@ -173,7 +173,7 @@ side, replacing the outdated European Portuguese prototype.
   > deviations: `contact-school-button` and `whatsapp-number-form` take their labels as props (the web has no i18n hook), the form is
   > presentational (state as props)
 
-- [ ] **T-02** — Write the screen mocks of sections 01–02 in `apps/web/src/modules/designs/screens/auth/` (D-05):
+- [x] **T-02** — Write the screen mocks of sections 01–02 in `apps/web/src/modules/designs/screens/auth/` (D-05):
   `sign-in-screen` (light palette always, D-06; language sheet, Google loading and toast as props),
   `email-choice-screen`, `email-sign-in-screen`, `create-account-screen`, `confirm-code-screen`,
   `google-name-screen`, each taking the inventory's states (empty, invalid, sending, toast, countdown, resend,
@@ -181,6 +181,12 @@ side, replacing the outdated European Portuguese prototype.
   every state of AF-01-01 to AF-02-18. Skill:
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices). Covers: ER-03 · Done when:
   `npx vitest run src/modules/designs/screens` passes in `apps/web`.
+  > ✅ 2026-10-28 22:09 — wrote `sign-in-screen`, `email-choice-screen`, `email-sign-in-screen`, `create-account-screen`, `confirm-code-screen`
+  > and `google-name-screen` in `apps/web/src/modules/designs/screens/auth/` (component, types, index, test each; states as props, copy through
+  > `appT` / `appRich`); small technical additions: `components/auth-form-frame`, `components/screen-toast`, `components/terms-line` (with tests),
+  > `fullBleed` on `components/phone-frame` and an empty title on `components/stack-header` (tests added), `assets/asset-src.ts` (+ test);
+  > verified: `npx vitest run src/modules/designs/screens` (23 passed) and `npm run check-types` (exit 0);
+  > deviations: none
 
 - [ ] **T-03** — Write the screen mocks of sections 03–04 the same way: `pending-screen`, `whatsapp-screen`
   (empty, filled, country picker, invalid, saving, toast), `school-rules-screen` (loading, loaded, accepted, load

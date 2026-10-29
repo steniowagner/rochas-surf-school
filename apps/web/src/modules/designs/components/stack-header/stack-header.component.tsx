@@ -8,7 +8,7 @@ export function StackHeader({ title, showBack = true, right }: StackHeaderProps)
       <span className="flex size-11 items-center justify-center">
         {showBack ? <AppIcon name="Ionicons:chevron-back" size={24} className="text-ink" /> : null}
       </span>
-      <h1 className="ds-text-screen-title-with-back truncate text-center text-ink">{title}</h1>
+      {title ? <h1 className="ds-text-screen-title-with-back truncate text-center text-ink">{title}</h1> : <span />}
       <span className="flex justify-end">{right}</span>
     </header>
   );

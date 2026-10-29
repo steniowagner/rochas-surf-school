@@ -284,6 +284,8 @@ test.describe("student app page", () => {
 
   test("student app draws tall frames", async ({ page }) => {
     await page.goto("/pt-br/designs/student-app");
+    // The page is shorter once the web fonts replace the fallback ones, so measure after they have loaded.
+    await page.evaluate(() => document.fonts.ready);
 
     const frame = page.locator('[data-design-id="ST-05-01"] [data-testid="phone-frame"]');
     const bounds = (await frame.boundingBox())!;

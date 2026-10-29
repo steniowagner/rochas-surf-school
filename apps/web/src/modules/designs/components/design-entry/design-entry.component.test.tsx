@@ -16,6 +16,12 @@ describe("DesignEntry", () => {
     expect(screen.getByText("samples")).toBeInTheDocument();
   });
 
+  it("carries the inventory id as the element id, so a URL can point at the frame", () => {
+    const { container } = render(<DesignEntry id="ST-05-07" title="Agenda">x</DesignEntry>);
+
+    expect(container.querySelector("article")?.id).toBe("ST-05-07");
+  });
+
   it("omits the note when there is none", () => {
     render(<DesignEntry id="DS-04-02" title="Header">x</DesignEntry>);
 

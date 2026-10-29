@@ -302,16 +302,20 @@ test.describe("student app page", () => {
     await page.evaluate(() => document.fonts.ready);
 
     const frame = page.locator('[data-design-id="ST-05-01"] [data-testid="phone-frame"]');
-    const bounds = (await frame.boundingBox())!;
-    const phone = (await page.locator('[data-design-id="ST-05-02"] [data-testid="phone-frame"]').boundingBox())!;
-    expect(bounds.width).toBeCloseTo(phone.width, 0);
-    expect(bounds.height).toBeGreaterThan(phone.height * 1.2);
+    // The tall frames above this one size themselves once hydrated, moving everything below them; the boxes are
+    // read one by one, so measure again until they all come from the settled layout.
+    await expect(async () => {
+      const bounds = (await frame.boundingBox())!;
+      const phone = (await page.locator('[data-design-id="ST-05-02"] [data-testid="phone-frame"]').boundingBox())!;
+      expect(bounds.width).toBeCloseTo(phone.width, 0);
+      expect(bounds.height).toBeGreaterThan(phone.height * 1.2);
 
-    const remove = (await frame.getByText("Remover a conta").boundingBox())!;
-    const tabs = (await frame.getByRole("tablist").boundingBox())!;
-    expect(remove.y).toBeGreaterThan(bounds.y + phone.height);
-    expect(tabs.y).toBeGreaterThan(remove.y);
-    expect(tabs.y + tabs.height).toBeLessThanOrEqual(bounds.y + bounds.height);
+      const remove = (await frame.getByText("Remover a conta").boundingBox())!;
+      const tabs = (await frame.getByRole("tablist").boundingBox())!;
+      expect(remove.y).toBeGreaterThan(bounds.y + phone.height);
+      expect(tabs.y).toBeGreaterThan(remove.y);
+      expect(tabs.y + tabs.height).toBeLessThanOrEqual(bounds.y + bounds.height);
+    }).toPass();
   });
 
   test("student app follows the language", async ({ page }) => {

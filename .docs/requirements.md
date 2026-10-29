@@ -137,7 +137,9 @@ Users SHALL be able to sign out.
 
 _Implemented in spec 001-email-sign-in-code._
 
-The system SHALL provide one pre-approved review account for each role (student, instructor and admin), so App Store and Google Play reviewers can use the app. Each review account SHALL sign in with a fixed code that works only for that account's email address.
+_Implemented in spec 076-user-journeys-pages._
+
+The system SHALL provide at least one pre-approved review account for each role (student, instructor and admin), so App Store and Google Play reviewers can use the app. Each review account SHALL sign in with a fixed code that works only for that account's email address. A test server MAY have more review accounts per role, such as the 12 test sets (an admin, an instructor and a student each) given to test users; their codes are generated when the server is set up and never published.
 
 - _Reviewer signs in:_ When a reviewer enters a review account's email address and its fixed code, then they are signed in to an approved account with that role.
 - _Fixed code used with another address:_ When someone enters a review account's fixed code for any other email address, then they are not signed in.
@@ -1322,7 +1324,9 @@ _Implemented in spec 074-designs-instructor-app._
 
 _Implemented in spec 075-designs-admin-app._
 
-Publishes the public web pages the app stores require: the privacy policy, the terms of use and a way to request account deletion without the app. The same site also hosts a designs area (`/{lang}/designs`), linked from its home page, that shows the app's design system, its auth flow (the screens before a person reaches their role's home), the student app (every screen an approved student sees), the instructor app (every screen an approved instructor sees) and the admin app (every screen an approved admin sees) to anyone interested, in the site's language and theme.
+_Implemented in spec 076-user-journeys-pages._
+
+Publishes the public web pages the app stores require: the privacy policy, the terms of use and a way to request account deletion without the app. The same site also hosts a designs area (`/{lang}/designs`), linked from its home page, that shows the app's design system, its auth flow (the screens before a person reaches their role's home), the student app (every screen an approved student sees), the instructor app (every screen an approved instructor sees) and the admin app (every screen an approved admin sees) to anyone interested, in the site's language and theme. It also hosts user journey pages (`/{lang}/user-journeys`) for invited test users, linked from nowhere and hidden from search engines: one page per app flow (auth, student, instructor, admin) lists its test cases with links to their design frames, and the tester marks each case approved or denied, adds notes, keeps their progress in their own browser and copies a summary to send to the school.
 
 #### Privacy policy page
 

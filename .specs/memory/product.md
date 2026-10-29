@@ -15,7 +15,8 @@ time). Students are adults trying or practising surf and skate; instructors teac
 schedule, the people and the rules. Everyone uses the **same mobile app** (Android and iOS), and what each
 person sees depends on their role. The only web surface is a small public site with the privacy policy, the terms of
 use and the account-deletion page, for the app stores and for people without the app, plus a designs area that shows
-anyone interested how the app is designed.
+anyone interested how the app is designed, and unlinked user journey pages that tell invited test users what to
+test.
 
 Nobody gets in on their own: every account signs up in the app and then waits for an admin's approval before
 it can see anything. The app is in Brazilian Portuguese, Spanish and English.
@@ -114,7 +115,11 @@ Listed in the order people meet them.
   per minute. It is the only email the app ever sends; if sending fails, no waiting time applies before asking
   again. The answer to a code request is the same whether or not an account exists. **Review accounts**: one
   pre-approved account per role for App Store and Google Play reviewers, each with a fixed code that works only
-  for its own email; no email is sent to them, and the waiting time and the lock apply to them too.
+  for its own email; no email is sent to them, and the waiting time and the lock apply to them too. A deployment
+  may have more than one per role: the **test sets** (spec 076) are 12 sets of an admin, an instructor and a student
+  (`testeNN.admin` / `.instrutor` / `.aluno` `@rochas-surf-school.test`, `NN` 01–12), given to test users. Their codes
+  are generated when the test server is set up and are never part of the repository; the school hands each tester
+  their set privately.
 - **Reactivation request** (`reactivation-request`): a deleted user's request, sent from the "Account deleted"
   screen during the 30 days, to get the account back. One per deletion: `requested` → `approved` | `denied` by
   an approved admin in "Reactivate accounts". Admins are notified of each one and see the name, email, deletion
@@ -1370,6 +1375,19 @@ notifications screens (one row per notification type the backend sends an admin 
 sees exactly as a student or an instructor does are drawn once, and their note names the other page's frames. Every
 design file is now generated from the site.
 
+**User journey pages for test users** (spec `076-user-journeys-pages`) — the public site has a user journeys index at
+`/{lang}/user-journeys` (`/user-journeys` without a language opens in the browser's language) and one page per app
+flow: auth (19 test cases), student app (28), instructor app (16) and admin app (33). The index explains the test
+round and how to sign in with the test set the school sent (never showing a code); each flow page lists its test
+cases under the groups of its design page, each with what to prepare, the steps, the expected behavior and links to
+the exact design frames (every design entry now has its own anchor). The tester types their name, marks each case
+"Approved" or "Denied" (one excludes the other; clicking the checked one clears it), adds notes to any case, and
+"Copy results" puts a plain-text summary (flow, tester, date, counter and one line per case) on the clipboard to
+send to the school; "Clear results" starts the flow over after a confirmation. Progress is kept per flow in that
+browser only, shared by the three languages. Notifications are judged by the Notifications screen, since the test
+build can't deliver pushes yet. The pages aren't linked from the site and aren't indexed by search engines. The
+backend's `test-accounts` command prints the 12 test sets' review accounts with fresh codes for the test server.
+
 Active specs: none.
 
 ## Out of scope (future evolution, recorded in the specs)
@@ -1419,6 +1437,11 @@ Active specs: none.
 - Deploying the public site (host and domain), linking the privacy policy from the store listings, the onboarding
   line linking the terms and the policy, a report button for objectionable content, the
   legal (LGPD) review of the pages' copy.
+- On the user journey pages (spec 076): distributing the test build to testers (TestFlight, Play internal testing),
+  keeping results anywhere but the tester's browser (no server, no sharing between browsers or testers), a print
+  layout, exporting to a file or sending the results from the page, linking the pages from the site, a page for the
+  design system, test cases for features that aren't built or take longer than a session (the 30-day erasures), and
+  removing the test sets' accounts before launch.
 - On the designs area (spec 071): Android phone frames, clickable prototypes (every state is a static frame),
   search-engine settings for the design pages, and keeping the Claude Design project in sync with the design files.
   On the auth flow, student, instructor and admin app pages (specs 072–075): frames with the keyboard open. On the
@@ -1539,4 +1562,5 @@ Active specs: none.
   app page (`/{lang}/designs/admin-app`), like `design-system.html`; the former European Portuguese prototype, with
   its ratings, is gone. Every design file is now generated from the site.
 - Since spec 071 the design files are edited through readable sources in `.docs/designs/src/`, rebuilt into the
-  `.html` files by a pack script; the Claude Design project is no longer where they are edited.
+  `.html` files by a pack script; the Claude Design project is no longer where they are edited. Since spec 076
+  every entry in them carries its inventory id as its `id` too, as on the site's design pages.

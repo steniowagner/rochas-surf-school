@@ -15,5 +15,14 @@ export function proxy(request: NextRequest) {
 
 // Only the unprefixed public paths: paths that carry a language, `_next` and `public/` files never reach it.
 export const config = {
-  matcher: ["/", "/privacy-policy", "/terms-of-use", "/account-deletion", "/designs", "/designs/:path*"],
+  matcher: [
+    "/",
+    "/privacy-policy",
+    "/terms-of-use",
+    "/account-deletion",
+    "/designs",
+    "/designs/:path*",
+    "/user-journeys",
+    "/user-journeys/:path*",
+  ],
 };

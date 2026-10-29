@@ -232,7 +232,9 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
   exists. A name sent for an existing account is ignored.
 - **Review accounts**: one pre-approved account per role, each with a fixed code. Asking for a code for one of
   them sends no email; its fixed code works only for its own address, and the waiting time and the lock apply
-  as for anyone — the lock also protects the admin review account from guessing.
+  as for anyone — the lock also protects the admin review account from guessing. A deployment may configure
+  more than one per role: a test server holds the 12 test sets (an admin, an instructor and a student each) given
+  to test users, with codes generated for that server and never published.
 - **Limits per network address**: at most 5 code requests and 10 code checks per minute.
 
 ## Sessions
@@ -547,3 +549,7 @@ fulfilled by the backend with [Notifications](notifications.md), to delete the n
   (`PUT /people/:id/instructor`) with its checks and the guarded write; `ListPeople` gains `teaches`
   (`DirectoryPageParams.teachers`, `people.teaches.invalid`) and `isInstructor` on every item. In the app, the
   "Também é instrutor" box on the "Promover a admin" confirmation and on an admin's sheet.
+- `076-user-journeys-pages` — review accounts may be more than one per role: the backend's `npm run test-accounts`
+  prints a `REVIEW_ACCOUNTS` value for 12 test sets (`testeNN.admin` / `.instrutor` / `.aluno`
+  `@rochas-surf-school.test`) with fresh random codes, set only in the test server's environment. No change to the
+  module's code.

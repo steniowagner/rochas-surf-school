@@ -89,3 +89,27 @@ export const localeOptions = [
   { flag: "🇪🇸", key: "es-ES", name: "Español" },
   { flag: "🇧🇷", key: "pt-BR", name: "Português" },
 ];
+
+/** The instructor the instructor app page is signed in as (spec 074): Rafael Rocha, of the school's directory. */
+export const instructorAccount = { id: "rafael", name: "Rafael Rocha", firstName: "Rafael" } as const;
+
+/** The other instructor of the school's classes, the one who teaches what Rafael doesn't. */
+export const otherInstructor = { id: "marina", name: "Marina Teixeira" } as const;
+
+/** The trial guests of a class Rafael teaches: he sees their names (the backend's `canSeeGuestNames`). */
+export const trialGuests = [
+  { id: "lucas", name: "Lucas Martins" },
+  { id: "bia", name: "Beatriz Nunes" },
+];
+
+/**
+ * The day's classes of the instructor's "Aulas" tab (spec 074 D-04), without an enrolment: one under way, the one Rafael
+ * teaches, one of another instructor, a full one and a cancelled one.
+ */
+export const instructorDayClasses: CardBase[] = [
+  { ...iracema, state: "started", timeRange: "06:30 – 08:00", seatsTaken: 6 },
+  iracema,
+  { ...iracema, level: "advanced", timeRange: "10:00 – 11:30", locationName: "Praia do Futuro", seatsTaken: 3, students: students.slice(1, 4).map((student) => ({ ...student })) },
+  futuro,
+  { ...futuro, level: "beginner", state: "cancelled", timeRange: "17:30 – 19:00", seatsTaken: 2, students: students.slice(0, 2).map((student) => ({ ...student })) },
+];

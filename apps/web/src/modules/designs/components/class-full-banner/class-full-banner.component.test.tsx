@@ -17,4 +17,11 @@ describe("ClassFullBanner", () => {
     expect(screen.getByText("Class full")).toBeInTheDocument();
     expect(screen.getByText("The waiting list is closed for this class.")).toBeInTheDocument();
   });
+
+  it("draws the title only for the instructor", () => {
+    const { container } = render(<ClassFullBanner locale="en" />);
+
+    expect(screen.getByText("Class full")).toBeInTheDocument();
+    expect(container.querySelectorAll("p")).toHaveLength(1);
+  });
 });

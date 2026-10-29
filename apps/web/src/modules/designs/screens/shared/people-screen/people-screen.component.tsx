@@ -10,6 +10,7 @@ import { ScreenIntro } from "@/modules/designs/components/screen-intro";
 import { ScreenToast } from "@/modules/designs/components/screen-toast";
 import { TabBar } from "@/modules/designs/components/tab-bar";
 import { TextInput } from "@/modules/designs/components/text-input";
+import { instructorTabs } from "@/modules/designs/data/instructor-app";
 import { directory, studentDates, studentTabs } from "@/modules/designs/data/student-app";
 import { appT } from "@/modules/designs/i18n/app-t";
 
@@ -17,8 +18,8 @@ import type { PeopleScreenProps } from "./people-screen.types";
 
 const SEARCH = "mar";
 
-/** The school's directory as a student sees it: the intro, the search, the role filters and the people by initial. */
-export function PeopleScreen({ locale, state }: PeopleScreenProps) {
+/** The school's directory as a student or an instructor sees it: the intro, the search, the role filters and the people by initial. */
+export function PeopleScreen({ locale, state, role = "student" }: PeopleScreenProps) {
   const t = (key: string, params?: Record<string, string | number>) => appT(locale, key, params);
   const dates = studentDates(locale);
   const filtered = state === "filtered";
@@ -76,7 +77,7 @@ export function PeopleScreen({ locale, state }: PeopleScreenProps) {
             ))
           )}
         </div>
-        <TabBar tabs={studentTabs(locale)} selected="school" />
+        {role === "instructor" ? <TabBar tabs={instructorTabs(locale)} selected="people" /> : <TabBar tabs={studentTabs(locale)} selected="school" />}
         {sheetOpen && rafael ? <PersonSheet locale={locale} name={rafael.name} role={rafael.role} whatsapp={state === "sheetNotShared" ? null : "+55 85 99999 8888"} /> : null}
         {state === "whatsappUnavailable" ? <ScreenToast message={t("people.whatsappUnavailable")} /> : null}
       </div>

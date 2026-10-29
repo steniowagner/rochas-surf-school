@@ -2,10 +2,10 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { ClassDetailsScreen } from "./class-details-screen.component";
-import type { ClassDetailsScreenProps } from "./class-details-screen.types";
+import type { ClassDetailsScreenProps, InstructorClassDetailsSheet, InstructorClassDetailsState } from "./class-details-screen.types";
 
 const texts = { denialReason: "Turma reservada.", takeOutReason: "Aula reorganizada.", notes: "Traga protetor solar." };
-const open = (props: Partial<ClassDetailsScreenProps> & Pick<ClassDetailsScreenProps, "state">) => render(<ClassDetailsScreen locale="pt-br" texts={texts} {...props} />);
+const open = (props: Omit<Extract<ClassDetailsScreenProps, { role?: "student" }>, "locale" | "texts">) => render(<ClassDetailsScreen locale="pt-br" texts={texts} {...props} />);
 const footerButton = (name: string) => screen.getByRole("button", { name });
 
 describe("ClassDetailsScreen", () => {
@@ -166,5 +166,96 @@ describe("ClassDetailsScreen", () => {
     open({ state: "error" });
     expect(screen.getByRole("heading", { name: "Algo deu errado" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Tentar de novo" })).toBeInTheDocument();
+  });
+
+  describe("the instructor's form", () => {
+    const rules = { surf: "Cancele até 12 horas antes.", skate: "Cancele até 24 horas antes." };
+    const openAs = (state: InstructorClassDetailsState, sheet?: InstructorClassDetailsSheet) =>
+      render(<ClassDetailsScreen locale="pt-br" role="instructor" state={state} sheet={sheet} texts={{ ...texts, cancellationRules: rules }} />);
+
+    it("IN-03-01: a class Rafael teaches, read-only, with him as Você and the student rows open; no enrolment, footer or tools", () => {
+      openAs("teaches");
+
+      expect(screen.getByTestId("phone-frame")).toHaveAttribute("data-tall");
+      expect(screen.getByText("Matrículas, cancelamentos e mudanças de horário são feitos pela escola")).toBeInTheDocument();
+      expect(screen.getByText("Você")).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Ana Beatriz Lima" })).toBeInTheDocument();
+      expect(screen.getByText("Máx. 8 alunos · 4 vagas livres")).toBeInTheDocument();
+      expect(screen.queryByTestId("enrolment-banner")).toBeNull();
+      expect(screen.queryByRole("button", { name: /Pedir|Cancelar|Ferramentas/ })).toBeNull();
+      expect(screen.getByText("Até ter, 8 set · 20:00")).toBeInTheDocument();
+    });
+
+    it("IN-03-02..03: another instructor's class, and one nobody teaches, with the not-assigned note", () => {
+      const other = openAs("notAssigned");
+      expect(screen.getByText("Marina Teixeira")).toBeInTheDocument();
+      expect(screen.getByText("Você não está escalado nesta aula — você vê tudo em modo somente leitura")).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Ana Beatriz Lima" })).toBeNull();
+      other.unmount();
+
+      openAs("noInstructor");
+      expect(screen.getByText("Sem instrutor atribuído")).toBeInTheDocument();
+      expect(screen.getByText(/Você não está escalado/)).toBeInTheDocument();
+    });
+
+    it("IN-03-04: the full banner with its title only, and the sold-out line", () => {
+      openAs("full");
+
+      expect(screen.getByText("Turma cheia")).toBeInTheDocument();
+      expect(screen.queryByText(/lista de espera/i)).toBeNull();
+      expect(screen.getByText("Máx. 8 alunos · esgotado")).toHaveClass("text-bad");
+    });
+
+    it("IN-03-05..06: the trial guests' rows, and a class with every seat free", () => {
+      const guests = openAs("guests");
+      expect(screen.getByText("Lucas Martins")).toBeInTheDocument();
+      expect(screen.getByText("Beatriz Nunes")).toBeInTheDocument();
+      expect(screen.getAllByText("Trial")).toHaveLength(2);
+      expect(screen.getByText("Máx. 8 alunos · 2 vagas livres")).toBeInTheDocument();
+      guests.unmount();
+
+      openAs("noStudents");
+      expect(screen.getByText("Máx. 8 alunos · 8 vagas livres")).toBeInTheDocument();
+      expect(screen.getByText("Ainda sem alunos")).toBeInTheDocument();
+    });
+
+    it("IN-03-07..09: started, finished, and cancelled without the rules card", () => {
+      const started = openAs("started");
+      expect(screen.getByText("Começou às 08:00 e termina às 09:30.")).toBeInTheDocument();
+      started.unmount();
+
+      const finished = openAs("finished");
+      expect(screen.getByText("Aula finalizada")).toBeInTheDocument();
+      finished.unmount();
+
+      openAs("classCancelled");
+      expect(screen.getByText("Aula cancelada")).toBeInTheDocument();
+      expect(screen.queryByText("Regras")).toBeNull();
+    });
+
+    it("IN-03-10..11: a student's person sheet and the cancellation rules sheet, over a phone-height frame", () => {
+      const person = openAs("teaches", "person");
+      expect(screen.getByTestId("phone-frame")).not.toHaveAttribute("data-tall");
+      expect(screen.getByRole("dialog")).toHaveTextContent("Caio Sousa");
+      expect(screen.getByRole("button", { name: "Conversar por WhatsApp" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Fechar" })).toBeInTheDocument();
+      person.unmount();
+
+      openAs("teaches", "rules");
+      expect(screen.getByRole("dialog")).toHaveTextContent("Cancele até 12 horas antes.");
+    });
+
+    it("IN-03-12..14: loading, not found and error", () => {
+      const loading = openAs("loading");
+      expect(screen.getByRole("status", { name: "Carregando a aula" })).toBeInTheDocument();
+      loading.unmount();
+
+      const notFound = openAs("notFound");
+      expect(screen.getByRole("heading", { name: "Aula não encontrada" })).toBeInTheDocument();
+      notFound.unmount();
+
+      openAs("error");
+      expect(screen.getByRole("button", { name: "Tentar de novo" })).toBeInTheDocument();
+    });
   });
 });

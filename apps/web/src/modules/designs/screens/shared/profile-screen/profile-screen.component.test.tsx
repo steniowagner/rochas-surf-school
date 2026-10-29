@@ -76,4 +76,13 @@ describe("ProfileScreen", () => {
     open("rulesError");
     expect(screen.getByRole("button", { name: "Tentar novamente" })).toBeInTheDocument();
   });
+
+  it("IN-06-02: the instructor's profile, with Instrutor under the name, on the instructor's tab bar", () => {
+    render(<ProfileScreen locale="pt-br" state="profile" rules={{ surf: "A", skate: "B" }} role="instructor" />);
+
+    expect(screen.getByText("Rafael Rocha")).toBeInTheDocument();
+    expect(screen.getByText("Instrutor")).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Perfil" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("tab", { name: "Início" })).toBeInTheDocument();
+  });
 });

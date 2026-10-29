@@ -1,6 +1,6 @@
 import { studentAppNote } from "@/modules/designs/i18n/student-app-note";
+import { ClassHistoryScreen } from "@/modules/designs/screens/shared/class-history-screen";
 import { MyClassesScreen } from "@/modules/designs/screens/student/my-classes-screen";
-import { MyHistoryScreen } from "@/modules/designs/screens/student/my-history-screen";
 
 import { DesignEntry } from "../design-entry";
 import { DesignSection } from "../design-section";
@@ -18,11 +18,11 @@ export function StudentAppMyClasses({ locale, text }: StudentAppMyClassesProps) 
     { id: "ST-03-07", screen: <MyClassesScreen locale={locale} state="emptyFilter" /> },
     { id: "ST-03-08", screen: <MyClassesScreen locale={locale} state="loading" /> },
     { id: "ST-03-09", screen: <MyClassesScreen locale={locale} state="error" /> },
-    { id: "ST-03-10", screen: <MyHistoryScreen locale={locale} state="month" /> },
-    { id: "ST-03-11", screen: <MyHistoryScreen locale={locale} state="daySelected" /> },
-    { id: "ST-03-12", screen: <MyHistoryScreen locale={locale} state="emptyPeriod" /> },
-    { id: "ST-03-13", screen: <MyHistoryScreen locale={locale} state="loading" /> },
-    { id: "ST-03-14", screen: <MyHistoryScreen locale={locale} state="error" /> },
+    { id: "ST-03-10", screen: <ClassHistoryScreen locale={locale} state="month" /> },
+    { id: "ST-03-11", screen: <ClassHistoryScreen locale={locale} state="daySelected" /> },
+    { id: "ST-03-12", screen: <ClassHistoryScreen locale={locale} state="emptyPeriod" /> },
+    { id: "ST-03-13", screen: <ClassHistoryScreen locale={locale} state="loading" /> },
+    { id: "ST-03-14", screen: <ClassHistoryScreen locale={locale} state="error" /> },
   ] as const;
 
   return (

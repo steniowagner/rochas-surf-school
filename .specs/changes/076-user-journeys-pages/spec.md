@@ -353,7 +353,7 @@ script prints, so no sign-in code ever reaches the public repository.
   > `apps/web/src/modules/designs/components/design-entry/design-entry.component.test.tsx`; verified:
   > `npx vitest run src/modules/designs` (222 files, 715 passed); deviations: none.
 
-- [ ] **T-02** — Add the locale-free structure of the four flows (D-13) in
+- [x] **T-02** — Add the locale-free structure of the four flows (D-13) in
   `apps/web/src/modules/user-journeys/data/user-journey-flows.ts`: per flow its slug, design page slug, groups
   (a key each) and rows (id and design ids), exactly as in [journeys.md](journeys.md); export the flow slugs and a
   `RowId` type. Add `apps/web/src/modules/user-journeys/utils/design-href.ts` (D-14: prefix → page, URL with the
@@ -361,6 +361,16 @@ script prints, so no sign-in code ever reaches the public repository.
   design id exists in its page's `*-ids.ts`, unique ids) and `design-href.test.ts` (each prefix, AU-17's `ST-05-07`,
   an unknown prefix throws).
   Covers: ER-04, ER-10 · Done when: `npx vitest run src/modules/user-journeys` passes in `apps/web`.
+  > ✅ 2026-10-29 15:05 — `userJourneyFlows` holds the 4 flows (design page, groups with a key each, rows with their
+  > design ids) generated from journeys.md (96 rows: 19 / 28 / 16 / 33), `as const` so `RowId` and each flow's group
+  > keys are literal types; design ids are typed as the union of the four `*EntryId` types, so a missing frame is a
+  > type error too; `flowRows(flow)` and `isUserJourneyFlowSlug` added. `design-href.ts` maps the prefix to the page
+  > and builds `/{lang}/designs/<page>#<id>`, throwing on an unknown prefix. Files:
+  > `apps/web/src/modules/user-journeys/data/user-journey-flows.ts`,
+  > `apps/web/src/modules/user-journeys/data/user-journey-flows.test.ts`,
+  > `apps/web/src/modules/user-journeys/utils/design-href.ts`,
+  > `apps/web/src/modules/user-journeys/utils/design-href.test.ts`; verified: `npx vitest run src/modules/user-journeys`
+  > (2 files, 14 passed), `npx tsc --noEmit` and `npx eslint src/modules/user-journeys` exit 0; deviations: none.
 
 - [ ] **T-03** — Add the page labels of D-20 (with "Notes", "Clear results" and its confirmation, and the saved-progress
   line) and the index's texts (intro and "Before you start" of D-06 / D-08: the test sets, no code) to

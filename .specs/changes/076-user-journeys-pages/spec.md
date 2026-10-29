@@ -466,7 +466,7 @@ script prints, so no sign-in code ever reaches the public repository.
   > throwing storage), `npx tsc --noEmit` and `npx eslint src/modules/user-journeys` exit 0; deviations: the two
   > added files above.
 
-- [ ] **T-08** — Add the index: `apps/web/src/app/[lang]/user-journeys/layout.tsx` (wide `SiteShell`, `robots`
+- [x] **T-08** — Add the index: `apps/web/src/app/[lang]/user-journeys/layout.tsx` (wide `SiteShell`, `robots`
   noindex / nofollow, D-07), `apps/web/src/app/[lang]/user-journeys/page.tsx` (`generateMetadata`,
   `generateStaticParams` through the `[lang]` layout) rendering `apps/web/src/modules/user-journeys/pages/user-journeys-index/`
   (D-08), and `/user-journeys` and `/user-journeys/:path*` in the matcher of `apps/web/src/proxy.ts`. Write
@@ -474,6 +474,21 @@ script prints, so no sign-in code ever reaches the public repository.
   the browser language` and `user journey pages are noindex and not linked`. Skill:
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-01, ER-02, ER-03 · Done when: `npm run test:e2e --workspace apps/web -- user-journeys` passes.
+  > ✅ 2026-10-29 17:05 — `[lang]/user-journeys/layout.tsx` renders the wide `SiteShell` and sets `robots` noindex /
+  > nofollow for every page below it; `page.tsx` (metadata from `userJourneys.metaTitle` / `metaDescription`, static
+  > through the `[lang]` layout's params) renders `UserJourneysIndexPage`: `ScreenIntro` with the first intro
+  > paragraph, the other two, the "Before you start" `ContentCard` and one `LinkRow` per flow ("19 test cases ·
+  > <description>"). The proxy matcher gains `/user-journeys` and `/user-journeys/:path*`. Added: `i18n/user-journey-texts.ts`
+  > (the texts by site locale, for the pages and the e2e) and `utils/case-count.ts` (singular / plural) with tests, and
+  > the page's unit test. `e2e/user-journeys.e2e.ts` has `index lists the four flows in every language` (also checks no
+  > email or 6-digit code in `<main>`), the `/de/user-journeys` 404, `redirects /user-journeys to the browser language`
+  > and `user journey pages are noindex and not linked` (index for now; T-09 adds the flow pages). Files:
+  > `apps/web/src/app/[lang]/user-journeys/layout.tsx`, `apps/web/src/app/[lang]/user-journeys/page.tsx`,
+  > `apps/web/src/modules/user-journeys/pages/user-journeys-index/{index.ts,user-journeys-index.page.tsx,user-journeys-index.types.ts,user-journeys-index.page.test.tsx}`,
+  > `apps/web/src/modules/user-journeys/i18n/user-journey-texts.ts`, `apps/web/src/modules/user-journeys/utils/case-count.ts`,
+  > `apps/web/src/modules/user-journeys/utils/case-count.test.ts`, `apps/web/src/proxy.ts`, `apps/web/e2e/user-journeys.e2e.ts`;
+  > verified: `npm run test:e2e --workspace apps/web -- user-journeys` (6 passed), `npx vitest run
+  > src/modules/user-journeys` (57 passed), `npm run check-types` and `npx eslint src` exit 0; deviations: none.
 
 - [ ] **T-09** — Add the flow pages: `apps/web/src/app/[lang]/user-journeys/[flow]/page.tsx` (D-12: the 12 static
   params, `dynamicParams = false`, `generateMetadata` with the flow title) rendering

@@ -2,10 +2,11 @@
 id: "076"
 slug: user-journeys-pages
 title: User journey pages for test users
-status: in-review
+status: accepted
 created: 2026-10-29
 started: 2026-10-29
 base_commit: 54a34ff6b6cc95d1e0c0909d36a52dc4b68843b4
+reviewed_commit: 4072a45b542c22ed1c71e5bb7e5833ef0c8b7711
 fronts: [backend, web, designs]
 depends_on: []
 ---
@@ -665,3 +666,70 @@ script prints, so no sign-in code ever reaches the public repository.
   and could never equal the `data-design-id` count. Approved by the user.
 
 ## Review
+
+### Round 1 — 2026-10-29 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ (`npx turbo run lint check-types` for web and backend: 19 successful; the backend's 11
+  lint warnings are in `test/` files this spec doesn't touch) · build ✅ (web: `/{pt-br,es,en}/user-journeys` and
+  the 12 flow pages listed as static)
+- related tests ✅ `RELATED TESTS PASSED` (apps/backend; apps/web 56 files, 206 tests) · `npm test --workspace
+  @rochas-surf-school/web` ✅ 237 files, 796 passed
+- coverage of the changed lines ✅ `COVERAGE OK` (`test-accounts.ts` and `print-test-accounts.ts` 100%; the web files
+  are excluded by technical-context); no coverage-ignore comments in the diff
+- e2e ✅ `E2E PASSED`: backend 28 files / 817 passed · web Playwright 66 passed (`user-journeys.e2e.ts`,
+  `redirect.e2e.ts`, `designs.e2e.ts` and the rest)
+- `pack.mjs --check` ✅ 5 files match · ER-14 counts equal (102, 98, 172, 98, 224) · the raw-color grep and
+  `grep -rn "REVIEW_ACCOUNTS" apps/web` find nothing · `.env.example` line 24 is `REVIEW_ACCOUNTS=""` ·
+  `npm run test-accounts` prints the line and 36 table rows
+- browser (built web on port 3100): `/pt-br/user-journeys` at 375 px (intro, "Antes de começar" with the test sets
+  and no code, four cards); `/pt-br/user-journeys/student` at 375 px — name, "Aprovado" then "Reprovado" on ST-01
+  with a note, the counter and the stored D-16 value; `/en/user-journeys/student` shows the same progress; the
+  1280 px table with its column headers and no sideways scroll
+
+**Expected Results**
+
+- ER-01 ✅ — `index lists the four flows in every language` (×3) and the `/de/user-journeys` 404 pass; the
+  `userJourneys` texts of the three dictionaries hold no email address or code
+- ER-02 ✅ — `redirects /user-journeys to the browser language` (es → `/es/…`, de → `/pt-br/…`); `redirect.e2e.ts`
+  and `designs.e2e.ts` pass
+- ER-03 ✅ — `user journey pages are noindex and not linked` (index and 12 flow pages; home, designs, legal pages)
+- ER-04 ✅ — `flow pages show every test case` and `user-journey-flows.test.ts`; a script comparing journeys.md
+  with `user-journey-flows.ts` and `i18n/en.ts` found the same groups, row order, design ids and en titles in all
+  96 rows
+- ER-05 ✅ — `approved and denied exclude each other` (board) and `results and counter` (e2e); names
+  "Approved — ST-05"…; also seen in the browser
+- ER-06 ✅ — `every row has notes`: the note survives Approved → Denied → cleared; other rows untouched
+- ER-07 ✅ — `results-summary.test.ts` (ER-07's text, `Tester: —`, blank note, untested row with a note), the board's
+  `copy results` (Copied for 2 s; rejection shows the message and keeps "Copy results") and the e2e clipboard test
+- ER-08 ✅ — `journey-progress-storage.test.ts`, the board's saving / restoring / throwing-storage tests and
+  `progress is saved in this browser` (reload, es shares it, admin unaffected, no cookie, no `sessionStorage`) plus
+  `a broken saved value is ignored`
+- ~~ER-09~~ — removed by the logged amendment; nothing in the code adds a `beforeunload` handler
+- ER-10 ✅ — `design-href.test.ts`, `every design id exists`, the `design-entry` id test and `design links point at
+  their frames` (each flow's first link, AU-17 → `student-app#ST-05-07`, AU-15 "—")
+- ER-11 ✅ — `flow pages follow the language` (es, pt-br texts and summary; the header switch keeps the flow) and
+  `user-journey-texts.test.ts`; no es / pt-br text of any row equals the English one; a sample (ST-08, AD-25, IN-06,
+  the student flow) uses the app's strings ("Turma cheia" / "Clase llena", "Promover a instrutor" / "Ascender a
+  instructor", "Próxima", "Seu papel mudou" / "Tu rol cambió", "Avisos")
+- ER-12 ✅ — `fits a phone and a desktop` (scrollWidth ≤ 375, labelled card fields, 44 × 44 checkbox labels, the
+  1280 px table headers)
+- ER-13 ✅ — `follows the theme toggle`; the raw-color grep finds nothing
+- ER-14 ✅ — `pack.mjs --check` exits 0, the counts match, and with the added `id="…"` removed and the `<style>`
+  blocks set aside every template equals its base version; every `data-design-id` element has the same `id`
+- ER-15 ✅ — the board's `clear results` (confirm true / false, another flow's key kept) and the e2e `clear results`
+- ER-16 ✅ — `test-accounts.spec.ts` and `print-test-accounts.spec.ts` pass; the script prints 36 accounts; the test
+  emails appear only in the spec and the generator and its test, never with a code
+
+**Findings**
+
+- None.
+
+**Notes**
+
+- Each design frame is drawn light and dark in the generated `.docs/designs/*.html`, so every `id` appears twice
+  there (an anchor jumps to the light one); the web design pages have it once, as the e2e test checks. ER-14 asks
+  for no more.
+- The counter template of D-20 has no singular, so es / pt-br read "1 aprobados" / "1 aprovados". Harmless for the
+  testers; a plural form would be a small follow-up if the school minds.

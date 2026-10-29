@@ -85,7 +85,8 @@ export function ClassDetailsScreen(props: ClassDetailsScreenProps) {
   const overPhone = Boolean(sheet || toast);
 
   return (
-    <PhoneFrame tall={!overPhone}>
+    // The admin's page grows only the open class to its whole content (spec 075 inventory); the others are phone-height.
+    <PhoneFrame tall={!overPhone && (props.role !== "admin" || props.state === "open")}>
       <div className={`flex flex-1 flex-col bg-page${overPhone ? " min-h-0" : ""}`}>
         <StackHeader title="" right={view.showTools ? <HeaderButton icon="Ionicons:construct-outline" label={t("classDetails.tools")} /> : undefined} />
         <div className={`flex flex-col gap-6 px-5 pb-6 pt-4${overPhone ? " min-h-0 flex-1 overflow-hidden" : ""}`}>

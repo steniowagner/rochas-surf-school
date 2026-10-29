@@ -38,7 +38,7 @@ describe("AdminAppPage", { timeout: 30_000 }, () => {
     for (const id of TALL) {
       expect(tall(id), id).toBe(true);
     }
-    for (const id of ["AD-01-02", "AD-03-09", "AD-03-17", "AD-04-03", "AD-05-01", "AD-06-04", "AD-09-02", "AD-10-01"]) {
+    for (const id of ["AD-01-02", "AD-03-02", "AD-03-08", "AD-03-09", "AD-03-17", "AD-04-03", "AD-05-01", "AD-06-04", "AD-09-02", "AD-10-01"]) {
       expect(tall(id), id).toBe(false);
     }
     for (const id of ["AD-01-01", "AD-02-01", "AD-09-01", "AD-11-04"]) {

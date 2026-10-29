@@ -283,6 +283,8 @@ describe("ClassDetailsScreen", () => {
 
     it("AD-03-02..03: the no-instructor banner, and the no-deadline banner with the sport and the rule to read", () => {
       const noInstructor = asAdmin("noInstructor");
+      // Only the open class grows to its content on the admin's page.
+      expect(screen.getByTestId("phone-frame")).not.toHaveAttribute("data-tall");
       expect(screen.getByText("Sem instrutor")).toBeInTheDocument();
       expect(screen.getByText("Atribua um instrutor antes da aula.")).toBeInTheDocument();
       expect(screen.getByText("Sem instrutor atribuído")).toBeInTheDocument();

@@ -540,9 +540,23 @@ script prints, so no sign-in code ever reaches the public repository.
 
 ### Verification
 
-- [ ] **T-11** — Run every command in the Verification Plan from the repo root; all pass. Record the output summary
+- [x] **T-11** — Run every command in the Verification Plan from the repo root; all pass. Record the output summary
   as evidence. Covers: all · Done when: every command exits 0, `check-coverage.mjs` prints `COVERAGE OK` and
   `run-e2e.mjs` prints `E2E PASSED`.
+  > ✅ 2026-10-29 18:25 — `run-related-tests.mjs 076`: RELATED TESTS PASSED (backend 2 files / 8 tests, web 56 files /
+  > 206 tests); `check-coverage.mjs 076`: COVERAGE OK (`test-accounts.ts` and `print-test-accounts.ts` 100%; the web
+  > files are excluded by technical-context); `run-e2e.mjs 076`: E2E PASSED (backend 817 tests, web Playwright 66 — the
+  > first run had 3 backend e2e failures unrelated to this spec, e.g. "creates a new pending enrolment after an
+  > earlier request ended" timing out at 2.1 s; `npm run test:e2e` in `apps/backend` and the rerun of `run-e2e.mjs`
+  > then passed all 817); `pack.mjs --check`: 5 files match; ER-14 counts equal for the five templates (102, 98,
+  > 172, 98, 224); the raw-color grep and `grep -rn "REVIEW_ACCOUNTS" apps/web` find nothing;
+  > `grep -n '^REVIEW_ACCOUNTS=""$' apps/backend/.env.example` finds line 24; `npm run test-accounts --workspace
+  > apps/backend` prints one `REVIEW_ACCOUNTS='…'` line and 36 table rows; `npm test --workspace
+  > @rochas-surf-school/web` (237 files, 796 passed); `npx turbo run lint check-types build
+  > --filter=@rochas-surf-school/web` (9 successful); `npx turbo run lint check-types
+  > --filter=@rochas-surf-school/backend` (15 successful; the backend's 11 lint warnings are in `test/` files this
+  > spec doesn't touch). The browser journeys of the plan are driven by `e2e/user-journeys.e2e.ts` (pt-br and es
+  > summaries, reload, the same progress across languages, clear, design links); files: none; deviations: none.
 
 ## Verification Plan
 

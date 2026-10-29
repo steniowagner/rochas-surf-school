@@ -188,13 +188,20 @@ side, replacing the outdated European Portuguese prototype.
   > verified: `npx vitest run src/modules/designs/screens` (23 passed) and `npm run check-types` (exit 0);
   > deviations: none
 
-- [ ] **T-03** — Write the screen mocks of sections 03–04 the same way: `pending-screen`, `whatsapp-screen`
+- [x] **T-03** — Write the screen mocks of sections 03–04 the same way: `pending-screen`, `whatsapp-screen`
   (empty, filled, country picker, invalid, saving, toast), `school-rules-screen` (loading, loaded, accepted, load
   error, empty, toast; onboarding and rules-update copy), `reactivation-screen` (not requested, requesting, error,
   requested, denied with and without a reason), `denied-screen` and `removed-screen` (with and without a reason or a
   school number, contact toast), with a Vitest test per screen covering every state of AF-03-01 to AF-04-12. Skill:
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices). Covers: ER-03 · Done when:
   `npx vitest run src/modules/designs/screens` passes in `apps/web`.
+  > ✅ 2026-10-28 22:15 — wrote `pending-screen`, `whatsapp-screen`, `school-rules-screen`, `reactivation-screen`, `denied-screen` and
+  > `removed-screen` in `apps/web/src/modules/designs/screens/auth/` (component, types, index, test each), covering AF-03-01 to AF-04-12;
+  > the school's rules and the admin's reason come in as props (D-04);
+  > verified: `npx vitest run src/modules/designs/screens` (50 passed, both tasks) and `npm run check-types` (exit 0);
+  > deviations: the app's code wins over the inventory text where they differ (071 D-08): the WhatsApp card starts with the "hide my number" switch
+  > on (`useWhatsappNumberForm` hides by default), so AF-03-02 and AF-03-03 both draw it on, and after an outdated rules error
+  > (AF-03-13) the checkbox is unchecked (`onOutdated`), as the app draws it
 
 - [ ] **T-04** — Write the auth flow page: the four section components `components/auth-flow-{sign-in,email,onboarding,closed-account}/`
   composed by `pages/auth-flow/`, the route `src/app/[lang]/designs/auth-flow/page.tsx` with `generateMetadata`, the

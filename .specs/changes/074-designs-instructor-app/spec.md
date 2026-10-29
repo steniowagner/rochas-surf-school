@@ -2,7 +2,7 @@
 id: "074"
 slug: designs-instructor-app
 title: Instructor app designs page
-status: in-progress
+status: in-review
 created: 2026-10-29
 started: 2026-10-29
 base_commit: 00b7be834f502e3f1ec2645ae078a7d9719a6a9e

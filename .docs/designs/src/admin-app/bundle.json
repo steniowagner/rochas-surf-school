@@ -1,210 +1,105 @@
 {
-  "extResources": [
-    {
-      "id": "flagBR",
-      "uuid": "a2e7aea3-f28c-4e75-91bc-a216431908ab"
-    },
-    {
-      "id": "flagES",
-      "uuid": "73602eb4-8594-46c5-a17a-5453e1d37e58"
-    },
-    {
-      "id": "flagGB",
-      "uuid": "db1e7a8d-4b56-4ba6-88da-f553c5fd8d48"
-    },
-    {
-      "id": "./App%20Admin.dc.html",
-      "uuid": "89c536cb-abff-4842-86e8-f3f80958152f"
-    },
-    {
-      "id": "https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap",
-      "uuid": "24475670-08e5-46d9-ba5d-b5f13639f433"
-    },
-    {
-      "id": "https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js",
-      "uuid": "d907d280-a460-4853-8e93-4553eac1fa92"
-    },
-    {
-      "id": "https://unpkg.com/react@18.3.1/umd/react.production.min.js",
-      "uuid": "e9a6760f-919c-4d8a-b576-4ee7af2fb45e"
-    },
-    {
-      "id": "https://unpkg.com/@babel/standalone@7.29.0/babel.min.js",
-      "uuid": "172c4058-2db0-48e6-90ae-78819369c63d"
-    }
-  ],
+  "extResources": [],
   "pageOrder": [],
   "assets": [
     {
-      "uuid": "a2e7aea3-f28c-4e75-91bc-a216431908ab",
-      "file": "_shared/flagBR.png",
-      "mime": "image/png",
-      "compressed": false
-    },
-    {
-      "uuid": "73602eb4-8594-46c5-a17a-5453e1d37e58",
-      "file": "_shared/flagES.png",
-      "mime": "image/png",
-      "compressed": false
-    },
-    {
-      "uuid": "db1e7a8d-4b56-4ba6-88da-f553c5fd8d48",
-      "file": "_shared/flagGB.png",
-      "mime": "image/png",
-      "compressed": false
-    },
-    {
-      "uuid": "c04e66e0-8ce3-463c-ac5f-00bb97808f1c",
-      "file": "_shared/icons.js",
-      "mime": "application/javascript",
-      "compressed": true
-    },
-    {
-      "uuid": "00fc66cd-87e5-4011-a9b8-f98665194f70",
-      "file": "_shared/dc-runtime.js",
-      "mime": "text/javascript",
-      "compressed": true
-    },
-    {
-      "uuid": "45320cac-e7dd-41e7-be58-fc0d30d894dc",
-      "file": "_shared/ios-frame.jsx",
-      "mime": "text/jsx",
-      "compressed": true
-    },
-    {
-      "uuid": "accc726e-5c85-4d2d-8dc8-a8679d67df1e",
-      "file": "_shared/android-frame.jsx",
-      "mime": "text/jsx",
-      "compressed": true
-    },
-    {
-      "uuid": "89c536cb-abff-4842-86e8-f3f80958152f",
-      "file": "admin-app/App Admin.dc.html",
-      "mime": "text/html",
-      "compressed": true
-    },
-    {
-      "uuid": "24475670-08e5-46d9-ba5d-b5f13639f433",
-      "file": "_shared/fonts.css",
-      "mime": "text/css",
-      "compressed": true
-    },
-    {
-      "uuid": "d907d280-a460-4853-8e93-4553eac1fa92",
-      "file": "_shared/react-dom.production.min.js",
-      "mime": "text/javascript",
-      "compressed": true
-    },
-    {
-      "uuid": "e9a6760f-919c-4d8a-b576-4ee7af2fb45e",
-      "file": "_shared/react.production.min.js",
-      "mime": "text/javascript",
-      "compressed": true
-    },
-    {
-      "uuid": "172c4058-2db0-48e6-90ae-78819369c63d",
-      "file": "_shared/babel.min.js",
-      "mime": "text/javascript",
-      "compressed": true
-    },
-    {
-      "uuid": "d6a1dd6c-f5f0-4ee1-99d6-ed3a06345653",
+      "uuid": "dd5fcc79-d7e2-415e-b874-976770ce085e",
       "file": "_shared/font-bc42ba6f.woff2",
       "mime": "font/woff2",
       "compressed": false
     },
     {
-      "uuid": "e5b68c60-a8e5-407e-9923-cea2f23e197e",
+      "uuid": "d43461b0-721c-4928-b1b4-9a8e7a6cc17c",
       "file": "_shared/font-ed8618e8.woff2",
       "mime": "font/woff2",
       "compressed": false
     },
     {
-      "uuid": "db9a05d3-4f13-4e82-a965-34f6a345c16e",
+      "uuid": "331f73a5-4f57-44e6-bdb3-ae95682e79cb",
       "file": "_shared/font-0e2a4081.woff2",
       "mime": "font/woff2",
       "compressed": false
     },
     {
-      "uuid": "5c75c8d6-b26c-4cb7-84b1-f4d4fa244c9e",
+      "uuid": "683fe794-94ba-414b-948d-057b55e2969f",
       "file": "_shared/font-864c709d.woff2",
       "mime": "font/woff2",
       "compressed": false
     },
     {
-      "uuid": "39a1a345-43bf-474f-89b5-72c3679968eb",
+      "uuid": "f5ae4084-ea0e-44fa-b10e-eae6eb87a756",
       "file": "_shared/font-f8ec026d.woff2",
       "mime": "font/woff2",
       "compressed": false
     },
     {
-      "uuid": "180b00b1-2fc1-4bec-bc96-f5a3f9a28bef",
+      "uuid": "f0cb930a-9139-4f1a-9cc4-7f2554d85aa8",
       "file": "_shared/font-31ff5e6e.woff2",
       "mime": "font/woff2",
       "compressed": false
     },
     {
-      "uuid": "61ac7645-10d7-4239-b473-9d2e80ec0be6",
+      "uuid": "1c92e466-f0a0-4d06-bd4f-91a8f2920cb0",
       "file": "_shared/font-50c25f32.woff2",
       "mime": "font/woff2",
       "compressed": false
     },
     {
-      "uuid": "954e1feb-6bc0-4aae-ba19-d7327e3915a9",
+      "uuid": "00c0b14a-d2d3-4a93-8fd8-93df1ce60bfe",
       "file": "_shared/font-a2f92ada.woff2",
       "mime": "font/woff2",
       "compressed": false
     },
     {
-      "uuid": "81e5ea17-97b7-4698-b8d3-521119b4ac86",
+      "uuid": "ef156f89-393a-4f80-b218-146e7045648f",
       "file": "_shared/font-5bc49d41.woff2",
       "mime": "font/woff2",
       "compressed": false
     },
     {
-      "uuid": "845a5e25-a93d-4417-a980-c5e7000ecabb",
+      "uuid": "24cccc99-5c9b-454c-89f1-646d0ebbf7ce",
       "file": "_shared/font-960aaed3.woff2",
       "mime": "font/woff2",
       "compressed": false
     },
     {
-      "uuid": "ff081f0c-72dc-4ff0-bd6b-3f3c5ce80903",
+      "uuid": "c42eca55-fc78-40c8-a7f3-b41fc7f0af48",
       "file": "_shared/font-0c165565.woff2",
       "mime": "font/woff2",
       "compressed": false
     },
     {
-      "uuid": "42a87f24-7a18-426a-b99f-1a2f165e441a",
+      "uuid": "7fcdfe9c-143e-44da-83d1-8922354b3be0",
       "file": "_shared/font-e3e520cb.woff2",
       "mime": "font/woff2",
       "compressed": false
     },
     {
-      "uuid": "ed077752-a037-4af8-89fa-949ea0ec67af",
+      "uuid": "feaa59a8-4db0-44e5-b38d-97f5b156bb52",
       "file": "_shared/font-2d06f2c3.woff2",
       "mime": "font/woff2",
       "compressed": false
     },
     {
-      "uuid": "79da035d-f4ae-4821-aa82-34c75b19a74f",
+      "uuid": "18f3f429-493b-4377-b710-38ffa7365401",
       "file": "_shared/font-b63651df.woff2",
       "mime": "font/woff2",
       "compressed": false
     },
     {
-      "uuid": "15b0093f-dfd9-4fa9-a7b9-aa5df7b07948",
+      "uuid": "7b821712-2ce1-4f2c-9122-9ddc155525e6",
       "file": "_shared/font-d107f726.woff2",
       "mime": "font/woff2",
       "compressed": false
     },
     {
-      "uuid": "29dd66c8-4ea4-4634-9ee7-70bcba6789e2",
+      "uuid": "e07f527b-abd1-42d3-b2f6-387c56c32bfd",
       "file": "_shared/font-511ce967.woff2",
       "mime": "font/woff2",
       "compressed": false
     },
     {
-      "uuid": "52eb017c-7f39-4088-ab60-a6d49b86cd9e",
+      "uuid": "a7a3a6db-d20a-463f-b36a-5e0e620a9378",
       "file": "_shared/font-20fc9b6f.woff2",
       "mime": "font/woff2",
       "compressed": false

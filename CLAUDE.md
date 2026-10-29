@@ -38,7 +38,7 @@ Designs (`.docs/designs`): the `.html` files are edited through their readable s
 
 - `node .docs/designs/scripts/pack.mjs [<name>]`: sources → `.html`. `--check` exits 1 naming any `.html` that doesn't match its sources
 - `node .docs/designs/scripts/unpack.mjs [<name>]`: `.html` → sources (only to import a new Claude Design export)
-- `node .docs/designs/scripts/build-design.mjs <slug>` (`design-system`, `auth-flow`, `student-app` or `instructor-app`): regenerates the sources of `<slug>.html` from the web's page `/pt-br/designs/<slug>` (build and `next start -p 3100` the web first), then `pack.mjs <slug>`. Those files' sources are generated, not hand-edited
+- `node .docs/designs/scripts/build-design.mjs <slug>` (`design-system`, `auth-flow`, `student-app`, `instructor-app` or `admin-app`): regenerates the sources of `<slug>.html` from the web's page `/pt-br/designs/<slug>` (build and `next start -p 3100` the web first), then `pack.mjs <slug>`. Those files' sources are generated, not hand-edited
 - `node --test .docs/designs/scripts/*.test.mjs`: tests of the scripts
 
 Spec skills (`.claude/skills/spec-*`): after changing one of them or the framework bundled in `spec-init/assets/`, run their evals with `node .claude/evals/spec-workflow/run.mjs` (see its README; it runs `claude -p`, so it costs tokens).

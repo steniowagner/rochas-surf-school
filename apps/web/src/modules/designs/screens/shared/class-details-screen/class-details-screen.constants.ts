@@ -114,8 +114,8 @@ export const getClassDetailsView = (details: LoadedClassDetails): ClassDetailsVi
       // The trial guests sit in the classes that still have room.
       guests: !full && !scenario.noStudents,
       noStudents: scenario.noStudents ?? false,
-      // The admin's list is open, with the "Retirar" buttons.
-      expanded: !scenario.noStudents,
+      // The admin's list is open on a class still to happen or under way (with the "Retirar" buttons before it starts).
+      expanded: !scenario.noStudents && (notStarted || scenario.classState === "started"),
       readOnlyNoteKey: null,
       showTools: scenario.classState !== "finished" && scenario.classState !== "cancelled",
       showNoInstructor: notStarted && scenario.teacher === "none",

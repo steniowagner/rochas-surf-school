@@ -312,11 +312,14 @@ describe("ClassDetailsScreen", () => {
       expect(screen.getByText("Começou às 08:00 e termina às 09:30.")).toBeInTheDocument();
       expect(tools()).toBeInTheDocument();
       expect(screen.queryByRole("button", { name: /^Retirar/ })).toBeNull();
+      expect(screen.getByRole("button", { name: "Ana Beatriz Lima" })).toBeInTheDocument();
       started.unmount();
 
       const finished = asAdmin("finished");
       expect(screen.getByText("Aula finalizada")).toBeInTheDocument();
       expect(tools()).toBeNull();
+      // The list of a class that already happened stays closed.
+      expect(screen.queryByRole("button", { name: "Ana Beatriz Lima" })).toBeNull();
       finished.unmount();
 
       asAdmin("classCancelled");

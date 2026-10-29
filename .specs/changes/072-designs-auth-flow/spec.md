@@ -2,7 +2,7 @@
 id: "072"
 slug: designs-auth-flow
 title: Auth flow designs page
-status: in-progress
+status: in-review
 created: 2026-10-28
 started: 2026-10-28
 base_commit: f95c96594988ce6b9e7d7cbe12a1cf34341d3c3d
@@ -248,9 +248,16 @@ side, replacing the outdated European Portuguese prototype.
 
 ### Verification
 
-- [ ] **T-06** — Run every command in the Verification Plan from the repo root; all pass. Record the output summary
+- [x] **T-06** — Run every command in the Verification Plan from the repo root; all pass. Record the output summary
   as evidence. Covers: all · Done when: every command exits 0 and `check-coverage.mjs` prints `COVERAGE OK` and
   `run-e2e.mjs` prints `E2E PASSED`.
+  > ✅ 2026-10-28 22:50 — ran the Verification Plan from the repo root: `run-related-tests.mjs 072` (apps/web 62 files, 200 tests, RELATED TESTS PASSED),
+  > `check-coverage.mjs 072` (COVERAGE OK; every changed source is excluded by technical-context), `run-e2e.mjs 072` (37 passed, E2E PASSED),
+  > `npm test --workspace @rochas-surf-school/web` (81 files, 266 passed), `npx turbo run lint check-types build --filter=@rochas-surf-school/web --force`
+  > (9 tasks successful, no warnings), `node --test .docs/designs/scripts/*.test.mjs` (7 passed), `pack.mjs --check` (5 files match), the old prototype
+  > file is gone and the grep for European Portuguese and the Apple button finds nothing; journeys: `auth-flow.html` opened over http (98 entries, all
+  > images loaded) and `/pt-br/designs/auth-flow` opened in the browser in dark and light, with the e2e tests covering the theme and language switches;
+  > deviations: none
 
 ## Verification Plan
 

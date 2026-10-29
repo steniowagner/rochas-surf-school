@@ -2,7 +2,7 @@
 id: "073"
 slug: designs-student-app
 title: Student app designs page
-status: in-progress
+status: in-review
 created: 2026-10-28
 started: 2026-10-28
 base_commit: 4be1936df6c3a33e8dc6b0e0bfcf946c4145ec51
@@ -262,9 +262,13 @@ with light and dark side by side, replacing the outdated European Portuguese pro
 
 ### Verification
 
-- [ ] **T-07** — Run every command in the Verification Plan from the repo root; all pass. Record the output summary
+- [x] **T-07** — Run every command in the Verification Plan from the repo root; all pass. Record the output summary
   as evidence. Covers: all · Done when: every command exits 0 and `check-coverage.mjs` prints `COVERAGE OK` and
   `run-e2e.mjs` prints `E2E PASSED`.
+  > ✅ 2026-10-28 23:21 — ran the whole Verification Plan from the repo root, all green;
+  > files: none (the spec only);
+  > verified: `node .specs/scripts/run-related-tests.mjs 073` (RELATED TESTS PASSED: apps/web 130 files, 435 tests; the root's `build-design.mjs`/`CLAUDE.md` changes have no runner); `node .specs/scripts/check-coverage.mjs 073` (COVERAGE OK — no changed line to measure: `apps/web/src/**` and `.docs/designs/**` are excluded by technical-context; the new code is covered by its own tests anyway, see the vitest coverage summary of the related run: 80% lines / 92% branches over `apps/web`); `node .specs/scripts/run-e2e.mjs 073` (E2E PASSED, 42 tests); `node --test .docs/designs/scripts/*.test.mjs` (7 passed); `node .docs/designs/scripts/pack.mjs --check` (exit 0); the three `student-app` checks of T-06 (prototype gone, 0 photos, no European Portuguese wording); `npm test --workspace @rochas-surf-school/web` (130 files, 435 tests); `npx turbo run lint check-types build --filter=@rochas-surf-school/web` (9 tasks successful); each Expected Result went through: ER-01 ← T-06 checks, ER-02..06 ← the e2e tests named in the spec, which pass;
+  > deviations: the user journey "open `.docs/designs/student-app.html`" could not be driven here (the browser pane refused the `file://` URL), so it is left for the reviewer; `/pt-br/designs/student-app` was walked in the browser pane at 1440 px instead
 
 ## Verification Plan
 

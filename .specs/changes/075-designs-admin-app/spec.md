@@ -2,7 +2,7 @@
 id: "075"
 slug: designs-admin-app
 title: Admin app designs page
-status: in-progress
+status: in-review
 started: 2026-10-29
 base_commit: 0a47dbb52cb9d9a40eec0781a1c1e4b2a9151e77
 created: 2026-10-29

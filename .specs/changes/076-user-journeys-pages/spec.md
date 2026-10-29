@@ -645,7 +645,6 @@ script prints, so no sign-in code ever reaches the public repository.
 - 2026-10-29 — /spec-plan --amend — [journeys.md](journeys.md) changed: each role flow's account → that role's
   account in the tester's test set; AD-26 "The school always keeps an admin" → "Mark yourself as also an
   instructor" (it can't happen with 12 admins). Reason: the test sets. Approved by the user.
-
 - 2026-10-29 — /spec-execute — ER-14's Verify by and the Verification Plan's ER-14 counts: `grep -oE
   'id="(DS|AF|ST|IN|AD)-[0-9]{2}-[0-9]{2}"'` → `grep -oE ' id="(DS|AF|ST|IN|AD)-[0-9]{2}-[0-9]{2}"'` (a leading space).
   Reason: without it the pattern also matches the tail of every `data-design-id="…"`, so it counted each frame twice

@@ -2,10 +2,11 @@
 id: "073"
 slug: designs-student-app
 title: Student app designs page
-status: in-review
+status: accepted
 created: 2026-10-28
 started: 2026-10-28
 base_commit: 4be1936df6c3a33e8dc6b0e0bfcf946c4145ec51
+reviewed_commit: 27e9a36a5334bbe7924d9d0b5d9c268da59ce0cd
 fronts: [web, designs]
 depends_on: []
 ---
@@ -395,3 +396,45 @@ with light and dark side by side, replacing the outdated European Portuguese pro
 - T-06's evidence says 15 `ph*.jpg` photos were removed; the diff deletes 16. Everything else matches.
 - `## Memory Impact` matches what was built. `spec-finish` can also mention the client `phone-frame-tall` component
   under the tall phone frame.
+
+### Round 2 — 2026-10-28 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`npx turbo run lint check-types build --filter=@rochas-surf-school/web`, 9 tasks)
+- related tests ✅ 435 passed (apps/web, 130 files), first run, with the 20 s timeout on `student-app.page.test.tsx`
+- coverage of the changed lines ✅ `COVERAGE OK`: no changed line to measure (`apps/web/src/**` and `.docs/designs/**`
+  are excluded by technical-context); no coverage-ignore comments, TODOs or debug leftovers in the diff
+- e2e ✅ `E2E PASSED`: apps/web, 42 passed
+- `node --test .docs/designs/scripts/*.test.mjs` ✅ 7 passed · `pack.mjs --check` ✅ 5 files match
+- old prototype gone ✅ · `ph*` photos 0 ✅ · European Portuguese and rating wording: none ✅
+- `build-design.mjs student-app` rerun against `next start -p 3100` on the reviewed commit: no file changed, so
+  `student-app.html` matches the web page as it is now ✅
+
+**Expected Results**
+
+- ER-01 ✅ — `student-app.html` served over http: 86 distinct ids, light and dark side by side, 24 tall entries at
+  their full content height; the 11 sheet and toast entries of F-01 are 402 × 874 with the sheet docked at the frame's
+  bottom and the footer button inside the screen (e.g. ST-02-18's denial sheet, ST-02-05's "Anular pedido" under the
+  toast); no `{{`, no "ecrã / Já a seguir / As minhas / Avaliar"
+- ER-02 ✅ — `index lists the design pages in every language` and `redirects /designs/student-app to the browser
+  language` pass
+- ER-03 ✅ — `student app shows every inventory entry` and `student app draws tall frames` pass; the page test now also
+  asserts the 11 sheet and toast entries are not tall; round 1's walk against the mobile code still holds (the fix
+  changes only the frame height of those entries)
+- ER-04 ✅ — `student app follows the language` passes
+- ER-05 ✅ — `student app follows the theme toggle` passes
+- ER-06 ✅ — `design pages are wide` and `design pages fit a phone viewport` cover the student app page
+
+**Findings**
+
+- F-01 (round 1) ✅ fixed — `ClassDetailsScreen` and `NotificationsScreen` draw a phone-height frame with the content
+  clipped when a sheet or toast is shown (`overPhone`), as D-02 says. No new findings.
+
+**Notes**
+
+- Round 1's notes on the inventory still stand: ST-02-16 and ST-02-26 describe admin-only cards, ST-02-27..29 are
+  phone-height, and the Class section's "Every class-details frame is *tall*" now reads against the sheet and toast
+  entries. The page follows D-02 and the fidelity rule, so `spec-finish` may want to correct those inventory lines when
+  it archives the spec.
+- T-06's evidence still says 15 `ph*.jpg` photos were removed; the diff deletes 16.

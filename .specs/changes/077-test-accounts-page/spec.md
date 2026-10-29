@@ -2,7 +2,7 @@
 id: "077"
 slug: test-accounts-page
 title: Test accounts page for testers
-status: in-progress
+status: in-review
 created: 2026-10-29
 started: 2026-10-29
 base_commit: 8afe1d749ef35aa8e906eb17b725d60e31a37936

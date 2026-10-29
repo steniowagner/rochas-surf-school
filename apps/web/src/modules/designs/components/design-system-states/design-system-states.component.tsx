@@ -1,4 +1,4 @@
-import { monthWeeks, weekDays } from "@/modules/designs/data/fortaleza";
+import { buildMockCalendar } from "@/modules/designs/data/mock-calendar";
 import { appT } from "@/modules/designs/i18n/app-t";
 
 import { AppIcon } from "../app-icon";
@@ -27,16 +27,11 @@ export function DesignSystemStates({ locale, text }: DesignSystemSectionProps) {
     { key: "people", label: t("tabs.people"), icon: "Feather:users" },
     { key: "profile", label: t("tabs.profile"), icon: "FontAwesome6:circle-user" },
   ] as const;
-  const intl = { "pt-br": "pt-BR", es: "es-ES", en: "en-US" }[locale];
-  const weekday = (date: string, style: "short" | "narrow") =>
-    new Intl.DateTimeFormat(intl, { weekday: style, timeZone: "UTC" }).format(new Date(`${date}T12:00:00Z`)).replace(".", "").toUpperCase();
   const calendar = {
     view: "week" as const,
-    caption: new Intl.DateTimeFormat(intl, { month: "long", timeZone: "UTC" }).format(new Date("2026-09-09T12:00:00Z")),
+    ...buildMockCalendar(locale),
     previousLabel: t("weekMonthCalendar.previousWeek"),
     nextLabel: t("weekMonthCalendar.nextWeek"),
-    week: { days: weekDays.map((day) => ({ ...day, weekday: weekday(day.date, "short") })) },
-    month: { initials: monthWeeks[1]?.map((day) => weekday(day.date, "narrow")) ?? [], weeks: monthWeeks, selectedWeekIndex: 1 },
   };
   // The admin's classes screen as the app renders it: the title and the add button in the header, the week calendar,
   // the state under it, the floating sport filter and the staff tab bar.
@@ -51,7 +46,7 @@ export function DesignSystemStates({ locale, text }: DesignSystemSectionProps) {
         <WeekMonthCalendar {...calendar} />
       </div>
       <div className="flex flex-1 flex-col gap-3 px-5 pt-8">{body}</div>
-      <span className="absolute bottom-28 right-5 flex size-14 items-center justify-center rounded-full bg-grape text-on-color shadow-primary" aria-hidden>
+      <span className="absolute bottom-28 right-5 flex size-14 items-center justify-center rounded-card bg-grape text-on-color shadow-fab" aria-hidden>
         <AppIcon name="Ionicons:filter" size={24} />
       </span>
       <TabBar tabs={[...tabs]} selected="classes" />

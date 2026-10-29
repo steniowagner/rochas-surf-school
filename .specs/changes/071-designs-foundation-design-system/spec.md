@@ -421,9 +421,18 @@ shared between mobile and web, the phone frame and the mock UI pieces.
 
 ### Verification
 
-- [ ] **T-12** — Run every command in the Verification Plan from the repo root; all pass. Record the output
+- [x] **T-12** — Run every command in the Verification Plan from the repo root; all pass. Record the output
   summary as evidence. Covers: all · Done when: every command exits 0 and `check-coverage.mjs` prints
   `COVERAGE OK` and `run-e2e.mjs` prints `E2E PASSED`.
+  > ✅ 2026-10-28 22:10 — ran the Verification Plan from the repo root: `node .specs/scripts/run-related-tests.mjs 071` (RELATED TESTS PASSED:
+  > mobile, web, app-messages), `node .specs/scripts/check-coverage.mjs 071` (COVERAGE OK — 1 measured file, the rest excluded by
+  > technical-context or without executable lines), `node .specs/scripts/run-e2e.mjs 071` (E2E PASSED, 32 tests),
+  > `node --test .docs/designs/scripts/*.test.mjs` (7 passed), `node .docs/designs/scripts/pack.mjs --check` (5 files match),
+  > `test ! -e .docs/designs/empty-and-error-states.html` (gone), `npx turbo run build check-types --filter=@rochas-surf-school/app-messages`,
+  > `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` (T-05) and
+  > `npx turbo run lint check-types build --filter=@rochas-surf-school/web` (T-11) all successful; files: none; deviations: the
+  > iOS-simulator launch of the mobile app (sign-in in pt-BR, en, es) was not done in this session — the user must open the app in the
+  > simulator and see "Continuar com o Google" with the phone in Portuguese
 
 ## Verification Plan
 

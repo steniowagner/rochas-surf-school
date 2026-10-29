@@ -91,7 +91,7 @@ export const localeOptions = [
 ];
 
 /** The instructor the instructor app page is signed in as (spec 074): Rafael Rocha, of the school's directory. */
-export const instructorAccount = { id: "rafael", name: "Rafael Rocha", firstName: "Rafael" } as const;
+export const instructorAccount = { id: "rafael", name: "Rafael Rocha", firstName: "Rafael", email: "rafael.rocha@email.com" } as const;
 
 /** The other instructor of the school's classes, the one who teaches what Rafael doesn't. */
 export const otherInstructor = { id: "marina", name: "Marina Teixeira" } as const;

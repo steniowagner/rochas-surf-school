@@ -46,7 +46,7 @@ export type InstructorClassDetailsSheet = "person" | "rules";
 
 type ClassDetailsTexts = {
   /** Texts the school typed (spec 073 D-04): not app copy. */
-  texts: { denialReason: string; takeOutReason: string; notes: string; cancellationRules?: { surf: string; skate: string } };
+  texts: { notes: string; denialReason?: string; takeOutReason?: string; cancellationRules?: { surf: string; skate: string } };
 };
 
 type StudentClassDetailsProps = {

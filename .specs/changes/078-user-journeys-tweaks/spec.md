@@ -73,12 +73,24 @@ email, `testeNN.…`).
 
 ### Web (`apps/web`)
 
-- [ ] **T-01** — In `src/modules/user-journeys/pages/user-journey-flow/user-journey-flow.page.tsx`, render "All
+- [x] **T-01** — In `src/modules/user-journeys/pages/user-journey-flow/user-journey-flow.page.tsx`, render "All
   flows" before "See the designs"; in `user-journey-flow.page.test.tsx` assert that order; in
   `e2e/user-journeys.e2e.ts` → `flow pages follow the language`, assert in every language that "All flows" comes
   before "See the designs".
   Covers: ER-01 · Done when: `npx vitest run src/modules/user-journeys/pages/user-journey-flow` and
   `npx playwright test e2e/user-journeys.e2e.ts -g "follow the language"` pass in `apps/web`.
+  > ✅ 2026-10-29 20:30 — the flow page renders "All flows" (subtle, `/{lang}/user-journeys`) before "See the designs"
+  > (outline, `target="_blank"`), both unchanged otherwise; the page test asserts the order with
+  > `compareDocumentPosition`; the e2e helper `flowCtasOf` reads the two links in page order and is asserted in
+  > `flow pages follow the language` (es, pt-br) and, so en is covered on all four flows, in
+  > `flow pages show every test case`. Both e2e tests failed with the old order (HEAD's page restored temporarily:
+  > "2 failed", Expected/Received swapped) and pass with the new one; files:
+  > `apps/web/src/modules/user-journeys/pages/user-journey-flow/user-journey-flow.page.tsx`,
+  > `apps/web/src/modules/user-journeys/pages/user-journey-flow/user-journey-flow.page.test.tsx`,
+  > `apps/web/e2e/user-journeys.e2e.ts`; verified: `npx vitest run src/modules/user-journeys/pages/user-journey-flow`
+  > (2 passed), `npx playwright test e2e/user-journeys.e2e.ts -g "follow the language|every test case"` (2 passed),
+  > `npx eslint e2e/user-journeys.e2e.ts` (clean); deviations: the order is also asserted in
+  > `flow pages show every test case`, because `flow pages follow the language` only opens es and pt-br
 
 - [ ] **T-02** — Make `title` optional in `src/components/content-card/` (D-01); stop passing it in
   `src/modules/user-journeys/pages/test-accounts/test-accounts.page.tsx`; remove `testAccounts.set` from

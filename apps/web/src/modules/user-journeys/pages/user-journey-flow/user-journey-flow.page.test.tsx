@@ -25,7 +25,10 @@ describe("UserJourneyFlowPage", () => {
     const designs = screen.getByRole("link", { name: "See the designs" });
     expect(designs).toHaveAttribute("href", "/en/designs/instructor-app");
     expect(designs).toHaveAttribute("target", "_blank");
-    expect(screen.getByRole("link", { name: "All flows" })).toHaveAttribute("href", "/en/user-journeys");
+    const allFlows = screen.getByRole("link", { name: "All flows" });
+    expect(allFlows).toHaveAttribute("href", "/en/user-journeys");
+    // "All flows" comes first, then "See the designs".
+    expect(allFlows.compareDocumentPosition(designs) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     const testAccounts = screen.getByRole("link", { name: "See the test accounts" });
     expect(testAccounts).toHaveAttribute("href", "/en/user-journeys/test-accounts");
     expect(screen.getByRole("heading", { name: "Account to use" }).closest("section")).toContainElement(testAccounts);

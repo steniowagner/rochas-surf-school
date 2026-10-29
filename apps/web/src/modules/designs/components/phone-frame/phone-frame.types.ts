@@ -10,4 +10,6 @@ export type PhoneFrameProps = {
   contentClassName?: string;
   /** The content fills the whole frame and the status bar is drawn over it, as on a full-bleed screen. */
   fullBleed?: boolean;
+  /** The frame grows to the whole scrolled content of a screen longer than the phone (spec 073 D-02). */
+  tall?: boolean;
 };

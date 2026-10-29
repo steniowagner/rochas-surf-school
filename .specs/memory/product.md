@@ -1329,6 +1329,18 @@ frames show the app's own team photo and Google logo and stay in the light palet
 them; every other frame follows the theme and language picked in the site header. The school rules and the
 admin's denial reason in the frames are mock text in the page's language.
 
+**Student app designs page** (spec `073-designs-student-app`) — the designs index lists a third page, the student app,
+at `/{lang}/designs/student-app`. It shows every screen an approved student sees, in 86 entries (`ST-<section>-<entry>`)
+in six sections: the agenda (week and month, the sport filter, loading, empty day, error), a class (one frame per
+enrolment status with the button the app gives it, one per class state for a class the student isn't in, the four
+enrolment sheets and their states, the toasts, loading, not found and error), my classes and the history, the
+school's people (the directory and the person sheet, with no admin actions), the profile with its sheets and
+sub-screens (edit profile, WhatsApp, school rules) and the notifications (one row per notification type the backend
+sends a student, with its in-app text). Screens shared by the three roles are drawn in their student form. Screens
+longer than the phone are drawn as tall frames that show the whole scrolled content; sheets and toasts are drawn
+over a phone-height screen. The school's texts (denial and take-out reasons, cancellation and school rules, class
+notes) are mock text in the page's language. Ratings, photos and keyboard-open frames are not shown.
+
 Active specs: none.
 
 ## Out of scope (future evolution, recorded in the specs)
@@ -1378,10 +1390,10 @@ Active specs: none.
 - Deploying the public site (host and domain), linking the privacy policy from the store listings, the onboarding
   line linking the terms and the policy, a report button for objectionable content, the
   legal (LGPD) review of the pages' copy.
-- On the designs area (spec 071): the student, instructor and admin designs on the site (each to come in its own
-  spec), Android phone frames, clickable prototypes (every state is a static frame), search-engine settings for
-  the design pages, and keeping the Claude Design project in sync with the design files. On the auth flow page (spec
-  072): frames with the keyboard open.
+- On the designs area (spec 071): the instructor and admin designs on the site (each to come in its own spec, with
+  their role's form of the shared screens), Android phone frames, clickable prototypes (every state is a static
+  frame), search-engine settings for the design pages, and keeping the Claude Design project in sync with the design
+  files. On the auth flow and student app pages (specs 072 and 073): frames with the keyboard open.
 - On the Profile (spec 026): uploading or changing the profile photo (the camera button says "coming soon"),
   splitting the name into first and last name, real data in the
   About sheet (mocked), and keeping the theme, language and push preferences on the account or syncing them across
@@ -1481,6 +1493,11 @@ Active specs: none.
   email and code, approval, onboarding, rules update, closed accounts), in pt-BR, every entry in light and dark side
   by side. Since spec 072 it is generated from the site's auth flow page (`/{lang}/designs/auth-flow`), like
   `design-system.html`; the former European Portuguese prototype is gone.
-- `.docs/designs/student-app.html`, `instructor-app.html`, `admin-app.html` — the designs of each role's screens.
+- `.docs/designs/student-app.html` — the student app: every screen an approved student sees (agenda, class and
+  enrolment, my classes and history, people, profile, notifications), in pt-BR, every entry in light and dark side by
+  side, the tall frames at their full height. Since spec 073 it is generated from the site's student app page
+  (`/{lang}/designs/student-app`), like `design-system.html`; the former European Portuguese prototype, with its
+  ratings and photos, is gone.
+- `.docs/designs/instructor-app.html`, `admin-app.html` — the designs of the instructor's and the admin's screens.
 - Since spec 071 the design files are edited through readable sources in `.docs/designs/src/`, rebuilt into the
   `.html` files by a pack script; the Claude Design project is no longer where they are edited.

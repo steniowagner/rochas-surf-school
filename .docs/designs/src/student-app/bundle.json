@@ -1,370 +1,105 @@
 {
-  "extResources": [
-    {
-      "id": "flagBR",
-      "uuid": "6c866b8f-c191-448d-b823-14bf3e07a38e"
-    },
-    {
-      "id": "flagES",
-      "uuid": "adbeed47-f409-4ae7-b7b7-67d698bef261"
-    },
-    {
-      "id": "flagGB",
-      "uuid": "c5d6db55-7bfb-4920-b128-20496259f017"
-    },
-    {
-      "id": "ph1019",
-      "uuid": "cee654df-5564-44b8-ad19-0d097d2a32a2"
-    },
-    {
-      "id": "ph1018",
-      "uuid": "f30e33cc-9e44-4be2-ac93-192dcc9ae74c"
-    },
-    {
-      "id": "ph1011",
-      "uuid": "f9d14420-d0bc-444f-8457-3c84a6ea6e18"
-    },
-    {
-      "id": "ph1057",
-      "uuid": "2aafb9a2-c44c-47c3-8aef-b3d604935fc3"
-    },
-    {
-      "id": "ph1041",
-      "uuid": "24526e65-34a6-49b1-8aad-6e5f0e515314"
-    },
-    {
-      "id": "ph1050",
-      "uuid": "8a02ecb3-7b64-4272-ab50-22af40a1d197"
-    },
-    {
-      "id": "ph1039",
-      "uuid": "3ac4cf6d-8c44-4ed5-aede-bac326991ce1"
-    },
-    {
-      "id": "ph1036",
-      "uuid": "6de1c426-8adb-4114-afa3-55e9482cd346"
-    },
-    {
-      "id": "ph1016",
-      "uuid": "82a1140a-6776-4a2d-8863-200ad153585a"
-    },
-    {
-      "id": "ph1015",
-      "uuid": "4fa8ae74-ad01-4e4a-b9a6-fa356fb50e82"
-    },
-    {
-      "id": "ph1069",
-      "uuid": "fa020bbc-5e77-45ea-b2ec-5e3b72b311f7"
-    },
-    {
-      "id": "ph1056",
-      "uuid": "8c0c84a6-4dc4-4be1-bf66-616fe45b91c4"
-    },
-    {
-      "id": "ph1067",
-      "uuid": "07c6e856-31c9-4ce3-9c44-dbf4779fe21e"
-    },
-    {
-      "id": "ph1044",
-      "uuid": "7193037d-1b37-4650-812e-c07b8735220a"
-    },
-    {
-      "id": "ph1043",
-      "uuid": "df3cc47c-3fd9-4e7f-8cd5-9a0f1552ae60"
-    },
-    {
-      "id": "ph1053",
-      "uuid": "11c853f7-1da6-423a-b33b-516e2131fb9e"
-    },
-    {
-      "id": "./App%20Aluno.dc.html",
-      "uuid": "71f345d5-41e6-4fbe-8ed6-aab3d62db614"
-    },
-    {
-      "id": "https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap",
-      "uuid": "41914c4e-d035-44d7-8736-4b8cc16f295c"
-    },
-    {
-      "id": "https://unpkg.com/react@18.3.1/umd/react.production.min.js",
-      "uuid": "42264932-6816-4053-887f-8322b1e632be"
-    },
-    {
-      "id": "https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js",
-      "uuid": "8406593f-f0b5-48e7-a85a-75b4e5d5336f"
-    },
-    {
-      "id": "https://unpkg.com/@babel/standalone@7.29.0/babel.min.js",
-      "uuid": "4cfae309-6bda-4c5b-b837-1f2c5235aa98"
-    }
-  ],
+  "extResources": [],
   "pageOrder": [],
   "assets": [
     {
-      "uuid": "6c866b8f-c191-448d-b823-14bf3e07a38e",
-      "file": "_shared/flagBR.png",
-      "mime": "image/png",
-      "compressed": false
-    },
-    {
-      "uuid": "adbeed47-f409-4ae7-b7b7-67d698bef261",
-      "file": "_shared/flagES.png",
-      "mime": "image/png",
-      "compressed": false
-    },
-    {
-      "uuid": "c5d6db55-7bfb-4920-b128-20496259f017",
-      "file": "_shared/flagGB.png",
-      "mime": "image/png",
-      "compressed": false
-    },
-    {
-      "uuid": "cee654df-5564-44b8-ad19-0d097d2a32a2",
-      "file": "student-app/ph1019.jpg",
-      "mime": "image/jpeg",
-      "compressed": false
-    },
-    {
-      "uuid": "f30e33cc-9e44-4be2-ac93-192dcc9ae74c",
-      "file": "student-app/ph1018.jpg",
-      "mime": "image/jpeg",
-      "compressed": false
-    },
-    {
-      "uuid": "f9d14420-d0bc-444f-8457-3c84a6ea6e18",
-      "file": "student-app/ph1011.jpg",
-      "mime": "image/jpeg",
-      "compressed": false
-    },
-    {
-      "uuid": "2aafb9a2-c44c-47c3-8aef-b3d604935fc3",
-      "file": "student-app/ph1057.jpg",
-      "mime": "image/jpeg",
-      "compressed": false
-    },
-    {
-      "uuid": "24526e65-34a6-49b1-8aad-6e5f0e515314",
-      "file": "student-app/ph1041.jpg",
-      "mime": "image/jpeg",
-      "compressed": false
-    },
-    {
-      "uuid": "8a02ecb3-7b64-4272-ab50-22af40a1d197",
-      "file": "student-app/ph1050.jpg",
-      "mime": "image/jpeg",
-      "compressed": false
-    },
-    {
-      "uuid": "3ac4cf6d-8c44-4ed5-aede-bac326991ce1",
-      "file": "student-app/ph1039.jpg",
-      "mime": "image/jpeg",
-      "compressed": false
-    },
-    {
-      "uuid": "6de1c426-8adb-4114-afa3-55e9482cd346",
-      "file": "student-app/ph1036.jpg",
-      "mime": "image/jpeg",
-      "compressed": false
-    },
-    {
-      "uuid": "82a1140a-6776-4a2d-8863-200ad153585a",
-      "file": "student-app/ph1016.jpg",
-      "mime": "image/jpeg",
-      "compressed": false
-    },
-    {
-      "uuid": "4fa8ae74-ad01-4e4a-b9a6-fa356fb50e82",
-      "file": "student-app/ph1015.jpg",
-      "mime": "image/jpeg",
-      "compressed": false
-    },
-    {
-      "uuid": "fa020bbc-5e77-45ea-b2ec-5e3b72b311f7",
-      "file": "student-app/ph1069.jpg",
-      "mime": "image/jpeg",
-      "compressed": false
-    },
-    {
-      "uuid": "8c0c84a6-4dc4-4be1-bf66-616fe45b91c4",
-      "file": "student-app/ph1056.jpg",
-      "mime": "image/jpeg",
-      "compressed": false
-    },
-    {
-      "uuid": "07c6e856-31c9-4ce3-9c44-dbf4779fe21e",
-      "file": "student-app/ph1067.jpg",
-      "mime": "image/jpeg",
-      "compressed": false
-    },
-    {
-      "uuid": "7193037d-1b37-4650-812e-c07b8735220a",
-      "file": "student-app/ph1044.jpg",
-      "mime": "image/jpeg",
-      "compressed": false
-    },
-    {
-      "uuid": "df3cc47c-3fd9-4e7f-8cd5-9a0f1552ae60",
-      "file": "student-app/ph1043.jpg",
-      "mime": "image/jpeg",
-      "compressed": false
-    },
-    {
-      "uuid": "11c853f7-1da6-423a-b33b-516e2131fb9e",
-      "file": "student-app/ph1053.jpg",
-      "mime": "image/jpeg",
-      "compressed": false
-    },
-    {
-      "uuid": "0b96cd2f-31f6-4c4d-9259-1d7373799361",
-      "file": "_shared/icons.js",
-      "mime": "application/javascript",
-      "compressed": true
-    },
-    {
-      "uuid": "4e9ac757-7b2a-4007-b4e1-0963ada2d35d",
-      "file": "_shared/dc-runtime.js",
-      "mime": "text/javascript",
-      "compressed": true
-    },
-    {
-      "uuid": "e7cdf960-9950-40a5-aa7a-2a7d43ed72ab",
-      "file": "_shared/android-frame.jsx",
-      "mime": "text/jsx",
-      "compressed": true
-    },
-    {
-      "uuid": "33240625-f62d-449e-b692-4e12b08f1b4b",
-      "file": "_shared/ios-frame.jsx",
-      "mime": "text/jsx",
-      "compressed": true
-    },
-    {
-      "uuid": "71f345d5-41e6-4fbe-8ed6-aab3d62db614",
-      "file": "student-app/App Aluno.dc.html",
-      "mime": "text/html",
-      "compressed": true
-    },
-    {
-      "uuid": "41914c4e-d035-44d7-8736-4b8cc16f295c",
-      "file": "_shared/fonts.css",
-      "mime": "text/css",
-      "compressed": true
-    },
-    {
-      "uuid": "42264932-6816-4053-887f-8322b1e632be",
-      "file": "_shared/react.production.min.js",
-      "mime": "text/javascript",
-      "compressed": true
-    },
-    {
-      "uuid": "8406593f-f0b5-48e7-a85a-75b4e5d5336f",
-      "file": "_shared/react-dom.production.min.js",
-      "mime": "text/javascript",
-      "compressed": true
-    },
-    {
-      "uuid": "4cfae309-6bda-4c5b-b837-1f2c5235aa98",
-      "file": "_shared/babel.min.js",
-      "mime": "text/javascript",
-      "compressed": true
-    },
-    {
-      "uuid": "63b3376d-032b-4c23-af38-e0b14ed5f2b3",
+      "uuid": "dd5fcc79-d7e2-415e-b874-976770ce085e",
       "file": "_shared/font-bc42ba6f.woff2",
       "mime": "font/woff2",
       "compressed": false
     },
     {
-      "uuid": "1cd26809-ee9a-46fa-ae06-0a6e55f4fb5b",
+      "uuid": "d43461b0-721c-4928-b1b4-9a8e7a6cc17c",
       "file": "_shared/font-ed8618e8.woff2",
       "mime": "font/woff2",
       "compressed": false
     },
     {
-      "uuid": "8a9881f4-09c7-4ceb-a25f-bb2fc62c0bd5",
+      "uuid": "331f73a5-4f57-44e6-bdb3-ae95682e79cb",
       "file": "_shared/font-0e2a4081.woff2",
       "mime": "font/woff2",
       "compressed": false
     },
     {
-      "uuid": "7afa42e8-f4d4-4267-8848-886e40b7d958",
+      "uuid": "683fe794-94ba-414b-948d-057b55e2969f",
       "file": "_shared/font-864c709d.woff2",
       "mime": "font/woff2",
       "compressed": false
     },
     {
-      "uuid": "03f9ebe4-952f-4dcb-8151-a36d478a7d6d",
+      "uuid": "f5ae4084-ea0e-44fa-b10e-eae6eb87a756",
       "file": "_shared/font-f8ec026d.woff2",
       "mime": "font/woff2",
       "compressed": false
     },
     {
-      "uuid": "a4dae0f3-e3f0-4e08-afba-84a54ce515c7",
+      "uuid": "f0cb930a-9139-4f1a-9cc4-7f2554d85aa8",
       "file": "_shared/font-31ff5e6e.woff2",
       "mime": "font/woff2",
       "compressed": false
     },
     {
-      "uuid": "dd9fc140-1c86-4162-9a11-123db6670f53",
+      "uuid": "1c92e466-f0a0-4d06-bd4f-91a8f2920cb0",
       "file": "_shared/font-50c25f32.woff2",
       "mime": "font/woff2",
       "compressed": false
     },
     {
-      "uuid": "68f8ddfa-5f96-44d0-91bf-b8e8a644379c",
+      "uuid": "00c0b14a-d2d3-4a93-8fd8-93df1ce60bfe",
       "file": "_shared/font-a2f92ada.woff2",
       "mime": "font/woff2",
       "compressed": false
     },
     {
-      "uuid": "ab631b6d-9f65-40c0-90f4-12bbe978c5d6",
+      "uuid": "ef156f89-393a-4f80-b218-146e7045648f",
       "file": "_shared/font-5bc49d41.woff2",
       "mime": "font/woff2",
       "compressed": false
     },
     {
-      "uuid": "18869c76-bb2a-4fad-930e-577c783ceb86",
+      "uuid": "24cccc99-5c9b-454c-89f1-646d0ebbf7ce",
       "file": "_shared/font-960aaed3.woff2",
       "mime": "font/woff2",
       "compressed": false
     },
     {
-      "uuid": "4ec17511-fcfb-4f3e-9578-c3cff217e860",
+      "uuid": "c42eca55-fc78-40c8-a7f3-b41fc7f0af48",
       "file": "_shared/font-0c165565.woff2",
       "mime": "font/woff2",
       "compressed": false
     },
     {
-      "uuid": "aa563b27-8ba8-478c-9061-e7460710b3e1",
+      "uuid": "7fcdfe9c-143e-44da-83d1-8922354b3be0",
       "file": "_shared/font-e3e520cb.woff2",
       "mime": "font/woff2",
       "compressed": false
     },
     {
-      "uuid": "ab0c9e81-30c4-41db-a8c0-c9c129dcf05b",
+      "uuid": "feaa59a8-4db0-44e5-b38d-97f5b156bb52",
       "file": "_shared/font-2d06f2c3.woff2",
       "mime": "font/woff2",
       "compressed": false
     },
     {
-      "uuid": "b8655934-36e4-48b7-9f05-bfd5201c1e30",
+      "uuid": "18f3f429-493b-4377-b710-38ffa7365401",
       "file": "_shared/font-b63651df.woff2",
       "mime": "font/woff2",
       "compressed": false
     },
     {
-      "uuid": "d9f00a43-c122-47f8-93bf-d7f68a7744bb",
+      "uuid": "7b821712-2ce1-4f2c-9122-9ddc155525e6",
       "file": "_shared/font-d107f726.woff2",
       "mime": "font/woff2",
       "compressed": false
     },
     {
-      "uuid": "23a5537b-382e-443d-8847-cce1d7a850f3",
+      "uuid": "e07f527b-abd1-42d3-b2f6-387c56c32bfd",
       "file": "_shared/font-511ce967.woff2",
       "mime": "font/woff2",
       "compressed": false
     },
     {
-      "uuid": "6ccefe52-3cea-4c21-93b3-15ca9fca1a77",
+      "uuid": "a7a3a6db-d20a-463f-b36a-5e0e620a9378",
       "file": "_shared/font-20fc9b6f.woff2",
       "mime": "font/woff2",
       "compressed": false

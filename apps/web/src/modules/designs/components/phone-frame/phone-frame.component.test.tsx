@@ -26,4 +26,12 @@ describe("PhoneFrame", () => {
     expect(screen.getByText("9:41").parentElement).toHaveClass("absolute", "text-on-color");
     expect(screen.getByText("screen").parentElement).toHaveClass("h-[874px]");
   });
+
+  it("draws a tall frame in place of the fixed 874 points one", () => {
+    render(<PhoneFrame tall><p>screen</p></PhoneFrame>);
+
+    expect(screen.getByTestId("phone-frame")).toHaveAttribute("data-tall");
+    expect(screen.getByText("9:41")).toBeInTheDocument();
+    expect(screen.getByText("screen").parentElement).not.toHaveClass("h-[calc(874px-56px)]");
+  });
 });

@@ -3,13 +3,14 @@ id: "078"
 slug: user-journeys-tweaks
 title: Reorder the flow page buttons and drop the set label
 template: quick
-status: accepted
+status: finished
 created: 2026-10-29
 started: 2026-10-29
 base_commit: f1c075cd18d1cd547bf4db989e81ac3b86371c68
 reviewed_commit: 9362aeb41fb9dbdc384593326a62fb3234d2b479
 fronts: [web]
 depends_on: []
+finished: 2026-10-29
 ---
 
 # 078 — Reorder the flow page buttons and drop the set label

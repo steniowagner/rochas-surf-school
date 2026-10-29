@@ -243,7 +243,7 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     share it; an unparsable value, another version or unknown row ids are ignored, and every storage call is in a
     try / catch, so a blocked or full storage leaves the page working in memory. "Clear results" asks with
     `window.confirm` and removes the key. No cookie and no `sessionStorage`. Since spec 077, `pages/test-accounts`
-    renders `testAccountSets` from `@rochas-surf-school/shared` as 12 `ContentCard`s (one column, two from `md`, three
+    renders `testAccountSets` from `@rochas-surf-school/shared` as 12 untitled `ContentCard`s (`title` is optional since spec 078; one column, two from `md`, three
     from `lg`; emails wrap with `wrap-anywhere`), each email with the client component `copy-email-button`
     (`navigator.clipboard.writeText`, its own copied / failed state, "Copied" for 2 s, a `sr-only` copy of the email so
     each button's accessible name is unique); its labels are `userJourneys.testAccounts` in the site dictionaries,

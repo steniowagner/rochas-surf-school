@@ -1390,12 +1390,13 @@ build can't deliver pushes yet. The pages aren't linked from the site and aren't
 backend's `test-accounts` command prints the 12 test sets' review accounts with fresh codes for the test server.
 
 **Test accounts page** (spec `077-test-accounts-page`) — `/{lang}/user-journeys/test-accounts` lists the 12 test
-sets, one card per set ("Set 01" … "Set 12"), each with its admin's, instructor's and student's role (translated),
+sets, one untitled card per set in set order (since spec 078; the set number is in each email), each with its admin's, instructor's and student's role (translated),
 name (as the app stores it, e.g. "Admin Teste Um", never translated) and email address, never a sign-in code: the
 codes still reach each tester only from the school. Each email has a "Copy email" button ("Copied" for 2 s; "Couldn't
 copy the email. Try again." when the browser refuses). The page is linked from the user journeys index (a "Test
 accounts" row) and from each flow page's "Account to use" card ("See the test accounts"), and, like the other user
-journey pages, from nowhere else on the site and not indexed. The page and the backend's `test-accounts` command read
+journey pages, from nowhere else on the site and not indexed. Since spec 078 each flow page shows "All flows"
+before "See the designs". The page and the backend's `test-accounts` command read
 the same list of sets, so the emails and names a tester reads are always the accounts the server creates.
 
 Active specs: none.

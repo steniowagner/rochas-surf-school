@@ -2,13 +2,14 @@
 id: "071"
 slug: designs-foundation-design-system
 title: Public designs area and the design system page
-status: accepted
+status: finished
 started: 2026-10-28
 base_commit: 276ffc29014c5113e8451f9bba1dac669c353719
 reviewed_commit: 95693f291a885e8379111af1c5b3f8527167ce0f
 created: 2026-10-28
 fronts: [designs, app-messages, mobile, web]
 depends_on: []
+finished: 2026-10-28
 ---
 
 # 071 — Public designs area and the design system page

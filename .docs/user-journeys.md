@@ -2,10 +2,12 @@
 
 ## Surf & Skate School Scheduling Platform - User Journeys
 
+_Implemented in spec 071-designs-foundation-design-system._
+
 Rocha's Surf School is a cross-platform mobile app (Android and iOS) for managing surf and skate classes between instructors, students and admins. It's three apps in one: what each person sees depends on their role.
 
 - Detailed requirements: [requirements.md](requirements.md), by area. Specs planned from them live in `.specs/`.
-- Designs: the Claude Design project "Rocha's Surf School App" (https://claude.ai/design/p/5359a9f1-ab7a-4ff8-9beb-3ef5e4947c80). Exports go in [`.docs/designs/`](designs/): `design-system.html` (the design system) and `auth-flow.html` (the sign-in screens).
+- Designs: in [`.docs/designs/`](designs/): `design-system.html` (the design system), `auth-flow.html` (the sign-in screens) and `student-app.html`, `instructor-app.html`, `admin-app.html` (each role's screens). They started as exports of the Claude Design project "Rocha's Surf School App" (https://claude.ai/design/p/5359a9f1-ab7a-4ff8-9beb-3ef5e4947c80), which is no longer where they are edited: each file is rebuilt from its readable sources in `.docs/designs/src/` with `node .docs/designs/scripts/pack.mjs`, and `design-system.html` is generated from the public site's design system page (`/{lang}/designs/design-system`).
 
 ## General User Journeys
 

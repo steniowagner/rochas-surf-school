@@ -74,7 +74,8 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     rather than `AsYouType`); E.164 is built from those same digits. Other countries keep the typed text. The
     country list is `src/utils/countries.ts`.
   - Translations: **i18next** + `react-i18next`, with `expo-localization` for the phone's language
-    (pt-BR fallback).
+    (pt-BR fallback). Since spec 071 the messages (`enUS`, `esES`, `ptBR` and the `Messages` type) come from
+    `@rochas-surf-school/app-messages`; `src/i18n/index.ts` only sets i18next up.
   - Push: **`expo-notifications`** 57 (config plugin in `app.json` with `defaultChannel: "default"`; since spec
     020), with `expo-device` and `expo-constants`. `src/services/push/push.service.ts` sets the foreground
     handler at module load (banner, list and sound, no badge), creates the Android channel `default` (importance
@@ -202,18 +203,35 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
   Docker: `Dockerfile` + `docker-compose.yml` (backend + Postgres).
 - **`apps/web`** — **Next.js 16** (App Router, `src/`), **Tailwind 4**, port **3000**. Only the public web
   pages the app stores require — the privacy policy, the terms of use and the account-deletion page, each in
-  pt-BR, es and en.
+  pt-BR, es and en — and, since spec 071, the designs area (`/{lang}/designs`).
   No sign-in, no private area and no API calls. Build with `next build`; it needs a **Node runtime**
   (`next start`, or a platform that runs Next) because of the proxy — no static export. Tests (spec 025):
   **Vitest 4** + React Testing Library + jsdom (`src/**/*.test.{ts,tsx}`, next to the file, `npm test`) and
   **Playwright** (Chromium only, `e2e/*.e2e.ts`, `npm run test:e2e`), see Automated validation.
-  - Routes: `src/app/[lang]/` holds the root layout (`<html lang>` `pt-BR` / `es` / `en`, fonts, header, footer)
+  - Routes: `src/app/[lang]/` holds the root layout (`<html lang>` `pt-BR` / `es` / `en`, fonts, the theme script)
     and the pages `/{lang}`, `/{lang}/privacy-policy`, `/{lang}/terms-of-use` and `/{lang}/account-deletion`, with `lang` one of `pt-br`,
     `es`, `en` and English slugs in every language. Every page is statically generated (`generateStaticParams`,
     `dynamicParams = false`, so another `lang` answers 404) and sets its translated `<title>` and description
-    with `generateMetadata`.
+    with `generateMetadata`. Since spec 071 those four pages sit in the `(site)` route group, whose layout renders
+    `SiteShell` (`src/components/site-shell`: header, footer and the content column) `narrow` (640 px), and
+    `designs/layout.tsx` renders it `wide` (up to 1440 px) for `/{lang}/designs` (the index) and
+    `/{lang}/designs/design-system`. Each design page is its own static route (no `[slug]`), so an unknown slug
+    answers 404; the index lists `designPages` from `src/modules/designs/data/design-pages.ts`.
+  - Designs (spec 071): `src/modules/designs/` holds `components/` (presentational mocks of the mobile components
+    with the mobile names and props, plus `phone-frame` — an iOS 402 × 874 frame that scales down with a container
+    query —, `design-section`, `design-entry` with `data-design-id`, and one `design-system-<section>` component per
+    section), `data/` (the design pages, the 51 inventory ids `DS-<section>-<entry>`, the fictional Fortaleza mock
+    data and `buildMockCalendar`), `i18n/` (`appLocaleBySiteLocale` maps `pt-br`/`es`/`en` to `pt-BR`/`es-ES`/`en-US`;
+    `appT(locale, key, params?)` reads the app's copy from `@rochas-surf-school/app-messages` by dotted key, fills
+    `{{name}}` and picks i18next plural suffixes with `Intl.PluralRules`, throwing on a missing key; `appRich`
+    renders `<tag>` rich text through given components) and `pages/design-system/`. The copy inside the frames is
+    the app's (`appT`); section titles, notes and rules are in the site dictionaries. The app's own glyphs
+    (Ionicons, Feather, FontAwesome, FontAwesome6, MaterialCommunityIcons, SimpleLineIcons) are drawn by `app-icon`
+    from a typed `"<set>:<name>"` registry over **`react-icons`** 5 and **`@mdi/js`** 7; Lucide stays for the
+    site's own pages. `globals.css` also maps the tokens the mocks need (checkbox and icon-button radii, `sun-tint`,
+    `band`, `scrim`, the `fab` elevation as `shadow-fab`).
   - Language: `src/proxy.ts` (Next 16's replacement for middleware, matching only `/`, `/privacy-policy`,
-    `/terms-of-use` and `/account-deletion`) redirects with 307 to the same path under the first `Accept-Language` entry, in quality
+    `/terms-of-use`, `/account-deletion`, `/designs` and `/designs/:path*`) redirects with 307 to the same path under the first `Accept-Language` entry, in quality
     order, whose language is `pt`, `es` or `en` (`matchLocale` in `src/i18n/locales.ts`), **pt-BR** when none
     matches or the header is missing. Copy lives in typed dictionaries (`src/i18n/dictionaries/{pt-br,es,en}.ts`,
     each `satisfies Dictionary` from `src/i18n/dictionary.types.ts`, loaded server-side by `getDictionary`), so a
@@ -277,6 +295,23 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
   The confirm sheet of a notice (spec 063) adds the type styles `sheetDescription` (`ds-text-sheet-description`,
   Nunito 13.5, 400, line 1.55: the line under a sheet's title), `previewTitle` (`ds-text-preview-title`, Nunito 14.5,
   800) and `previewBody` (`ds-text-preview-body`, Nunito 14, 400): the notice's title and message in its preview card.
+- **`packages/app-messages`** (spec 071) — the app's copy: `src/{en-US,es-ES,pt-BR}.ts` (i18next format: `{{name}}`
+  interpolation, `_one`/`_other` plural suffixes, `<tag>` rich text), `src/index.ts` exporting `enUS`, `esES`,
+  `ptBR`, the `messages` record keyed `en-US` / `es-ES` / `pt-BR` and the `Messages` type (declared by `en-US`;
+  es-ES and pt-BR are typed with it, so a missing or extra key fails `check-types`). Built like `packages/shared`
+  (`tsc` to `dist/`, CommonJS, extensionless relative imports); Jest's `test/messages.test.ts` names any key that
+  differs between locales. Used by `apps/mobile` (i18next) and `apps/web` (the designs).
+- **`.docs/designs`** (spec 071) — the design files (`design-system`, `auth-flow`, `student-app`, `instructor-app`,
+  `admin-app` `.html`, each a bundled Claude Design export) are edited through readable sources in
+  `.docs/designs/src/<name>/` (`shell.html`, `template.html`, `bundle.json`, the file's own assets; the vendor
+  assets shared by every file — React 18 UMD, Babel standalone, the `x-dc` runtime, fonts, frames — de-duplicated
+  in `src/_shared/`) and rebuilt with `node .docs/designs/scripts/pack.mjs [<name>]` (Node only, `node:zlib`);
+  `--check` compares the decoded content and exits 1 naming a stale `.html`; `unpack.mjs` imports a new export.
+  `design-system.html` is the exception: its sources are generated from the web's `/pt-br/designs/design-system`
+  by `build-design-system.mjs` (the web built and served with `next start -p 3100`; every entry drawn light and dark
+  side by side with the web's compiled CSS and the same SVG glyphs; it loads `jsdom` from the repo root), so the
+  web components are its source of truth and it is never hand-edited. The scripts are tested with
+  `node --test .docs/designs/scripts/*.test.mjs`.
 
 ## Persistence
 
@@ -433,7 +468,8 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   pending accounts) are enforced by use cases, never only hidden by the UI.
 - **Design system**: never hard-code colors, fonts or radii — use the tokens (rules in
   [CLAUDE.md → Design system](../../CLAUDE.md#design-system) and section 08 of
-  `.docs/designs/design-system.html`). Components keep the same names and props on web and mobile.
+  `.docs/designs/design-system.html`). Components keep the same names and props on web and mobile. The app's copy
+  is only in `@rochas-surf-school/app-messages`; the web's designs read it, never a copy.
 - **Mobile forms validate with the shared rules**: a form runs the same `Validator` rules as the entity the
   backend builds (e.g. `User.validate()`'s name and email rules), imported from `@rochas-surf-school/shared` —
   no regex or rule is re-implemented in the app, so what the app accepts the backend accepts. The backend

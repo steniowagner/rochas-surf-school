@@ -4,6 +4,7 @@ import { AppIcon } from "../app-icon";
 import { ClassGuestRow } from "../class-guest-row";
 import { ClassStudentRow } from "../class-student-row";
 import { GuestAvatar } from "../guest-avatar";
+import { InstructorPill } from "../instructor-pill";
 import { StudentAvatar } from "../student-avatar";
 
 import type { ClassPeopleProps } from "./class-people.types";
@@ -41,14 +42,7 @@ export function ClassPeople({ locale, instructors, students, guests = [], seatsT
           ) : (
             <div className="flex flex-wrap gap-2">
               {instructors.map((instructor) => (
-                <span
-                  key={instructor.id}
-                  data-testid="instructor-pill"
-                  className={`flex min-h-11 items-center gap-2 rounded-full border bg-surface py-1 pl-1 pr-3.5 ${instructor.isViewer ? "border-lagoon" : "border-line"}`}
-                >
-                  <StudentAvatar name={instructor.name} size={32} erased={instructor.erased} />
-                  <span className="ds-text-list-title truncate text-ink">{instructor.isViewer ? t("classDetails.you") : instructor.name}</span>
-                </span>
+                <InstructorPill key={instructor.id} name={instructor.name} erased={instructor.erased} viewerLabel={instructor.isViewer ? t("classDetails.you") : undefined} />
               ))}
             </div>
           )}

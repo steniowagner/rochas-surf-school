@@ -386,12 +386,23 @@ script prints, so no sign-in code ever reaches the public repository.
   > needed by D-04 / D-09 — `id` ("ID") and `testCase` ("Title") for the table's first two column headers, and
   > `accountToUse` ("Account to use") for the flow page's account block.
 
-- [ ] **T-04** — Write the English texts of the flows and rows in `apps/web/src/modules/user-journeys/i18n/en.ts`
+- [x] **T-04** — Write the English texts of the flows and rows in `apps/web/src/modules/user-journeys/i18n/en.ts`
   with their type in `apps/web/src/modules/user-journeys/i18n/user-journey-texts.types.ts` (per flow: title,
   description, account, group titles; per row: title, before you start, steps, expected — a `Record` over `RowId`,
   so a missing row is a type error), from [journeys.md](journeys.md) and with the app's strings by D-11. Add
   `user-journey-texts.test.ts`: every row and group has non-empty texts in `en`.
   Covers: ER-04, ER-11 · Done when: `npx vitest run src/modules/user-journeys` passes and `check-types` exits 0.
+  > ✅ 2026-10-29 15:30 — `UserJourneyTexts` types each flow's title, description, account and group titles (keyed by
+  > that flow's group keys) and `rows` as `Record<RowId, …>`; `en.ts` holds the 4 flows and 96 rows of journeys.md
+  > (titles unchanged). By D-11, the quoted labels were checked against `en-US.ts` / `push-messages.ts` and the app's
+  > string replaced journeys.md's where they differ: AU-02 "What's your name?", AU-16 / AU-19 / ST-13 "Contact the
+  > school", ST-01 "N/M spots", ST-05 "Max. N students · X spots left", ST-08 "Class full", IN-06 "Up next", AD-06
+  > "Create class" (no "Create class on this day" string exists), AD-22 "Take out", AD-25 "Make instructor" / "Make
+  > admin". By D-18, the student, instructor and admin descriptions end with a sentence saying a missing push alone
+  > isn't a failure. Files: `apps/web/src/modules/user-journeys/i18n/user-journey-texts.types.ts`,
+  > `apps/web/src/modules/user-journeys/i18n/en.ts`, `apps/web/src/modules/user-journeys/i18n/user-journey-texts.test.ts`;
+  > verified: `npx vitest run src/modules/user-journeys` (3 files, 18 passed), `npx tsc --noEmit` exit 0; deviations:
+  > none.
 
 - [ ] **T-05** — Translate them into Brazilian Portuguese in `apps/web/src/modules/user-journeys/i18n/pt-br.ts`,
   using the `pt-BR` app and notification strings (D-11), and extend `user-journey-texts.test.ts` to `pt-br`

@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 
-import type { UseTallFrameResult } from "./phone-frame.types";
+import type { UsePhoneFrameTallResult } from "./phone-frame-tall.types";
 
 const FRAME_WIDTH = 402;
 
 /** A tall frame is as high as its content at 402 points wide, and shrinks with it below that width. */
-export const useTallFrame = (enabled: boolean): UseTallFrameResult => {
+export const usePhoneFrameTall = (): UsePhoneFrameTallResult => {
   const frameRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const [scaledHeight, setScaledHeight] = useState<number | undefined>(undefined);
@@ -14,7 +14,7 @@ export const useTallFrame = (enabled: boolean): UseTallFrameResult => {
     const frame = frameRef.current;
     const content = contentRef.current;
 
-    if (!enabled || !frame || !content) {
+    if (!frame || !content) {
       return undefined;
     }
 
@@ -29,7 +29,7 @@ export const useTallFrame = (enabled: boolean): UseTallFrameResult => {
     observer.observe(content);
 
     return () => observer.disconnect();
-  }, [enabled]);
+  }, []);
 
   return { frameRef, contentRef, scaledHeight };
 };

@@ -1,0 +1,117 @@
+---
+id: "078"
+slug: user-journeys-tweaks
+title: Reorder the flow page buttons and drop the set label
+template: quick
+status: in-progress
+created: 2026-10-29
+started: 2026-10-29
+base_commit: f1c075cd18d1cd547bf4db989e81ac3b86371c68
+fronts: [web]
+depends_on: []
+---
+
+# 078 — Reorder the flow page buttons and drop the set label
+
+## Goal
+
+Two small changes to the user journey pages for testers: each flow page leads with "All flows" before "See the
+designs", and the test accounts page's cards no longer carry a "Set NN" label (the set number is already in each
+email, `testeNN.…`).
+
+## Context
+
+- Requirements: [requirements.md → 6.1 Public web pages](../../../.docs/requirements.md#61-public-web-pages) — the
+  user journey pages and the test accounts page; neither change alters what the section requires.
+- Existing code this changes:
+  - `apps/web/src/modules/user-journeys/pages/user-journey-flow/user-journey-flow.page.tsx` — renders "See the
+    designs" (outline, opens the design page in a new tab) and then "All flows" (subtle, to `/{lang}/user-journeys`)
+    above the journey board, whose first box is "Your name".
+  - `apps/web/src/modules/user-journeys/pages/test-accounts/test-accounts.page.tsx` — renders one `ContentCard` per
+    test set titled `userJourneys.testAccounts.set` ("Set {set}", spec 077 D-04).
+  - `apps/web/src/components/content-card/` — `ContentCard { title: string; children }`: an `h2` section label over
+    the content; used across the site.
+  - `apps/web/e2e/user-journeys.e2e.ts` — `flow pages follow the language` and `test accounts page lists the 12
+    sets in every language`.
+
+## Decisions
+
+| ID   | Decision | Reason |
+| ---- | -------- | ------ |
+| D-01 | `ContentCard`'s `title` becomes optional; without one, the card renders no `h2`, only its content. Every existing caller keeps passing a title. | The test account cards keep the site's one card look instead of copying its classes into the page. |
+| D-02 | `userJourneys.testAccounts.set` is removed from `Dictionary` and from the en, es and pt-br dictionaries. | Nothing reads it any more; the dictionaries hold no dead strings. |
+
+## Expected Results
+
+### ER-01 — The flow page leads with "All flows"
+
+- **Front:** web
+- **Behavior:** Given any of the four flow pages (`auth`, `student`, `instructor`, `admin`) in pt-br, es or en, then
+  the "All flows" link ("Todos os fluxos", "Todos los flujos") comes before the "See the designs" link ("Ver os
+  designs", "Ver los diseños") in the row above the "Your name" box.
+- **Edge and error cases:** "All flows" still links to `/{lang}/user-journeys`; "See the designs" still links to
+  `/{lang}/designs/<page>` with `target="_blank"`; both keep their variants (subtle, outline).
+- **Verify by:** `apps/web/src/modules/user-journeys/pages/user-journey-flow/user-journey-flow.page.test.tsx` →
+  `shows the flow's intro, its account, the links and every row`; `apps/web/e2e/user-journeys.e2e.ts` → `flow pages
+  follow the language` (the order in every language), run by `node .specs/scripts/run-e2e.mjs 078`.
+
+### ER-02 — Test account cards have no set label
+
+- **Front:** web
+- **Behavior:** Given `/{lang}/user-journeys/test-accounts` in pt-br, es or en, then none of its 12 cards shows a
+  "Set NN" / "Conjunto NN" label or any heading; each still lists, in set order, its admin, instructor and student
+  with the translated role, the name, the email and its "Copy email" button.
+- **Edge and error cases:** every other `ContentCard` on the site (e.g. a flow page's "Account to use") still shows
+  its title.
+- **Verify by:** `apps/web/src/modules/user-journeys/pages/test-accounts/test-accounts.page.test.tsx` → `shows one
+  card per set, in order, with the role, name and email of its three accounts` and `translates the labels but never
+  the names`; `apps/web/e2e/user-journeys.e2e.ts` → `test accounts page lists the 12 sets in every language` (no
+  heading in any card) and `index and flow pages link to the test accounts` ("Account to use" titled), run by
+  `node .specs/scripts/run-e2e.mjs 078`.
+
+## Tasks
+
+### Web (`apps/web`)
+
+- [ ] **T-01** — In `src/modules/user-journeys/pages/user-journey-flow/user-journey-flow.page.tsx`, render "All
+  flows" before "See the designs"; in `user-journey-flow.page.test.tsx` assert that order; in
+  `e2e/user-journeys.e2e.ts` → `flow pages follow the language`, assert in every language that "All flows" comes
+  before "See the designs".
+  Covers: ER-01 · Done when: `npx vitest run src/modules/user-journeys/pages/user-journey-flow` and
+  `npx playwright test e2e/user-journeys.e2e.ts -g "follow the language"` pass in `apps/web`.
+
+- [ ] **T-02** — Make `title` optional in `src/components/content-card/` (D-01); stop passing it in
+  `src/modules/user-journeys/pages/test-accounts/test-accounts.page.tsx`; remove `testAccounts.set` from
+  `src/i18n/dictionary.types.ts` and `src/i18n/dictionaries/{en,es,pt-br}.ts` (D-02); update
+  `test-accounts.page.test.tsx` and `e2e/user-journeys.e2e.ts` → `test accounts page lists the 12 sets in every
+  language` to assert the cards have no heading.
+  Covers: ER-02 · Done when: `npx vitest run src/modules/user-journeys src/components`, `npm run check-types` and
+  `npx playwright test e2e/user-journeys.e2e.ts -g "test accounts"` pass in `apps/web`.
+
+### Verification
+
+- [ ] **T-03** — Run every command in the Verification Plan from the repo root; all pass. Record the output
+  summary as evidence. Covers: all · Done when: every command exits 0.
+
+## Verification Plan
+
+- Automated:
+  - `node .specs/scripts/run-related-tests.mjs 078` — the related tests pass (with coverage)
+  - `node .specs/scripts/check-coverage.mjs 078` — every line this spec adds or changes is covered
+    (`apps/web/src/**` is excluded by technical-context, so web behavior is proven by the Vitest and Playwright
+    tests)
+  - `node .specs/scripts/run-e2e.mjs 078` — the web Playwright suite passes, including `e2e/user-journeys.e2e.ts`
+  - `npx turbo run lint check-types build --filter=@rochas-surf-school/web` — lint, type check and build pass
+- User journeys (followed in a browser):
+  - Open `/pt-br/user-journeys/student`: "Todos os fluxos" comes before "Ver os designs".
+  - Open `/pt-br/user-journeys/test-accounts` at phone width: the 12 cards show no "Conjunto" label.
+
+## Memory Impact
+
+- `memory/product.md` — the test accounts page's cards carry no "Set 01" … "Set 12" title (the set number is in
+  each email); the flow pages show "All flows" before "See the designs".
+- `memory/technical-context.md` — `ContentCard`'s title is optional.
+
+## Amendments
+
+## Review

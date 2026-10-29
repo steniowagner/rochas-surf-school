@@ -381,7 +381,7 @@ shared between mobile and web, the phone frame and the mock UI pieces.
   > page that uses it; components take the already-resolved copy as props (the page resolves it with `appT`), except `class-card`, which
   > takes the locale like the app's card reads its own copy
 
-- [ ] **T-11** — Write the design system page (`src/modules/designs/pages/design-system/` and its route under
+- [x] **T-11** — Write the design system page (`src/modules/designs/pages/design-system/` and its route under
   `src/app/[lang]/designs/`): sections 01–09 with every inventory entry and id, the tokens read from
   `@rochas-surf-school/design-tokens` (swatches printing both values), the app copy through `appT` and the
   section text and notes in the three dictionaries; add the page to the index list; add
@@ -389,6 +389,20 @@ shared between mobile and web, the phone frame and the mock UI pieces.
   `design system follows the theme toggle` and `design pages fit a phone viewport` to `e2e/designs.e2e.ts`.
   Covers: ER-08, ER-09, ER-10, ER-11 · Done when: `npm run test:e2e --workspace apps/web` passes and the page,
   opened in a browser, matches `design-system.html` entry by entry.
+  > ✅ 2026-10-28 21:30 — design system page: nine section components (`design-system-{colors,typography,shape,controls,chips,
+  > class-cards,structure,rules,states}`) composed by `pages/design-system/design-system.page.tsx` and the route
+  > `app/[lang]/designs/design-system/page.tsx` (with metadata); all 51 inventory ids (`data/design-system-ids.ts`) carry
+  > `data-design-id`; tokens come from `@rochas-surf-school/design-tokens` (swatches show the header theme and print both values);
+  > frames and samples use the app copy through `appT`/`appRich`; section titles, notes, rules and labels added to the three
+  > dictionaries; Fortaleza mock data in `data/fortaleza.ts`; the index already listed the page; e2e: `design system shows every inventory
+  > entry`, `follows the language`, `follows the theme toggle`, `design pages fit a phone viewport`; files:
+  > `apps/web/src/modules/designs/{components/design-system-*,pages/design-system,data/{fortaleza,design-system-ids}.ts,i18n/test-dictionaries.ts}`,
+  > `apps/web/src/app/[lang]/designs/design-system/page.tsx`, `apps/web/src/i18n/{dictionary.types.ts,dictionaries/*.ts}`,
+  > `apps/web/src/modules/designs/components/app-icon/app-icon.constants.ts`, `apps/web/e2e/designs.e2e.ts`; verified:
+  > `npx playwright test` in apps/web (32 passed), `npx vitest run` (170 passed), `npx turbo run lint check-types build --filter=@rochas-surf-school/web`
+  > (successful); looked at the class-card section in the browser pane; deviations: per-token "use" text of DS-01-01 is shown as the
+  > group name (tokens are grouped, not described one by one); the comparison "entry by entry with design-system.html" is pending until
+  > T-02/T-03 rewrite that file
 
 ### Verification
 

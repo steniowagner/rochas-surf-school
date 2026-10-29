@@ -16,6 +16,7 @@ import { SlGraph } from "react-icons/sl";
 import {
   FiArrowUpRight,
   FiCheck,
+  FiHome,
   FiChevronRight,
   FiMail,
   FiMapPin,
@@ -67,6 +68,7 @@ export const glyphs = {
   "Feather:arrow-up-right": FiArrowUpRight,
   "Feather:check": FiCheck,
   "Feather:chevron-right": FiChevronRight,
+  "Feather:home": FiHome,
   "Feather:mail": FiMail,
   "Feather:map-pin": FiMapPin,
   "Feather:trash-2": FiTrash2,

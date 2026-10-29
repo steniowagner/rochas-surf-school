@@ -11,7 +11,7 @@ export type ClassCardEnrolmentKey = "pending" | "waitingList" | "approved" | "de
 export type ClassCardProps = {
   locale: Locale;
   discipline: "surf" | "skate";
-  level: "beginner" | "intermediate" | "advanced";
+  level: "beginner" | "advanced" | "expert";
   state: ClassCardState;
   /** "08:00 – 09:30" */
   timeRange: string;

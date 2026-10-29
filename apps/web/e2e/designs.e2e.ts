@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
 
+import { designSystemIds } from "../src/modules/designs/data/design-system-ids";
+
 const locales = ["pt-br", "es", "en"] as const;
 
 test.describe("designs redirects", () => {
@@ -66,5 +68,69 @@ test.describe("design page width", () => {
     await page.goto("/pt-br/privacy-policy");
     const narrow = await page.locator("main").evaluate((element) => element.getBoundingClientRect().width);
     expect(narrow).toBeLessThanOrEqual(640);
+  });
+});
+
+test.describe("design system page", () => {
+  test("design system shows every inventory entry", async ({ page }) => {
+    for (const locale of locales) {
+      await page.goto(`/${locale}/designs/design-system`);
+
+      for (const id of designSystemIds) {
+        await expect(page.locator(`[data-design-id="${id}"]`), `${locale} ${id}`).toBeVisible();
+      }
+      expect(await page.locator("body").innerText()).not.toMatch(/\{\{|<\/?[a-z]+>/);
+    }
+  });
+
+  test("design system follows the language", async ({ page }) => {
+    const retry = { "pt-br": "Tentar de novo", es: "Intentar de nuevo", en: "Try again" } as const;
+
+    for (const locale of locales) {
+      await page.goto(`/${locale}/designs/design-system`);
+
+      await expect(page.locator('[data-design-id="DS-09-03"]').getByRole("button", { name: retry[locale] }).first()).toBeVisible();
+    }
+
+    await page.goto("/pt-br/designs/design-system");
+    await page.locator("summary").click();
+    await page.getByRole("link", { name: /English/ }).click();
+    await expect(page).toHaveURL(/\/en\/designs\/design-system$/);
+  });
+
+  test("design system follows the theme toggle", async ({ page }) => {
+    await page.emulateMedia({ colorScheme: "light" });
+    await page.goto("/en/designs/design-system");
+
+    const background = (selector: string) => page.locator(selector).first().evaluate((element) => getComputedStyle(element).backgroundColor);
+    const swatch = '[data-design-id="DS-01-01"] [data-testid="swatch-page"]';
+    const frame = '[data-testid="phone-frame"]';
+    const light = { swatch: await background(swatch), frame: await background(frame) };
+
+    await page.getByRole("button", { name: /theme/i }).click();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+
+    expect(await background(swatch)).not.toBe(light.swatch);
+    expect(await background(frame)).not.toBe(light.frame);
+
+    await page.reload();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+    await expect(page.locator('[data-design-id="DS-01-01"]')).toContainText("#161B27");
+  });
+});
+
+test.describe("design pages on a phone", () => {
+  test.use({ viewport: { width: 375, height: 800 } });
+
+  test("design pages fit a phone viewport", async ({ page }) => {
+    for (const path of ["/pt-br/designs", "/pt-br/designs/design-system"]) {
+      await page.goto(path);
+
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+      expect(overflow, path).toBeLessThanOrEqual(0);
+    }
+
+    const widest = await page.locator('[data-testid="phone-frame"]').evaluateAll((frames) => Math.max(...frames.map((frame) => frame.getBoundingClientRect().width)));
+    expect(widest).toBeLessThan(375);
   });
 });

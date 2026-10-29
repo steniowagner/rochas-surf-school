@@ -828,5 +828,17 @@ export const es = {
       date: "Fecha",
       counter: "{approved} aprobados · {denied} rechazados · {notTested} sin probar",
     },
+    testAccounts: {
+      metaTitle: "Cuentas de prueba",
+      title: "Cuentas de prueba",
+      intro: "Cada conjunto de prueba tiene una cuenta por rol. Usa el conjunto que te envió la escuela: entra con \"Continuar con email\" → \"Ya tengo cuenta\", el email de la cuenta y el código que te dio la escuela. Los códigos nunca aparecen en esta página.",
+      set: "Conjunto {set}",
+      roles: { admin: "Admin", instructor: "Instructor", student: "Alumno" },
+      copyEmail: "Copiar email",
+      copied: "Copiado",
+      copyFailed: "No se pudo copiar el email. Inténtalo de nuevo.",
+      indexRow: { title: "Cuentas de prueba", description: "Los emails de los 12 conjuntos de prueba, sin los códigos." },
+      seeTestAccounts: "Ver las cuentas de prueba",
+    },
   },
 } satisfies Dictionary;

@@ -33,6 +33,16 @@ describe("UserJourneysIndexPage", () => {
     expect(links[1]).toHaveTextContent("Student app");
   });
 
+  it("links the test accounts page outside the flow cards", () => {
+    render(<UserJourneysIndexPage locale="es" text={es.userJourneys} />);
+
+    const row = screen.getByRole("link", { name: /^Cuentas de prueba/ });
+    expect(row).toHaveAttribute("href", "/es/user-journeys/test-accounts");
+    expect(row).toHaveTextContent("Los emails de los 12 conjuntos de prueba, sin los códigos.");
+    expect(screen.getByTestId("user-journey-flows")).not.toContainElement(row);
+    expect(within(screen.getByTestId("user-journey-flows")).getAllByRole("link")).toHaveLength(4);
+  });
+
   it("follows the page's language", () => {
     render(<UserJourneysIndexPage locale="es" text={es.userJourneys} />);
 

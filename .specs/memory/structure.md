@@ -43,6 +43,8 @@ apps/  modules/  packages/
   - `src/validation/rules/phone-number.rule.ts` — `PhoneNumberRule` (E.164, valid for its country, with
     `libphonenumber-js`).
   - `src/validation/` — `Validator` and the reusable rules in `rules/`.
+  - `src/test-accounts/test-account-sets.ts` — `testAccountSets`: the 12 test sets without codes, read by the
+    backend's `npm run test-accounts` and the web's test accounts page (spec 077).
   - `test/` — Jest tests mirroring `src/`.
 - **`packages/design-tokens`** (`@rochas-surf-school/design-tokens`) — `src/tokens.ts` (source of truth) and
   the generated, committed `src/tokens.css`; `scripts/` holds the CSS generator.
@@ -239,8 +241,9 @@ prisma/
                                 # the partial unique index enrolments_one_open_per_student_class in SQL
   seed/main.ts                  # seed runner, one task per module
   seed/review-accounts.seed.ts  # upserts the REVIEW_ACCOUNTS users and their email identities
-  seed/test-accounts.ts         # the 12 test sets with random codes; print-test-accounts.ts prints their REVIEW_ACCOUNTS
-                                # line and hand-out table (`npm run test-accounts`, spec 076)
+  seed/test-accounts.ts         # the 12 test sets (testAccountSets from shared, spec 077) with random codes;
+                                # print-test-accounts.ts prints their REVIEW_ACCOUNTS line and hand-out table
+                                # (`npm run test-accounts`, spec 076)
 src/
   main.ts                       # bootstrap (PORT, CORS)
   app.module.ts                 # ConfigModule (global), ScheduleModule, DbModule, JwtAuthModule, AuthModule,
@@ -1018,10 +1021,12 @@ src/
         student-app/page.tsx    # the student app page (metadata + StudentAppPage, spec 073)
         instructor-app/page.tsx # the instructor app page (metadata + InstructorAppPage, spec 074)
         admin-app/page.tsx      # the admin app page (metadata + AdminAppPage, spec 075)
-      user-journeys/            # the test users' pages (spec 076), linked from nowhere
+      user-journeys/            # the test users' pages (spec 076), linked from nowhere else on the site
         layout.tsx              # SiteShell wide; robots noindex, nofollow
-        page.tsx                # the index (UserJourneysIndexPage): intro, before you start, one LinkRow per flow
+        page.tsx                # the index (UserJourneysIndexPage): intro, before you start, the test accounts row,
+                                # one LinkRow per flow
         [flow]/page.tsx         # auth | student | instructor | admin (any other → 404): UserJourneyFlowPage
+        test-accounts/page.tsx  # the test accounts page (TestAccountsPage, spec 077)
   proxy.ts                      # redirects /, /privacy-policy, /terms-of-use, /account-deletion, /designs(/…),
                                 # /user-journeys(/…) to the browser's language
   modules/designs/              # the public designs (spec 071)
@@ -1068,8 +1073,9 @@ src/
     data/user-journey-flows.ts  # the locale-free flows: design page, groups, rows (AU/ST/IN/AD-NN) and their design ids
     i18n/                       # en.ts, pt-br.ts, es.ts (flow and row texts, typed by user-journey-texts.types.ts),
                                 # user-journey-texts.ts (by site locale)
-    components/                 # journey-board (client: progress, copy, clear), journey-row, results-summary
-    pages/                      # user-journeys-index, user-journey-flow
+    components/                 # journey-board (client: progress, copy, clear), journey-row, results-summary,
+                                # copy-email-button (client, spec 077)
+    pages/                      # user-journeys-index, user-journey-flow, test-accounts (spec 077)
     types/                      # journey-progress.types.ts
     utils/                      # design-href.ts, results-summary.ts (the copied text), journey-progress-storage.ts
                                 # (localStorage per flow), journey-groups.ts, case-count.ts

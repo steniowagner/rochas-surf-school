@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { testAccountSets } from "@rochas-surf-school/shared";
 
 import { en } from "../src/i18n/dictionaries/en";
 import { es } from "../src/i18n/dictionaries/es";
@@ -72,7 +73,7 @@ test.describe("user journeys redirects", () => {
 test.describe("user journeys visibility", () => {
   test("user journey pages are noindex and linked only from home", async ({ page }) => {
     for (const locale of locales) {
-      for (const path of ["", ...flows.map((flow) => `/${flow}`)]) {
+      for (const path of ["", ...flows.map((flow) => `/${flow}`), "/test-accounts"]) {
         await page.goto(`/${locale}/user-journeys${path}`);
         await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "noindex, nofollow");
       }
@@ -371,5 +372,141 @@ test.describe("user journey flow pages", () => {
     const after = await colors();
     expect(after.background).not.toBe(before.background);
     expect(after.text).not.toBe(before.text);
+  });
+});
+
+// A 6-digit sign-in code: never on the test accounts page, which shows emails by design (spec 077 D-08).
+const sixDigits = /\b\d{6}\b/;
+const emailsOf = (page: Page) => page.getByTestId("test-account-email");
+
+test.describe("test accounts page", () => {
+  for (const locale of locales) {
+    test(`test accounts page lists the 12 sets in every language (${locale})`, async ({ page }) => {
+      const text = dictionaries[locale].userJourneys;
+      const response = await page.goto(`/${locale}/user-journeys/test-accounts`);
+
+      expect(response?.status()).toBe(200);
+      await expect(page).toHaveTitle(new RegExp(`^${text.testAccounts.metaTitle} — `));
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText(text.testAccounts.title);
+      await expect(page.getByText(text.testAccounts.intro)).toBeVisible();
+      await expect(page.getByRole("link", { name: text.labels.allFlows })).toHaveAttribute("href", `/${locale}/user-journeys`);
+
+      const cards = page.getByTestId("test-account-sets").locator(":scope > section");
+      await expect(cards).toHaveCount(12);
+      for (const [index, { set, accounts }] of testAccountSets.entries()) {
+        const card = cards.nth(index);
+        await expect(card.getByRole("heading", { level: 2 })).toHaveText(text.testAccounts.set.replace("{set}", set));
+        const rows = card.getByRole("listitem");
+        await expect(rows).toHaveCount(3);
+        for (const [row, account] of accounts.entries()) {
+          await expect(rows.nth(row)).toContainText(text.testAccounts.roles[account.role]);
+          await expect(rows.nth(row)).toContainText(account.name);
+          await expect(rows.nth(row).getByTestId("test-account-email")).toHaveText(account.email);
+        }
+      }
+
+      expect(await page.locator("main").innerText()).not.toMatch(sixDigits);
+    });
+  }
+
+  test("test accounts page answers 404 for an unknown language", async ({ request }) => {
+    expect((await request.get("/de/user-journeys/test-accounts")).status()).toBe(404);
+  });
+
+  test("redirects /user-journeys/test-accounts to the browser language", async ({ request }) => {
+    const response = await request.get("/user-journeys/test-accounts", {
+      maxRedirects: 0,
+      headers: { "accept-language": "es" },
+    });
+
+    expect(response.status()).toBe(307);
+    expect(response.headers().location).toBe("/es/user-journeys/test-accounts");
+  });
+
+  test("index and flow pages link to the test accounts", async ({ page }) => {
+    for (const locale of locales) {
+      const text = dictionaries[locale].userJourneys;
+      const href = `/${locale}/user-journeys/test-accounts`;
+
+      await page.goto(`/${locale}/user-journeys`);
+      const row = page.getByRole("link", { name: new RegExp(`^${text.testAccounts.indexRow.title}`) });
+      await expect(row).toHaveAttribute("href", href);
+      await expect(row).toContainText(text.testAccounts.indexRow.description);
+      await expect(page.getByTestId("user-journey-flows").getByRole("link")).toHaveCount(4);
+      expect(await page.locator("main").innerText()).not.toMatch(emailOrCode);
+
+      for (const flow of flows) {
+        await page.goto(`/${locale}/user-journeys/${flow}`);
+        const account = page.locator("section").filter({ has: page.getByRole("heading", { name: text.labels.accountToUse }) });
+        await expect(account.getByRole("link", { name: text.testAccounts.seeTestAccounts })).toHaveAttribute("href", href);
+        expect(await page.locator("main").innerText(), flow).not.toMatch(emailOrCode);
+      }
+
+      await page.goto(`/${locale}`);
+      await expect(page.locator('a[href*="/test-accounts"]')).toHaveCount(0);
+    }
+
+    await page.goto("/en/user-journeys/student");
+    await page.getByRole("link", { name: en.userJourneys.testAccounts.seeTestAccounts }).click();
+    await expect(page).toHaveURL(/\/en\/user-journeys\/test-accounts$/);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(en.userJourneys.testAccounts.title);
+  });
+
+  test("copy an email on the test accounts page", async ({ page, context }) => {
+    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+    await page.goto("/en/user-journeys/test-accounts");
+    const student = page.getByRole("button", { name: "Copy email teste05.aluno@rochas-surf-school.test" });
+    const admin = page.getByRole("button", { name: "Copy email teste05.admin@rochas-surf-school.test" });
+
+    expect((await student.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await student.click();
+
+    const copied = page.getByRole("button", { name: "Copied teste05.aluno@rochas-surf-school.test" });
+    await expect(copied).toBeVisible();
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe("teste05.aluno@rochas-surf-school.test");
+    await expect(admin).toBeVisible();
+    await expect(page.getByRole("button", { name: /^Copied / })).toHaveCount(1);
+    await expect(page.locator("main").getByRole("alert")).toHaveCount(0);
+
+    await expect(student).toBeVisible({ timeout: 4000 });
+    await expect(copied).toHaveCount(0);
+  });
+
+  test("test accounts page fits a phone and a desktop", async ({ page }) => {
+    const emailsFit = () =>
+      emailsOf(page).evaluateAll((emails) =>
+        emails.every((email) => {
+          const card = email.closest("section")!.getBoundingClientRect();
+          const box = email.getBoundingClientRect();
+          return email.scrollWidth <= email.clientWidth && box.left >= card.left && box.right <= card.right;
+        }),
+      );
+
+    for (const { width, height } of [
+      { width: 375, height: 812 },
+      { width: 1280, height: 800 },
+    ]) {
+      await page.setViewportSize({ width, height });
+      await page.goto("/en/user-journeys/test-accounts");
+      await expect(emailsOf(page)).toHaveCount(36);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), `${width}`).toBe(true);
+      expect(await emailsFit(), `${width}`).toBe(true);
+    }
+
+    await page.emulateMedia({ colorScheme: "light" });
+    await page.goto("/en/user-journeys/test-accounts");
+    const cardColors = () =>
+      page.getByTestId("test-account-sets").locator(":scope > section").first().evaluate((card) => {
+        const style = getComputedStyle(card);
+        return { background: style.backgroundColor, border: style.borderColor };
+      });
+    const light = await cardColors();
+
+    await page.getByRole("button", { name: en.header.themeLabel }).click();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+
+    const dark = await cardColors();
+    expect(dark.background).not.toBe(light.background);
+    expect(dark.border).not.toBe(light.border);
   });
 });

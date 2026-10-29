@@ -1,4 +1,4 @@
-import { PersonNameRule } from '@rochas-surf-school/shared';
+import { PersonNameRule, testAccountSets } from '@rochas-surf-school/shared';
 
 import { parseReviewAccounts } from '../../src/modules/auth/auth.config.js';
 import { buildTestAccounts, formatTestAccounts } from './test-accounts.js';
@@ -49,6 +49,14 @@ describe('buildTestAccounts', () => {
         },
       ]);
     });
+  });
+
+  it('mirrors testAccountSets', () => {
+    const accounts = buildTestAccounts();
+
+    expect(accounts.map(({ email, name, role }) => ({ email, name, role }))).toEqual(
+      testAccountSets.flatMap((set) => set.accounts.map(({ email, name, role }) => ({ email, name, role }))),
+    );
   });
 
   it('gives every account a name that passes PersonNameRule', () => {

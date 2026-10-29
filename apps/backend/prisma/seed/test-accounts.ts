@@ -1,30 +1,8 @@
 import { randomInt } from 'node:crypto';
 
+import { testAccountSets } from '@rochas-surf-school/shared';
+
 import type { ReviewAccount } from '../../src/modules/auth/auth.config.js';
-
-const SET_NUMBERS = [
-  'Um',
-  'Dois',
-  'Três',
-  'Quatro',
-  'Cinco',
-  'Seis',
-  'Sete',
-  'Oito',
-  'Nove',
-  'Dez',
-  'Onze',
-  'Doze',
-];
-
-/** Each set's accounts, in hand-out order: the email's local suffix, the role and the name's first word. */
-const SET_ROLES = [
-  { suffix: 'admin', role: 'admin', title: 'Admin' },
-  { suffix: 'instrutor', role: 'instructor', title: 'Instrutor' },
-  { suffix: 'aluno', role: 'student', title: 'Aluno' },
-] as const;
-
-const EMAIL_DOMAIN = 'rochas-surf-school.test';
 
 export interface FormattedTestAccounts {
   /** `REVIEW_ACCOUNTS='<JSON array>'`, ready for the server's environment. */
@@ -36,8 +14,8 @@ export interface FormattedTestAccounts {
 const randomSixDigitCode = (): string => randomInt(0, 1_000_000).toString().padStart(6, '0');
 
 /**
- * Builds the 12 test sets of spec 076 (D-21): per set an admin, an instructor and a student review account,
- * each with its own random 6-digit code. The codes are never committed (D-22): they exist only in this output.
+ * Builds the review accounts of the 12 test sets (`testAccountSets`, spec 076 D-21), in set order, each with its
+ * own random 6-digit code. The codes are never committed (D-22): they exist only in this output.
  */
 export function buildTestAccounts(randomCode: () => string = randomSixDigitCode): ReviewAccount[] {
   const usedCodes = new Set<string>();
@@ -48,15 +26,9 @@ export function buildTestAccounts(randomCode: () => string = randomSixDigitCode)
     return code;
   };
 
-  return SET_NUMBERS.flatMap((number, index) => {
-    const set = String(index + 1).padStart(2, '0');
-    return SET_ROLES.map(({ suffix, role, title }) => ({
-      email: `teste${set}.${suffix}@${EMAIL_DOMAIN}`,
-      code: nextCode(),
-      role,
-      name: `${title} Teste ${number}`,
-    }));
-  });
+  return testAccountSets.flatMap(({ accounts }) =>
+    accounts.map(({ email, role, name }) => ({ email, code: nextCode(), role, name })),
+  );
 }
 
 /** The `REVIEW_ACCOUNTS` line and the hand-out table for the given accounts, in their order. */

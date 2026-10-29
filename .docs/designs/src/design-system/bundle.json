@@ -1,46 +1,7 @@
 {
-  "extResources": [
-    {
-      "id": "https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js",
-      "uuid": "ab4fc0f2-57cf-449a-a20e-107db6c3ecb6"
-    },
-    {
-      "id": "https://unpkg.com/react@18.3.1/umd/react.production.min.js",
-      "uuid": "1a2e8c48-0d59-4843-b773-bbe35e620fb6"
-    }
-  ],
+  "extResources": [],
   "pageOrder": [],
   "assets": [
-    {
-      "uuid": "7818bf1a-204b-4e93-bacd-6a7239eeb4ff",
-      "file": "design-system/image-12d4080b.png",
-      "mime": "image/png",
-      "compressed": false
-    },
-    {
-      "uuid": "4536d10c-4d54-4457-a5b0-09fd48378d75",
-      "file": "design-system/icons.js",
-      "mime": "application/javascript",
-      "compressed": true
-    },
-    {
-      "uuid": "28adca71-12ff-4382-aed5-793010e5ac3b",
-      "file": "_shared/dc-runtime.js",
-      "mime": "text/javascript",
-      "compressed": true
-    },
-    {
-      "uuid": "ab4fc0f2-57cf-449a-a20e-107db6c3ecb6",
-      "file": "_shared/react-dom.production.min.js",
-      "mime": "text/javascript",
-      "compressed": true
-    },
-    {
-      "uuid": "1a2e8c48-0d59-4843-b773-bbe35e620fb6",
-      "file": "_shared/react.production.min.js",
-      "mime": "text/javascript",
-      "compressed": true
-    },
     {
       "uuid": "dd5fcc79-d7e2-415e-b874-976770ce085e",
       "file": "_shared/font-bc42ba6f.woff2",

@@ -32,6 +32,8 @@ export function SignInScreen({ locale, languageSheetOpen = false, googleLoading 
   return (
     <div data-theme="light" className="contents">
       <PhoneFrame fullBleed contentClassName="overflow-hidden bg-grape">
+        {/* A plain img: auth-flow.html is generated from this page and needs the file as it is. */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={assetSrc(teamHero)} alt="" className="absolute inset-0 size-full object-cover" style={{ filter: "grayscale(1) contrast(1.1)" }} />
         <div className="absolute inset-0 bg-grape opacity-85 mix-blend-multiply" />
         <div className="absolute inset-0" style={{ backgroundImage: grapeFade }} />
@@ -60,6 +62,7 @@ export function SignInScreen({ locale, languageSheetOpen = false, googleLoading 
             variant="light"
             label={t("auth.continueWithGoogle")}
             loading={googleLoading}
+            // eslint-disable-next-line @next/next/no-img-element
             icon={<img src={assetSrc(googleLogo)} alt="" width={18} height={18} />}
           />
           <AuthButton variant="primary" label={t("auth.continueWithEmail")} icon={<AppIcon name="Ionicons:mail-outline" size={20} />} />

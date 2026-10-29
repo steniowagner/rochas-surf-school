@@ -203,7 +203,7 @@ side, replacing the outdated European Portuguese prototype.
   > on (`useWhatsappNumberForm` hides by default), so AF-03-02 and AF-03-03 both draw it on, and after an outdated rules error
   > (AF-03-13) the checkbox is unchecked (`onOutdated`), as the app draws it
 
-- [ ] **T-04** — Write the auth flow page: the four section components `components/auth-flow-{sign-in,email,onboarding,closed-account}/`
+- [x] **T-04** — Write the auth flow page: the four section components `components/auth-flow-{sign-in,email,onboarding,closed-account}/`
   composed by `pages/auth-flow/`, the route `src/app/[lang]/designs/auth-flow/page.tsx` with `generateMetadata`, the
   49 ids in `data/auth-flow-ids.ts` set as `data-design-id`; the section titles, entry titles, notes (with the
   other messages of D-02), mock reasons and rules (D-04) and the index card text in the three dictionaries and
@@ -215,6 +215,15 @@ side, replacing the outdated European Portuguese prototype.
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices). Covers: ER-02, ER-03, ER-04,
   ER-05, ER-06 · Done when: `npm run test:e2e --workspace @rochas-surf-school/web` passes and
   `npx turbo run lint check-types build --filter=@rochas-surf-school/web` succeeds.
+  > ✅ 2026-10-28 22:40 — wrote the section components `auth-flow-{sign-in,email,onboarding,closed-account}` (component, types, index, test), the page
+  > `pages/auth-flow/` (+ test), the route `apps/web/src/app/[lang]/designs/auth-flow/page.tsx` with `generateMetadata`, `data/auth-flow-ids.ts`
+  > (the 49 ids and the other messages of D-02), `i18n/auth-flow-note.ts` (+ test, builds each note with the app's copy), the `authFlow` entries,
+  > mock rules and denial reason and the index card in `apps/web/src/i18n/dictionaries/{pt-br,es,en}.ts` and `dictionary.types.ts`, and `auth-flow`
+  > in `data/design-pages.ts`; in `apps/web/e2e/designs.e2e.ts` renamed the index test and made it check both cards, added the redirect,
+  > `auth flow shows every inventory entry`, `follows the language` and `follows the theme toggle` tests, and ran the wide and phone tests on the
+  > auth flow page too; verified: `npm run test:e2e --workspace @rochas-surf-school/web` (37 passed), `npx vitest run` in `apps/web` (81 files, 266
+  > passed), `npx turbo run lint check-types build --filter=@rochas-surf-school/web` (success, no warnings) and the page opened in the browser in
+  > light and dark; deviations: none
 
 ### Designs (`.docs/designs`)
 

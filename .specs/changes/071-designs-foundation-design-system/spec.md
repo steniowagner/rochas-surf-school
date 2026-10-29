@@ -362,7 +362,7 @@ shared between mobile and web, the phone frame and the mock UI pieces.
   > moved to T-10 (it is drawn inside `bottom-modal`); `text-input`/`header-button`/`chip` take an `AppIconName` string for the icon instead
   > of a node; mock components are static (no handlers)
 
-- [ ] **T-10** — Write the mock components of sections 06–09 the same way: `class-card` (every state of
+- [x] **T-10** — Write the mock components of sections 06–09 the same way: `class-card` (every state of
   DS-06), `class-card-skeleton`, `tab-bar` (student and instructor/admin tabs), `stack-header`,
   `screen-intro`, `user-header`, `calendar-week-row`, `calendar-month-grid`, `week-month-calendar`,
   `bottom-modal`, `toast`, `language-sheet`, `theme-sheet`, `deny-sheet`, `decision-card`, `account-status`,
@@ -370,6 +370,16 @@ shared between mobile and web, the phone frame and the mock UI pieces.
   (D-10) and a Vitest test per component. Skill:
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices). Covers: ER-08 · Done
   when: `npx vitest run src/modules/designs/components` passes.
+  > ✅ 2026-10-28 19:40 — wrote the mock components of sections 06–09 in `apps/web/src/modules/designs/components/`: `skeleton`,
+  > `student-avatar`, `class-card` (every state: not started/full/next/started/finished/cancelled, admin flags, student enrolment,
+  > guests/erased students; copy through `appT`), `class-card-skeleton`, `tab-bar`, `stack-header`, `screen-intro`, `user-header`,
+  > `calendar-week-row`, `calendar-month-grid`, `week-month-calendar`, `bottom-modal`, `toast`, `language-sheet`, `theme-sheet`,
+  > `deny-sheet`, `decision-card`, `account-status`, `empty-state`, `error-state` and `country-picker` (moved here from T-09); the app-icon
+  > registry gained the extra Ionicons/Feather glyphs and the MaterialCommunityIcons (`@mdi/js`) and SimpleLineIcons ones; every folder
+  > has a Vitest test; files: `apps/web/src/modules/designs/components/**`; verified: `npx vitest run src/modules/designs` (all passed),
+  > `npx tsc --noEmit` (clean), `npx eslint src/modules` (clean); deviations: the Fortaleza mock data (D-10) is written in T-11 with the
+  > page that uses it; components take the already-resolved copy as props (the page resolves it with `appT`), except `class-card`, which
+  > takes the locale like the app's card reads its own copy
 
 - [ ] **T-11** — Write the design system page (`src/modules/designs/pages/design-system/` and its route under
   `src/app/[lang]/designs/`): sections 01–09 with every inventory entry and id, the tokens read from

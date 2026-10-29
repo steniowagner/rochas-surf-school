@@ -113,3 +113,51 @@ export const instructorDayClasses: CardBase[] = [
   futuro,
   { ...futuro, level: "beginner", state: "cancelled", timeRange: "17:30 – 19:00", seatsTaken: 2, students: students.slice(0, 2).map((student) => ({ ...student })) },
 ];
+
+/** The counts of the instructor's home rows (D-04): the classes assigned to Rafael and the school's rules. */
+export const instructorHome = { assignedClasses: 6, schoolRules: 3, unreadNotifications: 3 } as const;
+
+/** "Minhas aulas" of Rafael (D-04): the class under way, then the next ones by day; the first one is the next. */
+export const teachingClasses: {
+  ongoing: CardBase;
+  days: { date: string; label: "today" | "tomorrow" | "weekday"; classes: CardBase[] }[];
+} = {
+  ongoing: { ...iracema, state: "started", timeRange: "06:30 – 08:00", seatsTaken: 6 },
+  days: [
+    {
+      date: "2026-09-07",
+      label: "today",
+      classes: [
+        { ...iracema, isNext: true },
+        { ...futuro, seatsTaken: 5, students: students.slice(0, 3).map((student) => ({ ...student })) },
+      ],
+    },
+    { date: "2026-09-08", label: "tomorrow", classes: [{ ...iracema, timeRange: "07:00 – 08:30", seatsTaken: 3, students: students.slice(1, 4).map((student) => ({ ...student })) }] },
+    {
+      date: "2026-09-10",
+      label: "weekday",
+      classes: [
+        { ...iracema, level: "advanced", timeRange: "10:00 – 11:30", locationName: "Praia do Futuro", seatsTaken: 8 },
+        { ...futuro, level: "beginner", timeRange: "17:30 – 19:00", seatsTaken: 2, students: students.slice(0, 2).map((student) => ({ ...student })) },
+      ],
+    },
+  ],
+};
+
+type OccupancyClass = CardBase & { id: string; day: number; time: string; cancelled?: boolean };
+
+/**
+ * The classes of the weekly occupancy (D-04), by their day of the week (0 is Monday): one under 50 %, some between 50
+ * and 89 %, one at 90 %, a full one, a cancelled one and two at the same time on Saturday.
+ */
+export const occupancyClasses: OccupancyClass[] = [
+  { ...iracema, id: "mon-0630", day: 0, time: "06:30", timeRange: "06:30 – 08:00", seatsTaken: 6 },
+  { ...iracema, id: "mon-0800", day: 0, time: "08:00" },
+  { ...iracema, id: "tue-0800", day: 1, time: "08:00", seatsTaken: 2, students: students.slice(0, 2).map((student) => ({ ...student })) },
+  { ...iracema, id: "wed-0800", day: 2, time: "08:00", seatsTaken: 9, capacity: 10 },
+  { ...futuro, id: "wed-1600", day: 2, time: "16:00" },
+  { ...futuro, id: "thu-1600", day: 3, time: "16:00", level: "beginner", state: "cancelled", seatsTaken: 3, cancelled: true },
+  { ...iracema, id: "fri-0630", day: 4, time: "06:30", timeRange: "06:30 – 08:00", level: "advanced", seatsTaken: 7 },
+  { ...iracema, id: "sat-0800", day: 5, time: "08:00", seatsTaken: 3, students: students.slice(1, 4).map((student) => ({ ...student })) },
+  { ...futuro, id: "sat-0800-skate", day: 5, time: "08:00", timeRange: "08:00 – 09:30", level: "beginner", seatsTaken: 5 },
+];

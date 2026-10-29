@@ -39,6 +39,7 @@ describe("NotificationsScreen", () => {
   it("ST-06-05: the list with the failure toast", () => {
     open("markAllFailed");
 
+    expect(screen.getByTestId("phone-frame")).not.toHaveAttribute("data-tall");
     expect(screen.getByRole("alert")).toHaveTextContent("Não foi possível marcar os avisos como lidos. Tente de novo.");
     expect(screen.getByText("Pedido aprovado")).toBeInTheDocument();
   });

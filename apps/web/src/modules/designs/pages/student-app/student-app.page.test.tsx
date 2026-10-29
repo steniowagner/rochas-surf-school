@@ -6,7 +6,7 @@ import { dictionaries } from "@/modules/designs/i18n/test-dictionaries";
 
 import { StudentAppPage } from "./student-app.page";
 
-describe("StudentAppPage", () => {
+describe("StudentAppPage", { timeout: 20_000 }, () => {
   it.each(["pt-br", "es", "en"] as const)("shows the title and every inventory entry in %s", async (locale) => {
     const { studentApp, authFlow } = await dictionaries[locale]();
     const { container } = render(<StudentAppPage locale={locale} text={studentApp} schoolRules={authFlow.schoolRules} />);
@@ -36,6 +36,9 @@ describe("StudentAppPage", () => {
       expect(tall(id), id).toBe(true);
     }
     expect(tall("ST-01-02")).toBe(false);
+    for (const id of ["ST-02-02", "ST-02-03", "ST-02-04", "ST-02-05", "ST-02-07", "ST-02-09", "ST-02-13", "ST-02-14", "ST-02-18", "ST-02-30", "ST-06-05"]) {
+      expect(tall(id), id).toBe(false);
+    }
     expect(container.querySelector('[data-design-id="ST-05-01"]')).toHaveTextContent("Remover a conta");
   });
 });

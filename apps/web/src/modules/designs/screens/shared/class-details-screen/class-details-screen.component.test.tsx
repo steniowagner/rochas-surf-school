@@ -41,11 +41,13 @@ describe("ClassDetailsScreen", () => {
     unmount();
 
     open({ state: "open", toast: { key: "enrolment.errors.ruleNotAccepted", tone: "error" } });
+    expect(screen.getByTestId("phone-frame")).not.toHaveAttribute("data-tall");
     expect(screen.getByRole("alert")).toHaveTextContent("A regra de cancelamento mudou");
   });
 
   it("ST-02-06, 07: pending with the withdraw button and sheet", () => {
     open({ state: "pending", sheet: "withdraw" });
+    expect(screen.getByTestId("phone-frame")).not.toHaveAttribute("data-tall");
 
     expect(screen.getByText("Pedido pendente")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Anular pedido" })).toHaveClass("border-input-line");

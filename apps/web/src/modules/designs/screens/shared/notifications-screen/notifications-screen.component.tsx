@@ -16,12 +16,13 @@ const LOADING_ROWS = [0, 1, 2, 3, 4];
 export function NotificationsScreen({ locale, state, items }: NotificationsScreenProps) {
   const t = (key: string) => appT(locale, key);
   const showRows = state === "list" || state === "markAllFailed";
+  const overPhone = state === "markAllFailed";
 
   return (
-    <PhoneFrame tall={showRows}>
-      <div className="flex flex-1 flex-col bg-page">
+    <PhoneFrame tall={showRows && !overPhone}>
+      <div className={`flex flex-1 flex-col bg-page${overPhone ? " min-h-0" : ""}`}>
         <StackHeader title={t("notifications.title")} right={showRows ? <HeaderButton icon="Ionicons:checkmark-done-outline" label={t("notifications.markAll")} /> : undefined} />
-        <div className="flex flex-1 flex-col gap-3 px-5 pb-10 pt-2">
+        <div className={`flex flex-1 flex-col gap-3 px-5 pb-10 pt-2${overPhone ? " min-h-0 overflow-hidden" : ""}`}>
           {showRows ? items.map((item) => <NotificationRow key={item.type} {...item} />) : null}
           {state === "loading" ? (
             <div role="status" aria-label={t("notifications.loading")} className="flex flex-col gap-3">

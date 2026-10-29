@@ -1,4 +1,4 @@
-import type { EnrolmentCta, Scenario } from "./class-details-screen.types";
+import type { ClassDetailsState, EnrolmentCta, Scenario } from "./class-details-screen.types";
 
 const CTAS = {
   request: { key: "request", variant: "primary" },
@@ -39,7 +39,7 @@ export const getEnrolmentCta = (status: Scenario["status"], full: boolean, canCa
 const base = { status: null, full: false, canCancel: false, waitingListEnabled: true, deadline: "ahead", classState: "not-started" } as const;
 
 /** What each state of the class details is made of. */
-export const scenarios: Record<Exclude<import("./class-details-screen.types").ClassDetailsState, "loading" | "notFound" | "error">, Scenario> = {
+export const scenarios: Record<Exclude<ClassDetailsState, "loading" | "notFound" | "error">, Scenario> = {
   open: base,
   pending: { ...base, status: "pending" },
   fullWaitingList: { ...base, full: true },

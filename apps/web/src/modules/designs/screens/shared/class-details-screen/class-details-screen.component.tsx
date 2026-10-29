@@ -63,12 +63,14 @@ export function ClassDetailsScreen({ locale, state, sheet, toast, texts, without
   const people = scenario.inClass ? students.slice(0, 4) : students.slice(1, 5);
   const classCard = { discipline: "surf", level: "beginner", weekday: dates.weekdayLabel, date: dates.dayLabel, duration: `1 h 30 min`, timeRange: "08:00 – 09:30", locationName: "Praia de Iracema" } as const;
   const showRules = scenario.classState !== "cancelled";
+  // D-02: a sheet or a toast is drawn over the phone's screen, so the content is clipped to it.
+  const overPhone = Boolean(sheet || toast);
 
   return (
-    <PhoneFrame tall>
-      <div className="flex flex-1 flex-col bg-page">
+    <PhoneFrame tall={!overPhone}>
+      <div className={`flex flex-1 flex-col bg-page${overPhone ? " min-h-0" : ""}`}>
         <StackHeader title="" />
-        <div className="flex flex-col gap-6 px-5 pb-6 pt-4">
+        <div className={`flex flex-col gap-6 px-5 pb-6 pt-4${overPhone ? " min-h-0 flex-1 overflow-hidden" : ""}`}>
           <div className="flex flex-col gap-2">
             <div className="mb-1 flex flex-wrap gap-2">
               <Chip tone="surf">{t("newClass.discipline.surf")}</Chip>

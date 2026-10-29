@@ -2,7 +2,7 @@
 id: "073"
 slug: designs-student-app
 title: Student app designs page
-status: changes-requested
+status: in-review
 created: 2026-10-28
 started: 2026-10-28
 base_commit: 4be1936df6c3a33e8dc6b0e0bfcf946c4145ec51
@@ -356,7 +356,7 @@ with light and dark side by side, replacing the outdated European Portuguese pro
 
 **Findings**
 
-- [ ] **F-01** (D-02) — D-02 says "Sheets and toasts are drawn over phone-height (402 × 874) frames", but these
+- [x] **F-01** (D-02) — D-02 says "Sheets and toasts are drawn over phone-height (402 × 874) frames", but these
   sheet and toast entries are drawn on *tall* frames: ST-02-02, ST-02-03, ST-02-04, ST-02-05, ST-02-07, ST-02-09,
   ST-02-13, ST-02-14, ST-02-18, ST-02-30 and ST-06-05. Their sheets then sit at the bottom of the whole scrolled
   content, not over the phone's screen. In ST-02-18, for example, the denial sheet starts about 1,000 pt down a
@@ -368,6 +368,16 @@ with light and dark side by side, replacing the outdated European Portuguese pro
   to ST-05-12 already do. Then regenerate `student-app.html` with `build-design.mjs student-app` and `pack.mjs`, and
   update the tall-frame list in `student-app.page.test.tsx`. Or, if the tall form is what's wanted, record it as an
   amendment to D-02 and the inventory through `/spec-plan --amend 073`.
+  > ✅ 2026-10-28 23:45 — reproduced (11 sheet/toast entries on tall frames), fixed: a class-details or notifications screen with a
+  > sheet or toast is now drawn on a 402 × 874 frame with its content clipped to the screen (`overPhone`), so the sheet sits over the
+  > phone; every other entry stays tall. Also done from the review notes: `ClassDetailsState` imported at the top of the constants,
+  > a 20 s timeout on `student-app.page.test.tsx`. Files: `apps/web/src/modules/designs/screens/shared/class-details-screen/class-details-screen.component.tsx`,
+  > `.../class-details-screen.constants.ts`, `.../class-details-screen.component.test.tsx`,
+  > `apps/web/src/modules/designs/screens/shared/notifications-screen/notifications-screen.component.tsx`, `.../notifications-screen.component.test.tsx`,
+  > `apps/web/src/modules/designs/pages/student-app/student-app.page.test.tsx`, `.docs/designs/src/student-app/template.html`, `.docs/designs/student-app.html`;
+  > verified: in `student-app.html` the 11 ids have 402 × 874 `phone-frame`s without `data-tall` (24 tall entries remain);
+  > `run-related-tests` passed, `COVERAGE OK`, lint/types/build ✅, `E2E PASSED`, `pack.mjs --check` ✅, designs script tests 7 passed;
+  > deviations: the inventory rows ST-02-16/26/27..29 flagged in the Notes were left as they are (no amendment requested)
 
 **Notes**
 

@@ -2,13 +2,14 @@
 id: "077"
 slug: test-accounts-page
 title: Test accounts page for testers
-status: accepted
+status: finished
 created: 2026-10-29
 started: 2026-10-29
 base_commit: 8afe1d749ef35aa8e906eb17b725d60e31a37936
 reviewed_commit: 714dc8491da52a84d6ac7b9fbcbabe28ec5eb280
 fronts: [shared, backend, web]
 depends_on: []
+finished: 2026-10-29
 ---
 
 # 077 — Test accounts page for testers

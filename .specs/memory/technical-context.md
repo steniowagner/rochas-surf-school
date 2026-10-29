@@ -222,7 +222,9 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     `user-journeys/layout.tsx` renders `SiteShell` `wide` and sets `robots: { index: false, follow: false }` for
     `/{lang}/user-journeys` (the index) and `/{lang}/user-journeys/[flow]`, one dynamic route with
     `generateStaticParams` over the flows `auth`, `student`, `instructor`, `admin` and `dynamicParams = false`, so
-    another flow answers 404. Nothing on the site links to them.
+    another flow answers 404. Since spec 077 the static route `user-journeys/test-accounts/page.tsx` (it wins over
+    `[flow]`) renders `TestAccountsPage` under the same layout. Nothing on the site outside the user journeys links
+    to them.
   - User journeys (spec 076): `src/modules/user-journeys/` holds `data/user-journey-flows.ts` (the locale-free
     structure, `as const`: per flow its design page, its groups and their rows — ids `AU-NN`, `ST-NN`, `IN-NN`,
     `AD-NN`, sequential per flow — with the design ids each row links to, typed as the union of the four `*EntryId`
@@ -240,7 +242,12 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     [rowId]: "approved" | "denied" }, notes: { [rowId]: string } }` — no language in the key, so the three languages
     share it; an unparsable value, another version or unknown row ids are ignored, and every storage call is in a
     try / catch, so a blocked or full storage leaves the page working in memory. "Clear results" asks with
-    `window.confirm` and removes the key. No cookie and no `sessionStorage`.
+    `window.confirm` and removes the key. No cookie and no `sessionStorage`. Since spec 077, `pages/test-accounts`
+    renders `testAccountSets` from `@rochas-surf-school/shared` as 12 `ContentCard`s (one column, two from `md`, three
+    from `lg`; emails wrap with `wrap-anywhere`), each email with the client component `copy-email-button`
+    (`navigator.clipboard.writeText`, its own copied / failed state, "Copied" for 2 s, a `sr-only` copy of the email so
+    each button's accessible name is unique); its labels are `userJourneys.testAccounts` in the site dictionaries,
+    and the index and flow pages link to it.
   - Designs (spec 071): `src/modules/designs/` holds `components/` (presentational mocks of the mobile components
     with the mobile names and props, plus `phone-frame` — an iOS 402 × 874 frame that scales down with a container
     query —, `design-section`, `design-entry` with `data-design-id` and, since spec 076, the same id as its `id`, so
@@ -344,7 +351,9 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
   `ConflictError` (409, for a stale write, e.g. accepting an outdated rules version) /
   `TooManyRequestsError` (429) / `BadGatewayError` (502), and the `Validator` with its reusable rules —
   among them `PhoneNumberRule` (key `phone`: an E.164 string, `^\+[1-9]\d{1,14}$`, that `libphonenumber-js`'s
-  `isValidPhoneNumber` accepts for its country). Jest, like the modules.
+  `isValidPhoneNumber` accepts for its country). Since spec 077 it also exports `testAccountSets` (`TestAccountSet`,
+  `TestAccount`): the 12 test sets' set number, role, email and name, without codes — the one list read by the
+  backend's `npm run test-accounts` and by the web's test accounts page. Jest, like the modules.
 - **`packages/design-tokens`** — the design system's tokens; `src/tokens.ts` is the source and `src/tokens.css`
   is generated and committed (`check-types` fails when it is stale). Among the type styles, the week and month
   calendar (spec 031) uses `pill` (`ds-text-pill`, Nunito 12.5, 800, uppercase: the pill's caption),
@@ -494,7 +503,8 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   role and state rules, so permissions are unit-tested with the rest of the business rules. **Must not**
   depend on NestJS, Prisma, React, any SDK, or another app. May depend on `@rochas-surf-school/shared` and on
   another module's public exports.
-- **Shared kernel** lives in `packages/shared` — base classes, contracts, errors and validation rules only.
+- **Shared kernel** lives in `packages/shared` — base classes, contracts, errors and validation rules only, plus
+  one data list both apps read, `testAccountSets` (spec 077: the test sets without codes, no rule).
   **Must not** depend on any module or app, or contain product rules.
 - **Backend adapters** live in `apps/backend/src/modules/<module>/` — the Nest module, thin controllers that
   reuse the use cases' `In`/`Out` types, `Prisma<Name>Repository` classes in `*.prisma.ts`, concrete provider
@@ -1036,7 +1046,8 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   fixed code and sends no email; the cooldown and the lockout apply as for anyone. The array takes any number of
   entries (distinct emails): since spec 076, `npm run test-accounts --workspace apps/backend` (`tsx
   prisma/seed/print-test-accounts.ts`, over `buildTestAccounts` / `formatTestAccounts` in
-  `prisma/seed/test-accounts.ts`) prints a `REVIEW_ACCOUNTS='…'` line for the 12 test sets — `testeNN.admin`,
+  `prisma/seed/test-accounts.ts`; since spec 077 `buildTestAccounts` maps `testAccountSets` from
+  `@rochas-surf-school/shared`, adding the codes) prints a `REVIEW_ACCOUNTS='…'` line for the 12 test sets — `testeNN.admin`,
   `testeNN.instrutor` and `testeNN.aluno` `@rochas-surf-school.test` (`NN` 01–12; names "Admin / Instrutor / Aluno
   Teste <Um…Doze>", the number spelled because `PersonNameRule` allows letters only) with distinct random 6-digit
   codes (`node:crypto` `randomInt`) — and a Markdown hand-out table `| Set | Role | Email | Code |`. The codes live

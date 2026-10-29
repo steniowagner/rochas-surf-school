@@ -2,7 +2,7 @@
 id: "076"
 slug: user-journeys-pages
 title: User journey pages for test users
-status: in-progress
+status: in-review
 created: 2026-10-29
 started: 2026-10-29
 base_commit: 54a34ff6b6cc95d1e0c0909d36a52dc4b68843b4

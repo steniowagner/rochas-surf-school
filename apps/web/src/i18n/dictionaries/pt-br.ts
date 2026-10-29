@@ -828,5 +828,17 @@ export const ptBr = {
       date: "Data",
       counter: "{approved} aprovados · {denied} reprovados · {notTested} não testados",
     },
+    testAccounts: {
+      metaTitle: "Contas de teste",
+      title: "Contas de teste",
+      intro: "Cada conjunto de teste tem uma conta por papel. Use o conjunto que a escola enviou para você: entre com \"Continuar com e-mail\" → \"Já tenho conta\", o e-mail da conta e o código que a escola passou. Os códigos nunca aparecem nesta página.",
+      set: "Conjunto {set}",
+      roles: { admin: "Admin", instructor: "Instrutor", student: "Aluno" },
+      copyEmail: "Copiar e-mail",
+      copied: "Copiado",
+      copyFailed: "Não foi possível copiar o e-mail. Tente de novo.",
+      indexRow: { title: "Contas de teste", description: "Os e-mails dos 12 conjuntos de teste — sem os códigos." },
+      seeTestAccounts: "Ver as contas de teste",
+    },
   },
 } satisfies Dictionary;

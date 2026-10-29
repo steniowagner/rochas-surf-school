@@ -205,9 +205,15 @@ server creates.
 
 ### Web (`apps/web`)
 
-- [ ] **T-03** — Add the D-07 labels as `userJourneys.testAccounts` to `src/i18n/dictionaries/en.ts`, `pt-br.ts`
+- [x] **T-03** — Add the D-07 labels as `userJourneys.testAccounts` to `src/i18n/dictionaries/en.ts`, `pt-br.ts`
   and `es.ts` (and its type wherever the dictionary type is declared).
   Covers: enabling · Done when: `npx turbo run check-types --filter=@rochas-surf-school/web` passes.
+  > ✅ 2026-10-29 22:45 — `userJourneys.testAccounts` (metaTitle, title, intro, set, roles, copyEmail, copied,
+  > copyFailed, indexRow, seeTestAccounts) typed in `Dictionary` and filled with the D-07 English labels and their
+  > pt-BR ("Contas de teste", "Conjunto {set}", "Instrutor", "Aluno"…) and es ("Cuentas de prueba", "Alumno"…)
+  > translations; files: `apps/web/src/i18n/dictionary.types.ts`, `apps/web/src/i18n/dictionaries/en.ts`,
+  > `apps/web/src/i18n/dictionaries/pt-br.ts`, `apps/web/src/i18n/dictionaries/es.ts`; verified:
+  > `npx turbo run check-types --filter=@rochas-surf-school/web` (4 successful); deviations: none
 
 - [ ] **T-04** — Add `src/modules/user-journeys/components/copy-email-button/` (`copy-email-button.component.tsx`,
   `.hook.ts`, `.types.ts`, `index.ts`, following `.claude/rules/react.md`) implementing D-05, with

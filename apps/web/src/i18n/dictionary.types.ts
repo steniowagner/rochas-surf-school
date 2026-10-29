@@ -201,5 +201,21 @@ export type Dictionary = {
       /** `{approved}`, `{denied}` and `{notTested}` are the counts. */
       counter: string;
     };
+    /** The test accounts page and the links to it (spec 077). */
+    testAccounts: {
+      metaTitle: string;
+      title: string;
+      intro: string;
+      /** A set card's title: `{set}` is the set number ("01"). */
+      set: string;
+      roles: { admin: string; instructor: string; student: string };
+      copyEmail: string;
+      copied: string;
+      copyFailed: string;
+      /** The row that links the page from the user journeys index. */
+      indexRow: { title: string; description: string };
+      /** The link to the page in a flow page's "Account to use" card. */
+      seeTestAccounts: string;
+    };
   };
 };

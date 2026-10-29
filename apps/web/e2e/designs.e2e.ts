@@ -1,8 +1,12 @@
 import { expect, test } from "@playwright/test";
 
+import { en } from "../src/i18n/dictionaries/en";
+import { es } from "../src/i18n/dictionaries/es";
+import { ptBr } from "../src/i18n/dictionaries/pt-br";
 import { designSystemIds } from "../src/modules/designs/data/design-system-ids";
 
 const locales = ["pt-br", "es", "en"] as const;
+const dictionaries = { "pt-br": ptBr, es, en };
 
 test.describe("designs redirects", () => {
   test.describe("with Accept-Language: es", () => {
@@ -35,11 +39,16 @@ test("index lists the design system in every language", async ({ page }) => {
   for (const locale of locales) {
     await page.goto(`/${locale}/designs`);
 
+    const { designs, site } = dictionaries[locale];
     const cards = page.getByTestId("design-pages").getByRole("link");
     await expect(cards).toHaveCount(1);
     await expect(cards.first()).toHaveAttribute("href", `/${locale}/designs/design-system`);
-    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-    expect(await page.title()).toContain("|");
+    await expect(cards.first()).toContainText(designs.pages.designSystem.title);
+    await expect(cards.first()).toContainText(designs.pages.designSystem.description);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(designs.title);
+    await expect(page.getByText(designs.description, { exact: true })).toBeVisible();
+    expect(await page.title()).toBe(`${designs.metaTitle} | ${site.name}`);
+    await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", designs.metaDescription);
   }
 });
 
@@ -53,6 +62,8 @@ test("home links to the designs in every language", async ({ page }) => {
     await expect(rows.nth(1)).toHaveAttribute("href", `/${locale}/terms-of-use`);
     await expect(rows.nth(2)).toHaveAttribute("href", `/${locale}/account-deletion`);
     await expect(rows.nth(3)).toHaveAttribute("href", `/${locale}/designs`);
+    await expect(rows.nth(3)).toContainText(dictionaries[locale].home.designs.title);
+    await expect(rows.nth(3)).toContainText(dictionaries[locale].home.designs.description);
   }
 });
 
@@ -90,12 +101,32 @@ test.describe("design system page", () => {
       await page.goto(`/${locale}/designs/design-system`);
 
       await expect(page.locator('[data-design-id="DS-09-03"]').getByRole("button", { name: retry[locale] }).first()).toBeVisible();
+
+      const { designSystem } = dictionaries[locale];
+      await expect(page.getByRole("heading", { level: 1 }).first()).toHaveText(designSystem.title);
+      await expect(page.locator("#section-01")).toHaveText(`01 — ${designSystem.sections.color.title}`);
+      await expect(page.getByText(designSystem.sections.color.description, { exact: true })).toBeVisible();
+      await expect(page.locator("#section-09")).toHaveText(`09 — ${designSystem.sections.states.title}`);
     }
 
     await page.goto("/pt-br/designs/design-system");
     await page.locator("summary").click();
     await page.getByRole("link", { name: /English/ }).click();
     await expect(page).toHaveURL(/\/en\/designs\/design-system$/);
+  });
+
+  test("design system follows the OS color scheme without a stored choice", async ({ page }) => {
+    await page.emulateMedia({ colorScheme: "dark" });
+    await page.goto("/en/designs/design-system");
+
+    const background = (selector: string) => page.locator(selector).first().evaluate((element) => getComputedStyle(element).backgroundColor);
+    const darkPage = "rgb(22, 27, 39)";
+    expect(await background('[data-design-id="DS-01-01"] [data-testid="swatch-page"]')).toBe(darkPage);
+    expect(await background('[data-testid="phone-frame"]')).toBe(darkPage);
+
+    const colors = page.locator('[data-design-id="DS-01-01"]');
+    await expect(colors).toContainText("#FDF8F3");
+    await expect(colors).toContainText("#161B27");
   });
 
   test("design system follows the theme toggle", async ({ page }) => {

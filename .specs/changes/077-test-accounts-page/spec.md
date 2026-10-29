@@ -2,10 +2,11 @@
 id: "077"
 slug: test-accounts-page
 title: Test accounts page for testers
-status: in-review
+status: accepted
 created: 2026-10-29
 started: 2026-10-29
 base_commit: 8afe1d749ef35aa8e906eb17b725d60e31a37936
+reviewed_commit: 714dc8491da52a84d6ac7b9fbcbabe28ec5eb280
 fronts: [shared, backend, web]
 depends_on: []
 ---
@@ -364,3 +365,48 @@ server creates.
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-29 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (packages/shared, apps/web; apps/backend lint + type check — its 11 lint
+  warnings predate the spec, and its `oxlint` script covers `src/` and `test/` only, not `prisma/seed`)
+- related tests ✅ apps/backend, apps/web, packages/shared, plus the whole suites of apps/mobile and the six
+  modules that import shared
+- coverage of the changed lines ✅ `COVERAGE OK` — `test-account-sets.ts` and the changed lines of
+  `test-accounts.ts` 100%; `apps/web/src/**` and the barrels excluded by technical-context; no ignore comments
+- e2e ✅ backend 28 files / 817 tests · web 74 Playwright tests (the `NoFallbackError` server logs come from the
+  404 requests, which pass)
+- `npm run test-accounts --workspace apps/backend` ✅ one `REVIEW_ACCOUNTS='[…]'` line + 36 table rows
+- both greps ✅ no match (hex/`rgb(` in `modules/user-journeys`; `REVIEW_ACCOUNTS` in web and shared)
+
+**Expected Results**
+
+- ER-01 ✅ — `test-account-sets.test.ts` checks the 12 sets in order, role order, the D-21 emails and names
+  (set 03 word for word, the generated pattern for all), 36 distinct emails passing `EmailRule`, names passing
+  `PersonNameRule`, no `code`; `mirrors testAccountSets` compares the script's 36 accounts with the flattened list;
+  the script prints the line and the table
+- ER-02 ✅ — e2e per language (title, intro, "All flows", 12 cards × 3 rows from `testAccountSets`, no 6-digit
+  number), 404 for `/de/…`, 307 to `/es/…`, `noindex` in the visibility loop; by hand at 375 × 812 in pt-br: 12
+  cards, 36 emails, `noindex, nofollow`, no 6-digit number, names as stored
+- ER-03 ✅ — component test (copied → reset after 2 s with fake timers, failure until the next tap, only the
+  tapped button changes, name includes the email, `min-h-11`); e2e reads `teste05.aluno@…` back from the
+  clipboard, one "Copied", ≥ 44 px, back after 2 s. By hand the pane denies `clipboard-write`: the tap showed the
+  pt-BR failure line under that row only (button 53.6 px tall)
+- ER-04 ✅ — e2e checks the index row, four flow links, each flow's "See the test accounts" inside "Account to
+  use", no email/code on index and flow pages, no link on the home; by hand `/es/user-journeys/student` →
+  "Ver las cuentas de prueba" opens `/es/user-journeys/test-accounts`; no file outside `user-journeys` in
+  `apps/web/src` mentions `test-accounts`
+- ER-05 ✅ — e2e at 375 × 812 and 1280 × 800 (no horizontal scroll, every email inside its card) and the theme
+  toggle changing the card's colors; by hand: three columns at 1024 px, cards `rgb(33, 39, 54)` dark /
+  `rgb(254, 252, 249)` light; the grep finds nothing
+
+**Findings**
+
+None.
+
+**Notes**
+
+- The successful copy-and-paste is proven by Playwright only (the in-app browser denies clipboard writes); a
+  quick tap on a real phone before handing the page to testers would close that gap.

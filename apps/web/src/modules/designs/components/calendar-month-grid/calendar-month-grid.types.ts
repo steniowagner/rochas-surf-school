@@ -12,4 +12,6 @@ export type CalendarMonthGridProps = {
   initials: string[];
   weeks: CalendarMonthDay[][];
   selectedWeekIndex: number;
+  /** `overlap` pulls the dots up against the numbers, as the week picker sheet draws them. */
+  dotPlacement?: "below" | "overlap";
 };

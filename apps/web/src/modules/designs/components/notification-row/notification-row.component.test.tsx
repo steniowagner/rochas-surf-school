@@ -25,6 +25,9 @@ describe("NotificationRow", () => {
     ["enrolment.denied", "bg-bad-tint"],
     ["class.reminder", "bg-warn-tint"],
     ["class.edited", "bg-info-tint"],
+    ["class.assigned", "bg-info-tint"],
+    ["class.unassigned", "bg-bad-tint"],
+    ["class.deleted", "bg-bad-tint"],
   ])("tints the %s icon with %s", (type, tile) => {
     render(<NotificationRow type={type} title="t" time="x" read />);
 

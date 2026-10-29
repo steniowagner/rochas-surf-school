@@ -43,6 +43,7 @@ describe("CalendarMonthGrid", () => {
     expect(screen.getByTestId("calendar-week-2026-09-07")).toHaveClass("bg-grape-tint");
     expect(screen.getByTestId("calendar-week-2026-08-31")).not.toHaveClass("bg-grape-tint");
     expect(screen.getByTestId("calendar-day-2026-09-01-dot")).toHaveClass("bg-lagoon");
+    expect(screen.getByTestId("calendar-day-2026-09-01-dot").parentElement).toHaveClass("mt-1");
   });
 
   it("keeps no dot slot when no day is marked", () => {

@@ -6,8 +6,11 @@ import type { NotificationRowProps, NotificationTone } from "./notification-row.
 const icons: Record<string, { name: AppIconName; tone: NotificationTone }> = {
   "registration.approved": { name: "Ionicons:checkmark-circle-outline", tone: "ok" },
   "reactivation.approved": { name: "Ionicons:checkmark-circle-outline", tone: "ok" },
+  "class.assigned": { name: "Ionicons:calendar-outline", tone: "info" },
   "class.edited": { name: "Ionicons:create-outline", tone: "info" },
+  "class.unassigned": { name: "Ionicons:remove-circle-outline", tone: "bad" },
   "class.cancelled": { name: "Ionicons:calendar-outline", tone: "bad" },
+  "class.deleted": { name: "Ionicons:trash-outline", tone: "bad" },
   "class.reminder": { name: "Ionicons:time-outline", tone: "warn" },
   "class.message": { name: "Ionicons:chatbubble-outline", tone: "info" },
   "location.changed": { name: "Ionicons:location-outline", tone: "info" },

@@ -57,4 +57,23 @@ describe("ClassPeople", () => {
     expect(screen.queryAllByRole("img")).toHaveLength(1);
     expect(screen.queryByText(/Máx\./)).toBeNull();
   });
+
+  it("opens the list: a row per student, then the trial guests, their avatars after the students'", () => {
+    const { container } = render(<ClassPeople {...props} seatsTaken={4} guests={[{ id: "g1", name: "Lucas Martins" }, { id: "g2", name: null }]} expanded />);
+
+    expect(screen.getByRole("button", { name: "Ana Beatriz Lima" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Caio Sousa" })).toBeInTheDocument();
+    expect(screen.getByText("Lucas Martins")).toBeInTheDocument();
+    expect(screen.getAllByText("Trial")).toHaveLength(2);
+    expect(screen.getAllByRole("img", { name: "Trial" })).toHaveLength(4);
+    expect(screen.getByText("4 alunos confirmados")).toBeInTheDocument();
+    expect(container.querySelector('[data-testid="instructor-pill"]')).not.toBeNull();
+  });
+
+  it("has a chevron for a class with only guests", () => {
+    const { container } = render(<ClassPeople {...props} students={[]} seatsTaken={1} guests={[{ id: "g", name: null }]} />);
+
+    expect(screen.getAllByRole("img", { name: "Trial" })).toHaveLength(1);
+    expect(container.querySelectorAll("svg").length).toBeGreaterThan(1);
+  });
 });

@@ -1,6 +1,6 @@
 import type { CalendarMonthGridProps } from "./calendar-month-grid.types";
 
-export function CalendarMonthGrid({ initials, weeks, selectedWeekIndex }: CalendarMonthGridProps) {
+export function CalendarMonthGrid({ initials, weeks, selectedWeekIndex, dotPlacement = "below" }: CalendarMonthGridProps) {
   const hasMarks = weeks.some((week) => week.some((day) => day.marked));
 
   return (
@@ -21,7 +21,7 @@ export function CalendarMonthGrid({ initials, weeks, selectedWeekIndex }: Calend
                   <span className={`ds-text-calendar-month-day ${number}`}>{day.number}</span>
                 </span>
                 {hasMarks ? (
-                  <span className="mt-1 h-1">
+                  <span className={`${dotPlacement === "overlap" ? "-mt-1.5 mb-1.5" : "mt-1"} h-1`}>
                     {day.marked ? <span data-testid={`calendar-day-${day.date}-dot`} className="block size-1 rounded-full bg-lagoon" /> : null}
                   </span>
                 ) : null}

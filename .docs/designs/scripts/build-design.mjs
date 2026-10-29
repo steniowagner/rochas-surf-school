@@ -5,7 +5,7 @@
 //   node .docs/designs/scripts/build-design.mjs <slug> [--url http://localhost:3100]
 //   node .docs/designs/scripts/pack.mjs <slug>
 //
-// `<slug>` is `design-system`, `auth-flow` or `student-app`. Needs the web app running (`npm run build -w @rochas-surf-school/web`,
+// `<slug>` is `design-system`, `auth-flow`, `student-app` or `instructor-app`. Needs the web app running (`npm run build -w @rochas-surf-school/web`,
 // then `npx next start -p 3100` in apps/web). Run it again after changing the web's design components or the app's
 // messages. Every design shares the design system's loader (`shell.html`), fonts (`fonts.css`) and font assets; the
 // rest of `src/<slug>/` (an old prototype's files, for one) is removed.

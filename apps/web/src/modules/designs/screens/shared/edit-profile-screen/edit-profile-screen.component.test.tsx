@@ -29,4 +29,11 @@ describe("EditProfileScreen", () => {
 
     expect(screen.getByRole("status", { name: "Salvar" })).toBeInTheDocument();
   });
+
+  it("IN-06-03: the instructor's name and e-mail", () => {
+    render(<EditProfileScreen locale="pt-br" state="idle" role="instructor" />);
+
+    expect(screen.getByText("Rafael Rocha", { selector: "span" })).toBeInTheDocument();
+    expect(screen.getByText("rafael.rocha@email.com")).toBeInTheDocument();
+  });
 });

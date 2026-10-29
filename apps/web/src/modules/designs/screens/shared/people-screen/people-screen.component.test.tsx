@@ -56,4 +56,13 @@ describe("PeopleScreen", () => {
     expect(screen.getByRole("alert")).toHaveTextContent("Não foi possível abrir o WhatsApp.");
     expect(screen.getByRole("dialog")).toBeInTheDocument();
   });
+
+  it("IN-06-01: the same directory on the instructor's tab bar, with Pessoas selected", () => {
+    render(<PeopleScreen locale="pt-br" state="list" role="instructor" />);
+
+    expect(screen.getByTestId("phone-frame")).toHaveAttribute("data-tall");
+    expect(screen.getByRole("tab", { name: "Pessoas" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.queryByRole("tab", { name: "Escola" })).toBeNull();
+    expect(screen.getByText("Rafael Rocha")).toBeInTheDocument();
+  });
 });

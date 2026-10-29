@@ -1,20 +1,26 @@
 import { appT } from "@/modules/designs/i18n/app-t";
 
 import { AppIcon } from "../app-icon";
+import { ClassGuestRow } from "../class-guest-row";
+import { ClassStudentRow } from "../class-student-row";
+import { GuestAvatar } from "../guest-avatar";
 import { StudentAvatar } from "../student-avatar";
 
 import type { ClassPeopleProps } from "./class-people.types";
 
 const MAX_AVATARS = 5;
+const AVATAR_SIZE = 30;
 
 /** The "A aula" group of the class details: who teaches, who is enrolled, and how many seats are left. */
-export function ClassPeople({ locale, instructors, students, seatsTaken, capacity, state }: ClassPeopleProps) {
+export function ClassPeople({ locale, instructors, students, guests = [], seatsTaken, capacity, state, expanded = false }: ClassPeopleProps) {
   const t = (key: string, params?: Record<string, string | number>) => appT(locale, key, params);
-  const shown = students.slice(0, MAX_AVATARS);
+  // The first seats, students first and then guests; "+N" counts the others.
+  const shown = [...students.map((student) => ({ kind: "student" as const, ...student })), ...guests.map((guest) => ({ kind: "guest" as const, id: guest.id }))].slice(0, MAX_AVATARS);
   const hidden = Math.max(0, seatsTaken - shown.length);
   const full = seatsTaken >= capacity;
   const showCapacityLine = state !== "finished" && state !== "cancelled";
   const labelKey = seatsTaken === 0 ? "none" : state === "finished" ? "present" : "confirmed";
+  const canExpand = students.length > 0 || guests.length > 0;
 
   return (
     <div className="flex flex-col gap-2">
@@ -49,17 +55,19 @@ export function ClassPeople({ locale, instructors, students, seatsTaken, capacit
         <div className="flex min-h-11 items-center gap-3 border-t border-line px-4 py-3">
           {shown.length > 0 || hidden > 0 ? (
             <div className="flex items-center">
-              {shown.map((student, index) => (
-                <span key={student.id} className={index === 0 ? "" : "-ml-2"}>
-                  <StudentAvatar name={student.label} size={30} ringed erased={student.erased} />
+              {shown.map((seat, index) => (
+                <span key={seat.id} className={index === 0 ? "" : "-ml-2"}>
+                  {seat.kind === "student" ? <StudentAvatar name={seat.label} size={AVATAR_SIZE} ringed erased={seat.erased} /> : <GuestAvatar locale={locale} size={AVATAR_SIZE} ringed />}
                 </span>
               ))}
               {hidden > 0 ? <span className="ds-text-chip -ml-2 flex size-7.5 items-center justify-center rounded-full border-2 border-surface bg-sand text-ink">{`+${hidden}`}</span> : null}
             </div>
           ) : null}
           <p className="ds-text-section-label flex-1 text-ink-2">{t(`classesWeek.students.${labelKey}`, { count: seatsTaken })}</p>
-          {students.length > 0 ? <AppIcon name="Ionicons:chevron-down" size={18} className="text-ink-2" /> : null}
+          {canExpand ? <AppIcon name={expanded ? "Ionicons:chevron-up" : "Ionicons:chevron-down"} size={18} className="text-ink-2" /> : null}
         </div>
+        {expanded ? students.map((student) => <ClassStudentRow key={student.id} name={student.label} erased={student.erased} />) : null}
+        {expanded ? guests.map((guest) => <ClassGuestRow key={guest.id} locale={locale} name={guest.name} />) : null}
       </div>
     </div>
   );

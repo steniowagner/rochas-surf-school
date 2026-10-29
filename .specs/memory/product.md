@@ -1341,6 +1341,21 @@ longer than the phone are drawn as tall frames that show the whole scrolled cont
 over a phone-height screen. The school's texts (denial and take-out reasons, cancellation and school rules, class
 notes) are mock text in the page's language. Ratings, photos and keyboard-open frames are not shown.
 
+**Instructor app designs page** (spec `074-designs-instructor-app`) — the designs index lists a fourth page, the
+instructor app, at `/{lang}/designs/instructor-app`. It shows every screen an approved instructor sees, in 49 entries
+(`IN-<section>-<entry>`) in six sections: the home (the school card with the "Minhas aulas", "Regras" and "Ocupação
+semanal" rows, with nothing assigned and while the counts load), the "Aulas" tab (week and month, the sport filter,
+loading, empty day, error; no user header and no enrolment on the cards), a class in its read-only form (the note
+saying whether the instructor teaches it, the people with "Você", trial guests, full, no students, started,
+finished, cancelled, the person and cancellation-rule sheets, loading, not found, error; no enrolment banner, footer
+button or tools), my classes (the ongoing class, the days with "Próxima", the filter and their states) and the
+history of the classes taught, the weekly occupancy (the week bar, the stats, the map with its tones and a cancelled
+cell, the selected class, another week, the week picker, loading, empty, error), and the people, profile, edit
+profile, WhatsApp, school rules and notifications (one row per notification type the backend sends an instructor).
+Screens an instructor sees exactly as a student does are drawn once, in their main frame, and their note names the
+student page's frames that show their other states. As the app draws them, an instructor sees no trial count on a
+class and no e-mail on a student's person sheet.
+
 Active specs: none.
 
 ## Out of scope (future evolution, recorded in the specs)
@@ -1390,10 +1405,10 @@ Active specs: none.
 - Deploying the public site (host and domain), linking the privacy policy from the store listings, the onboarding
   line linking the terms and the policy, a report button for objectionable content, the
   legal (LGPD) review of the pages' copy.
-- On the designs area (spec 071): the instructor and admin designs on the site (each to come in its own spec, with
-  their role's form of the shared screens), Android phone frames, clickable prototypes (every state is a static
-  frame), search-engine settings for the design pages, and keeping the Claude Design project in sync with the design
-  files. On the auth flow and student app pages (specs 072 and 073): frames with the keyboard open.
+- On the designs area (spec 071): the admin designs on the site (to come in its own spec, with the admin's form of
+  the shared screens), Android phone frames, clickable prototypes (every state is a static frame), search-engine
+  settings for the design pages, and keeping the Claude Design project in sync with the design files. On the auth
+  flow, student app and instructor app pages (specs 072–074): frames with the keyboard open.
 - On the Profile (spec 026): uploading or changing the profile photo (the camera button says "coming soon"),
   splitting the name into first and last name, real data in the
   About sheet (mocked), and keeping the theme, language and push preferences on the account or syncing them across
@@ -1498,6 +1513,11 @@ Active specs: none.
   side, the tall frames at their full height. Since spec 073 it is generated from the site's student app page
   (`/{lang}/designs/student-app`), like `design-system.html`; the former European Portuguese prototype, with its
   ratings and photos, is gone.
-- `.docs/designs/instructor-app.html`, `admin-app.html` — the designs of the instructor's and the admin's screens.
+- `.docs/designs/instructor-app.html` — the instructor app: every screen an approved instructor sees (home, classes,
+  a class in read-only form, my classes and history, weekly occupancy, people, profile, notifications), in pt-BR,
+  every entry in light and dark side by side, the tall frames at their full height. Since spec 074 it is generated
+  from the site's instructor app page (`/{lang}/designs/instructor-app`), like `design-system.html`; the former
+  European Portuguese prototype, with its ratings screen, is gone.
+- `.docs/designs/admin-app.html` — the designs of the admin's screens.
 - Since spec 071 the design files are edited through readable sources in `.docs/designs/src/`, rebuilt into the
   `.html` files by a pack script; the Claude Design project is no longer where they are edited.

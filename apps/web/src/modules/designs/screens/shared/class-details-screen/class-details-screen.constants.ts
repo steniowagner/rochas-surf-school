@@ -1,4 +1,4 @@
-import type { ClassDetailsState, EnrolmentCta, Scenario } from "./class-details-screen.types";
+import type { ClassDetailsState, ClassDetailsView, EnrolmentCta, InstructorClassDetailsState, InstructorScenario, LoadedClassDetails, Scenario } from "./class-details-screen.types";
 
 const CTAS = {
   request: { key: "request", variant: "primary" },
@@ -57,4 +57,62 @@ export const scenarios: Record<Exclude<ClassDetailsState, "loading" | "notFound"
   finished: { ...base, classState: "finished" },
   classCancelled: { ...base, classState: "cancelled" },
   noInstructor: { ...base, noInstructor: true },
+};
+
+const teaches = { classState: "not-started", teacher: "viewer" } as const;
+
+/** What each state of the instructor's class details is made of. */
+export const instructorScenarios: Record<Exclude<InstructorClassDetailsState, "loading" | "notFound" | "error">, InstructorScenario> = {
+  teaches: { ...teaches, expanded: true },
+  notAssigned: { ...teaches, teacher: "other" },
+  noInstructor: { ...teaches, teacher: "none" },
+  full: { ...teaches, full: true },
+  guests: { ...teaches, guests: true, expanded: true },
+  noStudents: { ...teaches, noStudents: true },
+  started: { ...teaches, classState: "started" },
+  finished: { ...teaches, classState: "finished" },
+  classCancelled: { ...teaches, classState: "cancelled" },
+};
+
+/** What a loaded class's details draw: the student's scenario with their enrolment, or the instructor's read-only one. */
+export const getClassDetailsView = (details: LoadedClassDetails): ClassDetailsView => {
+  if (details.role === "instructor") {
+    const scenario = instructorScenarios[details.state];
+
+    return {
+      classState: scenario.classState,
+      full: scenario.full ?? false,
+      deadline: "ahead",
+      bannerStatus: null,
+      showFullBanner: scenario.classState === "not-started" && scenario.full === true,
+      cta: null,
+      deadlineNote: null,
+      teacher: scenario.teacher,
+      inClass: true,
+      guests: scenario.guests ?? false,
+      noStudents: scenario.noStudents ?? false,
+      expanded: scenario.expanded ?? false,
+      readOnlyNoteKey: scenario.teacher === "viewer" ? "classDetails.readOnly.teaches" : "classDetails.readOnly.notAssigned",
+    };
+  }
+
+  const scenario = scenarios[details.state];
+  const notStarted = scenario.classState === "not-started";
+
+  return {
+    classState: scenario.classState,
+    full: scenario.full,
+    deadline: scenario.deadline,
+    bannerStatus: scenario.status === "pending" && scenario.full ? "waitingList" : scenario.status,
+    showFullBanner: notStarted && scenario.full && scenario.status === null,
+    fullBannerWaitingList: scenario.waitingListEnabled ? "open" : "closed",
+    cta: notStarted ? getEnrolmentCta(scenario.status, scenario.full, scenario.canCancel, scenario.waitingListEnabled) : null,
+    deadlineNote: notStarted && scenario.status === "approved" && !scenario.canCancel ? (scenario.deadline === "none" ? "missing" : "passed") : null,
+    teacher: scenario.noInstructor ? "none" : "other",
+    inClass: scenario.inClass ?? false,
+    guests: false,
+    noStudents: false,
+    expanded: false,
+    readOnlyNoteKey: null,
+  };
 };

@@ -3,6 +3,7 @@ export const designPages = [
   { slug: "design-system", dictionaryKey: "designSystem" },
   { slug: "auth-flow", dictionaryKey: "authFlow" },
   { slug: "student-app", dictionaryKey: "studentApp" },
+  { slug: "instructor-app", dictionaryKey: "instructorApp" },
 ] as const;
 
 export type DesignPage = (typeof designPages)[number];

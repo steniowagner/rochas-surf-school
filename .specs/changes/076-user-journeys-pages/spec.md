@@ -433,7 +433,7 @@ script prints, so no sign-in code ever reaches the public repository.
   > `apps/web/src/modules/user-journeys/i18n/user-journey-texts.test.ts`; verified: `npx vitest run
   > src/modules/user-journeys` (3 files, 24 passed), `npx tsc --noEmit` exit 0; deviations: none.
 
-- [ ] **T-07** — Build the results board, a client component following `.claude/rules/react.md`, in
+- [x] **T-07** — Build the results board, a client component following `.claude/rules/react.md`, in
   `apps/web/src/modules/user-journeys/components/`: `journey-board` (state for name, results and notes, restored
   after mount and saved on every change, D-16; "Clear results", D-23), `journey-row` (the row as a table row from
   1024 px and a labelled card below 768 px, D-19; exclusive checkboxes, D-04; the Notes field, D-10; design links,
@@ -446,6 +446,25 @@ script prints, so no sign-in code ever reaches the public repository.
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices).
   Covers: ER-05, ER-06, ER-07, ER-08, ER-12, ER-15 · Done when: `npx vitest run src/modules/user-journeys` passes in
   `apps/web`.
+  > ✅ 2026-10-29 16:48 — `journey-board` (client; `useJourneyBoard` holds the visit's edits, reads the saved progress
+  > only once mounted through a `useSyncExternalStore` hydration flag — the lint rule forbids setState in an effect —,
+  > saves on every change, toggles results exclusively, copies with "Copied" for 2 s or the failure alert, and clears
+  > after `window.confirm`), `journey-row` (a `<tr>` that is a labelled card below `lg` and a table row from `lg`;
+  > checkboxes named "Approved — <id>" / "Denied — <id>" in 44 px labels; "Notes — <id>" textarea; design links in a
+  > new tab, "—" without one) and `results-summary` (name, counter, saved-progress line, "Copy results" / "Clear
+  > results", failure message). `utils/results-summary.ts` builds the D-15 text, `utils/journey-progress-storage.ts`
+  > reads / validates / writes / removes the D-16 value with every storage call in try / catch. Added beyond the task's
+  > list: `types/journey-progress.types.ts` (the progress, result and count types the utils and components share) and
+  > `utils/journey-groups.ts` (pairs the flow structure with one language's texts — the board's `groups` prop, used by
+  > T-09's page) with its test. Files: `apps/web/src/modules/user-journeys/components/journey-board/{index.ts,journey-board.component.tsx,journey-board.hook.ts,journey-board.types.ts,journey-board.component.test.tsx}`,
+  > `apps/web/src/modules/user-journeys/components/journey-row/{index.ts,journey-row.component.tsx,journey-row.types.ts}`,
+  > `apps/web/src/modules/user-journeys/components/results-summary/{index.ts,results-summary.component.tsx,results-summary.types.ts}`,
+  > `apps/web/src/modules/user-journeys/utils/{results-summary.ts,results-summary.test.ts,journey-progress-storage.ts,journey-progress-storage.test.ts,journey-groups.ts,journey-groups.test.ts}`,
+  > `apps/web/src/modules/user-journeys/types/journey-progress.types.ts`; verified: `npx vitest run
+  > src/modules/user-journeys` (7 files, 54 passed; the board's tests `approved and denied exclude each other`, `every
+  > row has notes`, `copy results` (success and rejection), `clear results` (confirm true / false), restoring, saving,
+  > throwing storage), `npx tsc --noEmit` and `npx eslint src/modules/user-journeys` exit 0; deviations: the two
+  > added files above.
 
 - [ ] **T-08** — Add the index: `apps/web/src/app/[lang]/user-journeys/layout.tsx` (wide `SiteShell`, `robots`
   noindex / nofollow, D-07), `apps/web/src/app/[lang]/user-journeys/page.tsx` (`generateMetadata`,

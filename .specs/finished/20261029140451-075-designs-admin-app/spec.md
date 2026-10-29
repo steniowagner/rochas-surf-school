@@ -2,13 +2,14 @@
 id: "075"
 slug: designs-admin-app
 title: Admin app designs page
-status: accepted
+status: finished
 reviewed_commit: d222d98acddfd44892632ac58ab2b4a1d2ff0cc7
 started: 2026-10-29
 base_commit: 0a47dbb52cb9d9a40eec0781a1c1e4b2a9151e77
 created: 2026-10-29
 fronts: [web, designs]
 depends_on: []
+finished: 2026-10-29
 ---
 
 # 075 — Admin app designs page

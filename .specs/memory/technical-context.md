@@ -216,7 +216,8 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     `SiteShell` (`src/components/site-shell`: header, footer and the content column) `narrow` (640 px), and
     `designs/layout.tsx` renders it `wide` (up to 1440 px) for `/{lang}/designs` (the index),
     `/{lang}/designs/design-system`, since spec 072 `/{lang}/designs/auth-flow`, since spec 073
-    `/{lang}/designs/student-app` and, since spec 074, `/{lang}/designs/instructor-app`. Each design page is its own static route (no `[slug]`), so an unknown slug
+    `/{lang}/designs/student-app`, since spec 074 `/{lang}/designs/instructor-app` and, since spec 075,
+    `/{lang}/designs/admin-app`. Each design page is its own static route (no `[slug]`), so an unknown slug
     answers 404; the index lists `designPages` from `src/modules/designs/data/design-pages.ts`.
   - Designs (spec 071): `src/modules/designs/` holds `components/` (presentational mocks of the mobile components
     with the mobile names and props, plus `phone-frame` — an iOS 402 × 874 frame that scales down with a container
@@ -259,7 +260,19 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     `data/instructor-app-ids.ts` (the 49 ids `IN-<section>-<entry>` and each entry's other messages);
     `i18n/instructor-app-note.ts`; one `instructor-app-<section>` component per section and `pages/instructor-app/`.
     The instructor's notification texts are copied from `push-messages.ts` into the dictionaries like the
-    student's. The app's own glyphs
+    student's. Since spec 075 it also holds the admin app page: the shared mocks take `role="admin"` where it changes
+    what they draw (`classes-week-screen`, `class-details-screen` — the tools, the take-out and the admin's banners
+    and sheets, through `adminScenarios` —, `people-screen`, `profile-screen`, `edit-profile-screen`), and
+    `teaching-classes-screen` and `weekly-occupancy-screen` moved to `screens/shared/` (they take no `role`: in the
+    app it only picks the routes they open); admin-only mocks in `screens/admin/` (home, new class, edit class,
+    location form, send notice, class requests, registrations, reactivations, removed accounts, enrol student, school
+    settings, cancellation rules, manage school rules); the location form's map is `location-map`, drawn with tokens
+    only (no tiles, no request), so the generated `.html` stays stable; `utils/audience.ts` mirrors the app's
+    `joinAudience`; `data/admin-app.ts` (the admin tab bar, dates, the people directory, the range calendar and time
+    chips) and `data/admin-app-ids.ts` (the 112 ids `AD-<section>-<entry>` and each entry's other messages), with the
+    admin's mock data in `data/fortaleza.ts`; `i18n/admin-app-note.ts`; one `admin-app-<section>` component per
+    section and `pages/admin-app/`. The admin's notification texts (the types an admin who also teaches receives) are
+    copied from `push-messages.ts` into the dictionaries like the others'. The app's own glyphs
     (Ionicons, Feather, FontAwesome, FontAwesome6, MaterialCommunityIcons, SimpleLineIcons) are drawn by `app-icon`
     from a typed `"<set>:<name>"` registry over **`react-icons`** 5 and **`@mdi/js`** 7; Lucide stays for the
     site's own pages. `globals.css` also maps the tokens the mocks need (checkbox and icon-button radii, `sun-tint`,
@@ -342,8 +355,9 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
   assets shared by every file — React 18 UMD, Babel standalone, the `x-dc` runtime, fonts, frames — de-duplicated
   in `src/_shared/`) and rebuilt with `node .docs/designs/scripts/pack.mjs [<name>]` (Node only, `node:zlib`);
   `--check` compares the decoded content and exits 1 naming a stale `.html`; `unpack.mjs` imports a new export.
-  `design-system.html`, since spec 072 `auth-flow.html`, since spec 073 `student-app.html` and, since spec 074,
-  `instructor-app.html` are the exception: their sources are generated from the
+  `design-system.html`, since spec 072 `auth-flow.html`, since spec 073 `student-app.html`, since spec 074
+  `instructor-app.html` and, since spec 075, `admin-app.html` — every design file — are the exception: their sources
+  are generated from the
   web's `/pt-br/designs/<slug>` by `build-design.mjs <slug>` (the web built and served with `next start -p 3100`;
   every `[data-design-id]` entry drawn light and dark side by side with the web's compiled CSS and the same SVG
   glyphs; the images the page draws become bundle assets; every design shares the design system's `shell.html`,

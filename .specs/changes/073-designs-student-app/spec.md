@@ -175,7 +175,7 @@ with light and dark side by side, replacing the outdated European Portuguese pro
 
 ### Web (`apps/web`)
 
-- [ ] **T-01** — Add to `apps/web/src/modules/designs/components/` the building blocks of sections 01–02, with the
+- [x] **T-01** — Add to `apps/web/src/modules/designs/components/` the building blocks of sections 01–02, with the
   mobile names and props: the `tall` option of `phone-frame` (D-02), `discipline-filter` (button and open menu),
   `enrolment-banner` (every status's tone, icon, title and description, pressable for denied), the class details
   cards (`class-info-card` for started, finished, cancelled, no instructor and no deadline; `class-full-banner`;
@@ -186,6 +186,10 @@ with light and dark side by side, replacing the outdated European Portuguese pro
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices). Covers: enabling · Done when:
   `npx vitest run src/modules/designs/components` passes in `apps/web` and
   `npm run check-types --workspace @rochas-surf-school/web` exits 0.
+  > ✅ 2026-10-28 22:56 — the section 01–02 building blocks (mobile names and props): `tall` option of `phone-frame` (with `useTallFrame`: content-high frame that keeps its scale below 402 px), `discipline-filter` (button and open menu), `enrolment-banner`, `class-info-card` (started, finished, cancelled, no instructor, no deadline), `class-full-banner`, `class-rule-row`, `class-people`, `class-location-card`, `class-details-skeleton`, `request-seat-class-card`, `request-seat-sheet` (deadline, no-deadline, no-rule, waiting-list, sending), `withdraw-request-sheet`, `cancel-seat-sheet`, `denial-reason-sheet`; 19 glyphs added to the `app-icon` registry and the `shadow-menu-option` token to `globals.css`;
+  > files: `apps/web/src/app/globals.css`, `apps/web/src/modules/designs/components/app-icon/app-icon.constants.ts`, `apps/web/src/modules/designs/components/phone-frame/{phone-frame.component.tsx,phone-frame.hook.ts,phone-frame.types.ts,phone-frame.component.test.tsx}`, and for each of `discipline-filter`, `enrolment-banner`, `class-info-card`, `class-full-banner`, `class-rule-row`, `class-people`, `class-location-card`, `class-details-skeleton`, `request-seat-class-card`, `request-seat-sheet`, `withdraw-request-sheet`, `cancel-seat-sheet`, `denial-reason-sheet` under `apps/web/src/modules/designs/components/<name>/`: `index.ts`, `<name>.component.tsx`, `<name>.types.ts`, `<name>.component.test.tsx`;
+  > verified: `npx vitest run src/modules/designs/components` in `apps/web` (72 files, 218 tests passed); `npm run check-types --workspace @rochas-surf-school/web` (exit 0); `npx eslint src/modules/designs` (clean);
+  > deviations: the mobile class details show the no-instructor and no-deadline cards to admins only (`canEdit`), so the student page (T-03) draws ST-02-26 with `classDetails.noInstructorAssigned` in the instructor band and ST-02-16 with the cancel-seat note; the two card variants exist in `class-info-card` for the admin page (spec 075); `request-seat-class-card` was split from the sheet by the react rules (one component per folder)
 
 - [ ] **T-02** — Add the building blocks of sections 03–06 the same way: `my-classes-filters`,
   `history-list-header` and `history-day-label`; `person-avatar`, `person-row`, `role-filters`, `person-sheet`

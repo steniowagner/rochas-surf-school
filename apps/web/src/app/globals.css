@@ -43,6 +43,7 @@
   --shadow-card: var(--ds-elevation-card);
   --shadow-primary: var(--ds-elevation-primary);
   --shadow-fab: var(--ds-elevation-fab);
+  --shadow-menu-option: var(--ds-elevation-menu-option);
 
   --font-display: var(--ds-font-display), sans-serif;
   --font-body: var(--ds-font-body), system-ui, sans-serif;

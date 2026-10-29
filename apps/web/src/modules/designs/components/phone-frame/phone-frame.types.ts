@@ -10,4 +10,13 @@ export type PhoneFrameProps = {
   contentClassName?: string;
   /** The content fills the whole frame and the status bar is drawn over it, as on a full-bleed screen. */
   fullBleed?: boolean;
+  /** The frame grows to the whole scrolled content of a screen longer than the phone (spec 073 D-02). */
+  tall?: boolean;
+};
+
+export type UseTallFrameResult = {
+  frameRef: React.RefObject<HTMLDivElement | null>;
+  contentRef: React.RefObject<HTMLDivElement | null>;
+  /** The height of the frame once the content is scaled down to a narrow viewport; `undefined` until measured. */
+  scaledHeight: number | undefined;
 };

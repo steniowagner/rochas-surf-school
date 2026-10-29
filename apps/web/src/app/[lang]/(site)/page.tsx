@@ -1,4 +1,4 @@
-import { FileText, Palette, ShieldCheck, UserX, Waves } from "lucide-react";
+import { ClipboardCheck, FileText, Palette, ShieldCheck, UserX } from "lucide-react";
 import { notFound } from "next/navigation";
 
 import { LinkRow } from "@/components/link-row";
@@ -18,7 +18,6 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
   return (
     <>
       <ScreenIntro
-        icon={<Waves size={32} strokeWidth={2} aria-hidden />}
         eyebrow={home.title}
         title={site.name}
         description={home.description}
@@ -47,6 +46,12 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
           icon={<Palette size={24} strokeWidth={2} aria-hidden />}
           title={home.designs.title}
           description={home.designs.description}
+        />
+        <LinkRow
+          href={`/${lang}/user-journeys`}
+          icon={<ClipboardCheck size={24} strokeWidth={2} aria-hidden />}
+          title={home.userJourneys.title}
+          description={home.userJourneys.description}
         />
       </div>
     </>

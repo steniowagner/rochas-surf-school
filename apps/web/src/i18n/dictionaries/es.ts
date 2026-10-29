@@ -32,6 +32,10 @@ export const es = {
       title: "Diseños",
       description: "Cómo está diseñada la app: el sistema de diseño con colores, tipografía y componentes.",
     },
+    userJourneys: {
+      title: "Recorridos de usuario",
+      description: "Los casos de prueba de cada flujo de la app, para quienes la prueban antes del lanzamiento.",
+    },
   },
   designs: {
     metaTitle: "Diseños",

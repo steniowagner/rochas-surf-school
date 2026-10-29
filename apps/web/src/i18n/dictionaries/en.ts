@@ -32,6 +32,10 @@ export const en = {
       title: "Designs",
       description: "How the app is designed: the design system with colors, typography and components.",
     },
+    userJourneys: {
+      title: "User journeys",
+      description: "The test cases of each app flow, for the people testing the app before launch.",
+    },
   },
   designs: {
     metaTitle: "Designs",

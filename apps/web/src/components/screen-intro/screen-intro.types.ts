@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
 
 export type ScreenIntroProps = {
-  icon: ReactNode;
+  /** Left out, the intro has no icon tile. */
+  icon?: ReactNode;
   title: string;
   description: string;
   eyebrow?: string;

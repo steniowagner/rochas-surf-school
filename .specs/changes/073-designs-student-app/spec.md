@@ -204,13 +204,17 @@ with light and dark side by side, replacing the outdated European Portuguese pro
   > verified: `npx vitest run src/modules/designs/components` in `apps/web` (89 files, 257 tests passed); `npm run check-types --workspace @rochas-surf-school/web` (exit 0); `npx eslint src/modules/designs` (clean);
   > deviations: `profile-avatar` was added because `profile-header` and the edit-profile screen draw it; the mobile `PersonSheet` shows the e-mail row only where `email` is passed and the student's people list passes none, so `person-sheet` takes `email` as an option and the student page (T-04) leaves it out; the people list's "loading more" spinner and the app's "unread" accessibility suffix are not drawn (no visible element)
 
-- [ ] **T-03** — Write the screen mocks of sections 01–02 (D-07): `screens/student/agenda-screen` (week, month,
+- [x] **T-03** — Write the screen mocks of sections 01–02 (D-07): `screens/student/agenda-screen` (week, month,
   filter open, filtered, loading, empty day, error) and `screens/shared/class-details-screen` (the class, its
   states and the student's enrolment part with its banner, footer button from the same rules as
   `getEnrolmentCta`, sheets and toasts), reading the app copy through `appT` / `appRich`, with a Vitest test per screen
   covering every state of ST-01-01 to ST-02-30. Skill:
   [`vercel-react-best-practices`](../../../.claude/skills/vercel-react-best-practices). Covers: ER-03 · Done when:
   `npx vitest run src/modules/designs/screens` passes in `apps/web`.
+  > ✅ 2026-10-28 23:02 — the screen mocks of sections 01–02: `screens/student/agenda-screen` (week, month, filter open, filtered, loading, empty day, error) and `screens/shared/class-details-screen` (20 states, 8 sheets, toasts; footer button from `getEnrolmentCta`'s rules in `class-details-screen.constants.ts`), plus `data/student-app.ts` (tab bar, mock dates in the app's language, agenda and my-classes mock classes, September grid) and a `ResizeObserver` stub in `vitest.setup.ts`;
+  > files: `apps/web/src/modules/designs/data/student-app.ts`, `apps/web/vitest.setup.ts`, `apps/web/src/modules/designs/screens/student/agenda-screen/{index.ts,agenda-screen.component.tsx,agenda-screen.types.ts,agenda-screen.component.test.tsx}`, `apps/web/src/modules/designs/screens/shared/class-details-screen/{index.ts,class-details-screen.component.tsx,class-details-screen.types.ts,class-details-screen.constants.ts,class-details-screen.component.test.tsx}`;
+  > verified: `npx vitest run src/modules/designs/screens` in `apps/web` (14 files, 77 tests passed); `npm run check-types` (exit 0); `npx eslint src/modules/designs` (clean);
+  > deviations: ST-02-26 draws "Sem instrutor atribuído" in the instructor band and ST-02-16 the cancel note without the warn card, because the app shows those cards to admins only; ST-02-27..29 (loading, not found, error) are phone-height frames because the app fills the screen with them and they don't scroll; the class-details sheet frames are tall (the sheet sits at the bottom of the tall frame) as the inventory says "every class-details frame is tall"; the "Reservas" tab is labelled as the app does (`tabs.myClasses`)
 
 - [ ] **T-04** — Write the screen mocks of sections 03–06 the same way: `screens/student/my-classes-screen`,
   `screens/student/my-history-screen`, `screens/shared/people-screen`, `screens/shared/profile-screen` (with its

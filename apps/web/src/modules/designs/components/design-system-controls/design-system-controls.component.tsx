@@ -41,7 +41,7 @@ export function DesignSystemControls({ locale, text }: DesignSystemSectionProps)
           ))}
           <div className="flex flex-col gap-2 rounded-card border border-line p-3">
             <p className="ds-text-section-label text-ink-2">{text.labels.withIcon}</p>
-            <Button icon={<AppIcon name="Ionicons:calendar-outline" size={18} />}>{t("classesWeek.create")}</Button>
+            <Button icon={<AppIcon name="Ionicons:add" size={18} />}>{t("classesWeek.create")}</Button>
           </div>
         </div>
       </DesignEntry>

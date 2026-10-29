@@ -27,6 +27,7 @@ import {
   FiXCircle,
 } from "react-icons/fi";
 import {
+  IoAdd,
   IoAlertCircleOutline,
   IoArrowUndoOutline,
   IoCalendarClearOutline,
@@ -35,6 +36,7 @@ import {
   IoCheckmarkCircleOutline,
   IoCheckmarkOutline,
   IoChevronBack,
+  IoFilter,
   IoChevronDown,
   IoChevronForward,
   IoChevronUp,
@@ -85,6 +87,7 @@ export const glyphs = {
   "MaterialCommunityIcons:send-outline": mdi(mdiSendOutline),
   "MaterialCommunityIcons:surfing": mdi(mdiSurfing),
   "SimpleLineIcons:graph": SlGraph,
+  "Ionicons:add": IoAdd,
   "Ionicons:alert-circle-outline": IoAlertCircleOutline,
   "Ionicons:arrow-undo-outline": IoArrowUndoOutline,
   "Ionicons:calendar-clear-outline": IoCalendarClearOutline,
@@ -92,6 +95,7 @@ export const glyphs = {
   "Ionicons:checkmark": IoCheckmark,
   "Ionicons:checkmark-circle-outline": IoCheckmarkCircleOutline,
   "Ionicons:checkmark-outline": IoCheckmarkOutline,
+  "Ionicons:filter": IoFilter,
   "Ionicons:chevron-back": IoChevronBack,
   "Ionicons:chevron-down": IoChevronDown,
   "Ionicons:chevron-forward": IoChevronForward,

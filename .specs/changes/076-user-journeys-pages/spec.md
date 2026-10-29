@@ -318,7 +318,7 @@ script prints, so no sign-in code ever reaches the public repository.
 
 ### Backend (`apps/backend`)
 
-- [ ] **T-12** — Add the test-set generator of D-21 / D-22: `apps/backend/prisma/seed/test-accounts.ts`
+- [x] **T-12** — Add the test-set generator of D-21 / D-22: `apps/backend/prisma/seed/test-accounts.ts`
   (`buildTestAccounts(randomCode?)` returning the 36 `ReviewAccount`s with distinct codes, and
   `formatTestAccounts(accounts)` returning the `REVIEW_ACCOUNTS='…'` line and the Markdown table),
   `apps/backend/prisma/seed/print-test-accounts.ts` (prints both), the `test-accounts` script (`tsx
@@ -329,6 +329,17 @@ script prints, so no sign-in code ever reaches the public repository.
   the table, `console.log` mocked). Skill: [`nodejs-backend-patterns`](../../../.claude/skills/nodejs-backend-patterns).
   Covers: ER-16 · Done when: `npx vitest run prisma/seed` passes in `apps/backend`, and `npm run test-accounts
   --workspace apps/backend` prints 36 accounts.
+  > ✅ 2026-10-29 14:51 — `buildTestAccounts(randomCode?)` builds the 36 accounts of D-21 (set order admin,
+  > instructor, student; a repeated random code is drawn again) and `formatTestAccounts` returns the
+  > `REVIEW_ACCOUNTS='…'` line and the `| Set | Role | Email | Code |` table; `print-test-accounts.ts` prints the line,
+  > an empty line and the table; `test-accounts` script added; `.env.example` keeps `REVIEW_ACCOUNTS=""` with a
+  > comment naming the command. Files: `apps/backend/prisma/seed/test-accounts.ts`,
+  > `apps/backend/prisma/seed/test-accounts.spec.ts`, `apps/backend/prisma/seed/print-test-accounts.ts`,
+  > `apps/backend/prisma/seed/print-test-accounts.spec.ts`, `apps/backend/package.json`, `apps/backend/.env.example`;
+  > verified: `npx vitest run prisma/seed` (4 files, 19 passed); `npm run test-accounts --workspace apps/backend`
+  > prints the line and 36 table rows; `npx tsc --noEmit` and `npx oxlint --type-aware prisma/seed` exit 0;
+  > deviations: none (the skill `nodejs-backend-patterns` was loaded; it holds only general guidance for this
+  > small script).
 
 ### Web (`apps/web`)
 

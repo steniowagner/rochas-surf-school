@@ -100,6 +100,9 @@ parameter. `REVIEW_ACCOUNTS` is about 4,030 bytes and the standard tier's limit 
 **`DATABASE_URL`.** The server has no IPv6, so it can't use Supabase's direct connection. Use the session pooler
 (port 5432): copy the string from **Connect → Session pooler** in the Supabase dashboard, because its host can't be
 worked out from the region. Fill in the password from this output, which is sensitive, so don't paste it anywhere else.
+Then add `?sslmode=require&uselibpqcompat=true` to the end. Without it the connection isn't encrypted, and with
+`sslmode=require` alone the `pg` driver refuses Supabase's certificate (`SELF_SIGNED_CERT_IN_CHAIN`). This setting
+encrypts the connection without verifying the certificate, and both `pg` and Prisma's migrations accept it.
 
 ```bash
 terraform -chdir=infra/terraform/staging output -raw database_password

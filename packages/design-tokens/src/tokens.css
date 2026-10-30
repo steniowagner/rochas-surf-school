@@ -39,6 +39,7 @@
   --ds-on-grape-track: rgba(255,255,255,.22);
   --ds-on-grape-shade: rgba(0,0,0,.14);
   --ds-on-grape-bad: #FFD2CC;
+  --ds-splash: #F0E6D8;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -80,6 +81,7 @@
     --ds-on-grape-track: rgba(255,255,255,.22);
     --ds-on-grape-shade: rgba(0,0,0,.14);
     --ds-on-grape-bad: #FFD2CC;
+    --ds-splash: #F0E6D8;
   }
 }
 
@@ -121,6 +123,7 @@
   --ds-on-grape-track: rgba(255,255,255,.22);
   --ds-on-grape-shade: rgba(0,0,0,.14);
   --ds-on-grape-bad: #FFD2CC;
+  --ds-splash: #F0E6D8;
 }
 
 :root {

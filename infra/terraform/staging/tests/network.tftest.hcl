@@ -53,6 +53,10 @@ mock_provider "aws" {
   }
 }
 
+mock_provider "random" {}
+
+mock_provider "supabase" {}
+
 run "server_security_group_only_admits_the_vpc_link" {
   assert {
     condition     = length(aws_security_group.server.ingress) == 0
@@ -168,6 +172,18 @@ run "the_outputs_give_both_cnames" {
   assert {
     condition     = output.certificate_validation_cname.name == "_validation.api-staging.rochassurfschool.com." && output.api_cname.value == "d-example.execute-api.us-east-1.amazonaws.com"
     error_message = "The outputs must carry the two CNAMEs for Hostinger."
+  }
+}
+
+run "the_database_sits_next_to_the_server" {
+  assert {
+    condition     = supabase_project.main.region == "us-east-1"
+    error_message = "The Supabase project must be in us-east-1 (D-01)."
+  }
+
+  assert {
+    condition     = supabase_project.main.organization_id == "kyifpvzdlbiotepohvot"
+    error_message = "The project goes in the rochas-surf-school organization."
   }
 }
 

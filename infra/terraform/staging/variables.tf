@@ -33,6 +33,12 @@ variable "instance_type" {
   default     = "t4g.small"
 }
 
+variable "supabase_organization_id" {
+  description = "Slug of the Supabase organization that owns the project"
+  type        = string
+  default     = "kyifpvzdlbiotepohvot"
+}
+
 variable "vpc_cidr" {
   description = "CIDR block of the VPC"
   type        = string

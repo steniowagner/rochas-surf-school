@@ -14,6 +14,12 @@ output "certificate_validation_cname" {
   }
 }
 
+output "database_password" {
+  description = "Password of the Supabase database, for the DATABASE_URL parameter"
+  value       = random_password.database.result
+  sensitive   = true
+}
+
 output "server_instance_id" {
   description = "ID of the server, for SSM sessions and the deploy workflow"
   value       = aws_instance.server.id
@@ -22,4 +28,9 @@ output "server_instance_id" {
 output "server_public_ip" {
   description = "Public IP of the server, used for its outbound traffic only"
   value       = aws_instance.server.public_ip
+}
+
+output "supabase_project_ref" {
+  description = "Reference of the Supabase project, part of the pooler's user name"
+  value       = supabase_project.main.id
 }

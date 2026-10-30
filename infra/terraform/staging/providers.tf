@@ -9,3 +9,6 @@ provider "aws" {
     }
   }
 }
+
+# Reads SUPABASE_ACCESS_TOKEN from the environment.
+provider "supabase" {}

@@ -69,6 +69,19 @@ describe("UserHeader", () => {
     });
   });
 
+  it("shows the account's photo in place of the initials", async () => {
+    seedSession(
+      account({
+        name: "Ana Maria Souza",
+        photoUrl: "https://img.test/ana.jpg",
+      }),
+    );
+    await renderWithProviders(<UserHeader />);
+
+    expect(screen.getByTestId("student-avatar-photo")).toBeOnTheScreen();
+    expect(screen.queryByText("AS")).toBeNull();
+  });
+
   it("shows no badge with nothing unread", async () => {
     await renderWithProviders(<UserHeader />);
 

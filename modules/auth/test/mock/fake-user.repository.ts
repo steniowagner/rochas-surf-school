@@ -97,6 +97,13 @@ export class FakeUserRepository implements UserRepository {
     return this.users.find((item) => item.email === email) ?? null;
   }
 
+  async fillPhotoUrl(id: string, photoUrl: string): Promise<boolean> {
+    const index = this.users.findIndex((item) => item.id === id && !item.photoUrl);
+    if (index === -1) return false;
+    this.users[index] = this.users[index].clone({ photoUrl });
+    return true;
+  }
+
   async findPending(): Promise<User[]> {
     return this.users
       .filter((item) => item.status === "pending")

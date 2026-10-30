@@ -31,6 +31,7 @@ describe("GetCurrentUser", () => {
       role: "instructor",
       status: "approved",
       createdAt: CREATED_AT,
+      photoUrl: null,
       whatsappNumber: null,
       whatsappVisible: false,
       rulesAccepted: true,

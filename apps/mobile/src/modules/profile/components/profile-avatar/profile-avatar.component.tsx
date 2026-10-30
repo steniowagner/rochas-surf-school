@@ -1,4 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Text, TouchableOpacity, View } from "react-native";
 
@@ -8,20 +10,38 @@ import { getInitials } from "@/utils/get-initials";
 
 import { ProfileAvatarProps } from "./profile-avatar.types";
 
-/** The person's initials in a 112 pt circle, with an optional camera button for the (not yet built) photo. */
-export function ProfileAvatar({ name, onChangePhoto }: ProfileAvatarProps) {
+/**
+ * The person's photo, or their initials when there is none or it fails to load, in a 112 pt circle, with an optional
+ * camera button for changing the photo (not yet built).
+ */
+export function ProfileAvatar({
+  name,
+  photoUrl,
+  onChangePhoto,
+}: ProfileAvatarProps) {
   const { t } = useTranslation();
   const theme = useTheme();
+  const [failed, setFailed] = useState(false);
 
   return (
     <View className="h-28 w-28">
-      <View className="h-28 w-28 items-center justify-center rounded-full bg-sand">
-        <Text
-          accessibilityLabel={getInitials(name)}
-          className="ds-text-screen-title text-grape"
-        >
-          {getInitials(name)}
-        </Text>
+      <View className="h-28 w-28 items-center justify-center overflow-hidden rounded-full bg-sand">
+        {photoUrl !== null && !failed ? (
+          <Image
+            testID="profile-avatar-photo"
+            accessibilityLabel={name}
+            source={{ uri: photoUrl }}
+            onError={() => setFailed(true)}
+            style={{ width: "100%", height: "100%" }}
+          />
+        ) : (
+          <Text
+            accessibilityLabel={getInitials(name)}
+            className="ds-text-screen-title text-grape"
+          >
+            {getInitials(name)}
+          </Text>
+        )}
       </View>
       {onChangePhoto ? (
         <TouchableOpacity

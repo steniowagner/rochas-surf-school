@@ -7,6 +7,7 @@ export interface AccountOut {
   role: UserRole;
   status: UserStatus;
   createdAt: Date;
+  photoUrl: string | null;
   whatsappNumber: string | null;
   whatsappVisible: boolean;
   rulesAccepted: boolean;
@@ -23,6 +24,7 @@ export function toAccountOut(user: User, currentRulesVersion: number): AccountOu
     role: user.role,
     status: user.status,
     createdAt: user.createdAt,
+    photoUrl: user.photoUrl ?? null,
     whatsappNumber: user.whatsappNumber ?? null,
     whatsappVisible: user.whatsappVisible,
     rulesAccepted: currentRulesVersion === 0 || user.hasAcceptedRules(currentRulesVersion),

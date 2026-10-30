@@ -376,6 +376,29 @@ describe('PrismaUserRepository', () => {
     });
   });
 
+  describe('fillPhotoUrl', () => {
+    const photoUrl = 'https://cdn.example.com/ana.jpg';
+
+    it('writes only the photo, only while there is none, and answers true when a row changed', async () => {
+      const { user, repository } = setup();
+      user.updateMany.mockResolvedValue({ count: 1 });
+
+      await expect(repository.fillPhotoUrl(ID, photoUrl)).resolves.toBe(true);
+
+      expect(user.updateMany).toHaveBeenCalledWith({
+        where: { id: ID, status: { not: 'erased' }, photoUrl: null },
+        data: { photoUrl },
+      });
+    });
+
+    it('answers false when no row changed', async () => {
+      const { user, repository } = setup();
+      user.updateMany.mockResolvedValue({ count: 0 });
+
+      await expect(repository.fillPhotoUrl(ID, photoUrl)).resolves.toBe(false);
+    });
+  });
+
   describe('updateIfPending', () => {
     it('writes the user only while it is pending and answers true when a row changed', async () => {
       const { user, repository } = setup();

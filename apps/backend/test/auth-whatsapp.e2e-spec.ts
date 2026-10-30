@@ -105,6 +105,7 @@ describe('PUT /auth/me/whatsapp (e2e)', () => {
       role: 'student',
       status: 'approved',
       createdAt: user.createdAt.toISOString(),
+      photoUrl: null,
       whatsappNumber: '+5585999998888',
       whatsappVisible: false,
       rulesAccepted: true,

@@ -87,6 +87,19 @@ describe("ProfileScreen", () => {
     });
   });
 
+  it("shows the account's photo, and the initials when it fails to load", async () => {
+    await open({ photoUrl: "https://img.test/ana.jpg" });
+
+    expect(screen.queryByText("AS")).toBeNull();
+
+    await fireEvent(screen.getByTestId("profile-avatar-photo"), "error", {
+      nativeEvent: { error: "404" },
+    });
+
+    expect(screen.getByText("AS")).toBeOnTheScreen();
+    expect(screen.queryByTestId("profile-avatar-photo")).toBeNull();
+  });
+
   it.each([
     ["student", "Student"],
     ["instructor", "Instructor"],

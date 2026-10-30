@@ -158,6 +158,28 @@ describe('Google sign-in (e2e)', () => {
     await expect(counts(newEmail)).resolves.toMatchObject({ users: 0 });
   });
 
+  it('fills the photo of an account without one, and keeps it afterwards', async () => {
+    const email = uniqueEmail('photo');
+    const sub = `sub-${randomUUID()}`;
+    const first = 'https://lh3.googleusercontent.com/a/first=s400-c';
+
+    const created = await signIn({ idToken: token({ email, sub }) });
+    expect(created.body.user.photoUrl).toBeNull();
+
+    const filled = await signIn({ idToken: token({ email, sub, picture: first }) });
+    expect(filled.body.user).toMatchObject({ id: created.body.user.id, photoUrl: first });
+
+    const again = await signIn({
+      idToken: token({ email, sub, picture: 'https://lh3.googleusercontent.com/a/second=s400-c' }),
+    });
+    expect(again.body.user.photoUrl).toBe(first);
+
+    const me = await request(ctx.app.getHttpServer())
+      .get('/auth/me')
+      .set('Authorization', `Bearer ${again.body.accessToken}`);
+    expect(me.body.photoUrl).toBe(first);
+  });
+
   it('requires a token', async () => {
     for (const body of [{}, { idToken: '' }, { idToken: 42 }]) {
       const response = await signIn(body);

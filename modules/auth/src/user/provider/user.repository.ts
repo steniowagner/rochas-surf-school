@@ -39,6 +39,8 @@ export interface UserRepository extends CrudRepository<
   findDirectoryPage(params: DirectoryPageParams): Promise<PageResult<User>>;
   searchByName(name: string): Promise<User[]>;
   findByEmail(email: string): Promise<User | null>;
+  /** Stores the photo only while the user has none (one conditional update); false when it wasn't written. */
+  fillPhotoUrl(id: string, photoUrl: string): Promise<boolean>;
   /** Users with status `pending`, oldest first. */
   findPending(): Promise<User[]>;
   /** Writes the user only while its stored status is `pending`; false when it wasn't written. */

@@ -1,5 +1,6 @@
 import {
   UnauthorizedError,
+  UrlRule,
   UseCase,
   ValidationError,
   ValidationException,
@@ -54,7 +55,10 @@ export class SignInWithGoogle
     }
     const email = normalizeEmail(payload.email);
 
-    const user = await this.resolveUser(payload, email, input.name);
+    const user = await this.fillPhoto(
+      await this.resolveUser(payload, email, input.name),
+      payload.picture,
+    );
 
     const session = await this.startSession.execute({
       user: { id: user.id, email: user.email },
@@ -103,6 +107,16 @@ export class SignInWithGoogle
       name: user.name,
     });
     return user;
+  }
+
+  /** Google's picture is only a starting point: a photo already there stays, and a bad URL never stops the sign-in. */
+  private async fillPhoto(user: User, picture?: string): Promise<User> {
+    if (user.photoUrl || !picture || new UrlRule().validate(picture) !== null) {
+      return user;
+    }
+
+    const written = await this.userRepository.fillPhotoUrl(user.id, picture);
+    return written ? user.clone({ photoUrl: picture }) : user;
   }
 
   private buildNewUser(email: string, bodyName: unknown, googleName?: string): User {

@@ -50,6 +50,7 @@ export const useEditProfile = () => {
 
   return {
     currentName,
+    photoUrl: user?.photoUrl ?? null,
     email: user?.email ?? "",
     nameField,
     canSubmit,

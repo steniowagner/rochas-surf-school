@@ -96,6 +96,7 @@ const people = {
       name: "Bruno Lima",
       role: "instructor",
       createdAt: "2026-07-15T12:00:00.000Z",
+      photoUrl: null,
       whatsappNumber: null,
     },
   ],

@@ -79,6 +79,7 @@ describe("RefreshSession", () => {
           role: "student",
           status: "approved",
           createdAt: ana.createdAt,
+          photoUrl: null,
           whatsappNumber: null,
           whatsappVisible: false,
           rulesAccepted: true,

@@ -67,6 +67,7 @@ const person = (id: string, name: string) => ({
   name,
   role: "student",
   createdAt: "2026-10-01T10:00:00.000Z",
+  photoUrl: null,
   whatsappNumber: null,
 });
 const ANA = person("s-ana", "Ana Souza");

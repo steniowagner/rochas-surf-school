@@ -21,10 +21,9 @@ export function UserHeader() {
   return (
     <View className="flex-row items-center gap-2.5">
       <View className="rounded-full" style={shadowStyle("iconButton", theme)}>
-        {/* Accounts have no photo yet, so the initials show. */}
         <StudentAvatar
           name={header.name}
-          photoUrl={null}
+          photoUrl={header.photoUrl}
           size={AVATAR_SIZE}
           ringed
         />

@@ -163,6 +163,14 @@ export class PrismaUserRepository implements UserRepository {
     return records.map((record) => this.toDomain(record));
   }
 
+  async fillPhotoUrl(id: string, photoUrl: string): Promise<boolean> {
+    const { count } = await this.prisma.user.updateMany({
+      where: { id, status: notErased, photoUrl: null },
+      data: { photoUrl },
+    });
+    return count === 1;
+  }
+
   async updateIfPending(user: User): Promise<boolean> {
     const { count } = await this.prisma.user.updateMany({
       where: { id: user.id, status: 'pending' },

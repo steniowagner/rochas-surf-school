@@ -15,6 +15,7 @@ const userWith = (status: string, role: string): SessionUser => ({
   name: "Ana Silva",
   email: "ana.silva@gmail.com",
   createdAt: "2026-10-10T12:00:00.000Z",
+  photoUrl: null,
   whatsappNumber: null,
   whatsappVisible: false,
   rulesAccepted: false,

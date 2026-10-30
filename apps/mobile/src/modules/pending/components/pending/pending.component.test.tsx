@@ -32,6 +32,7 @@ const user = {
   role: "student",
   status: "pending",
   createdAt: new Date(NOW.getTime() - 30 * 1000).toISOString(),
+  photoUrl: null,
   whatsappNumber: null,
   whatsappVisible: false,
   rulesAccepted: false,

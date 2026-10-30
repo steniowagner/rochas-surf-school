@@ -3,6 +3,10 @@ import { GoogleIdTokenPayload, GoogleIdTokenProvider } from '@rochas-surf-school
 import { OAuth2Client } from 'google-auth-library';
 import { AuthConfig } from './auth.config.js';
 
+// Google's URL ends in the size it serves, 96 px, which is blurry on the 112 pt profile avatar at 3x.
+const GOOGLE_PICTURE_SIZE = /=s\d+-c$/;
+const PICTURE_SIZE = '=s400-c';
+
 @Injectable()
 export class GoogleAuthIdTokenProvider implements GoogleIdTokenProvider {
   private readonly client = new OAuth2Client();
@@ -28,6 +32,7 @@ export class GoogleAuthIdTokenProvider implements GoogleIdTokenProvider {
       email: payload.email,
       emailVerified: payload.email_verified === true,
       name: payload.name,
+      picture: payload.picture?.replace(GOOGLE_PICTURE_SIZE, PICTURE_SIZE),
     };
   }
 }

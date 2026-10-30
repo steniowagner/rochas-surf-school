@@ -167,7 +167,7 @@ export type ClassStudent = {
   id: string;
   /** `null` once the student's account was erased: shown as "Former student" (`personLabel`). */
   name: string | null;
-  /** `null` until profile photos can be uploaded. */
+  /** Google's picture from the first Google sign-in, or `null`. */
   photoUrl: string | null;
   /** The student's approved enrolment in the class, which an admin can take them out of. */
   enrolmentId: string;

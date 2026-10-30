@@ -76,6 +76,7 @@ const account = (status: string, role = "student"): SessionUser => ({
   role,
   status,
   createdAt: "2026-10-10T12:00:00.000Z",
+  photoUrl: null,
   whatsappNumber: null,
   whatsappVisible: false,
   rulesAccepted: false,

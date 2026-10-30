@@ -125,6 +125,7 @@ const account = (
   role,
   status,
   createdAt: "2026-10-10T12:00:00.000Z",
+  photoUrl: null,
   whatsappNumber,
   whatsappVisible: false,
   rulesAccepted,

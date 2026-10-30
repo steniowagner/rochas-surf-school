@@ -21,6 +21,7 @@ const page = (page: number, from: number, count: number, total: number) =>
       name: `Teacher ${from + i}`,
       role: (from + i) % 2 ? "admin" : "instructor",
       createdAt: "2026-07-15T12:00:00.000Z",
+      photoUrl: null,
       whatsappNumber: null,
     })),
     page,

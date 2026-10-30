@@ -3,6 +3,7 @@ export interface GoogleIdTokenPayload {
   email: string;
   emailVerified: boolean;
   name?: string;
+  picture?: string;
 }
 
 export interface GoogleIdTokenProvider {

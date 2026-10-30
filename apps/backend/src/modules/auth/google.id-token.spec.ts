@@ -42,6 +42,17 @@ describe('GoogleAuthIdTokenProvider', () => {
     });
   });
 
+  it.each([
+    ['https://lh3.googleusercontent.com/a/ana=s96-c', 'https://lh3.googleusercontent.com/a/ana=s400-c'],
+    ['https://lh3.googleusercontent.com/a/ana', 'https://lh3.googleusercontent.com/a/ana'],
+  ])('asks for the larger picture when the URL names a size (%s)', async (picture, expected) => {
+    google.verifyIdToken.mockResolvedValue(
+      ticket({ sub: 's1', email: 'maria@example.com', picture }),
+    );
+
+    await expect(provider().verify('token')).resolves.toMatchObject({ picture: expected });
+  });
+
   it('reports an email that is not verified as such', async () => {
     google.verifyIdToken.mockResolvedValue(ticket({ sub: 's1', email: 'maria@example.com' }));
 

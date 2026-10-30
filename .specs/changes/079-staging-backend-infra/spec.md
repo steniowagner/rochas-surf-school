@@ -242,10 +242,20 @@ a working API. This is a testing environment: it stays small and cheap, and it d
   > `npx vitest run --config ./vitest.config.e2e.ts test/auth-email.e2e-spec.ts -t "rate limit"` (5 passed; the
   > two-clients case failed first), `tsc --noEmit` clean; deviations: none.
 
-- [ ] **T-03** — Fix `Dockerfile`: build through Turbo so the workspace dependencies compile first, copy each
+- [x] **T-03** — Fix `Dockerfile`: build through Turbo so the workspace dependencies compile first, copy each
   workspace's `dist` to the runtime stage, and point `HEALTHCHECK` at `/health`. Skill:
   [`multi-stage-dockerfile`](../../../.claude/skills/multi-stage-dockerfile).
   Covers: ER-03 · Done when: the commands in ER-03's Verify by pass.
+  > ✅ 2026-10-30 18:03 — the build now goes through Turbo, the runtime stage copies every workspace's `dist`
+  > (`COPY --parents`), and `HEALTHCHECK` calls `/health`; files: `apps/backend/Dockerfile`; verified:
+  > `docker build --platform linux/arm64 -f apps/backend/Dockerfile -t rochas-backend .` exit 0 (image arm64, 176 MB);
+  > `docker compose up -d` from `apps/backend`, then `docker inspect` on the backend container printed `healthy`, and
+  > a request from inside the container to `/health` answered 200 `{"status":"ok"}`;
+  > `docker run --rm --entrypoint sh rochas-backend -c 'test ! -e /app/apps/backend/.env'` exit 0, and no `.env*` exists
+  > under `/app` outside `node_modules`; deviations: (1) the builder also copies `packages/typescript-config`, because
+  > every tsconfig extends it but no workspace declares it, so `turbo prune` drops it (a step missing from the task);
+  > (2) compose ran with `PORT=4001`, because the developer's own backend held host port 4000; the container still
+  > listened on 4000 inside, and it was stopped after the check.
 
 ### Web (`apps/web`)
 

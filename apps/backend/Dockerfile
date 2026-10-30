@@ -2,6 +2,7 @@
 #
 # Backend (NestJS) image. Build from the repo root so the workspace lockfile is in context:
 #   docker build -f apps/backend/Dockerfile -t rochas-backend .
+# Staging runs on ARM (spec 079): add --platform linux/arm64 on an x86 machine.
 
 ARG NODE_VERSION=24-alpine
 ARG TURBO_VERSION=2.11.7
@@ -21,10 +22,13 @@ WORKDIR /app
 COPY --from=pruner /repo/out/json/ ./
 RUN --mount=type=cache,target=/root/.npm npm ci --no-audit --no-fund
 
-# --- build: compile TypeScript to dist/ ---
+# --- build: compile TypeScript to dist/, the workspace packages first (Turbo's ^build) ---
 FROM deps AS builder
+ENV TURBO_TELEMETRY_DISABLED=1
 COPY --from=pruner /repo/out/full/ ./
-RUN npm run build -w @rochas-surf-school/backend
+# Every tsconfig extends this one, but no workspace declares it as a dependency, so `turbo prune` leaves it out.
+COPY --from=pruner /repo/packages/typescript-config ./packages/typescript-config
+RUN npx turbo run build --filter=@rochas-surf-school/backend
 
 # --- prod-deps: runtime dependencies only ---
 FROM node:${NODE_VERSION} AS prod-deps
@@ -39,9 +43,10 @@ ENV NODE_ENV=production \
 WORKDIR /app
 COPY --from=prod-deps --chown=node:node /app ./
 COPY --from=builder --chown=node:node /app/apps/backend/dist ./apps/backend/dist
+COPY --parents --from=builder --chown=node:node /app/./modules/*/dist /app/./packages/*/dist ./
 WORKDIR /app/apps/backend
 USER node
 EXPOSE 4000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD node -e "fetch('http://127.0.0.1:'+(process.env.PORT||4000)+'/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+  CMD node -e "fetch('http://127.0.0.1:'+(process.env.PORT||4000)+'/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 CMD ["node", "dist/main.js"]

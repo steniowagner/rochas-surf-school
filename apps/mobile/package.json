@@ -71,7 +71,8 @@
     "lint": "expo lint",
     "dev": "expo start",
     "check-types": "expo customize tsconfig.json && tsc --noEmit",
-    "test": "jest"
+    "test": "jest",
+    "eas-build-post-install": "turbo run build --filter=@rochas-surf-school/mobile^..."
   },
   "private": true
 }

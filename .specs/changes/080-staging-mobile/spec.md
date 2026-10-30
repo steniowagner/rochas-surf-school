@@ -128,11 +128,19 @@ completing a seat request on two real phones.
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-01** — Add `eas.json` with the `preview` and `testflight` profiles (`appVersionSource: remote`, Node 24) and
+- [x] **T-01** — Add `eas.json` with the `preview` and `testflight` profiles (`appVersionSource: remote`, Node 24) and
   the `eas-build-post-install` script of D-08 in `package.json`. Skill:
   [`vercel-react-native-skills`](../../../.claude/skills/vercel-react-native-skills).
   Covers: enabling · Done when: `eas.json` parses, and with the workspaces' `dist` folders deleted,
   `npm run eas-build-post-install --workspace @rochas-surf-school/mobile` recreates them.
+  > ✅ 2026-10-30 20:50 — `eas.json` has `preview` (internal APK) and `testflight` (store, `autoIncrement`), both in the
+  > EAS `preview` environment on Node 24.22.2, whose npm 11.19.1 satisfies the root `devEngines`; the hook is
+  > `turbo run build --filter=@rochas-surf-school/mobile^...`, which builds only the mobile app's five dependencies;
+  > files: `apps/mobile/eas.json`, `apps/mobile/package.json`; verified: `eas.json` parses; with every `packages/*/dist`
+  > and `modules/*/dist` deleted the hook recreated `app-messages`, `auth`, `classes` and `shared`, and with
+  > `TURBO_FORCE=true` it rebuilt all five with 0 cached, as EAS's empty cache will; deviations: the skill has no rule
+  > for EAS configuration, so the file follows Expo's `eas.json` docs. `eas config` can't validate the file until
+  > T-03 links the project.
 
 - [ ] **T-02** — Set `android.googleServicesFile` from `GOOGLE_SERVICES_JSON` in `app.config.ts` as in D-07, add
   `google-services.json` to the ignores, document the variable in `.env.example`, and add both cases to

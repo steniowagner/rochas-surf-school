@@ -21,6 +21,12 @@ variable "backend_image" {
   default     = "ghcr.io/steniowagner/rochas-surf-school-backend"
 }
 
+variable "domain_name" {
+  description = "Public address of the API; its DNS records are added by hand at Hostinger (D-13)"
+  type        = string
+  default     = "api-staging.rochassurfschool.com"
+}
+
 variable "instance_type" {
   description = "EC2 instance type of the server; it must be ARM, as the image is"
   type        = string

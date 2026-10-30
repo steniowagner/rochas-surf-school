@@ -18,6 +18,34 @@ mock_provider "aws" {
     }
   }
 
+  mock_resource "aws_acm_certificate_validation" {
+    defaults = {
+      certificate_arn = "arn:aws:acm:us-east-1:123456789012:certificate/00000000-0000-0000-0000-000000000000"
+    }
+  }
+
+  mock_resource "aws_acm_certificate" {
+    defaults = {
+      arn = "arn:aws:acm:us-east-1:123456789012:certificate/00000000-0000-0000-0000-000000000000"
+      domain_validation_options = [
+        {
+          domain_name           = "api-staging.rochassurfschool.com"
+          resource_record_name  = "_validation.api-staging.rochassurfschool.com."
+          resource_record_type  = "CNAME"
+          resource_record_value = "_target.acm-validations.aws."
+        }
+      ]
+    }
+  }
+
+  mock_resource "aws_apigatewayv2_domain_name" {
+    defaults = {
+      domain_name_configuration = {
+        target_domain_name = "d-example.execute-api.us-east-1.amazonaws.com"
+      }
+    }
+  }
+
   mock_resource "aws_cloudwatch_log_group" {
     defaults = {
       arn = "arn:aws:logs:us-east-1:123456789012:log-group:/rochas/staging/backend"
@@ -85,6 +113,61 @@ run "logs_stay_for_14_days" {
   assert {
     condition     = aws_cloudwatch_log_group.backend.name == "/rochas/staging/backend" && aws_cloudwatch_log_group.backend.retention_in_days == 14
     error_message = "The container logs go to /rochas/staging/backend, kept 14 days."
+  }
+}
+
+run "the_gateway_writes_the_client_ip" {
+  assert {
+    condition     = aws_apigatewayv2_integration.backend.request_parameters["overwrite:header.x-client-ip"] == "$context.identity.sourceIp"
+    error_message = "The integration must overwrite x-client-ip with the caller's IP (D-06)."
+  }
+}
+
+run "the_custom_domain_is_the_only_way_in" {
+  assert {
+    condition     = aws_apigatewayv2_api.main.disable_execute_api_endpoint
+    error_message = "The execute-api address must be disabled."
+  }
+
+  assert {
+    condition     = aws_apigatewayv2_domain_name.main.domain_name == "api-staging.rochassurfschool.com" && aws_apigatewayv2_api_mapping.main.domain_name == aws_apigatewayv2_domain_name.main.id
+    error_message = "The API must be mapped to api-staging.rochassurfschool.com."
+  }
+}
+
+run "traffic_goes_through_the_vpc_link_to_cloud_map" {
+  assert {
+    condition     = aws_apigatewayv2_integration.backend.connection_type == "VPC_LINK" && aws_apigatewayv2_integration.backend.connection_id == aws_apigatewayv2_vpc_link.main.id
+    error_message = "The integration must go through the VPC link."
+  }
+
+  assert {
+    condition     = aws_apigatewayv2_integration.backend.integration_uri == aws_service_discovery_service.backend.arn
+    error_message = "The integration must target the Cloud Map service."
+  }
+
+  assert {
+    condition     = contains(aws_apigatewayv2_vpc_link.main.security_group_ids, aws_security_group.vpc_link.id)
+    error_message = "The VPC link must use the security group the server admits."
+  }
+
+  assert {
+    condition     = aws_service_discovery_instance.server.attributes["AWS_INSTANCE_PORT"] == "4000"
+    error_message = "The server must be registered on port 4000."
+  }
+}
+
+run "the_stage_is_throttled" {
+  assert {
+    condition     = aws_apigatewayv2_stage.default.default_route_settings[0].throttling_rate_limit == 20 && aws_apigatewayv2_stage.default.default_route_settings[0].throttling_burst_limit == 40
+    error_message = "The stage is limited to 20 requests per second, burst 40."
+  }
+}
+
+run "the_outputs_give_both_cnames" {
+  assert {
+    condition     = output.certificate_validation_cname.name == "_validation.api-staging.rochassurfschool.com." && output.api_cname.value == "d-example.execute-api.us-east-1.amazonaws.com"
+    error_message = "The outputs must carry the two CNAMEs for Hostinger."
   }
 }
 

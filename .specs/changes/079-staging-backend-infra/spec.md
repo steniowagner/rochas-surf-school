@@ -272,11 +272,19 @@ a working API. This is a testing environment: it stays small and cheap, and it d
 
 ### Infra (`infra/terraform`)
 
-- [ ] **T-05** — Create `infra/terraform/bootstrap`: the S3 state bucket (versioned, encrypted, public access blocked).
+- [x] **T-05** — Create `infra/terraform/bootstrap`: the S3 state bucket (versioned, encrypted, public access blocked).
   Add the Terraform entries to `.gitignore` (`.terraform/`, `*.tfstate*`, `*.tfvars`), keeping
   `.terraform.lock.hcl` and `*.tfvars.example` committed. Skill: `terraform-style-guide`.
   Covers: enabling · Done when: `terraform -chdir=infra/terraform/bootstrap validate` exits 0 and
   `git check-ignore` confirms a `.tfstate` and a `.tfvars` file are ignored.
+  > ✅ 2026-10-30 18:06 — created the bootstrap stack (S3 state bucket: versioned, encrypted, public access blocked,
+  > `prevent_destroy`) and the Terraform entries of `.gitignore`; files: `.gitignore`,
+  > `infra/terraform/bootstrap/terraform.tf`, `infra/terraform/bootstrap/providers.tf`,
+  > `infra/terraform/bootstrap/variables.tf`, `infra/terraform/bootstrap/main.tf`,
+  > `infra/terraform/bootstrap/outputs.tf`, `infra/terraform/bootstrap/.terraform.lock.hcl`; verified: `terraform
+  > -chdir=infra/terraform/bootstrap validate` exit 0, `terraform fmt -check -recursive infra/terraform` exit 0, `git
+  > check-ignore` matched a `.tfstate` and a `.tfvars` path and did not match the lock file or a `.tfvars.example`;
+  > deviations: none.
 
 - [ ] **T-06** — Create `infra/terraform/staging` with the S3 backend, then the VPC (two public subnets in two zones,
   no NAT), the security groups, the `t4g.small` server with IMDSv2 and an encrypted root volume, its instance profile

@@ -46,6 +46,9 @@ export const colors = {
     onGrapeTrack: 'rgba(255,255,255,.22)',
     onGrapeShade: 'rgba(0,0,0,.14)',
     onGrapeBad: '#FFD2CC',
+    // The background of the app icon and of the splash screen (apps/mobile/app.json), behind the logo on the sign-in
+    // screen. The same in both themes, like the icon.
+    splash: '#F0E6D8',
   },
   dark: {
     page: '#161B27',
@@ -85,6 +88,7 @@ export const colors = {
     onGrapeTrack: 'rgba(255,255,255,.22)',
     onGrapeShade: 'rgba(0,0,0,.14)',
     onGrapeBad: '#FFD2CC',
+    splash: '#F0E6D8',
   },
 } as const;
 

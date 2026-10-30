@@ -1,4 +1,4 @@
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useState } from "react";
@@ -33,6 +33,9 @@ const WORDMARK = [
 ];
 
 const TEAM_PHOTO = require("@/assets/images/team-hero.jpg");
+
+// The app icon, on the splash screen's background like on the home screen.
+const APP_ICON = require("@/assets/images/icon.png");
 
 // Google's multicolor "G": its colors are the brand's, so they don't come from the design tokens.
 const GOOGLE_LOGO = require("@/assets/images/google-logo.svg");
@@ -79,11 +82,11 @@ export function AuthComponent({
         className="absolute left-6 right-[18px] z-10 flex-row items-center justify-between"
         style={{ top: topInset }}
       >
-        <View className="h-11 w-11 items-center justify-center rounded-control bg-sun">
-          <MaterialCommunityIcons
-            name="waves"
-            size={23}
-            color={palette.onColor}
+        <View className="h-11 w-11 overflow-hidden rounded-control bg-splash">
+          <Image
+            source={APP_ICON}
+            contentFit="cover"
+            style={{ width: "100%", height: "100%" }}
           />
         </View>
 

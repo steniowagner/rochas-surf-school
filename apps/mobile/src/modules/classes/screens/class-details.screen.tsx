@@ -441,7 +441,7 @@ export function ClassDetailsScreen({
             trial
             visible={screen.takeGuestOut.target !== null}
             firstName={screen.takeGuestOut.target?.name ?? ""}
-            summary={screen.takeOutSummary}
+            classSummary={screen.classSummary}
             loading={screen.takeGuestOut.isPending}
             onConfirm={screen.takeGuestOut.confirm}
             onClose={screen.takeGuestOut.close}
@@ -449,7 +449,7 @@ export function ClassDetailsScreen({
           <TakeOutSheet
             visible={screen.takeOut.target !== null}
             firstName={screen.takeOutFirstName}
-            summary={screen.takeOutSummary}
+            classSummary={screen.classSummary}
             loading={screen.takeOut.isPending}
             onConfirm={screen.takeOut.confirm}
             onClose={screen.takeOut.close}
@@ -469,7 +469,7 @@ export function ClassDetailsScreen({
       <DeleteClassSheet
         visible={screen.deleteVisible}
         variant={screen.deleteVariant}
-        classLine={screen.classLine}
+        classSummary={screen.classSummary}
         loading={screen.deleting}
         onConfirm={screen.remove}
         onCancelInstead={screen.cancelInstead}

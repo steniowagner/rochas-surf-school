@@ -45,6 +45,6 @@ describe("SendNoticeScreen", () => {
     render(<SendNoticeScreen locale="pt-br" state="classConfirm" notice={notice} />);
     const sheet = screen.getByRole("dialog");
     expect(within(sheet).getByRole("heading", { name: "Enviar a 6 pessoas?" })).toBeInTheDocument();
-    expect(within(sheet).getByText("Os instrutores e os alunos de Surf Iniciante · Quarta-feira · 9 set, 08:00 recebem uma notificação. Depois de enviada, não dá para apagar.")).toBeInTheDocument();
+    expect(within(sheet).getByText("Os instrutores e os alunos desta aula recebem uma notificação. Depois de enviada, não dá para apagar.")).toBeInTheDocument();
   });
 });

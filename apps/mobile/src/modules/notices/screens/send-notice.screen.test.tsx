@@ -544,7 +544,7 @@ describe("SendNoticeScreen", () => {
       expect(await screen.findByText("Send to 5 people?")).toBeOnTheScreen();
       expect(
         screen.getByText(
-          /^The instructors and students of Surf Beginner · .+, 08:00 get a notification\. Once it's sent, it can't be deleted\.$/,
+          /^The instructors and students of this class get a notification\. Once it's sent, it can't be deleted\.$/,
         ),
       ).toBeOnTheScreen();
       expect(

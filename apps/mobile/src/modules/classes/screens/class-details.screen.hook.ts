@@ -292,10 +292,16 @@ export const useClassDetailsScreen = ({
               reason: enrolment.takenOutReason,
             })
           : t("enrolment.status.takenOut.noReason"),
-    // "Surf Beginner · Tomorrow, 08:00 – 09:00": the class the student leaves.
-    takeOutSummary: item
-      ? `${t(`newClass.discipline.${item.discipline}`)} ${t(`newClass.level.${item.level}`)} · ${dateLine}, ${start} – ${end}`
-      : "",
+    // The class as the delete and take-out sheets show it.
+    classSummary: item
+      ? {
+          discipline: item.discipline,
+          level: item.level,
+          dateLabel: dateLine,
+          timeRange: `${start} – ${end}`,
+          locationName: item.location.name,
+        }
+      : null,
     // Instructors only read: the note says whether the class is theirs. Nobody else gets it.
     readOnlyNoteKey:
       user?.role !== "instructor" || item === undefined
@@ -345,9 +351,6 @@ export const useClassDetailsScreen = ({
     closeCancel: () => setCancelVisible(false),
     deleteVisible,
     deleteVariant,
-    classLine: item
-      ? `${t(`newClass.discipline.${item.discipline}`)} ${t(`newClass.level.${item.level}`)} · ${dateLine}, ${start} – ${end} · ${item.location.name}`
-      : "",
     openDelete: () => {
       setDeleteVariant("confirm");
       setDeleteVisible(true);

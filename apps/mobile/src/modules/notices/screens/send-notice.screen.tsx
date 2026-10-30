@@ -189,6 +189,7 @@ export function SendNoticeScreen() {
       />
       <SendNoticeConfirmSheet
         visible={screen.isConfirming}
+        classSummary={screen.classView}
         description={screen.confirmDescription}
         count={screen.count ?? 0}
         title={screen.title.trim()}

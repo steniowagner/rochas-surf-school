@@ -5,6 +5,7 @@ import { Pressable, Text, View } from "react-native";
 import { Chip } from "@/components/ui/chip";
 import { shadowStyle } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
+import { ClassSummaryCard } from "@/modules/classes/components/class-summary-card";
 import { GuestAvatar } from "@/modules/classes/components/guest-avatar";
 import { StudentAvatar } from "@/modules/classes/components/student-avatar";
 
@@ -21,8 +22,7 @@ const roleTone = {
 } as const;
 
 /**
- * The class a message goes to and the people who receive it (spec 069, D-09): its category, level, day, time and
- * location, drawn as the class list draws a class, then a row that opens the list of the instructors and the students with a seat, each with their role.
+ * The class a message goes to and the people who receive it (spec 069, D-09): the class in short, then a row that opens the list of the instructors and the students with a seat, each with their role.
  */
 export function ClassMessageCard({
   view,
@@ -40,41 +40,14 @@ export function ClassMessageCard({
       style={shadowStyle("card", theme)}
     >
       <View className="px-3.5 pb-3.5 pt-[13px]">
-        <View className="mb-2.5 flex-row flex-wrap items-center gap-2">
-          <Chip tone={view.discipline === "surf" ? "surf" : "skate"}>
-            {view.disciplineLabel}
-          </Chip>
-          <Chip tone="info">{view.levelLabel}</Chip>
-        </View>
-        <Text className="ds-text-lesson-time mb-3 text-ink">
-          {view.timeRange}
-        </Text>
-        <View className="gap-2.5">
-          <View className="flex-row items-center gap-2">
-            <View className="h-7 w-7 items-center justify-center rounded-checkbox bg-dim">
-              <Ionicons
-                name="calendar-outline"
-                size={14}
-                color={theme.lagoon}
-              />
-            </View>
-            <Text className="ds-text-list-subtitle flex-1 text-ink">
-              {view.dateLabel}
-            </Text>
-          </View>
-          <View className="flex-row items-center gap-2">
-            <View className="h-7 w-7 items-center justify-center rounded-checkbox bg-dim">
-              <Ionicons
-                name="location-outline"
-                size={14}
-                color={theme.lagoon}
-              />
-            </View>
-            <Text className="ds-text-list-subtitle flex-1 text-ink">
-              {view.locationName}
-            </Text>
-          </View>
-        </View>
+        <ClassSummaryCard
+          embedded
+          discipline={view.discipline}
+          level={view.level}
+          dateLabel={view.dateLabel}
+          timeRange={view.timeRange}
+          locationName={view.locationName}
+        />
       </View>
       <View className="border-t border-line">
         <Pressable

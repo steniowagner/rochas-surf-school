@@ -351,7 +351,7 @@ describe("ClassDetailsScreen", () => {
 
       const remove = asAdmin("noStudents", "delete");
       expect(screen.getByRole("heading", { name: "Excluir esta aula?" })).toBeInTheDocument();
-      expect(screen.getByText("Surf Iniciante · Quarta-feira · 9 set, 08:00 – 09:30 · Praia de Iracema")).toBeInTheDocument();
+      expect(screen.getByTestId("class-summary-card")).toHaveTextContent("Quarta-feira · 9 set");
       remove.unmount();
 
       asAdmin("noStudents", "deleteNotEmpty");

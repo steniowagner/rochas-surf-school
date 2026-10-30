@@ -5,7 +5,13 @@ import type { DeleteClassSheetProps } from "./delete-class-sheet.types";
 
 jest.useFakeTimers();
 
-const CLASS_LINE = "Surf Beginner · Tomorrow, 08:00 – 09:00 · Praia do Futuro";
+const CLASS_SUMMARY = {
+  discipline: "surf",
+  level: "beginner",
+  dateLabel: "Tomorrow · 15 Oct",
+  timeRange: "08:00 – 09:00",
+  locationName: "Praia do Futuro",
+} as const;
 
 function props(
   overrides: Partial<DeleteClassSheetProps> = {},
@@ -13,7 +19,7 @@ function props(
   return {
     visible: true,
     variant: "confirm",
-    classLine: CLASS_LINE,
+    classSummary: CLASS_SUMMARY,
     loading: false,
     onConfirm: jest.fn(),
     onCancelInstead: jest.fn(),
@@ -23,11 +29,11 @@ function props(
 }
 
 describe("DeleteClassSheet", () => {
-  it("asks to delete, with the class line, the description and both buttons", async () => {
+  it("asks to delete, with the class, the description and both buttons", async () => {
     await render(<DeleteClassSheet {...props()} />);
 
     expect(screen.getByText("Delete this class?")).toBeOnTheScreen();
-    expect(screen.getByText(CLASS_LINE)).toBeOnTheScreen();
+    expect(screen.getByTestId("class-summary-card")).toBeOnTheScreen();
     expect(
       screen.getByText(
         "The instructors are notified and the class leaves the schedule. This can't be undone.",
@@ -82,7 +88,7 @@ describe("DeleteClassSheet", () => {
     await render(<DeleteClassSheet {...sheet} />);
 
     expect(screen.getByText("Can't delete")).toBeOnTheScreen();
-    expect(screen.getByText(CLASS_LINE)).toBeOnTheScreen();
+    expect(screen.getByTestId("class-summary-card")).toBeOnTheScreen();
     expect(
       screen.getByText(
         "Someone has already asked for a seat or holds one in this class. Only classes with nobody can be deleted — cancel it instead.",

@@ -4,6 +4,7 @@ import { ScrollView } from "react-native-gesture-handler";
 
 import { BottomModal } from "@/components/ui/bottom-modal";
 import { Button } from "@/components/ui/button";
+import { ClassSummaryCard } from "@/modules/classes/components/class-summary-card";
 
 import { SendNoticeConfirmSheetProps } from "./send-notice-confirm-sheet.types";
 
@@ -13,6 +14,7 @@ import { SendNoticeConfirmSheetProps } from "./send-notice-confirm-sheet.types";
  */
 export function SendNoticeConfirmSheet({
   visible,
+  classSummary = null,
   description,
   count,
   title,
@@ -29,6 +31,11 @@ export function SendNoticeConfirmSheet({
         <Text accessibilityRole="header" className="ds-text-sheet-title text-ink">
           {t("notices.confirm.title", { count })}
         </Text>
+        {classSummary ? (
+          <View className="mt-3">
+            <ClassSummaryCard {...classSummary} />
+          </View>
+        ) : null}
         <Text className="ds-text-sheet-description mt-2.5 text-ink-2">
           {description}
         </Text>

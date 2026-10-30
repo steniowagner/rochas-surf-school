@@ -193,7 +193,7 @@ run "only_the_staging_environment_can_deploy" {
       for condition in data.aws_iam_policy_document.deploy_trust.statement[0].condition :
       condition.test == "StringEquals" &&
       condition.variable == "token.actions.githubusercontent.com:sub" &&
-      toset(condition.values) == toset(["repo:steniowagner/rochas-surf-school:environment:staging"])
+      toset(condition.values) == toset(["repo:steniowagner@5205982/rochas-surf-school@1402019853:environment:staging"])
     ])
     error_message = "The deploy role must trust only this repository's staging environment, with an exact match."
   }

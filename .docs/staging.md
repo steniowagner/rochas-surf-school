@@ -124,9 +124,16 @@ gh variable set AWS_DEPLOY_ROLE_ARN --env staging --body "$(terraform -chdir=inf
 gh variable set STAGING_INSTANCE_ID --env staging --body "$(terraform -chdir=infra/terraform/staging output -raw server_instance_id)"
 ```
 
-The image goes to `ghcr.io/steniowagner/rochas-surf-school-backend` and the server pulls it without credentials, so
-the package must be public. It only exists after the first publish, so the first deploy fails at the restart: make the
-package public in its GitHub settings (**Package settings → Change visibility**), then run the deploy again.
+The image goes to `ghcr.io/steniowagner/rochas-surf-school-backend` and the server pulls it without credentials. The
+package came out public on its first publish, because the repo is public. If a pull is ever denied, check **Package
+settings → Change visibility**.
+
+The deploy role trusts this repo's `staging` environment by its OIDC subject. The repo uses GitHub's immutable subject
+format, with numeric IDs, so `github_subject_prefix` in the Terraform must match what this prints:
+
+```bash
+gh api repos/steniowagner/rochas-surf-school/actions/oidc/customization/sub
+```
 
 ## Deploy
 

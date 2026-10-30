@@ -27,10 +27,10 @@ variable "domain_name" {
   default     = "api-staging.rochassurfschool.com"
 }
 
-variable "github_repository" {
-  description = "Repository whose staging environment may deploy, as owner/name"
+variable "github_subject_prefix" {
+  description = "The repository's prefix in GitHub's OIDC subject; it uses immutable IDs, so read it from the repo's actions/oidc/customization/sub API"
   type        = string
-  default     = "steniowagner/rochas-surf-school"
+  default     = "repo:steniowagner@5205982/rochas-surf-school@1402019853"
 }
 
 variable "instance_type" {

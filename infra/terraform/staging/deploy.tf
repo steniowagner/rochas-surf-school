@@ -22,7 +22,7 @@ data "aws_iam_policy_document" "deploy_trust" {
     condition {
       test     = "StringEquals"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = ["repo:${var.github_repository}:environment:staging"]
+      values   = ["${var.github_subject_prefix}:environment:staging"]
     }
   }
 }

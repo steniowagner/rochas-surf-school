@@ -27,6 +27,12 @@ variable "domain_name" {
   default     = "api-staging.rochassurfschool.com"
 }
 
+variable "github_repository" {
+  description = "Repository whose staging environment may deploy, as owner/name"
+  type        = string
+  default     = "steniowagner/rochas-surf-school"
+}
+
 variable "instance_type" {
   description = "EC2 instance type of the server; it must be ARM, as the image is"
   type        = string

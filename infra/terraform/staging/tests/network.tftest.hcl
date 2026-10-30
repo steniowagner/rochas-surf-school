@@ -187,6 +187,48 @@ run "the_database_sits_next_to_the_server" {
   }
 }
 
+run "only_the_staging_environment_can_deploy" {
+  assert {
+    condition = anytrue([
+      for condition in data.aws_iam_policy_document.deploy_trust.statement[0].condition :
+      condition.test == "StringEquals" &&
+      condition.variable == "token.actions.githubusercontent.com:sub" &&
+      toset(condition.values) == toset(["repo:steniowagner/rochas-surf-school:environment:staging"])
+    ])
+    error_message = "The deploy role must trust only this repository's staging environment, with an exact match."
+  }
+
+  assert {
+    condition = anytrue([
+      for condition in data.aws_iam_policy_document.deploy_trust.statement[0].condition :
+      condition.test == "StringEquals" &&
+      condition.variable == "token.actions.githubusercontent.com:aud" &&
+      toset(condition.values) == toset(["sts.amazonaws.com"])
+    ])
+    error_message = "The deploy role must require the STS audience."
+  }
+}
+
+run "the_deploy_role_stays_narrow" {
+  assert {
+    condition = (
+      data.aws_iam_policy_document.deploy.statement[0].actions == toset(["ssm:SendCommand"]) &&
+      data.aws_iam_policy_document.deploy.statement[0].resources == toset([aws_instance.server.arn, aws_ssm_document.deploy.arn])
+    )
+    error_message = "The role may only send the deploy document to this server."
+  }
+
+  assert {
+    condition     = length(data.aws_iam_policy_document.deploy.statement[2].resources) == 2
+    error_message = "The role may only read the two parameters of D-12."
+  }
+
+  assert {
+    condition     = jsondecode(aws_ssm_document.deploy.content).parameters.commit.allowedPattern == "^[0-9a-f]{40}$"
+    error_message = "The deploy document must only accept a commit SHA."
+  }
+}
+
 run "the_two_zones_are_required" {
   command = plan
 

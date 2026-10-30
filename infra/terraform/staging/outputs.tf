@@ -20,6 +20,16 @@ output "database_password" {
   sensitive   = true
 }
 
+output "deploy_document_name" {
+  description = "SSM document the deploy workflow runs"
+  value       = aws_ssm_document.deploy.name
+}
+
+output "deploy_role_arn" {
+  description = "Role the deploy workflow assumes through OIDC"
+  value       = aws_iam_role.deploy.arn
+}
+
 output "server_instance_id" {
   description = "ID of the server, for SSM sessions and the deploy workflow"
   value       = aws_instance.server.id

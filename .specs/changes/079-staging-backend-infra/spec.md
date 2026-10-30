@@ -346,12 +346,25 @@ a working API. This is a testing environment: it stays small and cheap, and it d
   > `staging`), and the YAML parses (8 steps); deviations: `init` and `validate` also run on `bootstrap`, so both
   > stacks are checked.
 
-- [ ] **T-10** — Add `.github/workflows/deploy-staging.yml` as in D-11 and D-12, using the `staging` environment: build
+- [x] **T-10** — Add `.github/workflows/deploy-staging.yml` as in D-11 and D-12, using the `staging` environment: build
   and push the arm64 image tagged by commit, assume the deploy role, migrate, seed with `NODE_ENV=production`, send the
   restart through SSM, and poll `/health`. Add the deploy role and its OIDC trust to the Terraform, with a test on the
   trust condition. Skill: `aws-iam`.
   Covers: ER-07 · Done when: the workflow's YAML parses, `terraform -chdir=infra/terraform/staging test` passes, and a
   failed migration step comes before the restart step in the file.
+  > ✅ 2026-10-30 18:14 — added the deploy workflow on the native ARM runner (publish the arm64 image tagged by commit,
+  > assume the role, migrate, seed with `NODE_ENV=production`, restart through SSM, poll `/health` for 2 minutes) and,
+  > in the Terraform, the GitHub OIDC provider, the deploy role and its trust; files:
+  > `.github/workflows/deploy-staging.yml`, `infra/terraform/staging/deploy.tf`,
+  > `infra/terraform/staging/variables.tf`, `infra/terraform/staging/outputs.tf`,
+  > `infra/terraform/staging/tests/network.tftest.hcl`; verified: the YAML parses, `Apply the migrations` (step 8)
+  > comes before `Restart the server on the new image` (step 10), `terraform -chdir=infra/terraform/staging test` (13
+  > passed); four deliberate breaks, one at a time (any branch in the trust, `StringLike` on `sub`, send to any
+  > instance, any argument to the document) each failed the test, then restored; deviations: (1) the role sends a
+  > dedicated SSM document that only runs `deploy-backend` with a commit SHA, not `AWS-RunShellScript`, so it can
+  > restart the backend but cannot run other commands on the server; (2) the role also has `ssm:GetCommandInvocation`,
+  > which D-11 does not list but the job needs to see whether the restart worked, and which has no resource type to
+  > scope. The workflow itself has not run yet: ER-07 is proved in T-12.
 
 - [ ] **T-11** — Write `.docs/staging.md`: the accounts and keys needed, the order of the first `apply` (target the
   certificate first, add its CNAME at Hostinger, then apply the rest, because Terraform prints outputs only when it

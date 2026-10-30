@@ -158,15 +158,22 @@ completing a seat request on two real phones.
   client. This task stays blocked with ⛔ until the user provides the accounts and spec 079's API answers.
   Covers: enabling · Done when: `npx eas-cli env:list --environment preview` lists every variable and
   `npx eas-cli credentials` shows the FCM key.
+  > ⛔ 2026-10-30 21:05 — waiting on the user. Ready: spec 079's API answers (`GET /health` 200 `{"status":"ok"}`), the
+  > Expo CLI is signed in, and `https://rochas-surf-school.vercel.app` serves the site (the value for
+  > `EXPO_PUBLIC_WEB_URL`). Needed: which Expo account owns the project (`steniowagner` or `rochas-surf-school`), then a
+  > Firebase project with the Android app `com.rochassurfschool.app`, for `google-services.json` and the FCM V1 service
+  > account key. Nothing was created yet.
 
 - [ ] **T-04** — Build the `preview` profile for Android and check it on a real phone.
   Covers: ER-01, ER-02, ER-03, ER-04 · Done when: the build finishes and the Verify by of ER-01 to ER-04 pass on the
   phone.
+  > ⛔ 2026-10-30 21:05 — depends on T-03; it also needs the user's Android phone.
 
 - [ ] **T-05** — With the user's Apple Developer account: upload the APNs key, build the `testflight` profile, submit
   it with `eas submit`, and add the user as an internal tester. This task stays blocked with ⛔ until the Apple
   enrolment is active.
   Covers: ER-05, ER-06 · Done when: the Verify by of ER-05 and ER-06 pass on real phones.
+  > ⛔ 2026-10-30 21:05 — depends on T-03 and on the active Apple enrolment; it also needs the user's iPhone.
 
 ### Verification
 

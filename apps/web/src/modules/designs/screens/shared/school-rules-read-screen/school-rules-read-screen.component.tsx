@@ -3,14 +3,12 @@ import { EmptyState } from "@/modules/designs/components/empty-state";
 import { ErrorState } from "@/modules/designs/components/error-state";
 import { PhoneFrame } from "@/modules/designs/components/phone-frame";
 import { SchoolRuleRow } from "@/modules/designs/components/school-rule-row";
+import { SchoolRulesSkeleton } from "@/modules/designs/components/school-rules-skeleton";
 import { ScreenIntro } from "@/modules/designs/components/screen-intro";
-import { Skeleton } from "@/modules/designs/components/skeleton";
 import { StackHeader } from "@/modules/designs/components/stack-header";
 import { appT } from "@/modules/designs/i18n/app-t";
 
 import type { SchoolRulesReadScreenProps } from "./school-rules-read-screen.types";
-
-const LOADING_ROWS = [0, 1, 2];
 
 /** The school rules to read at any time: no checkbox and no button, only the back button. */
 export function SchoolRulesReadScreen({ locale, state, rules }: SchoolRulesReadScreenProps) {
@@ -32,17 +30,7 @@ export function SchoolRulesReadScreen({ locale, state, rules }: SchoolRulesReadS
         ) : (
           <div className={`flex flex-1 flex-col px-5 pb-8 pt-2 ${state === "loading" ? "" : "justify-center"}`}>
             {state === "loading" ? (
-              <div role="status" aria-label={t("schoolRulesScreen.loading")} className="rounded-card border border-line bg-surface">
-                {LOADING_ROWS.map((key) => (
-                  <div key={key} className={`flex gap-3 px-4 py-3.5 ${key < LOADING_ROWS.length - 1 ? "border-b border-line" : ""}`}>
-                    <Skeleton className="h-5.5 w-7 rounded-full" />
-                    <div className="flex flex-1 flex-col gap-2">
-                      <Skeleton className="h-3.5 w-1/2 rounded-full" />
-                      <Skeleton className="h-3 w-5/6 rounded-full" />
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <SchoolRulesSkeleton locale={locale} />
             ) : state === "error" ? (
               <div className="flex">
                 <ErrorState title={t("schoolRulesScreen.loadError.title")} description={t("schoolRulesScreen.loadError.description")} retryLabel={t("common.tryAgain")} />

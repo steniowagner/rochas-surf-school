@@ -5,6 +5,7 @@ import { PhoneFrame } from "@/modules/designs/components/phone-frame";
 import { ScreenToast } from "@/modules/designs/components/screen-toast";
 import { TermsLine } from "@/modules/designs/components/terms-line";
 import { assetSrc } from "@/modules/designs/assets/asset-src";
+import appIcon from "@/modules/designs/assets/app-icon.png";
 import googleLogo from "@/modules/designs/assets/google-logo.svg";
 import teamHero from "@/modules/designs/assets/team-hero.jpg";
 import { localeOptions } from "@/modules/designs/data/fortaleza";
@@ -39,8 +40,10 @@ export function SignInScreen({ locale, languageSheetOpen = false, googleLoading 
         <div className="absolute inset-0" style={{ backgroundImage: grapeFade }} />
 
         <div className="absolute left-6 right-4.5 top-17.75 z-10 flex items-center justify-between">
-          <span className="flex size-11 items-center justify-center rounded-control bg-sun text-on-color">
-            <AppIcon name="MaterialCommunityIcons:waves" size={23} />
+          {/* The app icon, on the splash screen's background like on the home screen. */}
+          <span className="size-11 overflow-hidden rounded-control bg-splash">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={assetSrc(appIcon)} alt="" className="size-full object-cover" />
           </span>
           <span role="button" aria-label={`${t("language.button")}: ${option.name}`} className="flex h-9.5 items-center gap-1.75 rounded-full border-[1.5px] border-white/55 pl-1.5 pr-3">
             <span className="w-6 text-center text-base">{option.flag}</span>

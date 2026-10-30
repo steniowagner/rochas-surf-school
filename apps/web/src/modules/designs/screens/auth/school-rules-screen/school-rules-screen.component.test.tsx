@@ -9,12 +9,12 @@ const rules = [
 ];
 
 describe("SchoolRulesScreen", () => {
-  it("draws the intro, the spinner and the disabled acceptance while loading (AF-03-08)", () => {
+  it("draws the intro, the skeleton and the disabled acceptance while loading (AF-03-08)", () => {
     render(<SchoolRulesScreen locale="en" state="loading" rules={rules} />);
 
     expect(screen.getByText("Last step")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "School rules" })).toBeInTheDocument();
-    expect(screen.getAllByRole("status")).toHaveLength(1);
+    expect(screen.getByRole("status", { name: "Loading the rules" })).toBeInTheDocument();
     expect(screen.getByRole("checkbox")).toHaveAttribute("aria-disabled", "true");
     expect(screen.getByRole("button", { name: "Enter the app" })).toBeDisabled();
   });
@@ -39,15 +39,15 @@ describe("SchoolRulesScreen", () => {
   it("draws the load error with the retry button (AF-03-11)", () => {
     render(<SchoolRulesScreen locale="en" state="loadError" rules={rules} />);
 
-    expect(screen.getByText("Couldn't load the rules.")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Try again" })).toHaveClass("bg-dim");
+    expect(screen.getByRole("heading", { name: "Couldn't load the rules" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Try again" })).toBeInTheDocument();
     expect(screen.queryByText("01")).toBeNull();
   });
 
-  it("draws the empty message (AF-03-12)", () => {
+  it("draws the empty state (AF-03-12)", () => {
     render(<SchoolRulesScreen locale="en" state="empty" rules={rules} />);
 
-    expect(screen.getByText("The school has no rules yet.")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "No rules yet" })).toBeInTheDocument();
   });
 
   it("draws the outdated toast over the loaded rules (AF-03-13)", () => {

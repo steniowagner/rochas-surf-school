@@ -131,10 +131,7 @@ const messages: Messages = {
     accept:
       "He leído y acepto las normas y los términos de Rocha's Surf School.",
     submit: "Entrar en la app",
-    empty: "La escuela todavía no tiene normas.",
-    loadError: "No se pudieron cargar las normas.",
     outdated: "Las normas cambiaron. Léelas de nuevo y acéptalas.",
-    retry: "Intentar de nuevo",
   },
   rulesUpdate: {
     eyebrow: "Normas actualizadas",

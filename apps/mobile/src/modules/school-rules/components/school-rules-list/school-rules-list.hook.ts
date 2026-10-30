@@ -3,7 +3,7 @@ import { useSchoolRules } from "../../hooks/use-school-rules.hook";
 import { SchoolRulesListStatus } from "./school-rules-list.types";
 
 export const useSchoolRulesList = () => {
-  const { data, isPending, isError, refetch } = useSchoolRules();
+  const { data, isPending, isError, isFetching, refetch } = useSchoolRules();
   const rules = data?.rules ?? [];
   const status: SchoolRulesListStatus = isError
     ? "error"
@@ -13,5 +13,10 @@ export const useSchoolRulesList = () => {
         ? "empty"
         : "ready";
 
-  return { status, rules, retry: refetch };
+  return {
+    status,
+    rules,
+    retrying: isFetching,
+    retry: () => void refetch(),
+  };
 };

@@ -37,6 +37,7 @@
   --color-on-grape-track: var(--ds-on-grape-track);
   --color-on-grape-shade: var(--ds-on-grape-shade);
   --color-on-grape-bad: var(--ds-on-grape-bad);
+  --color-splash: var(--ds-splash);
 
   --radius-checkbox: var(--ds-radius-checkbox);
   --radius-icon-button: var(--ds-radius-icon-button);

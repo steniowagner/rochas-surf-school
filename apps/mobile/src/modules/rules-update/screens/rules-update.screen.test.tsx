@@ -192,9 +192,7 @@ describe("RulesUpdateScreen", () => {
     const press = userEvent.setup();
     await renderScreen();
 
-    expect(
-      await screen.findByText("The school has no rules yet."),
-    ).toBeOnTheScreen();
+    expect(await screen.findByText("No rules yet")).toBeOnTheScreen();
 
     await press.press(checkbox());
     await press.press(cta());
@@ -218,7 +216,7 @@ describe("RulesUpdateScreen", () => {
     await renderScreen();
 
     expect(
-      await screen.findByText("Couldn't load the rules."),
+      await screen.findByText("Couldn't load the rules"),
     ).toBeOnTheScreen();
     expect(checkbox()).toBeDisabled();
     expect(cta()).toBeDisabled();

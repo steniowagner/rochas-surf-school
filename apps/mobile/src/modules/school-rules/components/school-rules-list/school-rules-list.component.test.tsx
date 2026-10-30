@@ -68,13 +68,15 @@ beforeEach(() => {
 });
 
 describe("SchoolRulesList", () => {
-  it("shows a loading indicator", async () => {
+  it("shows the skeleton while the rules load", async () => {
     fetchMock.mockReturnValue(new Promise(() => {}));
     await renderList();
 
+    expect(screen.getByTestId("school-rules-loading")).toBeOnTheScreen();
+    expect(screen.getByLabelText("Loading the rules")).toBeOnTheScreen();
     expect(
       screen.root?.queryAll((node) => node.type === "ActivityIndicator"),
-    ).toHaveLength(1);
+    ).toHaveLength(0);
   });
 
   it("shows the rules in order", async () => {
@@ -107,12 +109,17 @@ describe("SchoolRulesList", () => {
     expect(await screen.findByText("12")).toBeOnTheScreen();
   });
 
-  it("shows the empty message", async () => {
+  it("shows the empty state", async () => {
     fetchMock.mockResolvedValue(response(200, { version: 4, rules: [] }));
     await renderList();
 
     expect(
-      await screen.findByText("The school has no rules yet."),
+      await screen.findByRole("header", { name: "No rules yet" }),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText(
+        "The school hasn't published any rules yet. Check back soon.",
+      ),
     ).toBeOnTheScreen();
     expect(screen.queryByText("01")).not.toBeOnTheScreen();
   });
@@ -125,23 +132,24 @@ describe("SchoolRulesList", () => {
     await renderList();
 
     expect(
-      await screen.findByText("Couldn't load the rules."),
+      await screen.findByRole("header", { name: "Couldn't load the rules" }),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText("Check your connection and try again."),
     ).toBeOnTheScreen();
 
     await user.press(screen.getByRole("button", { name: "Try again" }));
 
     expect(await screen.findByText("Title 1")).toBeOnTheScreen();
-    expect(
-      screen.queryByText("Couldn't load the rules."),
-    ).not.toBeOnTheScreen();
+    expect(screen.queryByText("Couldn't load the rules")).not.toBeOnTheScreen();
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
   });
 
   it.each([
-    ["en-US", "The school has no rules yet."],
-    ["pt-BR", "A escola ainda não tem regras."],
-    ["es-ES", "La escuela todavía no tiene normas."],
-  ])("shows the empty message in %s", async (locale, empty) => {
+    ["en-US", "No rules yet"],
+    ["pt-BR", "Nenhuma regra ainda"],
+    ["es-ES", "Aún no hay reglas"],
+  ])("shows the empty state in %s", async (locale, empty) => {
     await i18n.changeLanguage(locale);
     fetchMock.mockResolvedValue(response(200, { version: 4, rules: [] }));
     await renderList();
@@ -150,9 +158,9 @@ describe("SchoolRulesList", () => {
   });
 
   it.each([
-    ["en-US", "Couldn't load the rules.", "Try again"],
-    ["pt-BR", "Não foi possível carregar as regras.", "Tentar novamente"],
-    ["es-ES", "No se pudieron cargar las normas.", "Intentar de nuevo"],
+    ["en-US", "Couldn't load the rules", "Try again"],
+    ["pt-BR", "Não foi possível carregar as regras", "Tentar de novo"],
+    ["es-ES", "No se pudieron cargar las reglas", "Intentar de nuevo"],
   ])("shows the load error in %s", async (locale, loadError, retry) => {
     await i18n.changeLanguage(locale);
     fetchMock.mockResolvedValue(response(500, {}));

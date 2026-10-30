@@ -682,5 +682,43 @@ describe('Email sign-in (e2e)', () => {
       expect(response.status).toBe(429);
       expect(response.body.errors).toEqual(['request.rate.limited']);
     });
+
+    describe('behind the gateway', () => {
+      const requestCodeFrom = (clientIp: string) =>
+        requestCode({ email: uniqueEmail('ana') }).set('x-client-ip', clientIp);
+
+      afterEach(() => {
+        delete process.env.CLIENT_IP_HEADER;
+      });
+
+      it('counts each client separately when CLIENT_IP_HEADER is set', async () => {
+        process.env.CLIENT_IP_HEADER = 'x-client-ip';
+
+        for (let i = 0; i < 5; i++) {
+          await requestCodeFrom('203.0.113.1').expect(202);
+        }
+
+        await requestCodeFrom('203.0.113.1').expect(429);
+        await requestCodeFrom('203.0.113.2').expect(202);
+      });
+
+      it('counts the plain IP when the header is missing', async () => {
+        process.env.CLIENT_IP_HEADER = 'x-client-ip';
+
+        for (let i = 0; i < 5; i++) {
+          await requestCode({ email: uniqueEmail('ana') }).expect(202);
+        }
+
+        await requestCode({ email: uniqueEmail('ana') }).expect(429);
+      });
+
+      it('ignores the header when CLIENT_IP_HEADER is unset', async () => {
+        for (let i = 0; i < 5; i++) {
+          await requestCodeFrom(`203.0.113.${i}`).expect(202);
+        }
+
+        await requestCodeFrom('203.0.113.9').expect(429);
+      });
+    });
   });
 });

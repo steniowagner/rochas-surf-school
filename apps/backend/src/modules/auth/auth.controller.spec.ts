@@ -7,7 +7,6 @@ import {
   METHOD_METADATA,
   PATH_METADATA,
 } from '@nestjs/common/constants.js';
-import { ThrottlerGuard } from '@nestjs/throttler';
 import { Identity, RefreshToken, SignInCode, User } from '@rochas-surf-school/auth';
 import { ConflictError } from '@rochas-surf-school/shared';
 import { IS_PUBLIC_KEY } from '../../shared/decorators/public.decorator.js';
@@ -16,6 +15,7 @@ import { AuthController } from './auth.controller.js';
 import { GoogleAuthIdTokenProvider } from './google.id-token.js';
 import { HmacSignInCodeProvider } from './hmac.sign-in-code.js';
 import { PrismaIdentityRepository } from './identity.prisma.js';
+import { ClientIpThrottlerGuard } from './client-ip-throttler.guard.js';
 import { JwtTokenProvider } from './jwt.token.js';
 import { PrismaRefreshTokenRepository } from './refresh-token.prisma.js';
 import { ResendEmailProvider } from './resend.email.js';
@@ -168,7 +168,7 @@ describe('AuthController', () => {
       expect(Reflect.getMetadata(METHOD_METADATA, handler)).toBe(RequestMethod.POST);
       expect(Reflect.getMetadata(HTTP_CODE_METADATA, handler)).toBe(HttpStatus.ACCEPTED);
       expect(Reflect.getMetadata(IS_PUBLIC_KEY, handler)).toBe(true);
-      expect(Reflect.getMetadata(GUARDS_METADATA, handler)).toEqual([ThrottlerGuard]);
+      expect(Reflect.getMetadata(GUARDS_METADATA, handler)).toEqual([ClientIpThrottlerGuard]);
       expect(Reflect.getMetadata('THROTTLER:LIMITdefault', handler)).toBe(5);
       expect(Reflect.getMetadata('THROTTLER:TTLdefault', handler)).toBe(60_000);
     });
@@ -222,7 +222,7 @@ describe('AuthController', () => {
       expect(Reflect.getMetadata(METHOD_METADATA, handler)).toBe(RequestMethod.POST);
       expect(Reflect.getMetadata(HTTP_CODE_METADATA, handler)).toBe(HttpStatus.OK);
       expect(Reflect.getMetadata(IS_PUBLIC_KEY, handler)).toBe(true);
-      expect(Reflect.getMetadata(GUARDS_METADATA, handler)).toEqual([ThrottlerGuard]);
+      expect(Reflect.getMetadata(GUARDS_METADATA, handler)).toEqual([ClientIpThrottlerGuard]);
       expect(Reflect.getMetadata('THROTTLER:LIMITdefault', handler)).toBe(10);
       expect(Reflect.getMetadata('THROTTLER:TTLdefault', handler)).toBe(60_000);
     });
@@ -295,7 +295,7 @@ describe('AuthController', () => {
       expect(Reflect.getMetadata(METHOD_METADATA, handler)).toBe(RequestMethod.POST);
       expect(Reflect.getMetadata(HTTP_CODE_METADATA, handler)).toBe(HttpStatus.OK);
       expect(Reflect.getMetadata(IS_PUBLIC_KEY, handler)).toBe(true);
-      expect(Reflect.getMetadata(GUARDS_METADATA, handler)).toEqual([ThrottlerGuard]);
+      expect(Reflect.getMetadata(GUARDS_METADATA, handler)).toEqual([ClientIpThrottlerGuard]);
       expect(Reflect.getMetadata('THROTTLER:LIMITdefault', handler)).toBe(10);
       expect(Reflect.getMetadata('THROTTLER:TTLdefault', handler)).toBe(60_000);
     });
@@ -696,7 +696,7 @@ describe('AuthController', () => {
       expect(Reflect.getMetadata(METHOD_METADATA, handler)).toBe(RequestMethod.POST);
       expect(Reflect.getMetadata(HTTP_CODE_METADATA, handler)).toBe(HttpStatus.OK);
       expect(Reflect.getMetadata(IS_PUBLIC_KEY, handler)).toBe(true);
-      expect(Reflect.getMetadata(GUARDS_METADATA, handler)).toEqual([ThrottlerGuard]);
+      expect(Reflect.getMetadata(GUARDS_METADATA, handler)).toEqual([ClientIpThrottlerGuard]);
       expect(Reflect.getMetadata('THROTTLER:LIMITdefault', handler)).toBe(10);
       expect(Reflect.getMetadata('THROTTLER:TTLdefault', handler)).toBe(60_000);
     });
@@ -742,7 +742,7 @@ describe('AuthController', () => {
       expect(Reflect.getMetadata(METHOD_METADATA, handler)).toBe(RequestMethod.POST);
       expect(Reflect.getMetadata(HTTP_CODE_METADATA, handler)).toBe(HttpStatus.NO_CONTENT);
       expect(Reflect.getMetadata(IS_PUBLIC_KEY, handler)).toBe(true);
-      expect(Reflect.getMetadata(GUARDS_METADATA, handler)).toEqual([ThrottlerGuard]);
+      expect(Reflect.getMetadata(GUARDS_METADATA, handler)).toEqual([ClientIpThrottlerGuard]);
       expect(Reflect.getMetadata('THROTTLER:LIMITdefault', handler)).toBe(10);
       expect(Reflect.getMetadata('THROTTLER:TTLdefault', handler)).toBe(60_000);
     });

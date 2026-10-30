@@ -227,11 +227,20 @@ a working API. This is a testing environment: it stays small and cheap, and it d
   > `npx vitest run src/modules/health` (3 passed), `tsc --noEmit` clean; deviations: the controller skill is written
   > for use cases; this route has none, so only its controller, module and `.integration.http` shape applied.
 
-- [ ] **T-02** — Add `src/modules/auth/client-ip-throttler.guard.ts`, overriding `getTracker` as in D-06, use it in the
+- [x] **T-02** — Add `src/modules/auth/client-ip-throttler.guard.ts`, overriding `getTracker` as in D-06, use it in the
   five `@UseGuards` of `src/modules/auth/auth.controller.ts`, update the guard assertions in `auth.controller.spec.ts`,
   add its unit tests and the two-clients case to `test/auth-email.e2e-spec.ts`, and document `CLIENT_IP_HEADER` in
   `.env.example`.
   Covers: ER-02 · Done when: both commands in ER-02's Verify by pass.
+  > ✅ 2026-10-30 17:47 — added `ClientIpThrottlerGuard`, used by the five auth routes; it passes the header's value
+  > through the base `getTracker`, so IPv6 callers keep the library's /64 grouping; files:
+  > `apps/backend/src/modules/auth/client-ip-throttler.guard.ts`,
+  > `apps/backend/src/modules/auth/client-ip-throttler.guard.spec.ts`, `apps/backend/src/modules/auth/auth.controller.ts`,
+  > `apps/backend/src/modules/auth/auth.controller.spec.ts`, `apps/backend/src/modules/auth/auth.module.ts`,
+  > `apps/backend/test/auth-email.e2e-spec.ts`, `apps/backend/.env.example`; verified:
+  > `npx vitest run src/modules/auth/client-ip-throttler.guard.spec.ts` (4 passed),
+  > `npx vitest run --config ./vitest.config.e2e.ts test/auth-email.e2e-spec.ts -t "rate limit"` (5 passed; the
+  > two-clients case failed first), `tsc --noEmit` clean; deviations: none.
 
 - [ ] **T-03** — Fix `Dockerfile`: build through Turbo so the workspace dependencies compile first, copy each
   workspace's `dist` to the runtime stage, and point `HEALTHCHECK` at `/health`. Skill:

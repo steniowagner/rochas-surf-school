@@ -27,6 +27,7 @@ const user = (overrides: Partial<SessionUser> = {}): SessionUser => ({
   role: "student",
   status: "approved",
   createdAt: "2026-10-01T10:00:00.000Z",
+  photoUrl: null,
   whatsappNumber: null,
   whatsappVisible: false,
   rulesAccepted: true,

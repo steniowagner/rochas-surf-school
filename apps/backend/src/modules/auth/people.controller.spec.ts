@@ -116,6 +116,7 @@ describe('PeopleController', () => {
         {
           id: people[0].id,
           name: 'Ana Silva',
+          photoUrl: null,
           role: 'student',
           isInstructor: false,
           createdAt: '2026-10-01T10:00:00.000Z',
@@ -365,6 +366,7 @@ describe('PeopleController', () => {
           {
             id: removed.id,
             name: 'Bia Souza',
+            photoUrl: null,
             role: 'instructor',
             whatsappNumber: null,
             removedAt: '2026-10-20T12:00:00.000Z',

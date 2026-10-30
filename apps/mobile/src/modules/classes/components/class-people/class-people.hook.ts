@@ -53,6 +53,7 @@ export const useClassPeople = ({
         id: instructor.id,
         label: personLabel(name, "instructor", t),
         erased: name === null,
+        photoUrl: instructor.photoUrl,
         isViewer: instructor.isViewer,
         onPress:
           name === null

@@ -159,6 +159,7 @@ describe("useSendNoticeScreen", () => {
       await waitFor(() => expect(result.current.count).toBe(1));
       const person = {
         name: "Bia Lima",
+        photoUrl: null,
         role: "student" as const,
         whatsappNumber: null,
       };

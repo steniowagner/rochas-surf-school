@@ -185,6 +185,7 @@ export function ClassRequestsScreen() {
         person={
           student && {
             name: student.student.name,
+            photoUrl: student.student.photoUrl,
             role: "student",
             whatsappNumber: null,
           }

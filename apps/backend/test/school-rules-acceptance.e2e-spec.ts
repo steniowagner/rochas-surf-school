@@ -105,6 +105,7 @@ describe('Accepting the school rules (e2e)', () => {
         role: 'student',
         status: 'approved',
         createdAt: student.createdAt.toISOString(),
+        photoUrl: null,
         whatsappNumber: null,
         whatsappVisible: false,
         rulesAccepted: true,

@@ -22,6 +22,7 @@ export function Profile() {
   const insets = useSafeAreaInsets();
   const {
     name,
+    photoUrl,
     role,
     whatsappVisible,
     themeLabel,
@@ -50,7 +51,7 @@ export function Profile() {
           paddingTop: Platform.OS === "android" ? insets.top + 24 : 24,
         }}
       >
-        <ProfileHeader name={name} role={role} />
+        <ProfileHeader name={name} photoUrl={photoUrl} role={role} />
 
         <ProfileCard>
           <ProfileRow

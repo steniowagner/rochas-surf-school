@@ -51,12 +51,14 @@ const NOW = new Date("2026-10-12T12:00:00.000Z");
 const ANA = {
   id: "ana-id",
   name: "Ana Souza",
+  photoUrl: null as string | null,
   email: "ana@example.com",
   createdAt: "2026-10-12T10:00:00.000Z",
 };
 const BRUNO = {
   id: "bruno-id",
   name: "Bruno Lima",
+  photoUrl: null,
   email: "bruno@example.com",
   createdAt: "2026-10-02T09:00:00.000Z",
 };
@@ -175,6 +177,13 @@ afterEach(() => {
 });
 
 describe("RegistrationsScreen list", () => {
+  it("shows the registration's photo", async () => {
+    serve([{ ...ANA, photoUrl: "https://img.test/ana.jpg" }]);
+    await renderScreen();
+
+    expect(await screen.findByTestId("person-avatar-photo")).toBeOnTheScreen();
+  });
+
   it("shows the count, the title, the description and one card per registration, oldest first", async () => {
     serve([BRUNO, ANA]);
     await renderScreen();

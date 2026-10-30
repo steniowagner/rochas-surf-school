@@ -8,12 +8,12 @@ import { ProfileAvatar } from "../profile-avatar";
 import { ProfileHeaderProps } from "./profile-header.types";
 
 /** The avatar, the name and a chip with the role. */
-export function ProfileHeader({ name, role }: ProfileHeaderProps) {
+export function ProfileHeader({ name, photoUrl, role }: ProfileHeaderProps) {
   const { t } = useTranslation();
 
   return (
     <View className="items-center gap-3">
-      <ProfileAvatar name={name} />
+      <ProfileAvatar name={name} photoUrl={photoUrl} />
       <Text
         accessibilityRole="header"
         className="ds-text-screen-title text-center text-ink"

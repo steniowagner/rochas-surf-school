@@ -20,6 +20,7 @@ export type VerifySignInCodeResponse = {
     role: string;
     status: string;
     createdAt: string;
+    photoUrl: string | null;
     whatsappNumber: string | null;
     whatsappVisible: boolean;
     rulesAccepted: boolean;

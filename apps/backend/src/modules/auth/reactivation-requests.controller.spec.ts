@@ -87,6 +87,7 @@ describe('ReactivationRequestsController', () => {
         {
           id: users[0].id,
           name: 'Ana Souza',
+          photoUrl: null,
           email: 'ana@example.com',
           role: 'instructor',
           deletedAt: '2026-10-01T08:00:00.000Z',

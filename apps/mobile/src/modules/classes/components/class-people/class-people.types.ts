@@ -60,6 +60,7 @@ export type ClassPeopleInstructorPill = {
   id: string;
   label: string;
   erased: boolean;
+  photoUrl: string | null;
   isViewer: boolean;
   onPress?: () => void;
 };

@@ -3,6 +3,7 @@ export type Registration = {
   id: string;
   name: string;
   email: string;
+  photoUrl: string | null;
   createdAt: string;
 };
 

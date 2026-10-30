@@ -90,6 +90,7 @@ describe('RegistrationsController', () => {
         {
           id: pending[0].id,
           name: 'Ana Souza',
+          photoUrl: null,
           email: 'ana@example.com',
           createdAt: '2026-10-01T10:00:00.000Z',
         },

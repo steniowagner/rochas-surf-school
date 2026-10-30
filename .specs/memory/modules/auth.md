@@ -12,7 +12,8 @@ codes** and **Sessions**.
 A person's account, as [Product](../product.md) describes the **User** (`user`).
 
 - **User** (`user`): key fields — name (3 to 80 characters, a full name of at least two words), email
-  (stored trimmed and lowercase; never changes), photo, WhatsApp number and its visibility (hidden by default),
+  (stored trimmed and lowercase; never changes), photo (Google's picture, filled at a Google sign-in only while the
+  account has none, so it never replaces another photo), WhatsApp number and its visibility (hidden by default),
   role (`student` | `instructor` | `admin`, `student` by default), status (`pending` | `approved` | `denied` |
   `deleted` | `removed`, `pending` by default), denial reason (up to 500 characters) and dates, reactivation
   status (`requested` | `denied`) and when the request was sent, the versions of the school rules it
@@ -102,7 +103,7 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
 - **People directory**: an approved account of any role lists every `approved` user of any role, itself included
   (approved accounts that haven't finished onboarding too); pending, denied, deleted and removed accounts never
   appear. Each item carries only the id, name, role, "also an instructor" flag (`false` for students and
-  instructors), creation date and WhatsApp number — never the email, photo,
+  instructors), creation date, photo and WhatsApp number — never the email,
   status or the visibility itself. The number is given when its owner shares it or when the viewer is an admin,
   and is none otherwise (or when there is no number): a hidden number never leaves the backend for anyone else.
   The list is always sorted A–Z by name ignoring case and accents (same names by id, so pages never overlap), 20

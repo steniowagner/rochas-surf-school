@@ -84,6 +84,7 @@ export function ClassPeople({
                 <InstructorPill
                   key={pill.id}
                   name={pill.label}
+                  photoUrl={pill.photoUrl}
                   isViewer={pill.isViewer}
                   erased={pill.erased}
                   onPress={pill.onPress}

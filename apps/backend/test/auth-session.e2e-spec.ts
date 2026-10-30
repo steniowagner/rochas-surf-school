@@ -132,6 +132,7 @@ describe('Session endpoints (e2e)', () => {
         role: 'instructor',
         status: 'approved',
         createdAt: user.createdAt.toISOString(),
+        photoUrl: null,
         whatsappNumber: null,
         whatsappVisible: false,
         rulesAccepted: true,

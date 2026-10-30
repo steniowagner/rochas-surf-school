@@ -170,7 +170,7 @@ describe("PersonSheet", () => {
       expect(screen.queryByRole("button", { name: "Make instructor" })).not.toBeOnTheScreen();
 
       await renderSheet(
-        <PersonSheet person={{ name, role, whatsappNumber }} canChangeRole visible onClose={jest.fn()} />,
+        <PersonSheet person={{ name, photoUrl: null, role, whatsappNumber }} canChangeRole visible onClose={jest.fn()} />,
       );
       expect(screen.queryByRole("button", { name: "Make instructor" })).not.toBeOnTheScreen();
     });
@@ -459,7 +459,7 @@ describe("PersonSheet", () => {
       expect(screen.queryByRole("button", { name: "Remove from the platform" })).not.toBeOnTheScreen();
 
       await renderSheet(
-        <PersonSheet person={{ name, role, whatsappNumber }} canChangeRole visible onClose={jest.fn()} />,
+        <PersonSheet person={{ name, photoUrl: null, role, whatsappNumber }} canChangeRole visible onClose={jest.fn()} />,
       );
       expect(screen.queryByRole("button", { name: "Remove from the platform" })).not.toBeOnTheScreen();
     });

@@ -25,6 +25,7 @@ export interface ListPeopleIn {
 export interface PersonOut {
   id: string;
   name: string;
+  photoUrl: string | null;
   role: UserRole;
   isInstructor: boolean;
   createdAt: string;
@@ -111,6 +112,7 @@ export class ListPeople implements UseCase<ListPeopleIn, ListPeopleOut> {
       items: result.items.map((user) => ({
         id: user.id,
         name: user.name,
+        photoUrl: user.photoUrl ?? null,
         role: user.role,
         isInstructor: user.isInstructor,
         createdAt: user.createdAt.toISOString(),

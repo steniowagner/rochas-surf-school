@@ -90,7 +90,7 @@ export function EnrolStudentScreen() {
               onPress={() => screen.selectStudent(student)}
               className={`min-h-14 flex-row items-center gap-3 px-4 py-2 ${index === 0 ? "" : "border-t border-line"}`}
             >
-              <PersonAvatar name={student.name} />
+              <PersonAvatar name={student.name} photoUrl={student.photoUrl} />
               <Text
                 numberOfLines={1}
                 className="ds-text-list-title flex-1 text-ink"

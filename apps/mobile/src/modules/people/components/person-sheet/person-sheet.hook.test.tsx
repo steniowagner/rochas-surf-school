@@ -34,7 +34,7 @@ describe("usePersonSheet", () => {
     const { name, role, whatsappNumber } = buildPerson(1);
     const withoutAction = await renderSheetHook(buildPerson(1));
     const withoutPerson = await renderSheetHook(null);
-    const withoutId = await renderSheetHook({ name, role, whatsappNumber });
+    const withoutId = await renderSheetHook({ name, photoUrl: null, role, whatsappNumber });
 
     await act(async () => {
       withoutPerson.result.current.selectRoleAction("promoteInstructor");
@@ -71,7 +71,7 @@ describe("usePersonSheet", () => {
     const { name, role, whatsappNumber } = buildPerson(1);
     const notConfirming = await renderSheetHook(buildPerson(1));
     const withoutPerson = await renderSheetHook(null);
-    const withoutId = await renderSheetHook({ name, role, whatsappNumber });
+    const withoutId = await renderSheetHook({ name, photoUrl: null, role, whatsappNumber });
 
     await act(async () => {
       withoutPerson.result.current.startRemoval();
@@ -103,7 +103,7 @@ describe("usePersonSheet", () => {
   it("changes no flag without a person or without the person's id", async () => {
     const { name, role, whatsappNumber } = buildPerson(1);
     const withoutPerson = await renderSheetHook(null);
-    const withoutId = await renderSheetHook({ name, role, whatsappNumber });
+    const withoutId = await renderSheetHook({ name, photoUrl: null, role, whatsappNumber });
 
     await act(async () => {
       await withoutPerson.result.current.toggleInstructorFlag();

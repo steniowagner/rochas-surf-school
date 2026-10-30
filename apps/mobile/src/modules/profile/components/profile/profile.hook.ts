@@ -32,6 +32,7 @@ export const useProfile = () => {
 
   return {
     name: user?.name ?? "",
+    photoUrl: user?.photoUrl ?? null,
     role: user?.role ?? "student",
     whatsappVisible: user?.whatsappVisible ?? false,
     themeLabel: t(`theme.${theme}`),

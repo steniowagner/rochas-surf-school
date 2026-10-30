@@ -13,6 +13,7 @@ import { RemovedAccountRowProps } from "./removed-account-row.types";
 const ACCOUNT: RemovedAccount = {
   id: "r-1",
   name: "Bia Souza",
+  photoUrl: null,
   role: "instructor",
   whatsappNumber: null,
   removedAt: "2026-10-02T15:00:00.000Z",

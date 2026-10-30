@@ -137,6 +137,7 @@ const serve = (overrides: Record<string, Handler> = {}) => {
         items: teachers.map((item) => ({
           ...item,
           createdAt: "2026-07-15T12:00:00.000Z",
+          photoUrl: null,
           whatsappNumber: null,
         })),
         page: 1,

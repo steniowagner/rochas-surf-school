@@ -24,7 +24,7 @@ const item = (overrides: Partial<ClassItem> = {}): ClassItem => ({
     latitude: -3.7442,
     longitude: -38.4617,
   },
-  instructors: [{ id: "i-1", name: "Ana" }],
+  instructors: [{ id: "i-1", name: "Ana", photoUrl: null }],
   seatsTaken: 0,
   students: [],
   guests: [],
@@ -724,7 +724,7 @@ describe("ClassCard", () => {
     it("doesn't flag a class whose only instructor was erased as without instructor", async () => {
       await render(
         <ClassCard
-          item={item({ instructors: [{ id: "i-erased", name: null }] })}
+          item={item({ instructors: [{ id: "i-erased", name: null, photoUrl: null }] })}
           now={BEFORE}
           onPress={jest.fn()}
           showFlags

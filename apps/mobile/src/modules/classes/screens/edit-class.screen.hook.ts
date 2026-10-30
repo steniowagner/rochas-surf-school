@@ -128,6 +128,7 @@ export const useEditClassScreen = () => {
     .map((instructor) => ({
       id: instructor.id,
       name: personLabel(instructor.name, "instructor", t),
+      photoUrl: instructor.photoUrl,
       role: "instructor",
     }));
   const teachers = [...queriedTeachers, ...keptTeachers];

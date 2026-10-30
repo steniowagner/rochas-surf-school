@@ -82,7 +82,7 @@ Content-Type: application/json
   "code": "{{code}}"
 }
 
-### Current account (expects 200 with id, name, email, role, status, createdAt, whatsappNumber and whatsappVisible; any account status)
+### Current account (expects 200 with id, name, email, role, status, createdAt, photoUrl, whatsappNumber and whatsappVisible; any account status)
 # Replace the token with the accessToken returned by the verify request above.
 @accessToken = paste-the-access-token-here
 GET {{baseUrl}}/auth/me

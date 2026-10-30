@@ -118,6 +118,7 @@ describe('POST /auth/me/reactivation-request (e2e)', () => {
           role,
           status: 'deleted',
           createdAt: user.createdAt.toISOString(),
+          photoUrl: null,
           whatsappNumber: null,
           whatsappVisible: false,
           rulesAccepted: true,

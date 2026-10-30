@@ -21,6 +21,7 @@ const VIEW = {
       roleLabel: "Instructor",
       sheetPerson: {
         name: "Tiago Leal",
+        photoUrl: null,
         role: "instructor" as const,
         whatsappNumber: null,
       },
@@ -34,6 +35,7 @@ const VIEW = {
       roleLabel: "Confirmed",
       sheetPerson: {
         name: "Joana Rocha",
+        photoUrl: null,
         role: "student" as const,
         whatsappNumber: null,
       },
@@ -124,6 +126,7 @@ describe("ClassMessageCard", () => {
       roleLabel: "Pending request",
       sheetPerson: {
         name: "Caio Dias",
+        photoUrl: null,
         role: "student" as const,
         whatsappNumber: null,
       },

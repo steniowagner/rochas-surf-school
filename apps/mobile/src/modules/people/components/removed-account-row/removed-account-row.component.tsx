@@ -38,7 +38,7 @@ export function RemovedAccountRow({
         onPress={() => onPress(account)}
         className="flex-row items-center gap-3"
       >
-        <PersonAvatar name={account.name} size="lg" />
+        <PersonAvatar name={account.name} photoUrl={account.photoUrl} size="lg" />
         <View className="flex-1 gap-1">
           <Text numberOfLines={1} className="ds-text-list-title text-ink">
             {account.name}

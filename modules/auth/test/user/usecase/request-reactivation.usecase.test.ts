@@ -66,6 +66,7 @@ describe("RequestReactivation", () => {
           role,
           status: "deleted",
           createdAt: CREATED_AT,
+          photoUrl: null,
           whatsappNumber: null,
           whatsappVisible: false,
           rulesAccepted: true,

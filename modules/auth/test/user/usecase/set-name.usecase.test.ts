@@ -45,6 +45,7 @@ describe("SetName", () => {
       role: "student",
       status: "approved",
       createdAt: CREATED_AT,
+      photoUrl: null,
       whatsappNumber: "+5585999998888",
       whatsappVisible: true,
       rulesAccepted: true,

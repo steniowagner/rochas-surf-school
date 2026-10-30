@@ -25,6 +25,7 @@ export function EditProfile() {
   const keyboardOffset = useKeyboardOffset();
   const {
     currentName,
+    photoUrl,
     email,
     nameField,
     canSubmit,
@@ -52,7 +53,11 @@ export function EditProfile() {
           keyboardShouldPersistTaps="handled"
         >
           <View className="items-center">
-            <ProfileAvatar name={currentName} onChangePhoto={showComingSoon} />
+            <ProfileAvatar
+              name={currentName}
+              photoUrl={photoUrl}
+              onChangePhoto={showComingSoon}
+            />
           </View>
 
           <View className="gap-1.5">

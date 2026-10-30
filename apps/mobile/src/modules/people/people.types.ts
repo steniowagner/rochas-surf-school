@@ -4,6 +4,7 @@ export type PeopleRole = "student" | "instructor" | "admin";
 export type Person = {
   id: string;
   name: string;
+  photoUrl: string | null;
   role: PeopleRole;
   /** Only an admin can be one: an admin who also teaches can be assigned to classes (spec 070). */
   isInstructor: boolean;
@@ -63,6 +64,7 @@ export type RoleAction =
 export type RemovedAccount = {
   id: string;
   name: string;
+  photoUrl: string | null;
   role: PeopleRole;
   /** E.164; an admin always gets it, whether or not the owner shares it. */
   whatsappNumber: string | null;

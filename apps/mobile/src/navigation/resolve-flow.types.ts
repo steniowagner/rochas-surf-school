@@ -21,6 +21,8 @@ export type SessionUser = {
   status: string;
   // ISO 8601, UTC.
   createdAt: string;
+  // Google's picture from the first Google sign-in, or null.
+  photoUrl: string | null;
   // E.164, or null until the account adds one in onboarding.
   whatsappNumber: string | null;
   // `false` hides the number from everyone but admins.

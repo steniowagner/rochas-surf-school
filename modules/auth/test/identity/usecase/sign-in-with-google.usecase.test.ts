@@ -220,6 +220,73 @@ describe("SignInWithGoogle", () => {
     expect(ctx.identityRepository.identities).toHaveLength(1);
   });
 
+  describe("photo", () => {
+    const PICTURE = "https://lh3.googleusercontent.com/a/ana=s400-c";
+
+    test("new account: starts with Google's picture", async () => {
+      const ctx = setup({ tokens: { good: payload({ picture: PICTURE }) } });
+
+      const result = await ctx.signIn.execute({ idToken: "good" });
+
+      expect(result.user.photoUrl).toBe(PICTURE);
+      expect(ctx.userRepository.users[0].photoUrl).toBe(PICTURE);
+    });
+
+    test("an existing account without a photo gets Google's picture, keeping everything else", async () => {
+      const ana = buildUser({ whatsappNumber: "+5585999998888" });
+      const ctx = setup({
+        users: [ana],
+        tokens: { good: payload({ email: "ana@example.com", picture: PICTURE }) },
+      });
+
+      const result = await ctx.signIn.execute({ idToken: "good" });
+
+      expect(result.user).toMatchObject({
+        id: ana.id,
+        photoUrl: PICTURE,
+        whatsappNumber: "+5585999998888",
+      });
+      expect(ctx.userRepository.users[0].photoUrl).toBe(PICTURE);
+    });
+
+    test("a photo already there stays", async () => {
+      const photoUrl = "https://cdn.example.com/ana.jpg";
+      const ctx = setup({
+        users: [buildUser({ photoUrl })],
+        tokens: { good: payload({ email: "ana@example.com", picture: PICTURE }) },
+      });
+
+      const result = await ctx.signIn.execute({ idToken: "good" });
+
+      expect(result.user.photoUrl).toBe(photoUrl);
+      expect(ctx.userRepository.users[0].photoUrl).toBe(photoUrl);
+    });
+
+    test("a photo stored meanwhile is not claimed as Google's", async () => {
+      const ctx = setup({
+        users: [buildUser()],
+        tokens: { good: payload({ email: "ana@example.com", picture: PICTURE }) },
+      });
+      jest.spyOn(ctx.userRepository, "fillPhotoUrl").mockResolvedValue(false);
+
+      const result = await ctx.signIn.execute({ idToken: "good" });
+
+      expect(result.user.photoUrl).toBeNull();
+    });
+
+    test.each([undefined, "", "not a url", "ftp://example.com/a.png"])(
+      "signs in without a photo when Google's picture is %j",
+      async (picture) => {
+        const ctx = setup({ tokens: { good: payload({ picture }) } });
+
+        const result = await ctx.signIn.execute({ idToken: "good" });
+
+        expect(result.user.photoUrl).toBeNull();
+        expect(ctx.userRepository.users[0].photoUrl).toBeUndefined();
+      },
+    );
+  });
+
   test("known identity whose account is gone falls back to the email lookup", async () => {
     const orphan = new Identity({
       userId: "7c9e6679-7425-40de-944b-e07fc1f90ae7",

@@ -3,8 +3,8 @@ import { render, screen, userEvent } from "@testing-library/react-native";
 import { InstructorPicker } from "./instructor-picker.component";
 
 const teachers = [
-  { id: "t-1", name: "Ana Souza", role: "instructor" as const },
-  { id: "t-2", name: "Bruno Lima", role: "admin" as const },
+  { id: "t-1", name: "Ana Souza", photoUrl: null, role: "instructor" as const },
+  { id: "t-2", name: "Bruno Lima", photoUrl: null, role: "admin" as const },
 ];
 
 const props = {
@@ -51,6 +51,7 @@ describe("InstructorPicker", () => {
     const many = Array.from({ length: 120 }, (_, i) => ({
       id: `t-${i}`,
       name: `Teacher ${i}`,
+      photoUrl: null,
       role: "instructor" as const,
     }));
     await render(<InstructorPicker {...props} teachers={many} />);

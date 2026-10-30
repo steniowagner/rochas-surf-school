@@ -22,6 +22,7 @@ const fetchTeachers = async (): Promise<Teacher[]> => {
       teachers.push({
         id: person.id,
         name: person.name,
+        photoUrl: person.photoUrl,
         role: person.role as Teacher["role"],
       });
     }

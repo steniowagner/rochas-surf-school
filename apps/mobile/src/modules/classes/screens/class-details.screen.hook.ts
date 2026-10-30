@@ -321,13 +321,18 @@ export const useClassDetailsScreen = ({
     personVisible,
     openInstructor: ({
       name,
+      photoUrl,
       role,
       whatsappNumber,
     }: Named<ClassDetailsInstructor>) =>
-      openPerson({ name, role, whatsappNumber }),
+      openPerson({ name, photoUrl, role, whatsappNumber }),
     // Only students hold seats, so the sheet's chip is always "Student".
-    openStudent: ({ name, whatsappNumber }: Named<ClassDetailsStudent>) =>
-      openPerson({ name, role: "student", whatsappNumber }),
+    openStudent: ({
+      name,
+      photoUrl,
+      whatsappNumber,
+    }: Named<ClassDetailsStudent>) =>
+      openPerson({ name, photoUrl, role: "student", whatsappNumber }),
     closePerson: () => setPersonVisible(false),
     toolsVisible,
     openTools: () => setToolsVisible(true),

@@ -32,6 +32,7 @@ const removedUser = (reactivationStatus: string | null): SessionUser => ({
   role: "student",
   status: "removed",
   createdAt: "2026-10-10T12:00:00.000Z",
+  photoUrl: null,
   whatsappNumber: null,
   whatsappVisible: false,
   rulesAccepted: false,

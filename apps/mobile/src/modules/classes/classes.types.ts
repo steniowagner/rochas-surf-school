@@ -90,6 +90,7 @@ export type TimeRangeSuggestionsResponse = {
 export type Teacher = {
   id: string;
   name: string;
+  photoUrl: string | null;
   role: "instructor" | "admin";
 };
 
@@ -157,6 +158,7 @@ export type ClassInstructor = {
   id: string;
   /** `null` once the person's account was erased: shown as "Former instructor" (`personLabel`). */
   name: string | null;
+  photoUrl: string | null;
 };
 
 /** A person who still has a name (not erased): only they open a sheet or can be taken out. */
@@ -167,7 +169,6 @@ export type ClassStudent = {
   id: string;
   /** `null` once the student's account was erased: shown as "Former student" (`personLabel`). */
   name: string | null;
-  /** `null` until profile photos can be uploaded. */
   photoUrl: string | null;
   /** The student's approved enrolment in the class, which an admin can take them out of. */
   enrolmentId: string;

@@ -41,6 +41,7 @@ export const useUserHeader = () => {
 
   return {
     name,
+    photoUrl: user?.photoUrl ?? null,
     firstName: name.split(/\s+/)[0],
     greetingPeriod: getGreetingPeriod(now),
     unreadCount: count,

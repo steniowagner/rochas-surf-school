@@ -153,6 +153,13 @@ From any other commit, before the workflow is on `main` or to try a branch:
 git push --force origin HEAD:deploy/staging
 ```
 
+If a migration fails, Prisma records it and refuses every later migration until that's cleared. Fix the migration, then
+mark the failed one as rolled back, with `DATABASE_URL` set to the staging value:
+
+```bash
+npx prisma migrate resolve --rolled-back <migration-name>
+```
+
 ## Operating it
 
 Check the API:

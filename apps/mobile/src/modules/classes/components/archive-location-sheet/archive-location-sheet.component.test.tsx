@@ -1,4 +1,9 @@
-import { render, screen, userEvent } from "@testing-library/react-native";
+import {
+  render,
+  screen,
+  userEvent,
+  within,
+} from "@testing-library/react-native";
 
 import { ArchiveLocationSheet } from "./archive-location-sheet.component";
 
@@ -25,8 +30,9 @@ describe("ArchiveLocationSheet", () => {
     await open();
 
     expect(screen.getByText("Remove location?")).toBeTruthy();
-    expect(screen.getByText("Praia do Futuro")).toBeTruthy();
-    expect(screen.getByText("Av. Zezé Diogo, 5000")).toBeTruthy();
+    const card = within(screen.getByTestId("location-summary-card"));
+    expect(card.getByText("Praia do Futuro")).toBeTruthy();
+    expect(card.getByText("Av. Zezé Diogo, 5000")).toBeTruthy();
     expect(
       screen.getByText("It no longer shows up for new classes."),
     ).toBeTruthy();

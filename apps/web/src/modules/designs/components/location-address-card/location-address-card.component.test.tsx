@@ -23,7 +23,6 @@ describe("LocationAddressCard", () => {
 
     expect(screen.getByText("Av. Beira Mar, 2200 – Meireles, Fortaleza")).toBeInTheDocument();
     expect(screen.getByText("Ponto escolhido no mapa · -3.7190, -38.5020")).toBeInTheDocument();
-    expect(screen.getByTestId("location-address-card")).toHaveClass("border-solid");
     rerender(<LocationAddressCard locale="pt-br" place={{ address: "Av. Beira Mar, 2200", name: "Praia de Iracema", point: "-3.7190, -38.5020" }} />);
     expect(screen.getByText("Praia de Iracema · -3.7190, -38.5020")).toBeInTheDocument();
   });

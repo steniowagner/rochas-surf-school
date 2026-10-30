@@ -5,6 +5,7 @@ import { Text, View } from "react-native";
 import { useTheme } from "@/hooks/use-theme";
 
 import { formatPoint } from "../../utils/map";
+import { LocationSummaryCard } from "../location-summary-card";
 
 import { LocationAddressCardProps } from "./location-address-card.types";
 
@@ -40,22 +41,9 @@ export function LocationAddressCard({
     : (place?.name ?? t("locationSheet.pointPicked"));
 
   return (
-    // `border-solid` resets the empty card's dashed border, which Android keeps when the class just goes away.
-    <View
-      testID="location-address-card"
-      className="min-h-11 flex-row items-center gap-2.5 rounded-card border border-solid border-line bg-surface px-3.5 py-3"
-    >
-      <Feather name="map-pin" size={16} color={theme.lagoon} />
-      <View className="flex-1">
-        <Text numberOfLines={2} className="ds-text-list-title text-ink">
-          {resolving ? t("locationSheet.resolving") : place!.address}
-        </Text>
-        {point ? (
-          <Text numberOfLines={1} className="ds-text-list-subtitle text-ink-2">
-            {`${source} · ${formatPoint(point)}`}
-          </Text>
-        ) : null}
-      </View>
-    </View>
+    <LocationSummaryCard
+      title={resolving ? t("locationSheet.resolving") : place!.address}
+      subtitle={point ? `${source} · ${formatPoint(point)}` : undefined}
+    />
   );
 }

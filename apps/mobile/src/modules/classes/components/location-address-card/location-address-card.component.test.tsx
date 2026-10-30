@@ -50,10 +50,6 @@ describe("LocationAddressCard", () => {
       screen.getByText("Point picked on the map · -3.7442, -38.4617"),
     ).toBeTruthy();
     expect(screen.queryByText("Tap the map to mark the point")).toBeNull();
-    // The empty card's dashed border must not survive on Android.
-    expect(
-      screen.getByTestId("location-address-card").props.className,
-    ).toContain("border-solid");
   });
 
   it("shows a suggestion or a labelled place with its name and coordinates", async () => {

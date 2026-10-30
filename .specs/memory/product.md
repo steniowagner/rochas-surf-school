@@ -366,9 +366,10 @@ Detailed in [user-journeys.md](../../.docs/user-journeys.md) and, area by area, 
   the school's number, and an admin carries out the request by removing the account, which is then erased like
   any removed account. The site's number is a copy of the school setting made when the site is built, so
   changing the number in the app needs the site rebuilt.
-- **The privacy policy names only the providers already chosen**: Google, Apple, Resend, Expo and Anthropic
-  (the language model, spec 036) by name; the hosting and the photo storage by category until a spec chooses
-  them — that spec updates the policy.
+- **The privacy policy names only the providers already chosen**: Google, Apple, Resend, Expo, Anthropic (the
+  language model, spec 036) and, since spec 079, Amazon Web Services (runs the app's server), Supabase (runs its
+  database) and Vercel (publishes the web pages) by name; the photo storage by category until a spec chooses it — that
+  spec updates the policy.
 - **The site has terms of use next to the school rules**: the terms govern the app (adults only, accounts approved
   by the school, admins' decisions final, forbidden content removed by admins who can also remove the account,
   reports sent to the school on WhatsApp because the app has no report button, no payments, not a liability
@@ -1399,7 +1400,14 @@ journey pages, from nowhere else on the site and not indexed. Since spec 078 eac
 before "See the designs". The page and the backend's `test-accounts` command read
 the same list of sets, so the emails and names a tester reads are always the accounts the server creates.
 
-Active specs: none.
+**Staging server** (spec `079-staging-backend-infra`) — the school's API now runs all day on a test server at
+`https://api-staging.rochassurfschool.com`, so the app can be tested on real phones outside the developer's machine.
+The scheduled work (class reminders among it) runs there, the 12 test sets exist and sign in with their fixed codes, and
+sign-in codes reach real inboxes from `admin@rochassurfschool.com`. It is a testing environment and decides nothing
+about production. The site's privacy policy now names Amazon Web Services, Supabase and Vercel in the three languages,
+in place of the generic hosting line. The mobile builds that point at this server are spec 080.
+
+Active specs: `080-staging-mobile` and `081-staging-follow-ups`, both planned.
 
 ## Out of scope (future evolution, recorded in the specs)
 

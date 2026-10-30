@@ -141,6 +141,8 @@ _Implemented in spec 076-user-journeys-pages._
 
 _Implemented in spec 077-test-accounts-page._
 
+_Implemented in spec 079-staging-backend-infra._
+
 The system SHALL provide at least one pre-approved review account for each role (student, instructor and admin), so App Store and Google Play reviewers can use the app. Each review account SHALL sign in with a fixed code that works only for that account's email address. A test server MAY have more review accounts per role, such as the 12 test sets (an admin, an instructor and a student each) given to test users; their codes are generated when the server is set up and never published. The test sets' emails and names (never their codes) are listed on the user journeys' test accounts page.
 
 - _Reviewer signs in:_ When a reviewer enters a review account's email address and its fixed code, then they are signed in to an approved account with that role.
@@ -1337,6 +1339,8 @@ Publishes the public web pages the app stores require: the privacy policy, the t
 #### Privacy policy page
 
 _Implemented in spec 022-public-web-pages and 023-terms-and-lgpd-privacy._
+
+_Implemented in spec 079-staging-backend-infra._
 
 A privacy policy SHALL be published at a public web address and linked from the app and from the App Store and Google Play listings. It SHALL say what data the app collects, why and on what LGPD legal basis, how long it is kept, which services handle it (including the sign-in providers, the push service, hosting, and the language model, which only receives class details) and that data may be processed outside Brazil. It SHALL identify the controller (the school's legal name and, when available, its CNPJ) and the data protection contact (encarregado), state that the app is for adults only, list the data subject's LGPD rights and how to exercise them, including the right to complain to the ANPD.
 

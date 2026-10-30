@@ -2,13 +2,14 @@
 id: "079"
 slug: staging-backend-infra
 title: Staging backend and infrastructure on AWS and Supabase
-status: accepted
+status: finished
 created: 2026-10-30
 started: 2026-10-30
 base_commit: b6d7cd77915004379a603167f34eedc9b78f9af6
 reviewed_commit: 6558f45cdba991f0bf5b4b28d24901e328d56d96
 fronts: [backend, web, infra]
 depends_on: []
+finished: 2026-10-30
 ---
 
 # 079 — Staging backend and infrastructure on AWS and Supabase

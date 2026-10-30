@@ -200,7 +200,11 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
   0.135 with `zod` 4 for the language model; see External integrations).
   Build with `nest build` (`prebuild`, `precheck-types`, `pretest` and `pretest:e2e` run `prisma generate`). Lint with `oxlint --type-aware`. Tests with
   **Vitest 4** — unit tests `src/**/*.spec.ts`, e2e tests `test/**/*.e2e-spec.ts` with supertest.
-  Docker: `Dockerfile` + `docker-compose.yml` (backend + Postgres).
+  `GET /health` (spec 079, `src/modules/health/`) is public, runs only `SELECT 1` and answers 200 `{ "status": "ok" }`,
+  or 503 with `health.database.unreachable`; API Gateway, Docker and the deploy use it.
+  Docker: `Dockerfile` + `docker-compose.yml` (backend + Postgres). The image builds from the repo root through Turbo,
+  so the workspace packages compile first, and its runtime stage copies each workspace's `dist`; `packages/typescript-config`
+  is copied by hand because no workspace declares it, so `turbo prune` leaves it out.
 - **`apps/web`** — **Next.js 16** (App Router, `src/`), **Tailwind 4**, port **3000**. Only the public web
   pages the app stores require — the privacy policy, the terms of use and the account-deletion page, each in
   pt-BR, es and en — and, since spec 071, the designs area (`/{lang}/designs`) and, since spec 076, the user
@@ -398,6 +402,10 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
   so the web components are their source of truth and they are never hand-edited. The compiled CSS grows with every
   page that uses a new utility, so regenerating one design can change another's `<style>` but never its markup. The scripts are tested with
   `node --test .docs/designs/scripts/*.test.mjs`.
+- **`infra/terraform`** (spec 079, front `infra`) — **Terraform** ≥ 1.14 with the `hashicorp/aws` 6, `hashicorp/random`
+  3 and `supabase/supabase` 1 providers: `bootstrap` (the state bucket) and `staging` (see Deployment). Its tests are
+  `terraform test` with mocked providers (`staging/tests/network.tftest.hcl`), so they need no credentials and create
+  nothing. They can't list resources, so they check the declared ingress rule, not the absence of another one.
 
 ## Persistence
 
@@ -826,9 +834,14 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   so the pepper protects them. One row per normalized email (trimmed, lowercase — emails are stored that way
   everywhere); a code is consumed with one atomic `deleteMany({ email, codeHash })`, which makes it single-use
   under concurrent verifies. A cleanup job deletes expired codes every minute.
-- Rate limits: `@nestjs/throttler`, in-memory, by IP, bound per route with `@UseGuards(ThrottlerGuard)` and
-  `@Throttle` (code request 5; code verify, Google sign-in, refresh and sign-out 10 requests per 60 s); its error key is
-  `request.rate.limited`. How the client IP is read behind a proxy is decided by the first spec that deploys.
+- Rate limits: `@nestjs/throttler`, in-memory, by client IP, bound per route with
+  `@UseGuards(ClientIpThrottlerGuard)` and `@Throttle` (code request 5; code verify, Google sign-in, refresh and sign-out
+  10 requests per 60 s); its error key is `request.rate.limited`. `ClientIpThrottlerGuard` (spec 079,
+  `apps/backend/src/modules/auth/`) extends `ThrottlerGuard`: with `CLIENT_IP_HEADER` set it tracks that header's value,
+  through the base `getTracker`, so IPv6 callers keep the library's /64 grouping; unset, or with the header missing, the
+  plain IP counts. Set it only on a server reachable solely through a gateway that overwrites the header: on staging,
+  API Gateway overwrites `x-client-ip` with `$context.identity.sourceIp`. Express `trust proxy` isn't used, because how
+  `X-Forwarded-For` behaves through HTTP API mappings isn't clearly documented.
 - Global `JwtAuthGuard` (from `backend-nest-config`, applied); open routes use `@Public()`; controllers get
   the user with `@CurrentUser()`. The guard **reloads the user on every request** (`JwtStrategy.validate` reads
   `id`, `email`, `role` and `status` by the token's `sub` through `PrismaService`), so a removal, denial,
@@ -1990,8 +2003,9 @@ Every provider sits behind a port in the domain (`*.provider.ts`); its implement
 module that uses it. Variable names are added to `apps/backend/.env.example` by the spec that introduces the
 provider; real keys are never committed. The privacy policy page (`apps/web`, spec 022) names the providers
 already chosen (Google — sign-in, maps and address suggestions —, Apple — sign-in and Apple Maps —, Resend, Expo,
-Anthropic) and describes the others by category, so a spec that
-chooses a provider (hosting, photo storage), changes a retention period or adds a kind of data also
+Anthropic, and since spec 079 Amazon Web Services, Supabase and Vercel as hosts) and describes the others by category,
+so a spec that
+chooses a provider (photo storage), changes a retention period or adds a kind of data also
 updates the policy's legal bases and retention list (spec 023) in the three web dictionaries.
 
 ### Push notifications
@@ -2182,8 +2196,30 @@ updates the policy's legal bases and retention list (spec 023) in the three web 
 
 ## Deployment
 
-- Not decided: where the backend, database and web pages run, and how secrets are managed, are **decided by
-  the first spec that deploys**. Mobile releases go through the App Store and Google Play.
+- **Production is not decided**: where it runs and how its secrets are managed are decided by the spec that deploys
+  it. Mobile releases go through the App Store and Google Play. The website stays on Vercel.
+- **Staging** (spec 079) is a testing environment at `https://api-staging.rochassurfschool.com`, all in `us-east-1`,
+  described in `infra/terraform`. The guide is [.docs/staging.md](../../.docs/staging.md): first apply, parameters,
+  deploy, failed-migration recovery, sessions.
+  - Server: one `t4g.small` EC2 (ARM, Amazon Linux 2023) running one Docker container with `NODE_ENV=production`, so
+    the scheduled jobs and the in-memory rate limits keep their one-instance assumption. IMDSv2 is required and the root
+    volume is encrypted.
+  - Traffic: API Gateway HTTP API (20 requests per second, burst 40; `execute-api` address disabled) → VPC link → Cloud
+    Map HTTP namespace → port 4000, with no load balancer. The server's security group admits only port 4000 from the VPC
+    link's group; port 22 is closed and there is no key pair, so access is through SSM. The public IP is for outbound
+    traffic only, and there is no NAT gateway. After 60 days without traffic the VPC link goes inactive, and a request
+    brings it back in a few minutes.
+  - Domain: a free ACM certificate, with both CNAMEs added by hand at Hostinger, where the DNS stays.
+  - Database: a Supabase project reached through its session pooler, because the server has no IPv6. `DATABASE_URL` ends
+    in `?sslmode=require&uselibpqcompat=true`, which encrypts without verifying the certificate.
+  - Secrets: SSM Parameter Store `SecureString` values under `/rochas/staging/`, one per variable, set by hand; Terraform
+    only creates the permissions. The server reads them all at every deploy. `REVIEW_ACCOUNTS` is close to the standard
+    tier's 4 KB limit.
+  - Logs: Docker's `awslogs` driver, to `/rochas/staging/backend`, kept 14 days. No backups, monitoring or alarms.
+  - Terraform runs on the developer's machine, with its state in a versioned, encrypted, private S3 bucket
+    (`use_lockfile`); CI only checks it.
+  - Deploy: `deploy-staging.yml`, by hand (`workflow_dispatch`, or a push to `deploy/staging`). See Continuous
+    integration.
 
 ## Automated validation
 
@@ -2275,6 +2311,19 @@ per ref (a newer one cancels the older). It runs **tests only** — lint, type c
   job's `DATABASE_*` point at the service. No GitHub secrets: the suites fake every external provider.
 - `ci` always runs and fails when any job ended `failure` or `cancelled` (skipped passes). It is the one check
   to require in branch protection, which is configured in GitHub by hand.
+
+`.github/workflows/infra.yml` (spec 079) runs on pull requests that touch `infra/**`, with no secrets: `terraform fmt
+-check -recursive`, `init -backend=false` and `validate` on both stacks, and `test` on `staging`.
+
+`.github/workflows/deploy-staging.yml` (spec 079) deploys staging by hand, on GitHub's native `ubuntu-24.04-arm` runner
+and in the `staging` environment. It publishes the arm64 image to the public `ghcr.io/steniowagner/rochas-surf-school-backend`,
+tagged by commit, assumes the deploy role through OIDC, applies the migrations, seeds the test accounts with
+`NODE_ENV=production`, restarts the server through SSM and polls `/health` for 2 minutes. Migrations and the seed run on
+the runner because `prisma` and `tsx` are dev dependencies; they come first, so a failed migration stops the job and the
+old version keeps answering. The role trusts only this repo's `staging` environment, by GitHub's immutable OIDC subject
+(`github_subject_prefix`). It can send one SSM document, which only runs `deploy-backend` with a commit SHA, to this
+instance, read that command's result, and read `DATABASE_URL` and `REVIEW_ACCOUNTS`. The repo is public, so these logs
+are too: the workflow masks both values.
 
 ### Coverage
 

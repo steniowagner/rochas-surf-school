@@ -12,6 +12,7 @@ import { SchoolSettingsModule } from './modules/school-settings/school-settings.
 import { NotificationsModule } from './modules/notifications/notifications.module.js';
 import { ClassesModule } from './modules/classes/classes.module.js';
 import { EnrolmentModule } from './modules/enrolment/enrolment.module.js';
+import { HealthModule } from './modules/health/health.module.js';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { EnrolmentModule } from './modules/enrolment/enrolment.module.js';
     NotificationsModule,
     ClassesModule,
     EnrolmentModule,
+    HealthModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: ApiExceptionFilter },

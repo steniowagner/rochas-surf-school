@@ -213,11 +213,19 @@ a working API. This is a testing environment: it stays small and cheap, and it d
 
 ### Backend (`apps/backend`)
 
-- [ ] **T-01** — Add `GET /health` with `@Public()` and `SELECT 1`, in `src/modules/health/` (controller, module,
+- [x] **T-01** — Add `GET /health` with `@Public()` and `SELECT 1`, in `src/modules/health/` (controller, module,
   registered in `src/app.module.ts`), answering 503 with `health.database.unreachable` when the query fails, plus
   `test/health.e2e-spec.ts` and a controller unit test. Skill:
   [`backend-nest-controller`](../../../.claude/skills/backend-nest-controller).
   Covers: ER-01 · Done when: `npx vitest run --config ./vitest.config.e2e.ts test/health.e2e-spec.ts` passes.
+  > ✅ 2026-10-30 17:46 — added the public `GET /health` running `SELECT 1`, 503 through
+  > `ServiceUnavailableException` (the global filter gives `errors: ["health.database.unreachable"]`); files:
+  > `apps/backend/src/modules/health/health.controller.ts`, `apps/backend/src/modules/health/health.controller.spec.ts`,
+  > `apps/backend/src/modules/health/health.module.ts`, `apps/backend/src/modules/health/health.integration.http`,
+  > `apps/backend/src/app.module.ts`, `apps/backend/test/health.e2e-spec.ts`; verified:
+  > `npx vitest run --config ./vitest.config.e2e.ts test/health.e2e-spec.ts` (2 passed, failed first with no route),
+  > `npx vitest run src/modules/health` (3 passed), `tsc --noEmit` clean; deviations: the controller skill is written
+  > for use cases; this route has none, so only its controller, module and `.integration.http` shape applied.
 
 - [ ] **T-02** — Add `src/modules/auth/client-ip-throttler.guard.ts`, overriding `getTracker` as in D-06, use it in the
   five `@UseGuards` of `src/modules/auth/auth.controller.ts`, update the guard assertions in `auth.controller.spec.ts`,

@@ -59,3 +59,39 @@ for (const { path, lang } of locales) {
     }
   });
 }
+
+const hostLines = {
+  "pt-br": [
+    "Amazon Web Services: roda o servidor do app.",
+    "Supabase: roda o banco de dados do app.",
+    "Vercel: publica estas páginas.",
+  ],
+  es: [
+    "Amazon Web Services: ejecuta el servidor de la app.",
+    "Supabase: ejecuta la base de datos de la app.",
+    "Vercel: publica estas páginas.",
+  ],
+  en: [
+    "Amazon Web Services: runs the app's server.",
+    "Supabase: runs the app's database.",
+    "Vercel: publishes these web pages.",
+  ],
+};
+const genericHosting = /hospedagem na nuvem|alojamiento en la nube|cloud hosting/;
+const photoStorage = {
+  "pt-br": "Um serviço de armazenamento de fotos compatível com S3, onde ficam as fotos das aulas.",
+  es: "Un servicio de almacenamiento de fotos compatible con S3, donde se guardan las fotos de las clases.",
+  en: "An S3-compatible photo storage service, where class photos are kept.",
+};
+
+for (const { path, lang } of locales) {
+  test(`privacy policy names the hosting providers in ${lang}`, async ({ page }) => {
+    await page.goto(`/${path}/privacy-policy`);
+
+    for (const line of hostLines[path as keyof typeof hostLines]) {
+      await expect(page.getByText(line, { exact: true })).toBeVisible();
+    }
+    await expect(page.getByText(genericHosting)).toHaveCount(0);
+    await expect(page.getByText(photoStorage[path as keyof typeof photoStorage], { exact: true })).toBeVisible();
+  });
+}

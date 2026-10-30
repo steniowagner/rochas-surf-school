@@ -259,11 +259,16 @@ a working API. This is a testing environment: it stays small and cheap, and it d
 
 ### Web (`apps/web`)
 
-- [ ] **T-04** — Replace the generic hosting line in the policy's services list in
+- [x] **T-04** — Replace the generic hosting line in the policy's services list in
   `src/i18n/dictionaries/{en,pt-br,es}.ts` with Amazon Web Services (runs the app's server), Supabase (runs its
   database) and Vercel (publishes these pages), and add `privacy policy names the hosting providers` per language to
   `e2e/pages.e2e.ts`.
   Covers: ER-12 · Done when: `npm run test:e2e --workspace apps/web` passes.
+  > ✅ 2026-10-30 18:06 — the policy's services list now names Amazon Web Services, Supabase and Vercel in the three
+  > languages, and the photo storage line is unchanged; files: `apps/web/src/i18n/dictionaries/en.ts`,
+  > `apps/web/src/i18n/dictionaries/pt-br.ts`, `apps/web/src/i18n/dictionaries/es.ts`, `apps/web/e2e/pages.e2e.ts`;
+  > verified: `npm run test:e2e --workspace apps/web` (77 passed), and the 3 `privacy policy names the hosting providers`
+  > tests by name (3 passed); deviations: none.
 
 ### Infra (`infra/terraform`)
 

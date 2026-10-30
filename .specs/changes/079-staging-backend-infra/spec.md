@@ -286,12 +286,25 @@ a working API. This is a testing environment: it stays small and cheap, and it d
   > check-ignore` matched a `.tfstate` and a `.tfvars` path and did not match the lock file or a `.tfvars.example`;
   > deviations: none.
 
-- [ ] **T-06** — Create `infra/terraform/staging` with the S3 backend, then the VPC (two public subnets in two zones,
+- [x] **T-06** — Create `infra/terraform/staging` with the S3 backend, then the VPC (two public subnets in two zones,
   no NAT), the security groups, the `t4g.small` server with IMDSv2 and an encrypted root volume, its instance profile
   (SSM core, CloudWatch logs, read `/rochas/staging/*`), the log group, and a `user_data` that installs Docker and the
   deploy script. Add `tests/network.tftest.hcl` with mocked providers. Skills: `terraform-style-guide`,
   `terraform-test`, `launching-ec2-instance-with-best-practices`, `setting-up-ec2-instance-profiles`, `aws-iam`.
   Covers: ER-04, ER-06, ER-11 · Done when: `terraform -chdir=infra/terraform/staging test` passes.
+  > ✅ 2026-10-30 18:09 — created the staging stack with its S3 backend: VPC with two public subnets and no NAT, the
+  > two security groups, the `t4g.small` server (IMDSv2, encrypted gp3 root volume, no SSH key), its instance profile
+  > (SSM core, CloudWatch logs, read of `/rochas/staging`), the log group, and a `user_data` that installs Docker and
+  > `deploy-backend`; files: `infra/terraform/staging/terraform.tf`, `infra/terraform/staging/providers.tf`,
+  > `infra/terraform/staging/variables.tf`, `infra/terraform/staging/locals.tf`, `infra/terraform/staging/network.tf`,
+  > `infra/terraform/staging/server.tf`, `infra/terraform/staging/outputs.tf`,
+  > `infra/terraform/staging/templates/user-data.sh.tftpl`, `infra/terraform/staging/tests/network.tftest.hcl`,
+  > `infra/terraform/staging/.terraform.lock.hcl`; verified: `terraform -chdir=infra/terraform/staging test` (5
+  > passed, no credentials); deliberately breaking the config failed the matching assertions (port 22, `0.0.0.0/0`
+  > ingress, IMDSv2 optional, unencrypted volume), then restored; the rendered `user_data` and deploy script pass
+  > `bash -n`; deviations: the tests cover the one ingress rule the config declares, so an extra separate ingress rule
+  > resource would not be caught, because `terraform test` cannot enumerate resources; ER-06 still proves the closed
+  > ports on the real server in T-12.
 
 - [ ] **T-07** — Add the HTTP API with its `$default` stage (throttling at 20 requests per second, burst 40) and
   `disable_execute_api_endpoint`, the Cloud Map namespace and service with the server registered on port 4000, the VPC

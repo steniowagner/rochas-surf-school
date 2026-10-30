@@ -2,10 +2,11 @@
 id: "079"
 slug: staging-backend-infra
 title: Staging backend and infrastructure on AWS and Supabase
-status: in-review
+status: accepted
 created: 2026-10-30
 started: 2026-10-30
 base_commit: b6d7cd77915004379a603167f34eedc9b78f9af6
+reviewed_commit: 6558f45cdba991f0bf5b4b28d24901e328d56d96
 fronts: [backend, web, infra]
 depends_on: []
 ---
@@ -490,3 +491,70 @@ a working API. This is a testing environment: it stays small and cheap, and it d
   Reason: the user gave the organization. Approved by the user.
 
 ## Review
+
+### Round 1 — 2026-10-30 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (backend, web; 30 Turbo tasks, all from cache)
+- related tests ✅ 226 passed (apps/backend 48, apps/web 178)
+- coverage of the changed lines ✅ `COVERAGE OK`, 3 files; no coverage-ignore comments in the diff
+- e2e ✅ `E2E PASSED`: backend 823 passed, web 77 passed
+- Terraform ✅ `fmt -check`; on a clean export of `HEAD`, the CI commands: `init -backend=false` and `validate` on both
+  stacks, `test` 13 passed, without credentials. A `-target` plan of the server, the roles, the document, the API
+  integration, stage and mapping, the ingress rule, the Cloud Map instance and the log group shows no changes against
+  the real stack. A full plan wasn't run, because it needs the Supabase access token.
+- image ✅ `docker build --platform linux/arm64` exit 0 (arm64, 176 MB), and no `.env*` under `/app` outside
+  `node_modules`
+
+**Expected Results**
+
+- ER-01 ✅ — `test/health.e2e-spec.ts` 2 passed: 200 `{ "status": "ok" }` without a token, 503 with
+  `health.database.unreachable`.
+- ER-02 ✅ — the guard spec (4 passed) and the `rate limit` e2e tests (5 passed). On the real gateway, seven requests
+  with seven spoofed `x-client-ip` and `x-forwarded-for` values gave five 422 and two 429, and a request without the
+  headers then gave 429, so the gateway overwrites the header. The bodies were invalid, so no email was sent.
+- ER-03 ✅ — the image builds, `docker compose up --build -d` reported `healthy`, `/health` answered 200 from inside
+  the container, and `test ! -e /app/apps/backend/.env` exit 0.
+- ER-04 ✅ — 13 tests passed. Seven mutations of a copy each failed a test: port 22, `0.0.0.0/0`, optional IMDSv2, an
+  unencrypted volume, an appended header, the `execute-api` address on, and a wildcard subject.
+- ER-05 ✅ — `HTTP/2 200` with `{"status":"ok"}`, `SSL certificate verify ok` for `CN=api-staging.rochassurfschool.com`,
+  plain `http://` fails to connect, and the `execute-api` address answers 404 with `DisableExecuteApiEndpoint` true.
+- ER-06 ✅ — `nc` to the IP from `terraform output` timed out on 4000 and on 22. The real server security group has
+  one ingress rule, port 4000 from the VPC link's group, and the instance has no key pair.
+- ER-07 ✅ — run 41141356413 is green on `43a946ce`, and the code at `HEAD` is the same (only `.docs/staging.md` and
+  the spec changed since). Run 41139963261 failed at `Apply the migrations` and skipped the seed and the restart. Run
+  41136791070 has two attempts on one commit. The database has 19 applied migrations, none failed, and 37 users with
+  37 distinct emails. `/health` staying up during the failed run is T-12's record, not rechecked.
+- ER-08 ✅ — not re-run, because creating a class needs an admin sign-in. Read from the database: the T-12 class was
+  created at 22:39:00 for 23:04:00 and `reminder_sent_at` is 22:40:00.038, 59 s later (T-12 says 61 s). CloudWatch has
+  one `Class reminders: 1 reminded` line, so later runs didn't remind it again.
+- ER-09 ✅ — not re-run, which the user decided: the reviewer doesn't use the fixed codes, and the user chose not to
+  run the check at review time. Read from the database: 12 admins, 12 instructors and 12 students, all approved, and
+  every one has refresh tokens, so each signed in. The refused-code case rests on T-12's record and on the e2e test
+  `rejects the fixed code for another email and before a code is requested`.
+- ER-10 ✅ — the user confirmed seeing the email from `admin@rochassurfschool.com`, with its 6-digit code and SPF and
+  DKIM PASS. The database has the one `pending` student with refresh tokens, and the SPF and DKIM records are published.
+- ER-11 ✅ — lines reach `/rochas/staging/backend`, retention 14 days. A scan of 310 lines found no email address, JWT,
+  sign-in code or `ERROR` line.
+- ER-12 ✅ — the `privacy policy names the hosting providers` tests pass in the three languages, and the old line
+  remains nowhere in the code. The test also asserts the photo storage line.
+
+**Findings**
+
+None.
+
+**Notes**
+
+- The `Wait for the API to answer` loop runs for 2 minutes only when each `curl` fails fast. If every `curl` used its
+  4 s limit, it would run about 3.5 minutes, so an answer after 2 minutes could still pass. Timing on a deadline would
+  match ER-07 exactly.
+- The test `the role may only read the two parameters of D-12` only counts resources, so replacing `REVIEW_ACCOUNTS`
+  with `/*` still passes. The real policy names exactly the two parameters, so D-11 holds; only the test is loose.
+- As T-06 recorded, a separate extra ingress rule wouldn't fail the Terraform tests. The real group has only the one.
+- The public deploy logs of run 41141356413 and the failed migration log hold no secrets. The failed migration prints
+  the pooler's host, which isn't secret.
+- The `staging` GitHub environment has no protection rules, so anyone with write access can deploy. That fits D-11.
+- `spec-finish`: `technical-context.md` doesn't list `infra` as a front yet, and Memory Impact doesn't name it. Add it
+  under Applications, and link `.docs/staging.md` from Deployment.
+- Not in this review: the DMARC failure and the other loose ends, which spec 081 tracks.

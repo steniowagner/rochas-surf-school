@@ -142,10 +142,16 @@ completing a seat request on two real phones.
   > for EAS configuration, so the file follows Expo's `eas.json` docs. `eas config` can't validate the file until
   > T-03 links the project.
 
-- [ ] **T-02** — Set `android.googleServicesFile` from `GOOGLE_SERVICES_JSON` in `app.config.ts` as in D-07, add
+- [x] **T-02** — Set `android.googleServicesFile` from `GOOGLE_SERVICES_JSON` in `app.config.ts` as in D-07, add
   `google-services.json` to the ignores, document the variable in `.env.example`, and add both cases to
   `app.config.test.ts`.
   Covers: enabling · Done when: `npx jest app.config` passes from `apps/mobile`.
+  > ✅ 2026-10-30 20:58 — `app.config.ts` sets `android.googleServicesFile`, keeping the rest of `android`, only when
+  > the variable has a value; files: `apps/mobile/app.config.ts`, `apps/mobile/app.config.test.ts`,
+  > `apps/mobile/.gitignore`, `apps/mobile/.env.example`; verified: the new test failed first on the missing value, then
+  > `npx jest app.config` passed (6 tests, `app.config.ts` 100% statements, branches, functions and lines); `tsc --noEmit`
+  > exits 0; `GOOGLE_SERVICES_JSON=/tmp/x.json npx expo config --json` shows the path with `android.package` kept;
+  > `git check-ignore` matches `google-services.json`; deviations: none.
 
 - [ ] **T-03** — With the user's Expo and Firebase accounts: run `eas init`, commit the `projectId` it writes to
   `app.json`, set the `preview` variables, upload the FCM V1 key, and add the keystore's SHA-1 to Google Cloud's Android

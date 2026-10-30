@@ -1,0 +1,26 @@
+name: Infra
+
+on:
+  pull_request:
+    paths:
+      - 'infra/**'
+
+permissions:
+  contents: read
+
+jobs:
+  # No secrets: `init` skips the backend and the tests mock the providers (spec 079, D-10).
+  terraform:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.16.0
+          terraform_wrapper: false
+      - run: terraform fmt -check -recursive infra/terraform
+      - run: terraform -chdir=infra/terraform/bootstrap init -backend=false
+      - run: terraform -chdir=infra/terraform/bootstrap validate
+      - run: terraform -chdir=infra/terraform/staging init -backend=false
+      - run: terraform -chdir=infra/terraform/staging validate
+      - run: terraform -chdir=infra/terraform/staging test

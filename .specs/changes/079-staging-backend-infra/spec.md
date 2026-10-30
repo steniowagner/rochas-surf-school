@@ -337,9 +337,14 @@ a working API. This is a testing environment: it stays small and cheap, and it d
   > 0 and `terraform -chdir=infra/terraform/staging test` (11 passed, including the region and organization
   > assertions); deviations: none.
 
-- [ ] **T-09** — Add `.github/workflows/infra.yml`, which runs on pull requests that touch `infra/**`, and checks
+- [x] **T-09** — Add `.github/workflows/infra.yml`, which runs on pull requests that touch `infra/**`, and checks
   `terraform fmt -check -recursive`, `init -backend=false`, `validate` and `test`, with no secrets.
   Covers: enabling · Done when: the same four commands pass locally and the workflow's YAML parses.
+  > ✅ 2026-10-30 18:13 — added the workflow, which runs on pull requests touching `infra/**` with no secrets; files:
+  > `.github/workflows/infra.yml`; verified: the same commands run locally all exit 0 (`terraform fmt -check
+  > -recursive infra/terraform`; `init -backend=false` and `validate` on `bootstrap` and `staging`; `test` on
+  > `staging`), and the YAML parses (8 steps); deviations: `init` and `validate` also run on `bootstrap`, so both
+  > stacks are checked.
 
 - [ ] **T-10** — Add `.github/workflows/deploy-staging.yml` as in D-11 and D-12, using the `staging` environment: build
   and push the arm64 image tagged by commit, assume the deploy role, migrate, seed with `NODE_ENV=production`, send the

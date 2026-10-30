@@ -13,6 +13,7 @@ export interface RegistrationItemOut {
   id: string;
   name: string;
   email: string;
+  photoUrl: string | null;
   createdAt: string;
 }
 
@@ -36,6 +37,7 @@ export class ListRegistrations implements UseCase<
         id: user.id,
         name: user.name,
         email: user.email,
+        photoUrl: user.photoUrl ?? null,
         createdAt: user.createdAt.toISOString(),
       })),
     };

@@ -12,6 +12,7 @@ export interface ListRemovedAccountsIn {
 export interface RemovedAccountOut {
   id: string;
   name: string;
+  photoUrl: string | null;
   role: UserRole;
   /** E.164; the viewer is always an admin, who sees it whether or not the owner shares it. */
   whatsappNumber: string | null;
@@ -40,6 +41,7 @@ export class ListRemovedAccounts implements UseCase<ListRemovedAccountsIn, ListR
       items: users.map((user) => ({
         id: user.id,
         name: user.name,
+        photoUrl: user.photoUrl ?? null,
         role: user.role,
         whatsappNumber: user.whatsappNumber ?? null,
         removedAt: (user.removedAt as Date).toISOString(),

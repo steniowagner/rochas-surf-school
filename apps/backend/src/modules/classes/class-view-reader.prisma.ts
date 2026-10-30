@@ -5,7 +5,7 @@ import type { Prisma } from '../../generated/prisma/client.js';
 
 const INCLUDE = {
   location: { select: { id: true, name: true, address: true, latitude: true, longitude: true } },
-  instructors: { select: { user: { select: { id: true, name: true } } } },
+  instructors: { select: { user: { select: { id: true, name: true, photoUrl: true } } } },
 } satisfies Prisma.SchoolClassInclude;
 
 type ClassRecord = Prisma.SchoolClassGetPayload<{ include: typeof INCLUDE }>;

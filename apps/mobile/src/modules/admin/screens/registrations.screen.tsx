@@ -101,7 +101,7 @@ export function RegistrationsScreen() {
               <DecisionCard
                 title={item.name}
                 details={[item.email]}
-                avatar={<PersonAvatar name={item.name} />}
+                avatar={<PersonAvatar name={item.name} photoUrl={item.photoUrl} />}
                 onPress={() => openRegistration(item)}
                 approveLabel={t("registrations.approve")}
                 denyLabel={t("registrations.deny")}
@@ -173,6 +173,7 @@ export function RegistrationsScreen() {
         person={
           selected && {
             name: selected.name,
+            photoUrl: selected.photoUrl,
             role: "student",
             whatsappNumber: null,
           }

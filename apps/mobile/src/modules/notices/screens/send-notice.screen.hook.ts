@@ -133,7 +133,7 @@ export const useSendNoticeScreen = (): UseSendNoticeScreenResult => {
               id: person.id,
               label: personLabel(person.name, "instructor", t),
               erased: person.name === null,
-              photoUrl: null,
+              photoUrl: person.photoUrl,
               role: "instructor" as const,
               roleLabel: t("notices.classMessage.roles.instructor"),
               sheetPerson:
@@ -141,6 +141,7 @@ export const useSendNoticeScreen = (): UseSendNoticeScreenResult => {
                   ? null
                   : {
                       name: person.name,
+                      photoUrl: person.photoUrl,
                       role: person.role,
                       whatsappNumber: person.whatsappNumber,
                     },
@@ -157,6 +158,7 @@ export const useSendNoticeScreen = (): UseSendNoticeScreenResult => {
                   ? null
                   : {
                       name: person.name,
+                      photoUrl: person.photoUrl,
                       role: "student" as const,
                       whatsappNumber: person.whatsappNumber,
                     },
@@ -170,6 +172,7 @@ export const useSendNoticeScreen = (): UseSendNoticeScreenResult => {
               roleLabel: t("notices.classMessage.roles.pending"),
               sheetPerson: {
                 name: request.student.name,
+                photoUrl: request.student.photoUrl,
                 role: "student" as const,
                 whatsappNumber: null,
               },

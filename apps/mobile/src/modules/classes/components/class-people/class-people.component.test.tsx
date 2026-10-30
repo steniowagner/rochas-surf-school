@@ -160,6 +160,7 @@ describe("ClassPeople instructors", () => {
   const iara: ClassPeopleInstructor = {
     id: "i-iara",
     name: "Iara Lima",
+    photoUrl: null,
     role: "admin",
     whatsappNumber: null,
     isViewer: false,
@@ -167,6 +168,7 @@ describe("ClassPeople instructors", () => {
   const rui: ClassPeopleInstructor = {
     id: "i-rui",
     name: "Rui Costa",
+    photoUrl: null,
     role: "instructor",
     whatsappNumber: "+5585911111111",
     isViewer: true,
@@ -325,6 +327,7 @@ describe("ClassPeople erased people", () => {
   const erasedInstructor: ClassPeopleInstructor = {
     id: "i-erased",
     name: null,
+    photoUrl: null,
     role: "admin",
     whatsappNumber: null,
     isViewer: false,

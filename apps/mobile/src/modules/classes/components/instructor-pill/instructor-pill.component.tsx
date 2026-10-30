@@ -12,6 +12,7 @@ const AVATAR_SIZE = 32;
 /** One instructor of the class details: avatar and name in a pill that opens their person sheet. */
 export function InstructorPill({
   name,
+  photoUrl,
   isViewer,
   onPress,
   erased = false,
@@ -31,7 +32,7 @@ export function InstructorPill({
     >
       <StudentAvatar
         name={name}
-        photoUrl={null}
+        photoUrl={photoUrl}
         size={AVATAR_SIZE}
         erased={erased}
       />

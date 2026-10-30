@@ -59,6 +59,7 @@ describe("ListReactivationRequests", () => {
       {
         id: bia.id,
         name: "Bia Lima",
+        photoUrl: null,
         email: "bia@example.com",
         role: "student",
         deletedAt: "2026-10-01T08:00:00.000Z",
@@ -68,6 +69,7 @@ describe("ListReactivationRequests", () => {
       {
         id: ana.id,
         name: "Ana Souza",
+        photoUrl: null,
         email: "ana@example.com",
         role: "instructor",
         deletedAt: "2026-10-01T08:00:00.000Z",

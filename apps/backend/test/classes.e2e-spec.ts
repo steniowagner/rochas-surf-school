@@ -648,8 +648,8 @@ describe('Classes (e2e)', () => {
           longitude: null,
         },
         instructors: [
-          { id: ana.id, name: 'ana' },
-          { id: bruno.id, name: 'Bruno' },
+          { id: ana.id, name: 'ana', photoUrl: null },
+          { id: bruno.id, name: 'Bruno', photoUrl: null },
         ],
         seatsTaken: 0,
         students: [],
@@ -760,7 +760,7 @@ describe('Classes (e2e)', () => {
         capacity: 5,
         notes: null,
         location: { id: locationId, address: 'Av. Beira Mar' },
-        instructors: [{ id: instructor.id, name: 'Person instructor' }],
+        instructors: [{ id: instructor.id, name: 'Person instructor', photoUrl: null }],
         seatsTaken: 0,
         students: [],
       });
@@ -768,7 +768,7 @@ describe('Classes (e2e)', () => {
         {
           ...response.body,
           pendingRequests: undefined,
-          instructors: [{ id: instructor.id, name: 'Person instructor' }],
+          instructors: [{ id: instructor.id, name: 'Person instructor', photoUrl: null }],
         },
       ]);
     });
@@ -877,7 +877,7 @@ describe('Classes (e2e)', () => {
         expect(response.status).toBe(200);
         expect(numbers(response.body)).toEqual({ Sara: '+5585911111111', Tiago: null, Nina: null, Rui: null });
         expect(response.body.instructors).toEqual([
-          { id: people.i.id, name: 'Iara', role: 'admin', whatsappNumber: null },
+          { id: people.i.id, name: 'Iara', photoUrl: null, role: 'admin', whatsappNumber: null },
         ]);
         expect(response.body.guests).toEqual([{ id: expect.any(String), name: null }]);
       }
@@ -896,7 +896,7 @@ describe('Classes (e2e)', () => {
         Rui: null,
       });
       expect(response.body.instructors).toEqual([
-        { id: people.i.id, name: 'Iara', role: 'admin', whatsappNumber: '+5585944444444' },
+        { id: people.i.id, name: 'Iara', photoUrl: null, role: 'admin', whatsappNumber: '+5585944444444' },
       ]);
       expect(response.body.guests).toEqual([{ id: expect.any(String), name: 'Gabi' }]);
     });
@@ -930,7 +930,7 @@ describe('Classes (e2e)', () => {
       expect(cancelled.body.students).toEqual([]);
       for (const response of [edited, cancelled]) {
         expect(response.body.instructors).toEqual([
-          { id: people.i.id, name: 'Iara', role: 'admin', whatsappNumber: '+5585944444444' },
+          { id: people.i.id, name: 'Iara', photoUrl: null, role: 'admin', whatsappNumber: '+5585944444444' },
         ]);
       }
     });
@@ -951,7 +951,7 @@ describe('Classes (e2e)', () => {
       ];
       expect(items.map((item: { id: string }) => item.id)).toEqual([finished, upcoming, upcoming, finished]);
       for (const item of items) {
-        expect(item.instructors).toEqual([{ id: people.i.id, name: 'Iara' }]);
+        expect(item.instructors).toEqual([{ id: people.i.id, name: 'Iara', photoUrl: null }]);
         expect(item.students.length).toBeGreaterThan(0);
         for (const student of item.students) {
           expect(student).not.toHaveProperty('whatsappNumber');
@@ -1390,7 +1390,7 @@ describe('Classes (e2e)', () => {
         capacity: 12,
         notes: 'Bring water',
         location: { id: otherLocation.id },
-        instructors: [{ id: instructor.id, name: 'Person instructor' }],
+        instructors: [{ id: instructor.id, name: 'Person instructor', photoUrl: null }],
         seatsTaken: 0,
         students: [],
       });

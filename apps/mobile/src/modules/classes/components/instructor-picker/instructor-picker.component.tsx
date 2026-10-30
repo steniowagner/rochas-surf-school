@@ -57,7 +57,7 @@ export function InstructorPicker({
               index > 0 ? "border-t border-line" : ""
             }`}
           >
-            <PersonAvatar name={teacher.name} />
+            <PersonAvatar name={teacher.name} photoUrl={teacher.photoUrl} />
             <Text
               numberOfLines={1}
               className="ds-text-list-title flex-1 text-ink"

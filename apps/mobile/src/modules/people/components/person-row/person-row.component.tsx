@@ -25,7 +25,7 @@ export function PersonRow({ person, onPress, isFirst = false, isLast = false }: 
       onPress={() => onPress(person)}
       className={`min-h-16 flex-row items-center gap-3 border-x border-b border-line bg-surface px-4 py-3 ${isFirst ? "rounded-t-card border-t" : ""} ${isLast ? "rounded-b-card" : ""}`}
     >
-      <PersonAvatar name={person.name} />
+      <PersonAvatar name={person.name} photoUrl={person.photoUrl} />
       <View className="flex-1 gap-0.5">
         <Text numberOfLines={1} className="ds-text-list-title text-ink">
           {person.name}

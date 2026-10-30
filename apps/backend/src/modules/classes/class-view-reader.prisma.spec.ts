@@ -23,7 +23,10 @@ function record(notes: string | null = 'Bring sunscreen') {
       latitude: -3.7442,
       longitude: -38.4617,
     },
-    instructors: [{ user: { id: 'u-1', name: 'Ana' } }, { user: { id: 'u-2', name: 'Bruno' } }],
+    instructors: [
+      { user: { id: 'u-1', name: 'Ana', photoUrl: 'https://img.test/ana.jpg' } },
+      { user: { id: 'u-2', name: 'Bruno', photoUrl: null } },
+    ],
   };
 }
 
@@ -52,8 +55,8 @@ const VIEW = {
       longitude: -38.4617,
     },
   instructors: [
-    { id: 'u-1', name: 'Ana' },
-    { id: 'u-2', name: 'Bruno' },
+    { id: 'u-1', name: 'Ana', photoUrl: 'https://img.test/ana.jpg' },
+    { id: 'u-2', name: 'Bruno', photoUrl: null },
   ],
 };
 

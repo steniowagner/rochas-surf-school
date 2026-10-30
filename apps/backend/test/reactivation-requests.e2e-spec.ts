@@ -196,6 +196,7 @@ describe('Reactivation requests (e2e)', () => {
         {
           id: b.id,
           name: 'Bia B',
+          photoUrl: null,
           email: b.email,
           role: 'instructor',
           deletedAt: '2026-10-01T10:00:00.000Z',
@@ -205,6 +206,7 @@ describe('Reactivation requests (e2e)', () => {
         {
           id: a.id,
           name: 'Ana A',
+          photoUrl: null,
           email: a.email,
           role: 'student',
           deletedAt: '2026-10-01T10:00:00.000Z',

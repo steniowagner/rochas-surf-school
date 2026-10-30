@@ -49,6 +49,7 @@ describe("useTeachers", () => {
     expect(result.current.data?.[0]).toEqual({
       id: "t-0",
       name: "Teacher 0",
+      photoUrl: null,
       role: "instructor",
     });
     expect(result.current.data?.[1]?.role).toBe("admin");

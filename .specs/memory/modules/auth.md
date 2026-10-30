@@ -103,7 +103,7 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
 - **People directory**: an approved account of any role lists every `approved` user of any role, itself included
   (approved accounts that haven't finished onboarding too); pending, denied, deleted and removed accounts never
   appear. Each item carries only the id, name, role, "also an instructor" flag (`false` for students and
-  instructors), creation date and WhatsApp number — never the email, photo,
+  instructors), creation date, photo and WhatsApp number — never the email,
   status or the visibility itself. The number is given when its owner shares it or when the viewer is an admin,
   and is none otherwise (or when there is no number): a hidden number never leaves the backend for anyone else.
   The list is always sorted A–Z by name ignoring case and accents (same names by id, so pages never overlap), 20

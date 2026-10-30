@@ -15,6 +15,7 @@ export interface ReactivationRequestItemOut {
   id: string;
   name: string;
   email: string;
+  photoUrl: string | null;
   role: UserRole;
   deletedAt: string;
   requestedAt: string;
@@ -54,6 +55,7 @@ export class ListReactivationRequests implements UseCase<
         id: user.id,
         name: user.name,
         email: user.email,
+        photoUrl: user.photoUrl ?? null,
         role: user.role,
         deletedAt: (user.deletedAt ?? user.updatedAt).toISOString(),
         requestedAt: (user.reactivationRequestedAt ?? user.updatedAt).toISOString(),

@@ -69,7 +69,7 @@ export function PersonSheet({
       ) : person ? (
         <View className="gap-4">
           <View className="flex-row items-center gap-4">
-            <PersonAvatar name={person.name} size="lg" />
+            <PersonAvatar name={person.name} photoUrl={person.photoUrl} size="lg" />
             <View className="flex-1 items-start gap-2">
               <Text numberOfLines={2} className="ds-text-sheet-title text-ink">
                 {person.name}

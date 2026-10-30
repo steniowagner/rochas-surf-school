@@ -3,6 +3,7 @@ export type ReactivationRequest = {
   id: string;
   name: string;
   email: string;
+  photoUrl: string | null;
   role: "student" | "instructor" | "admin";
   deletedAt: string;
   requestedAt: string;

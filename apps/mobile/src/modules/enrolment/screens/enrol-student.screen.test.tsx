@@ -43,7 +43,7 @@ const makeClass = (id: string, startsAt: string, endsAt: string, overrides: Part
   cancellationMessage: null,
   cancellationDeadline: "2026-10-13T20:00:00.000Z",
   location: { id: "l-1", name: "Praia do Futuro", address: "Av. Zezé Diogo", latitude: null, longitude: null },
-  instructors: [{ id: "i-1", name: "Ana" }],
+  instructors: [{ id: "i-1", name: "Ana", photoUrl: null }],
   seatsTaken: 0,
   students: [],
   guests: [],

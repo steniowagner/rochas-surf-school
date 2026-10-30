@@ -44,12 +44,14 @@ describe("ListRegistrations", () => {
         {
           id: ana.id,
           name: "Ana Souza",
+          photoUrl: null,
           email: "ana@example.com",
           createdAt: "2026-10-01T10:00:00.000Z",
         },
         {
           id: bruno.id,
           name: "Bruno Lima",
+          photoUrl: null,
           email: "bruno@example.com",
           createdAt: "2026-10-02T10:00:00.000Z",
         },

@@ -76,7 +76,7 @@ const makeClass = (
     latitude: -3.7442,
     longitude: -38.4617,
   },
-  instructors: [{ id: "i-1", name: "Ana" }],
+  instructors: [{ id: "i-1", name: "Ana", photoUrl: null }],
   seatsTaken: 0,
   students: [],
   guests: [],

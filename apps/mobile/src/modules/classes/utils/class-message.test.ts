@@ -1,6 +1,6 @@
 import { classMessageRecipients } from "./class-message";
 
-const person = (id: string) => ({ id, name: id, role: "instructor" as const, whatsappNumber: null });
+const person = (id: string) => ({ id, name: id, photoUrl: null, role: "instructor" as const, whatsappNumber: null });
 const student = (id: string) => ({ id, name: id, photoUrl: null, enrolmentId: `e-${id}`, whatsappNumber: null });
 
 describe("classMessageRecipients", () => {

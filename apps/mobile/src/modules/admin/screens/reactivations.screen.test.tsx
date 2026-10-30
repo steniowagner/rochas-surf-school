@@ -51,6 +51,7 @@ const NOW = new Date("2026-10-12T12:00:00.000Z");
 const CARLA = {
   id: "carla-id",
   name: "Carla Dias",
+  photoUrl: null,
   email: "carla@example.com",
   role: "student",
   deletedAt: "2026-10-12T15:00:00.000Z",
@@ -60,6 +61,7 @@ const CARLA = {
 const DAVI = {
   id: "davi-id",
   name: "Davi Reis",
+  photoUrl: null,
   email: "davi@example.com",
   role: "instructor",
   deletedAt: "2026-10-02T09:00:00.000Z",

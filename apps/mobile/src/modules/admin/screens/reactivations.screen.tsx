@@ -109,7 +109,7 @@ export function ReactivationsScreen() {
                     count: item.classesTaken,
                   }),
                 ]}
-                avatar={<PersonAvatar name={item.name} />}
+                avatar={<PersonAvatar name={item.name} photoUrl={item.photoUrl} />}
                 onPress={() => openRequest(item)}
                 approveLabel={t("reactivations.approve")}
                 denyLabel={t("reactivations.deny")}
@@ -181,6 +181,7 @@ export function ReactivationsScreen() {
         person={
           selected && {
             name: selected.name,
+            photoUrl: selected.photoUrl,
             role: selected.role,
             whatsappNumber: null,
           }

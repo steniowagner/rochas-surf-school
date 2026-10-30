@@ -3,6 +3,7 @@ import { ListPeople, ListPeopleIn, User, UserRole, UserStatus } from "../../../s
 import { FakeUserRepository } from "../../mock";
 
 interface BuildOptions {
+  photoUrl?: string;
   status?: UserStatus;
   role?: UserRole;
   createdAt?: string;
@@ -14,6 +15,7 @@ interface BuildOptions {
 function buildUser(name: string, options: BuildOptions = {}): User {
   return new User({
     name,
+    photoUrl: options.photoUrl,
     email: `${name.replace(/\s/g, "").toLowerCase()}@example.com`,
     whatsappNumber: options.whatsappNumber,
     whatsappVisible: options.whatsappVisible ?? false,
@@ -41,6 +43,14 @@ async function errorKeys(input: Partial<ListPeopleIn>): Promise<string[]> {
 }
 
 describe("ListPeople", () => {
+  test("carries each person's photo", async () => {
+    const photoUrl = "https://cdn.example.com/ana.jpg";
+
+    const { items } = await run([buildUser("Ana Silva", { photoUrl })]);
+
+    expect(items[0].photoUrl).toBe(photoUrl);
+  });
+
   test("lists only approved users with exactly the directory fields", async () => {
     const ana = buildUser("Ana Silva", {
       whatsappNumber: "+5585999998888",
@@ -60,6 +70,7 @@ describe("ListPeople", () => {
         {
           id: ana.id,
           name: "Ana Silva",
+          photoUrl: null,
           role: "student",
           isInstructor: false,
           createdAt: "2026-09-02T10:00:00.000Z",

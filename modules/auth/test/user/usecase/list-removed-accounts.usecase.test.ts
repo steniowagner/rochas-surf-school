@@ -38,8 +38,8 @@ describe("ListRemovedAccounts", () => {
 
     await expect(useCase.execute({ actor: ADMIN })).resolves.toEqual({
       items: [
-        { id: r2.id, name: "Caio", role: "student", whatsappNumber: null, removedAt: r2.removedAt?.toISOString() },
-        { id: r1.id, name: "Bia", role: "instructor", whatsappNumber: null, removedAt: r1.removedAt?.toISOString() },
+        { id: r2.id, name: "Caio", photoUrl: null, role: "student", whatsappNumber: null, removedAt: r2.removedAt?.toISOString() },
+        { id: r1.id, name: "Bia", photoUrl: null, role: "instructor", whatsappNumber: null, removedAt: r1.removedAt?.toISOString() },
       ],
     });
   });

@@ -8,6 +8,7 @@ export const fetchMock = jest.fn();
 export const ANA = {
   id: "a",
   name: "Ana Souza",
+  photoUrl: null,
   email: "ana@x.com",
   createdAt: "2026-10-01T10:00:00.000Z",
 };
@@ -58,6 +59,7 @@ export const setupSignedInAdmin = () => {
 export const CARLA = {
   id: "c",
   name: "Carla Dias",
+  photoUrl: null,
   email: "carla@x.com",
   role: "student" as const,
   deletedAt: "2026-10-01T10:00:00.000Z",

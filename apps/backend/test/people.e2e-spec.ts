@@ -109,6 +109,7 @@ describe('People directory (e2e)', () => {
     expect((response.body.items as Person[]).find((item) => item.id === ana.user.id)).toEqual({
       id: ana.user.id,
       name: ana.user.name,
+      photoUrl: null,
       role: 'instructor',
       isInstructor: false,
       createdAt: ana.user.createdAt.toISOString(),

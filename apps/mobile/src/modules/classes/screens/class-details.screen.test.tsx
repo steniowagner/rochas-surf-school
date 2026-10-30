@@ -120,10 +120,11 @@ const makeClass = (overrides: Partial<ClassDetails> = {}): ClassDetails => ({
     longitude: -38.4617,
   },
   instructors: [
-    { id: "u-1", name: "Ana Souza", role: "instructor", whatsappNumber: null },
+    { id: "u-1", name: "Ana Souza", photoUrl: null, role: "instructor", whatsappNumber: null },
     {
       id: "i-2",
       name: "Bruno Lima",
+      photoUrl: null,
       role: "admin",
       whatsappNumber: "+5585988887777",
     },
@@ -320,6 +321,7 @@ describe("ClassDetailsScreen", () => {
           {
             id: "u-1",
             name: "Ana Souza",
+            photoUrl: null,
             role: "instructor",
             whatsappNumber: null,
           },
@@ -538,6 +540,7 @@ describe("ClassDetailsScreen", () => {
             {
               id: "i-2",
               name: "Bruno Lima",
+              photoUrl: null,
               role: "instructor",
               whatsappNumber: null,
             },
@@ -1154,6 +1157,7 @@ describe("ClassDetailsScreen", () => {
             {
               id: "u-1",
               name: "Ana Souza",
+              photoUrl: null,
               role: "admin",
               whatsappNumber: null,
             },
@@ -3682,12 +3686,14 @@ describe("ClassDetailsScreen erased people", () => {
         {
           id: "i-erased",
           name: null,
+          photoUrl: null,
           role: "instructor",
           whatsappNumber: null,
         },
         {
           id: "i-2",
           name: "Bruno Lima",
+          photoUrl: null,
           role: "admin",
           whatsappNumber: "+5585988887777",
         },

@@ -28,7 +28,7 @@ export function SchoolRulesAcceptance({
     <View className="flex-1 bg-page">
       <ScrollView
         className="flex-1"
-        contentContainerClassName="gap-6 px-screen pb-6"
+        contentContainerClassName="grow gap-6 px-screen pb-6"
         contentContainerStyle={{ paddingTop: insets.top + 36 }}
       >
         <ScreenIntro

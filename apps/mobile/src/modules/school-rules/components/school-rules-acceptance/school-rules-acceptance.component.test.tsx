@@ -159,6 +159,7 @@ describe("SchoolRulesAcceptance", () => {
     const press = userEvent.setup();
     await renderStep();
 
+    expect(screen.getByTestId("school-rules-loading")).toBeOnTheScreen();
     expect(checkbox()).toBeDisabled();
     expect(cta()).toBeDisabled();
 
@@ -172,7 +173,7 @@ describe("SchoolRulesAcceptance", () => {
     await renderStep();
 
     expect(
-      await screen.findByText("Couldn't load the rules."),
+      await screen.findByText("Couldn't load the rules"),
     ).toBeOnTheScreen();
     expect(checkbox()).toBeDisabled();
     expect(cta()).toBeDisabled();
@@ -186,9 +187,7 @@ describe("SchoolRulesAcceptance", () => {
     const press = userEvent.setup();
     await renderStep();
 
-    expect(
-      await screen.findByText("The school has no rules yet."),
-    ).toBeOnTheScreen();
+    expect(await screen.findByText("No rules yet")).toBeOnTheScreen();
 
     await press.press(checkbox());
     await press.press(cta());

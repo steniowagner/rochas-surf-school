@@ -158,11 +158,12 @@ completing a seat request on two real phones.
   client. This task stays blocked with ⛔ until the user provides the accounts and spec 079's API answers.
   Covers: enabling · Done when: `npx eas-cli env:list --environment preview` lists every variable and
   `npx eas-cli credentials` shows the FCM key.
-  > ⛔ 2026-10-30 21:05 — waiting on the user. Ready: spec 079's API answers (`GET /health` 200 `{"status":"ok"}`), the
-  > Expo CLI is signed in, and `https://rochas-surf-school.vercel.app` serves the site (the value for
-  > `EXPO_PUBLIC_WEB_URL`). Needed: which Expo account owns the project (`steniowagner` or `rochas-surf-school`), then a
-  > Firebase project with the Android app `com.rochassurfschool.app`, for `google-services.json` and the FCM V1 service
-  > account key. Nothing was created yet.
+  > ⛔ 2026-10-30 21:40 — partly done. `eas init --account rochas-surf-school` linked project
+  > `0a5ce95a-6191-4a27-b81e-6d5a516564ac` (the user chose the organization), and `apps/mobile/app.json` now has its
+  > `extra.eas.projectId` and `owner`. `EXPO_PUBLIC_API_URL`, `EXPO_PUBLIC_WEB_URL`,
+  > `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` and `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` are set in `preview`, and `eas config`
+  > resolves both profiles. Still needed from the user: `GOOGLE_MAPS_ANDROID_API_KEY`, the Firebase project with
+  > `GOOGLE_SERVICES_JSON`, the FCM V1 key, the EAS keystore, and its SHA-1 in Google Cloud.
 
 - [ ] **T-04** — Build the `preview` profile for Android and check it on a real phone.
   Covers: ER-01, ER-02, ER-03, ER-04 · Done when: the build finishes and the Verify by of ER-01 to ER-04 pass on the

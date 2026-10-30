@@ -59,6 +59,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "0a5ce95a-6191-4a27-b81e-6d5a516564ac"
+      }
+    },
+    "owner": "rochas-surf-school"
   }
 }

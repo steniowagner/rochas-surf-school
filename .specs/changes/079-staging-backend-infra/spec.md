@@ -390,12 +390,23 @@ a working API. This is a testing environment: it stays small and cheap, and it d
   (`kyifpvzdlbiotepohvot`). Pushing the branch needs the user's go-ahead.
   Covers: ER-05, ER-06, ER-07, ER-08, ER-09, ER-10, ER-11 · Done when: every Verify by from ER-05 to ER-11 passes
   against the real stack.
+  > ⛔ 2026-10-30 18:19 — nothing was applied: no AWS, Supabase, GitHub or DNS change was made. Two things are needed.
+  > (1) The `SUPABASE_ACCESS_TOKEN` in this shell is valid but scoped: `GET /v1/organizations` answers 403 `Missing
+  > required permission(s): organizations_read`, and `/v1/projects` also answers 403, so Terraform cannot create the
+  > project; a token with those permissions on the organization is needed. (2) The user's go-ahead for the real
+  > `apply`, which creates billed resources, for setting the `staging` GitHub environment, and for pushing
+  > `deploy/staging`, plus the two CNAMEs at Hostinger.
 
 ### Verification
 
 - [ ] **T-13** — Run every command in the Verification Plan from the repo root; all pass. Record the output summary as
   evidence, leaving out codes and keys.
   Covers: all · Done when: every automated command exits 0 and each manual check is recorded.
+  > ⛔ 2026-10-30 18:19 — every automated command passes: `run-related-tests.mjs 079`, `check-coverage.mjs 079`
+  > (COVERAGE OK, 3 files), `run-e2e.mjs 079` (E2E PASSED), `turbo run lint check-types build` for backend and web (30
+  > tasks), `terraform fmt -check -recursive infra/terraform`, `validate` and `test` on staging (13 passed), and
+  > `docker build --platform linux/arm64` (exit 0). The manual checks of ER-05 to ER-11 need the real stack, so this
+  > waits for T-12.
 
 ## Verification Plan
 

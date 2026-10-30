@@ -366,12 +366,22 @@ a working API. This is a testing environment: it stays small and cheap, and it d
   > which D-11 does not list but the job needs to see whether the restart worked, and which has no resource type to
   > scope. The workflow itself has not run yet: ER-07 is proved in T-12.
 
-- [ ] **T-11** — Write `.docs/staging.md`: the accounts and keys needed, the order of the first `apply` (target the
+- [x] **T-11** — Write `.docs/staging.md`: the accounts and keys needed, the order of the first `apply` (target the
   certificate first, add its CNAME at Hostinger, then apply the rest, because Terraform prints outputs only when it
   finishes), each Parameter Store variable, making the GHCR package public, how to deploy, how to open a session on the
   server, and the VPC link going inactive after 60 days without traffic.
   Covers: enabling · Done when: every variable in `apps/backend/.env.example` that production needs is listed, and
   every command in the guide exists.
+  > ✅ 2026-10-30 18:16 — wrote the guide: accounts and keys, the order of the first apply (certificate first), every
+  > parameter, the session pooler `DATABASE_URL`, the GitHub environment, making the GHCR package public, how to
+  > deploy, how to open a session, and the VPC link going inactive; files: `.docs/staging.md`; verified: each variable
+  > of `apps/backend/.env.example` production needs is listed (the five `DATABASE_*` are replaced by `DATABASE_URL`,
+  > as the guide says; `PORT` and `CLIENT_IP_HEADER` are named as not being parameters), every command was checked
+  > against its `--help` (`terraform plan/apply -target`, `state show`, `aws ssm put-parameter --overwrite`, `aws ssm
+  > start-session --target`, `aws logs tail --since`, `gh variable set --env`, `gh workflow run`), the 60-day behavior
+  > against the AWS VPC link page; deviations: the commands have not run against the real stack yet, so T-12 corrects
+  > the guide if any differs. `session-manager-plugin` is not installed on this machine, and the guide lists it as a
+  > prerequisite.
 
 - [ ] **T-12** — With the user's accounts: run bootstrap and `apply`, add the CNAMEs, set the parameters and a
   `deploy/staging` push, with `AWS_PROFILE=rochas-surf-school` set, because the machine's default profile is another

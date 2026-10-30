@@ -2,7 +2,7 @@
 id: "079"
 slug: staging-backend-infra
 title: Staging backend and infrastructure on AWS and Supabase
-status: in-progress
+status: in-review
 created: 2026-10-30
 started: 2026-10-30
 base_commit: b6d7cd77915004379a603167f34eedc9b78f9af6
@@ -418,14 +418,15 @@ a working API. This is a testing environment: it stays small and cheap, and it d
 
 ### Verification
 
-- [ ] **T-13** — Run every command in the Verification Plan from the repo root; all pass. Record the output summary as
+- [x] **T-13** — Run every command in the Verification Plan from the repo root; all pass. Record the output summary as
   evidence, leaving out codes and keys.
   Covers: all · Done when: every automated command exits 0 and each manual check is recorded.
-  > ⛔ 2026-10-30 18:19 — every automated command passes: `run-related-tests.mjs 079`, `check-coverage.mjs 079`
-  > (COVERAGE OK, 3 files), `run-e2e.mjs 079` (E2E PASSED), `turbo run lint check-types build` for backend and web (30
+  > ✅ 2026-10-30 20:03 — every command of the Verification Plan was run from the repo root and exits 0:
+  > `run-related-tests.mjs 079` (48 and 178 tests passed), `check-coverage.mjs 079` (COVERAGE OK, 3 files),
+  > `run-e2e.mjs 079` (E2E PASSED: 823 backend, 77 web), `turbo run lint check-types build` for backend and web (30
   > tasks), `terraform fmt -check -recursive infra/terraform`, `validate` and `test` on staging (13 passed), and
-  > `docker build --platform linux/arm64` (exit 0). The manual checks of ER-05 to ER-11 need the real stack, so this
-  > waits for T-12.
+  > `docker build --platform linux/arm64`. The manual checks of ER-05 to ER-11 are recorded in T-12's evidence, with
+  > codes and keys left out; files: none; deviations: none.
 
 ## Verification Plan
 

@@ -383,35 +383,38 @@ a working API. This is a testing environment: it stays small and cheap, and it d
   > the guide if any differs. `session-manager-plugin` is not installed on this machine, and the guide lists it as a
   > prerequisite.
 
-- [ ] **T-12** — With the user's accounts: run bootstrap and `apply`, add the CNAMEs, set the parameters and a
+- [x] **T-12** — With the user's accounts: run bootstrap and `apply`, add the CNAMEs, set the parameters and a
   `deploy/staging` push, with `AWS_PROFILE=rochas-surf-school` set, because the machine's default profile is another
   account. The Resend, Anthropic and Google Maps values come from `apps/backend/.env` (D-08). This task stays blocked
   with ⛔ until the user provides a Supabase access token. The project goes in the `rochas-surf-school` organization
   (`kyifpvzdlbiotepohvot`). Pushing the branch needs the user's go-ahead.
   Covers: ER-05, ER-06, ER-07, ER-08, ER-09, ER-10, ER-11 · Done when: every Verify by from ER-05 to ER-11 passes
   against the real stack.
-  > ⛔ 2026-10-30 19:50 — the real stack is up and only ER-10 is open, because it needs the user's own inbox. Done:
-  > `bootstrap` and `staging` applied by the user (42 resources), both CNAMEs added, 11 parameters set without
-  > printing values, the `staging` GitHub environment and its two variables, the deploy on `deploy/staging`. ER-05
-  > passes: `HTTP/2 200` and `{"status":"ok"}`, `SSL certificate verify ok`, plain `http://` fails to connect, and the
-  > `execute-api` address answers 404 with `DisableExecuteApiEndpoint` true. ER-06 passes: `nc` to the public IP fails
-  > on 4000 and 22. ER-07 passes: run 41136791070 is green; broken-migration run 41139963261 failed at `Apply the
-  > migrations` (`division by zero`), skipped the seed and the restart, and `/health` answered 200 on all 13 pings
-  > during it; its failed row was deleted from `_prisma_migrations`; attempt 2 of run 41136791070 redeployed the same
-  > commit, leaving 36 users, 36 distinct, 19 migrations. ER-08 passes: `reminder_sent_at` set 61 s after the class
-  > was created with no request reaching the API, and unchanged after two more job runs; the class was cancelled and
-  > its location archived. ER-09 passes: all 36 accounts got tokens and the right role, and one account's fixed code
-  > was refused (401) for another account that had a code waiting. ER-11 passes: lines reach
-  > `/rochas/staging/backend`, retention 14 days, and a scan of 104 lines found no test email, fixed code, JWT or
-  > email address. ER-02 also holds on the gateway: six code requests with six spoofed `x-client-ip` values gave five
-  > 202 and a 429. The tests ran on the first deploy's logs for ER-11 and before the broken-migration run; `/health`
-  > still answers 200 and the logs show no errors after the redeploy. Not done: `deploy/staging` still points at the
-  > throwaway commit `6822fb9a`, because the force-push that resets it was denied by the permission system, so ER-07's
-  > `removed` is pending the user; the image of that commit also stays in GHCR. Deviations: the first deploy failed
-  > because the repo uses GitHub's immutable OIDC subject, so `github_subject_prefix` replaced `github_repository` and
-  > the role was applied alone with `-target`; the GHCR package came out public, so the step in T-12 was not needed;
-  > `DATABASE_URL` uses the session pooler with `sslmode=require&uselibpqcompat=true`, as the assumption foresaw. Open
-  > to finish: ER-10 and resetting the branch.
+  > ✅ 2026-10-30 20:01 — the real stack is up and ER-05 to ER-11 pass. Done: `bootstrap` and `staging` applied by the
+  > user (42 resources), both CNAMEs added, 11 parameters set without printing values, the `staging` GitHub
+  > environment and its two variables, the deploy on `deploy/staging`. ER-05 passes: `HTTP/2 200` and
+  > `{"status":"ok"}`, `SSL certificate verify ok`, plain `http://` fails to connect, and the `execute-api` address
+  > answers 404 with `DisableExecuteApiEndpoint` true. ER-06 passes: `nc` to the public IP fails on 4000 and 22. ER-07
+  > passes: run 41136791070 is green; broken-migration run 41139963261 failed at `Apply the migrations` (`division by
+  > zero`), skipped the seed and the restart, and `/health` answered 200 on all 13 pings during it; its failed row was
+  > deleted from `_prisma_migrations`; attempt 2 of run 41136791070 redeployed the same commit, leaving 36 users, 36
+  > distinct, 19 migrations. ER-08 passes: `reminder_sent_at` set 61 s after the class was created with no request
+  > reaching the API, and unchanged after two more job runs; the class was cancelled and its location archived. ER-09
+  > passes: all 36 accounts got tokens and the right role, and one account's fixed code was refused (401) for another
+  > account that had a code waiting. ER-11 passes: lines reach `/rochas/staging/backend`, retention 14 days, and a
+  > scan of 104 lines found no test email, fixed code, JWT or email address. ER-02 also holds on the gateway: six code
+  > requests with six spoofed `x-client-ip` values gave five 202 and a 429. `/health` still answers 200 and the logs
+  > show no errors after the redeploys. ER-10 passes: a real inbox received the email from
+  > `admin@rochassurfschool.com` in one second with a 6-digit code, the code signed in (200, tokens, a `pending`
+  > student), and Gmail's original message shows SPF PASS and DKIM PASS with domain `rochassurfschool.com`; ER-11
+  > still holds, as a rescan found neither that email nor its code in the logs. `deploy/staging` was reset to
+  > `43a946ce` by the user, and that deploy (run 41141356413) is green, so the throwaway commit is off the branch; its
+  > image stays in GHCR. Deviations: the first deploy failed because the repo uses GitHub's immutable OIDC subject, so
+  > `github_subject_prefix` replaced `github_repository` and the role was applied alone with `-target`; the GHCR
+  > package came out public, so the step in T-12 was not needed; `DATABASE_URL` uses the session pooler with
+  > `sslmode=require&uselibpqcompat=true`, as the assumption foresaw. Noticed: Gmail shows DMARC FAIL because the
+  > domain has no `_dmarc` record; no Expected Result covers DMARC. The force-push was run by the user because the
+  > permission system denied it to the agent.
 
 ### Verification
 

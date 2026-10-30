@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Post, Put, UseGuards } from '@nestjs/common';
-import { Throttle, ThrottlerGuard, seconds } from '@nestjs/throttler';
+import { Throttle, seconds } from '@nestjs/throttler';
 import {
   GetCurrentUser,
   GetCurrentUserOut,
@@ -31,6 +31,7 @@ import {
 import { CurrentUser } from '../../shared/decorators/current-user.decorator.js';
 import { Public } from '../../shared/decorators/public.decorator.js';
 import { AuthConfig } from './auth.config.js';
+import { ClientIpThrottlerGuard } from './client-ip-throttler.guard.js';
 import { GoogleAuthIdTokenProvider } from './google.id-token.js';
 import { HmacSignInCodeProvider } from './hmac.sign-in-code.js';
 import { PrismaIdentityRepository } from './identity.prisma.js';
@@ -69,7 +70,7 @@ export class AuthController {
   ) {}
 
   @Public()
-  @UseGuards(ThrottlerGuard)
+  @UseGuards(ClientIpThrottlerGuard)
   @Throttle({ default: { limit: 5, ttl: seconds(60) } })
   @Post('email/code')
   @HttpCode(HttpStatus.ACCEPTED)
@@ -85,7 +86,7 @@ export class AuthController {
   }
 
   @Public()
-  @UseGuards(ThrottlerGuard)
+  @UseGuards(ClientIpThrottlerGuard)
   @Throttle({ default: { limit: 10, ttl: seconds(60) } })
   @Post('email/verify')
   @HttpCode(HttpStatus.OK)
@@ -114,7 +115,7 @@ export class AuthController {
   }
 
   @Public()
-  @UseGuards(ThrottlerGuard)
+  @UseGuards(ClientIpThrottlerGuard)
   @Throttle({ default: { limit: 10, ttl: seconds(60) } })
   @Post('google')
   @HttpCode(HttpStatus.OK)
@@ -191,7 +192,7 @@ export class AuthController {
   }
 
   @Public()
-  @UseGuards(ThrottlerGuard)
+  @UseGuards(ClientIpThrottlerGuard)
   @Throttle({ default: { limit: 10, ttl: seconds(60) } })
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
@@ -208,7 +209,7 @@ export class AuthController {
   }
 
   @Public()
-  @UseGuards(ThrottlerGuard)
+  @UseGuards(ClientIpThrottlerGuard)
   @Throttle({ default: { limit: 10, ttl: seconds(60) } })
   @Post('sign-out')
   @HttpCode(HttpStatus.NO_CONTENT)

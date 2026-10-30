@@ -30,7 +30,8 @@ import { PrismaUserRepository } from './user.prisma.js';
     NotificationsModule,
     ClassesModule,
     EnrolmentModule,
-    // In-memory, by IP: the backend runs as one instance (D-13). Routes opt in with @UseGuards(ThrottlerGuard).
+    // In-memory, by client IP: the backend runs as one instance (D-13). Routes opt in with
+    // @UseGuards(ClientIpThrottlerGuard).
     ThrottlerModule.forRoot({
       errorMessage: 'request.rate.limited',
       throttlers: [{ ttl: seconds(60), limit: 10 }],

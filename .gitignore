@@ -37,3 +37,8 @@ yarn-error.log*
 # Misc
 .DS_Store
 *.pem
+
+# Terraform (the provider lock files and *.tfvars.example are committed)
+.terraform/
+*.tfstate*
+*.tfvars

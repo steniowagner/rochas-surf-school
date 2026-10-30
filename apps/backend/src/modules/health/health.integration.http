@@ -1,0 +1,6 @@
+# Manual REST Client requests for the health module (VS Code REST Client).
+
+@baseUrl = http://localhost:4000
+
+### Check the API and its database, without a token (expects 200 with { "status": "ok" }; 503 when the database is down)
+GET {{baseUrl}}/health

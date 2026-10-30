@@ -1,3 +1,4 @@
+import type { ClassSummary } from "@/modules/classes/components/class-summary-card/class-summary-card.types";
 import type { ClassDetailsPerson } from "@/modules/classes/screens/class-details.screen.types";
 
 /** Who a notice reaches; the backend keeps the same values (spec 063). */
@@ -21,17 +22,7 @@ export type SendClassMessageVariables = {
 };
 
 /** The class a message goes to, as the Send notice screen shows it in its class mode (spec 069, D-09). */
-export type ClassMessageView = {
-  discipline: "surf" | "skate";
-  /** "Skate". */
-  disciplineLabel: string;
-  /** "Iniciante". */
-  levelLabel: string;
-  /** "Quarta, 28 Out". */
-  dateLabel: string;
-  /** "14:00 – 15:30". */
-  timeRange: string;
-  locationName: string;
+export type ClassMessageView = ClassSummary & {
   /** "3 pessoas recebem". */
   title: string;
   /** "1 instrutor · 1 aluno · 1 pedido pendente". */

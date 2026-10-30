@@ -10,7 +10,6 @@ import { TextArea } from "@/modules/designs/components/text-area";
 import { TextInput } from "@/modules/designs/components/text-input";
 import { adminDates } from "@/modules/designs/data/admin-app";
 import { classMessagePeople, noticeAudienceCounts } from "@/modules/designs/data/fortaleza";
-import { studentDates } from "@/modules/designs/data/student-app";
 import { appT } from "@/modules/designs/i18n/app-t";
 
 import type { SendNoticeScreenProps } from "./send-notice-screen.types";
@@ -30,7 +29,7 @@ export function SendNoticeScreen({ locale, state, notice }: SendNoticeScreenProp
   const typed = state !== "empty" && state !== "classMessage";
   const audience = state === "empty" ? "all" : "students";
   const count = classMode ? classMessagePeople.length : noticeAudienceCounts[audience];
-  const classLine = `${t("newClass.discipline.surf")} ${t("newClass.level.beginner")} · ${studentDates(locale).dateLine}, 08:00`;
+  const classSummary = { discipline: "surf", level: "beginner", dateLabel: adminDates(locale).classDate("2026-09-09"), timeRange: "08:00 – 09:30", locationName: "Praia de Iracema" } as const;
 
   return (
     <PhoneFrame>
@@ -44,7 +43,7 @@ export function SendNoticeScreen({ locale, state, notice }: SendNoticeScreenProp
           />
           <div className="flex flex-col gap-2">
             {classMode ? (
-              <ClassMessageCard locale={locale} discipline="surf" level="beginner" dateLabel={adminDates(locale).classDate("2026-09-09")} timeRange="08:00 – 09:30" locationName="Praia de Iracema" people={classMessagePeople} />
+              <ClassMessageCard locale={locale} {...classSummary} people={classMessagePeople} />
             ) : (
               <>
                 <p className="ds-text-section-label text-ink-2">{t("notices.audience.section")}</p>
@@ -82,7 +81,8 @@ export function SendNoticeScreen({ locale, state, notice }: SendNoticeScreenProp
         {confirming ? (
           <SendNoticeConfirmSheet
             locale={locale}
-            description={classMode ? t("notices.classMessage.confirm", { classLine }) : t(`notices.confirm.description.${audience}`)}
+            classSummary={classMode ? classSummary : undefined}
+            description={classMode ? t("notices.classMessage.confirm") : t(`notices.confirm.description.${audience}`)}
             count={count}
             title={notice.title}
             message={notice.message}

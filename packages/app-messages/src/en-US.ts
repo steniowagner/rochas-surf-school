@@ -387,7 +387,7 @@ const messages = {
   },
   takeOutSheet: {
     title: "Take {{name}} out of the class?",
-    hint: "{{summary}}. The spot becomes free. The person is notified, with the reason if you write one.",
+    hint: "The spot becomes free. The person is notified, with the reason if you write one.",
     label: "Reason (optional)",
     placeholder: "E.g.: This group is advanced level.",
     confirm: "Take out of the class",
@@ -396,7 +396,7 @@ const messages = {
     done: "{{name}} taken out · student notified",
     guestTitle: "Take {{name}} out of the class?",
     guestHint:
-      "{{summary}}. The spot becomes free. This is a trial student with no account — let them know on WhatsApp.",
+      "The spot becomes free. This is a trial student with no account — let them know on WhatsApp.",
     guestDone: "{{name}} taken out",
     errors: {
       notApproved: "This spot is no longer approved.",
@@ -501,7 +501,7 @@ const messages = {
         error: "Couldn't load the class.",
       },
       confirm:
-        "The instructors and students of {{classLine}} get a notification. Once it's sent, it can't be deleted.",
+        "The instructors and students of this class get a notification. Once it's sent, it can't be deleted.",
       sent: "Message sent",
       sendError: "Couldn't send the message. Try again.",
       errors: {

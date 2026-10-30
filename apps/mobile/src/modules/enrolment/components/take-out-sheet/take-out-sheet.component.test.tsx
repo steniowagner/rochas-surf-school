@@ -1,7 +1,13 @@
 import { render, screen, userEvent } from "@testing-library/react-native";
 
+import { Button } from "@/components/ui/button";
+
 import { TakeOutSheet } from "./take-out-sheet.component";
 import type { TakeOutSheetProps } from "./take-out-sheet.types";
+
+jest.mock("@/components/ui/button", () => ({
+  Button: jest.fn(jest.requireActual("@/components/ui/button").Button),
+}));
 
 jest.useFakeTimers();
 
@@ -9,7 +15,13 @@ function props(overrides: Partial<TakeOutSheetProps> = {}): TakeOutSheetProps {
   return {
     visible: true,
     firstName: "Ana",
-    summary: "Surf Beginner · Tomorrow, 08:00 – 09:00",
+    classSummary: {
+      discipline: "surf",
+      level: "beginner",
+      dateLabel: "Tomorrow · 15 Oct",
+      timeRange: "08:00 – 09:00",
+      locationName: "Praia do Futuro",
+    },
     loading: false,
     onConfirm: jest.fn(),
     onClose: jest.fn(),
@@ -22,9 +34,10 @@ describe("TakeOutSheet", () => {
     await render(<TakeOutSheet {...props()} />);
 
     expect(screen.getByText("Take Ana out of the class?")).toBeOnTheScreen();
+    expect(screen.getByTestId("class-summary-card")).toBeOnTheScreen();
     expect(
       screen.getByText(
-        "Surf Beginner · Tomorrow, 08:00 – 09:00. The spot becomes free. The person is notified, with the reason if you write one.",
+        "The spot becomes free. The person is notified, with the reason if you write one.",
       ),
     ).toBeOnTheScreen();
     expect(screen.getByText("Reason (optional)")).toBeOnTheScreen();
@@ -33,6 +46,24 @@ describe("TakeOutSheet", () => {
     expect(screen.getByRole("button", { name: "Take out of the class" })).toBeOnTheScreen();
     expect(screen.getByRole("button", { name: "Back" })).toBeOnTheScreen();
   });
+
+  it.each([false, true])(
+    "has no icon on the confirm button and a ghost back button (trial: %s)",
+    async (trial) => {
+      jest.mocked(Button).mockClear();
+
+      await render(<TakeOutSheet {...props({ trial })} />);
+
+      const buttons = jest.mocked(Button).mock.calls.map(([button]) => button);
+
+      expect(
+        buttons.find((button) => button.children === "Take out of the class"),
+      ).toMatchObject({ variant: "danger", icon: undefined });
+      expect(
+        buttons.find((button) => button.children === "Back"),
+      ).toMatchObject({ variant: "ghost" });
+    },
+  );
 
   it("confirms with the typed reason", async () => {
     const user = userEvent.setup();
@@ -63,9 +94,10 @@ describe("TakeOutSheet", () => {
       await render(<TakeOutSheet {...props({ trial: true, firstName: "Carolina Reis" })} />);
 
       expect(screen.getByText("Take Carolina Reis out of the class?")).toBeOnTheScreen();
+      expect(screen.getByTestId("class-summary-card")).toBeOnTheScreen();
       expect(
         screen.getByText(
-          "Surf Beginner · Tomorrow, 08:00 – 09:00. The spot becomes free. This is a trial student with no account — let them know on WhatsApp.",
+          "The spot becomes free. This is a trial student with no account — let them know on WhatsApp.",
         ),
       ).toBeOnTheScreen();
       expect(screen.queryByLabelText("Reason (optional)")).toBeNull();

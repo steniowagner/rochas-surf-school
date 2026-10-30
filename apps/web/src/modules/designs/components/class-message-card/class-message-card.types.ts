@@ -1,5 +1,7 @@
 import type { Locale } from "@/i18n/locales";
 
+import type { ClassSummary } from "../class-summary-card/class-summary-card.types";
+
 export type ClassMessagePerson = {
   id: string;
   /** The name, or "Ex-aluno" for an erased person. */
@@ -8,15 +10,8 @@ export type ClassMessagePerson = {
   role: "instructor" | "student" | "pending";
 };
 
-export type ClassMessageCardProps = {
+export type ClassMessageCardProps = ClassSummary & {
   locale: Locale;
-  discipline: "surf" | "skate";
-  level: "beginner" | "advanced" | "expert";
-  /** "Quarta, 9 set". */
-  dateLabel: string;
-  /** "08:00 – 09:30". */
-  timeRange: string;
-  locationName: string;
   /** The instructors and the students with a seat who receive it, instructors first. */
   people: ClassMessagePerson[];
   /** The list of the people opened under the summary row. */

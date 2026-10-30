@@ -76,11 +76,11 @@ export function ClassDetailsScreen(props: ClassDetailsScreenProps) {
   const classCard = { discipline: "surf", level: "beginner", weekday: dates.weekdayLabel, date: dates.dayLabel, duration: `1 h 30 min`, timeRange: "08:00 – 09:30", locationName: "Praia de Iracema" } as const;
   const showRules = view.classState !== "cancelled";
   // The admin's tools and sheets: who a message or a cancellation reaches (the other instructor, the students and the one
-  // pending request), and the class in one line.
+  // pending request), and the class in short.
   const pendingRequests = view.noStudents ? 0 : 1;
   const messageCount = teacher.length + people.length + pendingRequests;
   const deleteState = view.classState !== "not-started" ? "started" : seatsTaken > 0 ? "enrolled" : "available";
-  const summary = `${t("newClass.discipline.surf")} ${t("newClass.level.beginner")} · ${dates.dateLine}, 08:00 – 09:30`;
+  const classSummary = { discipline: "surf", level: "beginner", dateLabel: dates.dateLine, timeRange: "08:00 – 09:30", locationName: "Praia de Iracema" } as const;
   // D-02: a sheet or a toast is drawn over the phone's screen, so the content is clipped to it.
   const overPhone = Boolean(sheet || toast);
 
@@ -179,9 +179,9 @@ export function ClassDetailsScreen(props: ClassDetailsScreenProps) {
         {sheet === "rules" ? <CancellationRulesSheet locale={locale} status="ready" rules={texts.cancellationRules} /> : null}
         {sheet === "tools" ? <ClassToolsSheet locale={locale} messageCount={messageCount} deleteState={deleteState} /> : null}
         {sheet === "cancel" ? <CancelClassSheet locale={locale} guestCount={guests.length} studentCount={people.length} pendingCount={pendingRequests} instructorCount={teacher.length} /> : null}
-        {sheet === "delete" || sheet === "deleteNotEmpty" ? <DeleteClassSheet locale={locale} variant={sheet === "delete" ? "confirm" : "notEmpty"} classLine={`${summary} · Praia de Iracema`} /> : null}
-        {sheet === "takeOut" ? <TakeOutSheet locale={locale} firstName="Caio" summary={summary} /> : null}
-        {sheet === "takeOutGuest" ? <TakeOutSheet locale={locale} trial firstName={trialGuests[0]?.name ?? ""} summary={summary} /> : null}
+        {sheet === "delete" || sheet === "deleteNotEmpty" ? <DeleteClassSheet locale={locale} variant={sheet === "delete" ? "confirm" : "notEmpty"} classSummary={classSummary} /> : null}
+        {sheet === "takeOut" ? <TakeOutSheet locale={locale} firstName="Caio" classSummary={classSummary} /> : null}
+        {sheet === "takeOutGuest" ? <TakeOutSheet locale={locale} trial firstName={trialGuests[0]?.name ?? ""} classSummary={classSummary} /> : null}
         {sheet === "denial" ? <DenialReasonSheet locale={locale} discipline="surf" level="beginner" start={dates.classStart} reason={withoutReason ? undefined : texts.denialReason} /> : null}
         {sheet === "withdraw" ? <WithdrawRequestSheet locale={locale} /> : null}
         {sheet === "cancelSeat" ? <CancelSeatSheet locale={locale} deadline={dates.deadlineAhead} /> : null}

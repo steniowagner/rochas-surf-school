@@ -2,6 +2,7 @@ import { appT } from "@/modules/designs/i18n/app-t";
 
 import { AppIcon } from "../app-icon";
 import { Chip } from "../chip";
+import { ClassSummaryCard } from "../class-summary-card";
 import { GuestAvatar } from "../guest-avatar";
 import { StudentAvatar } from "../student-avatar";
 
@@ -11,8 +12,7 @@ import type { ClassMessageCardProps } from "./class-message-card.types";
 const STACK_AVATARS = 3;
 
 /**
- * The class a message goes to and the people who receive it: its category, level, day, time and location, as the class
- * list draws a class, then a row with "N pessoas recebem" and who they are, which opens the list of the people.
+ * The class a message goes to and the people who receive it: the class in short, then a row with "N pessoas recebem" and who they are, which opens the list of the people.
  */
 export function ClassMessageCard({ locale, discipline, level, dateLabel, timeRange, locationName, people, expanded = false }: ClassMessageCardProps) {
   const t = (key: string, params?: Record<string, string | number>) => appT(locale, key, params);
@@ -33,25 +33,7 @@ export function ClassMessageCard({ locale, discipline, level, dateLabel, timeRan
   return (
     <div data-testid="class-message-card" className="overflow-hidden rounded-card bg-surface shadow-card">
       <div className="px-3.5 pb-3.5 pt-3.25">
-        <div className="mb-2.5 flex flex-wrap items-center gap-2">
-          <Chip tone={discipline === "surf" ? "surf" : "skate"}>{t(`newClass.discipline.${discipline}`)}</Chip>
-          <Chip tone="info">{t(`newClass.level.${level}`)}</Chip>
-        </div>
-        <p className="ds-text-lesson-time mb-3 text-ink">{timeRange}</p>
-        <div className="flex flex-col gap-2.5">
-          <div className="flex items-center gap-2">
-            <span className="flex size-7 items-center justify-center rounded-checkbox bg-dim">
-              <AppIcon name="Ionicons:calendar-outline" size={14} className="text-lagoon" />
-            </span>
-            <p className="ds-text-list-subtitle flex-1 text-ink">{dateLabel}</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="flex size-7 items-center justify-center rounded-checkbox bg-dim">
-              <AppIcon name="Ionicons:location-outline" size={14} className="text-lagoon" />
-            </span>
-            <p className="ds-text-list-subtitle flex-1 text-ink">{locationName}</p>
-          </div>
-        </div>
+        <ClassSummaryCard locale={locale} embedded discipline={discipline} level={level} dateLabel={dateLabel} timeRange={timeRange} locationName={locationName} />
       </div>
       <div className="border-t border-line">
         <div role="button" aria-expanded={expanded} className="flex min-h-11 items-center gap-3 px-4 py-3">

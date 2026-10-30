@@ -394,7 +394,7 @@ const messages: Messages = {
   },
   takeOutSheet: {
     title: "¿Retirar a {{name}} de la clase?",
-    hint: "{{summary}}. La plaza queda libre. La persona recibe una notificación, con el motivo si lo escribes.",
+    hint: "La plaza queda libre. La persona recibe una notificación, con el motivo si lo escribes.",
     label: "Motivo (opcional)",
     placeholder: "Ej.: Este grupo es de nivel avanzado.",
     confirm: "Retirar de la clase",
@@ -403,7 +403,7 @@ const messages: Messages = {
     done: "{{name}} retirado · alumno avisado",
     guestTitle: "¿Retirar a {{name}} de la clase?",
     guestHint:
-      "{{summary}}. La plaza queda libre. Es un alumno de prueba, sin cuenta — avísale por WhatsApp.",
+      "La plaza queda libre. Es un alumno de prueba, sin cuenta — avísale por WhatsApp.",
     guestDone: "{{name}} retirado",
     errors: {
       notApproved: "Esta plaza ya no está aprobada.",
@@ -509,7 +509,7 @@ const messages: Messages = {
         error: "No se pudo cargar la clase.",
       },
       confirm:
-        "Los instructores y los alumnos de {{classLine}} reciben una notificación. Una vez enviado, no se puede borrar.",
+        "Los instructores y los alumnos de esta clase reciben una notificación. Una vez enviado, no se puede borrar.",
       sent: "Mensaje enviado",
       sendError: "No se pudo enviar el mensaje. Inténtalo de nuevo.",
       errors: {

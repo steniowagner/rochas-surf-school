@@ -4,12 +4,14 @@ import { Text, View } from "react-native";
 import { BottomModal } from "@/components/ui/bottom-modal";
 import { Button } from "@/components/ui/button";
 
+import { ClassSummaryCard } from "../class-summary-card";
+
 import type { DeleteClassSheetProps } from "./delete-class-sheet.types";
 
 export function DeleteClassSheet({
   visible,
   variant,
-  classLine,
+  classSummary,
   loading,
   onConfirm,
   onCancelInstead,
@@ -21,13 +23,13 @@ export function DeleteClassSheet({
   return (
     <BottomModal visible={visible} onClose={onClose}>
       <View className="gap-4">
-        <View className="gap-1">
+        <View className="gap-3">
           <Text className="ds-text-sheet-title text-ink">
             {notEmpty
               ? t("deleteClass.notEmpty.title")
               : t("deleteClass.title")}
           </Text>
-          <Text className="ds-text-list-title text-ink">{classLine}</Text>
+          {classSummary ? <ClassSummaryCard {...classSummary} /> : null}
           <Text className="ds-text-body text-ink-2">
             {notEmpty
               ? t("deleteClass.notEmpty.description")

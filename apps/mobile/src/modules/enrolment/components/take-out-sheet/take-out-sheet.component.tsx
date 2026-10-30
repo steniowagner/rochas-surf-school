@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 
 import { DenySheet } from "@/components/decision/deny-sheet";
+import { ClassSummaryCard } from "@/modules/classes/components/class-summary-card";
 
 import type { TakeOutSheetProps } from "./take-out-sheet.types";
 
@@ -11,7 +12,7 @@ export function TakeOutSheet({
   visible,
   trial = false,
   firstName,
-  summary,
+  classSummary,
   loading,
   onConfirm,
   onClose,
@@ -22,12 +23,15 @@ export function TakeOutSheet({
     <DenySheet
       visible={visible}
       title={t(trial ? "takeOutSheet.guestTitle" : "takeOutSheet.title", { name: firstName })}
-      hint={t(trial ? "takeOutSheet.guestHint" : "takeOutSheet.hint", { summary })}
+      summary={classSummary ? <ClassSummaryCard {...classSummary} /> : undefined}
+      hint={t(trial ? "takeOutSheet.guestHint" : "takeOutSheet.hint")}
       hideReason={trial}
+      hideConfirmIcon
       label={t("takeOutSheet.label")}
       showLabel
       placeholder={t("takeOutSheet.placeholder")}
       backLabel={t("takeOutSheet.back")}
+      backVariant="ghost"
       confirmLabel={t("takeOutSheet.confirm")}
       maxLength={TAKE_OUT_REASON_MAX_LENGTH}
       loading={loading}

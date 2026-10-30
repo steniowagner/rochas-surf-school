@@ -5,15 +5,9 @@ import { useTranslation } from "react-i18next";
 import { Keyboard } from "react-native";
 
 import { useClass } from "@/modules/classes/hooks/use-class.hook";
-import { useNow } from "@/modules/classes/hooks/use-now.hook";
-import { todayInSchoolZone } from "@/modules/classes/utils/calendar";
 import { classMessageRecipients } from "@/modules/classes/utils/class-message";
 import { personLabel } from "@/modules/classes/utils/person-label";
-import {
-  formatDateLine,
-  schoolDayOf,
-  schoolTimeOf,
-} from "@/modules/classes/utils/week";
+import { schoolDayOf, schoolTimeOf } from "@/modules/classes/utils/week";
 import type { ClassDetailsPerson } from "@/modules/classes/screens/class-details.screen.types";
 import { useAlertMessage } from "@/providers/alert-message";
 import { useSession } from "@/providers/session";
@@ -49,7 +43,6 @@ export const useSendNoticeScreen = (): UseSendNoticeScreenResult => {
   const { classId } = useLocalSearchParams<{ classId?: string }>();
   const isClassMode = typeof classId === "string" && classId !== "";
   const { user } = useSession();
-  const now = useNow();
   const alertMessage = useAlertMessage();
   const sendNotice = useSendNotice();
   const sendClassMessage = useSendClassMessage(classId ?? "");
@@ -87,28 +80,11 @@ export const useSendNoticeScreen = (): UseSendNoticeScreenResult => {
     count > 0 &&
     !isSending;
 
-  const name = item
-    ? `${t(`newClass.discipline.${item.discipline}`)} ${t(`newClass.level.${item.level}`)}`
-    : "";
-  const dateLine = item
-    ? formatDateLine(
-        schoolDayOf(item.startsAt),
-        todayInSchoolZone(now),
-        getDateLocale(i18n.language),
-        {
-          today: t("classDetails.today"),
-          tomorrow: t("classDetails.tomorrow"),
-          yesterday: t("classDetails.yesterday"),
-        },
-      )
-    : "";
-
   const classView: ClassMessageView | null =
     item && classRecipients
       ? {
           discipline: item.discipline,
-          disciplineLabel: t(`newClass.discipline.${item.discipline}`),
-          levelLabel: t(`newClass.level.${item.level}`),
+          level: item.level,
           dateLabel: formatClassDate(
             schoolDayOf(item.startsAt),
             getDateLocale(i18n.language),
@@ -182,11 +158,7 @@ export const useSendNoticeScreen = (): UseSendNoticeScreenResult => {
       : null;
 
   const confirmDescription = isClassMode
-    ? t("notices.classMessage.confirm", {
-        classLine: item
-          ? `${name} · ${dateLine}, ${schoolTimeOf(item.startsAt)}`
-          : "",
-      })
+    ? t("notices.classMessage.confirm")
     : t(`notices.confirm.description.${audience}`);
 
   const askToConfirm = () => {

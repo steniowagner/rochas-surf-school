@@ -1831,15 +1831,13 @@ describe("ClassDetailsScreen", () => {
       },
     );
 
-    it("closes the tools and opens the confirmation sheet with the class line, sending nothing", async () => {
+    it("closes the tools and opens the confirmation sheet with the class, sending nothing", async () => {
       await openSheet();
 
       expect(screen.getByText("Delete this class?")).toBeOnTheScreen();
-      expect(
-        screen.getByText(
-          "Surf Beginner · Today · 14 Oct, 16:00 – 17:30 · Praia do Futuro",
-        ),
-      ).toBeOnTheScreen();
+      expect(screen.getByTestId("class-summary-card")).toHaveTextContent(
+        /16:00 – 17:30.*Today · 14 Oct.*Praia do Futuro/,
+      );
       expect(screen.queryByRole("button", { name: "Send message" })).toBeNull();
       expect(deletes()).toHaveLength(0);
     });
@@ -3294,7 +3292,7 @@ describe("ClassDetailsScreen enrolment status", () => {
       expect(screen.getByText("Take Ana out of the class?")).toBeOnTheScreen();
       expect(
         screen.getByText(
-          /^Surf Beginner · Tomorrow · 15 Oct, 08:00 – 09:00\. The spot becomes free\./,
+          /^The spot becomes free\./,
         ),
       ).toBeOnTheScreen();
     });

@@ -4,8 +4,7 @@ import { ClassMessageCard } from "./class-message-card.component";
 
 const VIEW = {
   discipline: "skate" as const,
-  disciplineLabel: "Skate",
-  levelLabel: "Beginner",
+  level: "beginner" as const,
   dateLabel: "Wednesday, 28 Oct",
   timeRange: "14:00 – 15:30",
   locationName: "Skatepark da Vila",

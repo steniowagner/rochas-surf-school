@@ -173,7 +173,13 @@ completing a seat request on two real phones.
   Covers: ER-01, ER-02, ER-03, ER-04 · Done when: the build finishes and the Verify by of ER-01 to ER-04 pass on the
   phone.
   > ⛔ 2026-10-30 22:55 — build `048642b9-eec6-4db6-8192-1d8994de4493` (commit `12edb576`, `versionCode` 1) finished on
-  > EAS with its APK. The Verify by of ER-01 to ER-04 are waiting on the user's Android phone; none has been checked.
+  > EAS with its APK. The user reports the app and a new Google account working on the phone, and an approval from an
+  > iPhone admin reached staging, but ER-02 failed: no push arrived. Staging has the `registration.approved` row from
+  > 01:43:51 UTC, but that student has no row in `push_tokens` and there are no `push_tickets`, so the backend had no
+  > device to send to. The only token is the iOS admin's. The build log shows `GOOGLE_SERVICES_JSON` and
+  > `processReleaseGoogleServices`, so the Firebase file was in the build. `usePushRegistration` hides every failure, so
+  > the cause on the phone (permission, the Push setting, or the token call) isn't known yet. ER-01, ER-03 and ER-04
+  > have no result per check yet.
 
 - [ ] **T-05** — With the user's Apple Developer account: upload the APNs key, build the `testflight` profile, submit
   it with `eas submit`, and add the user as an internal tester. This task stays blocked with ⛔ until the Apple

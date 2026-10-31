@@ -185,8 +185,9 @@ completing a seat request on two real phones.
   > `appName` to the `testflight` submit profile in `apps/mobile/eas.json`, because App Store names are unique and the
   > default, `RSS`, is the short one under the icon. The user ran the first `testflight` build with their Apple sign-in,
   > generating the distribution certificate, the provisioning profile and the APNs key: build
-  > `22569aa7-9205-4e75-9190-58a26e86935c` (commit `f3ade8cd`, build number 1) finished with its `.ipa`. Waiting on
-  > `eas submit`, the iPhone and the ER-05 and ER-06 checks.
+  > `22569aa7-9205-4e75-9190-58a26e86935c` (commit `f3ade8cd`, build number 1) finished with its `.ipa`. The user reports
+  > that `eas submit` finished, with an `APP_MANAGER` App Store Connect API key stored on EAS. Waiting on Apple's
+  > processing, the install through TestFlight and the ER-05 and ER-06 checks.
 
 ### Verification
 

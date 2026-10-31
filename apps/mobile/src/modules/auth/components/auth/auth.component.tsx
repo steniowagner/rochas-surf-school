@@ -76,7 +76,7 @@ export function AuthComponent({
       />
 
       <View
-        className="absolute right-[18px] z-10"
+        className="absolute left-screen z-10"
         style={{ top: topInset }}
       >
         <TouchableOpacity

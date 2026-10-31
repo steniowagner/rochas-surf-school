@@ -2,7 +2,7 @@
 id: "080"
 slug: staging-mobile
 title: Staging builds of the mobile app on real phones
-status: in-progress
+status: in-review
 created: 2026-10-30
 started: 2026-10-30
 base_commit: 701fa8106334bf8576c7345d240357a86f0a34dd
@@ -169,10 +169,10 @@ completing a seat request on two real phones.
   > existing one keeps debug builds working; it was also added next to the debug SHA-1 on the Maps key, whose restriction
   > would otherwise block this build. ER-03 and ER-04 prove both on the phone.
 
-- [ ] **T-04** — Build the `preview` profile for Android and check it on a real phone.
+- [x] **T-04** — Build the `preview` profile for Android and check it on a real phone.
   Covers: ER-01, ER-02, ER-03, ER-04 · Done when: the build finishes and the Verify by of ER-01 to ER-04 pass on the
   phone.
-  > ⛔ 2026-10-30 22:55 — build `048642b9-eec6-4db6-8192-1d8994de4493` (commit `12edb576`, `versionCode` 1) finished on
+  > ✅ 2026-10-31 00:18 — build `048642b9-eec6-4db6-8192-1d8994de4493` (commit `12edb576`, `versionCode` 1) finished on
   > EAS with its APK. The user reports the app and a new Google account working on the phone, and an approval from an
   > iPhone admin reached staging, but ER-02 failed: no push arrived. Staging has the `registration.approved` row from
   > 01:43:51 UTC, but that student has no row in `push_tokens` and there are no `push_tickets`, so the backend had no
@@ -188,7 +188,10 @@ completing a seat request on two real phones.
   > that row was marked read at 02:51:56. The ticket can't settle it, because the receipt job deletes tickets after 15
   > minutes, and the sending code has no branch on a class being in progress: `SendClassMessage` only refuses cancelled
   > and finished classes, and the real push text renders in the three languages. Nothing shows whether Push was on at
-  > 02:51. Unconfirmed until a rerun, with its ticket read within 15 minutes.
+  > 02:51. The user chose not to rerun it, accepted the spec's checks as working, and will take this into a new spec
+  > with their other findings, so this one case stays unconfirmed, not proven; files: `apps/mobile/eas.json`,
+  > `apps/mobile/app.config.ts`; verified: the user's reports above, plus the staging rows and tickets quoted; deviations:
+  > the class message's rerun was skipped by the user's decision.
 
 - [x] **T-05** — With the user's Apple Developer account: upload the APNs key, build the `testflight` profile, submit
   it with `eas submit`, and add the user as an internal tester. This task stays blocked with ⛔ until the Apple
@@ -208,9 +211,14 @@ completing a seat request on two real phones.
 
 ### Verification
 
-- [ ] **T-06** — Run every command in the Verification Plan from the repo root; all pass. Record the output summary as
+- [x] **T-06** — Run every command in the Verification Plan from the repo root; all pass. Record the output summary as
   evidence.
   Covers: all · Done when: every automated command exits 0 and each phone check is recorded.
+  > ✅ 2026-10-31 00:19 — files: none; verified: `run-related-tests.mjs 080` exits 0 (1 suite, 6 tests);
+  > `check-coverage.mjs 080` exits 0 with no changed line to measure, because `app.config.ts` counts as tool config (the
+  > last run measured it at 100% in T-02); `run-e2e.mjs 080` exits 0 with no suite for the changed workspaces;
+  > `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` exits 0 (9 tasks, all cached). The phone checks
+  > are recorded under T-04 and T-05; deviations: the class message under T-04 stays unconfirmed by the user's decision.
 
 ## Verification Plan
 

@@ -180,23 +180,31 @@ completing a seat request on two real phones.
   > `processReleaseGoogleServices`, so the Firebase file was in the build. The user then found notifications disabled on
   > the phone, which explains the missing token: this was the phone's setting, not a bug. Rerun with them allowed: a new
   > Google account registered the Android token at 01:53:49 UTC, and the user reports the `registration.pending` push on
-  > the iPhone and the `registration.approved` push on Android; staging holds two tickets from those sends. Still
-  > unchecked: ER-02 with the app closed, its tap and the Push-off case; ER-01 against staging's classes and offline;
-  > ER-03's cancelled picker; ER-04.
+  > the iPhone and the `registration.approved` push on Android; staging holds two tickets from those sends. The user
+  > then reports ER-01 (staging's classes, offline), ER-02 (closed app, its tap, Push off), ER-03 (cancelled picker) and
+  > ER-04 (map, address suggestions) passing, with one exception that keeps this task open: a class message sent at
+  > 02:51:42 UTC, while the class was in progress, never arrived as a push. Staging stored its rows for the student and
+  > two instructors. Neither instructor has a device, so the student's Android phone was the only possible target, and
+  > that row was marked read at 02:51:56. The ticket can't settle it, because the receipt job deletes tickets after 15
+  > minutes, and the sending code has no branch on a class being in progress: `SendClassMessage` only refuses cancelled
+  > and finished classes, and the real push text renders in the three languages. Nothing shows whether Push was on at
+  > 02:51. Unconfirmed until a rerun, with its ticket read within 15 minutes.
 
-- [ ] **T-05** — With the user's Apple Developer account: upload the APNs key, build the `testflight` profile, submit
+- [x] **T-05** — With the user's Apple Developer account: upload the APNs key, build the `testflight` profile, submit
   it with `eas submit`, and add the user as an internal tester. This task stays blocked with ⛔ until the Apple
   enrolment is active.
   Covers: ER-05, ER-06 · Done when: the Verify by of ER-05 and ER-06 pass on real phones.
-  > ⛔ 2026-10-30 23:20 — the user reports the Apple enrolment seems approved; not yet confirmed by a build. Added
-  > `ios.config.usesNonExemptEncryption: false` to `apps/mobile/app.json`, as Expo documents for an app whose only
-  > encryption is the OS's HTTPS and `expo-secure-store`, so builds don't stop on Missing Compliance, and
-  > `appName` to the `testflight` submit profile in `apps/mobile/eas.json`, because App Store names are unique and the
-  > default, `RSS`, is the short one under the icon. The user ran the first `testflight` build with their Apple sign-in,
-  > generating the distribution certificate, the provisioning profile and the APNs key: build
-  > `22569aa7-9205-4e75-9190-58a26e86935c` (commit `f3ade8cd`, build number 1) finished with its `.ipa`. The user reports
-  > that `eas submit` finished, with an `APP_MANAGER` App Store Connect API key stored on EAS. Waiting on Apple's
-  > processing, the install through TestFlight and the ER-05 and ER-06 checks.
+  > ✅ 2026-10-31 00:16 — the user ran the first `testflight` build with their Apple sign-in, generating the distribution
+  > certificate, the provisioning profile and the APNs key: build `22569aa7-9205-4e75-9190-58a26e86935c` (commit
+  > `f3ade8cd`, build number 1) finished with its `.ipa`, `eas submit` finished, and the user installed it through
+  > TestFlight; files: `apps/mobile/app.json`, `apps/mobile/eas.json`; verified: the user reports ER-05 (home, closed-app
+  > push, Google sign-in on this build) and ER-06 (admin and student on two phones) passing. Staging shows the journey on
+  > class `89218aff-1ea7-402b-a65f-75003a09109f`: `enrolment.requested` at 02:53:43 UTC, `enrolment.approved` at 02:53:56
+  > and the seat approved. The later `registration.approved` push to the iPhone's student left a ticket at 03:10:32;
+  > deviations: `ios.config.usesNonExemptEncryption: false`, as Expo documents for an app whose only encryption is the
+  > OS's HTTPS and `expo-secure-store`, so builds don't stop on Missing Compliance; `appName` in the `testflight` submit
+  > profile, because App Store names are unique and the default, `RSS`, is the short one under the icon; the App Store
+  > Connect API key on EAS has the `APP_MANAGER` role, not the default `ADMIN`.
 
 ### Verification
 

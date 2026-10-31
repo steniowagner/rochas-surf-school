@@ -153,22 +153,26 @@ completing a seat request on two real phones.
   > exits 0; `GOOGLE_SERVICES_JSON=/tmp/x.json npx expo config --json` shows the path with `android.package` kept;
   > `git check-ignore` matches `google-services.json`; deviations: none.
 
-- [ ] **T-03** — With the user's Expo and Firebase accounts: run `eas init`, commit the `projectId` it writes to
+- [x] **T-03** — With the user's Expo and Firebase accounts: run `eas init`, commit the `projectId` it writes to
   `app.json`, set the `preview` variables, upload the FCM V1 key, and add the keystore's SHA-1 to Google Cloud's Android
   client. This task stays blocked with ⛔ until the user provides the accounts and spec 079's API answers.
   Covers: enabling · Done when: `npx eas-cli env:list --environment preview` lists every variable and
   `npx eas-cli credentials` shows the FCM key.
-  > ⛔ 2026-10-30 21:40 — partly done. `eas init --account rochas-surf-school` linked project
-  > `0a5ce95a-6191-4a27-b81e-6d5a516564ac` (the user chose the organization), and `apps/mobile/app.json` now has its
-  > `extra.eas.projectId` and `owner`. `EXPO_PUBLIC_API_URL`, `EXPO_PUBLIC_WEB_URL`,
-  > `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` and `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` are set in `preview`, and `eas config`
-  > resolves both profiles. Still needed from the user: `GOOGLE_MAPS_ANDROID_API_KEY`, the Firebase project with
-  > `GOOGLE_SERVICES_JSON`, the FCM V1 key, the EAS keystore, and its SHA-1 in Google Cloud.
+  > ✅ 2026-10-30 22:30 — `eas init --account rochas-surf-school` linked project
+  > `0a5ce95a-6191-4a27-b81e-6d5a516564ac` (the user chose the organization); the `preview` variables are
+  > `EXPO_PUBLIC_API_URL`, `EXPO_PUBLIC_WEB_URL`, `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`,
+  > `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`, `GOOGLE_MAPS_ANDROID_API_KEY` and the secret file `GOOGLE_SERVICES_JSON`; the
+  > user entered the last two, uploaded the FCM V1 key for Firebase project `rochas-surf-school-35797` and created the
+  > EAS keystore; files: `apps/mobile/app.json`; verified: `npx eas-cli env:list --environment preview` lists all six,
+  > and the user's `eas credentials` screen shows the FCM V1 key and the default keystore; deviations: the keystore's
+  > SHA-1 went into a new Android OAuth client, `Android EAS staging`, because one client holds one SHA-1 and the
+  > existing one keeps debug builds working; it was also added next to the debug SHA-1 on the Maps key, whose restriction
+  > would otherwise block this build. ER-03 and ER-04 prove both on the phone.
 
 - [ ] **T-04** — Build the `preview` profile for Android and check it on a real phone.
   Covers: ER-01, ER-02, ER-03, ER-04 · Done when: the build finishes and the Verify by of ER-01 to ER-04 pass on the
   phone.
-  > ⛔ 2026-10-30 21:05 — depends on T-03; it also needs the user's Android phone.
+  > ⛔ 2026-10-30 22:30 — the first `preview` build is starting; the checks need the user's Android phone.
 
 - [ ] **T-05** — With the user's Apple Developer account: upload the APNs key, build the `testflight` profile, submit
   it with `eas submit`, and add the user as an internal tester. This task stays blocked with ⛔ until the Apple

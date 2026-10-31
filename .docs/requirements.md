@@ -68,6 +68,7 @@ Lets people sign in to the app with the method they prefer while keeping exactly
 
 _Implemented in spec 007-email-sign-in-screens._
 _Implemented in spec 017-google-sign-in._
+_Implemented in spec 080-staging-mobile (Google sign-in on real phones)._
 
 The app SHALL let people sign in with Google or a 6-digit code sent to their email address. On iOS, the app SHALL also offer Sign in with Apple. The same screen SHALL serve both signing in and signing up.
 
@@ -545,6 +546,7 @@ Delivers every notification as a push and keeps it on an in-app notifications sc
 #### Push delivery
 
 _Implemented in spec 020-push-notifications-registrations._
+_Implemented in spec 080-staging-mobile (on real phones, through staging builds)._
 
 The system SHALL deliver notifications as pushes to the user's phone. It SHALL NOT send notifications by email or WhatsApp.
 
@@ -857,6 +859,7 @@ Lets admins keep a list of saved locations for classes and controls how changes 
 
 _Implemented in spec 028-create-classes (a name and an address, without suggestions or a map)._
 _Implemented in spec 037-class-locations (address suggestions and a point on the map)._
+_Implemented in spec 080-staging-mobile (the map on a real Android phone)._
 _Implemented in spec 065-location-map-screen (a full-screen map: the search, map taps and the phone's location)._
 
 Admins SHALL be able to save locations with an address, helped by address suggestions and a map, and SHALL pick one saved location for each class.

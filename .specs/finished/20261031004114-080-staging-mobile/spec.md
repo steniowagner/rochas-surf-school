@@ -2,13 +2,14 @@
 id: "080"
 slug: staging-mobile
 title: Staging builds of the mobile app on real phones
-status: accepted
+status: finished
 created: 2026-10-30
 started: 2026-10-30
 base_commit: 701fa8106334bf8576c7345d240357a86f0a34dd
 reviewed_commit: 095380c882b89484dc2988d8eaeb92dce882bb6f
 fronts: [mobile]
 depends_on: ["079"]
+finished: 2026-10-31
 ---
 
 # 080 — Staging builds of the mobile app on real phones

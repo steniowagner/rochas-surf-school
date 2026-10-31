@@ -1005,9 +1005,11 @@ src/
                                 # use-school-whatsapp.hook.ts (useSchoolWhatsapp: reads it → number or null; spec 043
                                 # moved it here)
 plugins/with-ios-scene-lifecycle.js    # config plugin (UIScene life cycle for iOS 27)
-app.json                        # the Expo config (with expo-location's "when in use" text, spec 065)
+app.json                        # the Expo config (with expo-location's "when in use" text, spec 065; the EAS projectId, spec 080)
+eas.json                        # the EAS build profiles preview and testflight, and the submit profile (spec 080)
 app.config.ts                   # takes app.json's config and appends the react-native-maps plugin with
-                                # GOOGLE_MAPS_ANDROID_API_KEY (spec 037); app.config.test.ts next to it
+                                # GOOGLE_MAPS_ANDROID_API_KEY (spec 037) and sets android.googleServicesFile from
+                                # GOOGLE_SERVICES_JSON when it has a value (spec 080); app.config.test.ts next to it
 jest.config.js, jest.setup.ts   # jest-expo + RNTL; mocks localization, reanimated, safe-area, bottom sheet,
                                 # expo-notifications, expo-device, expo-constants, @expo/ui's DateTimePicker,
                                 # react-native-maps (with the ref's setCamera / animateToRegion), expo-location

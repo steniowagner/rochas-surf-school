@@ -9,7 +9,10 @@
     "userInterfaceStyle": "automatic",
     "backgroundColor": "#F0E6D8",
     "ios": {
-      "bundleIdentifier": "com.rochassurfschool.app"
+      "bundleIdentifier": "com.rochassurfschool.app",
+      "config": {
+        "usesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {

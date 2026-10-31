@@ -20,6 +20,10 @@
     }
   },
   "submit": {
-    "testflight": {}
+    "testflight": {
+      "ios": {
+        "appName": "Rocha's Surf School"
+      }
+    }
   }
 }

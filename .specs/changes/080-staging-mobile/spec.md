@@ -179,7 +179,12 @@ completing a seat request on two real phones.
   it with `eas submit`, and add the user as an internal tester. This task stays blocked with ⛔ until the Apple
   enrolment is active.
   Covers: ER-05, ER-06 · Done when: the Verify by of ER-05 and ER-06 pass on real phones.
-  > ⛔ 2026-10-30 21:05 — depends on T-03 and on the active Apple enrolment; it also needs the user's iPhone.
+  > ⛔ 2026-10-30 23:20 — the user reports the Apple enrolment seems approved; not yet confirmed by a build. Added
+  > `ios.config.usesNonExemptEncryption: false` to `apps/mobile/app.json`, as Expo documents for an app whose only
+  > encryption is the OS's HTTPS and `expo-secure-store`, so builds don't stop on Missing Compliance, and
+  > `appName` to the `testflight` submit profile in `apps/mobile/eas.json`, because App Store names are unique and the
+  > default, `RSS`, is the short one under the icon. Waiting on the user's Apple sign-in for the build and `eas submit`,
+  > which need a password and two-factor code, and on the iPhone and Android checks.
 
 ### Verification
 

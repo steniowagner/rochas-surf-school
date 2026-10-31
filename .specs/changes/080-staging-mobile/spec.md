@@ -172,7 +172,8 @@ completing a seat request on two real phones.
 - [ ] **T-04** — Build the `preview` profile for Android and check it on a real phone.
   Covers: ER-01, ER-02, ER-03, ER-04 · Done when: the build finishes and the Verify by of ER-01 to ER-04 pass on the
   phone.
-  > ⛔ 2026-10-30 22:30 — the first `preview` build is starting; the checks need the user's Android phone.
+  > ⛔ 2026-10-30 22:55 — build `048642b9-eec6-4db6-8192-1d8994de4493` (commit `12edb576`, `versionCode` 1) finished on
+  > EAS with its APK. The Verify by of ER-01 to ER-04 are waiting on the user's Android phone; none has been checked.
 
 - [ ] **T-05** — With the user's Apple Developer account: upload the APNs key, build the `testflight` profile, submit
   it with `eas submit`, and add the user as an internal tester. This task stays blocked with ⛔ until the Apple

@@ -14,6 +14,7 @@ import {
   useCollapsingTitleHeader,
   useHeaderInset,
 } from "@/navigation/stack-header";
+import { getBottomPadding } from "@/utils/bottom-padding";
 
 import { PersonSheet } from "../components/person-sheet";
 import { RemovedAccountRow } from "../components/removed-account-row";
@@ -62,7 +63,7 @@ export function RemovedAccountsScreen() {
         contentContainerClassName="gap-3 px-screen"
         contentContainerStyle={{
           paddingTop: CONTENT_PADDING_TOP,
-          paddingBottom: Math.max(insets.bottom, 24),
+          paddingBottom: getBottomPadding(insets.bottom, 24),
         }}
         onScroll={header.scrollHandler}
         scrollEventThrottle={16}
@@ -116,7 +117,7 @@ export function RemovedAccountsScreen() {
         className={`flex-1 bg-page px-screen ${status === "loading" ? "" : "justify-center"}`}
         style={{
           paddingTop: headerInset + CONTENT_PADDING_TOP,
-          paddingBottom: Math.max(insets.bottom, 24),
+          paddingBottom: getBottomPadding(insets.bottom, 24),
         }}
       >
         {status === "loading" ? <RemovedAccountsSkeleton /> : null}

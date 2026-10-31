@@ -18,6 +18,7 @@ import {
 } from "@/navigation/stack-header";
 import { PersonAvatar } from "@/modules/people/components/person-avatar";
 import { PersonSheet } from "@/modules/people/components/person-sheet";
+import { getBottomPadding } from "@/utils/bottom-padding";
 
 import { RegistrationsSkeleton } from "../components/registrations-skeleton";
 import { useRegistrationsScreen } from "../hooks/use-registrations-screen.hook";
@@ -71,7 +72,7 @@ export function RegistrationsScreen() {
             contentContainerClassName="gap-3 px-screen"
             contentContainerStyle={{
               paddingTop: CONTENT_PADDING_TOP,
-              paddingBottom: Math.max(insets.bottom, 24),
+              paddingBottom: getBottomPadding(insets.bottom, 24),
             }}
             onScroll={header.scrollHandler}
             scrollEventThrottle={16}
@@ -129,7 +130,7 @@ export function RegistrationsScreen() {
             className={`flex-1 bg-page px-screen ${status === "loading" ? "" : "justify-center"}`}
             style={{
               paddingTop: headerInset + CONTENT_PADDING_TOP,
-              paddingBottom: Math.max(insets.bottom, 24),
+              paddingBottom: getBottomPadding(insets.bottom, 24),
             }}
           >
             {status === "loading" ? <RegistrationsSkeleton /> : null}

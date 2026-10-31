@@ -10,6 +10,7 @@ import { usePendingRequests } from "@/modules/enrolment/hooks/use-pending-reques
 import { useRemovedAccounts } from "@/modules/people/hooks/use-removed-accounts.hook";
 import { SchoolRulesEntryRow } from "@/modules/school-rules/components/school-rules-entry-row";
 import { useHeaderInset } from "@/navigation/stack-header";
+import { getBottomPadding } from "@/utils/bottom-padding";
 
 import { AdminToolRow } from "../components/admin-tool-row";
 import { useReactivationRequests } from "../hooks/use-reactivation-requests.hook";
@@ -53,7 +54,7 @@ export function AdminScreen() {
       contentContainerStyle={{
         // The user header isn't the native bar, so the automatic inset clears it only up to the safe area.
         paddingTop: Math.max(headerInset - insets.top, 0) + 16,
-        paddingBottom: Math.max(insets.bottom, 24),
+        paddingBottom: getBottomPadding(insets.bottom, 24),
       }}
     >
       <View className="gap-2">

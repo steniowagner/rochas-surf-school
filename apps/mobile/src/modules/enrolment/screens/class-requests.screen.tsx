@@ -18,6 +18,7 @@ import {
   useCollapsingTitleHeader,
   useHeaderInset,
 } from "@/navigation/stack-header";
+import { getBottomPadding } from "@/utils/bottom-padding";
 
 import { ClassRequestsGroup } from "../components/class-requests-group";
 import { ClassRequestsSkeleton } from "../components/class-requests-skeleton";
@@ -77,7 +78,7 @@ export function ClassRequestsScreen() {
             contentContainerStyle={{
               paddingTop: CONTENT_PADDING_TOP,
               paddingBottom:
-                Math.max(insets.bottom, 24) + DISCIPLINE_FILTER_CLEARANCE,
+                getBottomPadding(insets.bottom, 24) + DISCIPLINE_FILTER_CLEARANCE,
             }}
             onScroll={header.scrollHandler}
             scrollEventThrottle={16}
@@ -138,7 +139,7 @@ export function ClassRequestsScreen() {
             className={`flex-1 bg-page px-screen ${status === "loading" ? "" : "justify-center"}`}
             style={{
               paddingTop: headerInset + CONTENT_PADDING_TOP,
-              paddingBottom: Math.max(insets.bottom, 24),
+              paddingBottom: getBottomPadding(insets.bottom, 24),
             }}
           >
             {status === "loading" ? <ClassRequestsSkeleton /> : null}

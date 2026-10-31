@@ -8,6 +8,7 @@ import { TeachingClassesEntryRow } from "@/modules/classes/components/teaching-c
 import { WeeklyOccupancyEntryRow } from "@/modules/classes/components/weekly-occupancy-entry-row";
 import { SchoolRulesEntryRow } from "@/modules/school-rules/components/school-rules-entry-row";
 import { useHeaderInset } from "@/navigation/stack-header";
+import { getBottomPadding } from "@/utils/bottom-padding";
 
 const openMyClasses = () => router.push(routes.instructor.myClasses);
 const openWeeklyOccupancy = () =>
@@ -25,7 +26,7 @@ export function InstructorScreen() {
       style={{
         // Clears the user header, which the tab's stack draws above the screen.
         paddingTop: headerInset + 16,
-        paddingBottom: Math.max(insets.bottom, 24),
+        paddingBottom: getBottomPadding(insets.bottom, 24),
       }}
     >
       <View className="gap-2">

@@ -9,6 +9,7 @@ import { HeaderButton } from "@/components/ui/header-button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTheme } from "@/hooks/use-theme";
 import { StackHeaderTitle } from "@/navigation/stack-header";
+import { getBottomPadding } from "@/utils/bottom-padding";
 
 import { NotificationRow } from "../components/notification-row";
 
@@ -103,7 +104,7 @@ export function NotificationsScreen() {
         // On iOS the safe areas and the header are added by the scroll view.
         contentInsetAdjustmentBehavior="automatic"
         contentContainerClassName="gap-card-gap px-screen"
-        contentContainerStyle={{ paddingTop: 8, paddingBottom: Math.max(insets.bottom, 24) }}
+        contentContainerStyle={{ paddingTop: 8, paddingBottom: getBottomPadding(insets.bottom, 24) }}
         refreshControl={
           <RefreshControl refreshing={screen.isRefreshing} onRefresh={screen.refresh} />
         }

@@ -19,6 +19,7 @@ import {
 } from "@/navigation/stack-header/header-inset.test-utils";
 import { keyboardOffsetOf } from "@/navigation/stack-header/keyboard-offset.test-utils";
 import { AlertMessageProvider } from "@/providers/alert-message";
+import { getKeyboardGapOffset } from "@/utils/bottom-padding";
 
 import { ConfirmCode } from "./confirm-code.component";
 
@@ -189,7 +190,7 @@ describe("ConfirmCode", () => {
       return offset;
     });
 
-    expect(offset).toBe(0);
+    expect(offset).toBe(0 + getKeyboardGapOffset(24));
   });
 
   it("offsets the keyboard by the height of the header", async () => {
@@ -197,10 +198,10 @@ describe("ConfirmCode", () => {
       renderScreen(<ConfirmCode email={EMAIL} name={NAME} />),
     );
 
-    expect(offset).toBe(64);
+    expect(offset).toBe(64 + getKeyboardGapOffset(24));
   });
 
-  it("renders on Android, where the keyboard does not add padding", async () => {
+  it("renders on Android", async () => {
     const original = Platform.OS;
     Platform.OS = "android";
 

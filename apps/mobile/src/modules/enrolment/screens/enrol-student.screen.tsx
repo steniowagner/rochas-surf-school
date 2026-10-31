@@ -25,6 +25,7 @@ import { DisciplineFilter } from "@/modules/classes/components/discipline-filter
 import { DISCIPLINE_FILTER_CLEARANCE } from "@/modules/classes/components/discipline-filter/discipline-filter.constants";
 import { PersonAvatar } from "@/modules/people/components/person-avatar";
 import { StackHeaderTitle } from "@/navigation/stack-header";
+import { getBottomPadding } from "@/utils/bottom-padding";
 
 import { EnrolStudentStudentsSkeleton } from "../components/enrol-student-students-skeleton";
 
@@ -310,7 +311,7 @@ export function EnrolStudentScreen() {
       <View
         className="border-t border-line bg-page px-screen pt-3"
         style={{
-          paddingBottom: Math.max(insets.bottom, FOOTER_MIN_PADDING_BOTTOM),
+          paddingBottom: getBottomPadding(insets.bottom, FOOTER_MIN_PADDING_BOTTOM),
         }}
       >
         {isClassStep ? (

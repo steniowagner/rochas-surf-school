@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ScreenIntro } from "@/components/ui/screen-intro";
 import { useTheme } from "@/hooks/use-theme";
 import { SchoolRulesList } from "@/modules/school-rules/components/school-rules-list";
+import { getBottomPadding } from "@/utils/bottom-padding";
 
 import { useSchoolRulesAcceptance } from "./school-rules-acceptance.hook";
 import { SchoolRulesAcceptanceProps } from "./school-rules-acceptance.types";
@@ -44,7 +45,7 @@ export function SchoolRulesAcceptance({
 
       <View
         className="gap-3.5 border-t border-line bg-surface px-screen pt-4"
-        style={{ paddingBottom: Math.max(insets.bottom, 16) }}
+        style={{ paddingBottom: getBottomPadding(insets.bottom, 16) }}
       >
         <Checkbox
           checked={isChecked}

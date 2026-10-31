@@ -1,12 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
-import { KeyboardAvoidingView, Platform, View } from "react-native";
+import { KeyboardAvoidingView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ScreenIntro } from "@/components/ui/screen-intro";
 import { WhatsappNumberForm } from "@/components/whatsapp-number-form";
 import { useTheme } from "@/hooks/use-theme";
 import { useHeaderInset, useKeyboardOffset } from "@/navigation/stack-header";
+import { getBottomPadding, getKeyboardGapOffset } from "@/utils/bottom-padding";
 
 import { useProfileWhatsapp } from "./profile-whatsapp.hook";
 
@@ -14,6 +15,7 @@ export function ProfileWhatsapp() {
   const { t } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const bottomPadding = getBottomPadding(insets.bottom, 24);
   const headerInset = useHeaderInset();
   const keyboardOffset = useKeyboardOffset();
   const { whatsappNumber, whatsappVisible, isSaving, submit } =
@@ -21,15 +23,17 @@ export function ProfileWhatsapp() {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      keyboardVerticalOffset={keyboardOffset}
+      behavior="padding"
+      keyboardVerticalOffset={
+        keyboardOffset + getKeyboardGapOffset(bottomPadding)
+      }
       className="flex-1 bg-page"
     >
       <View
         className="flex-1 px-screen"
         style={{
           paddingTop: headerInset,
-          paddingBottom: Math.max(insets.bottom, 24),
+          paddingBottom: bottomPadding,
         }}
       >
         <WhatsappNumberForm

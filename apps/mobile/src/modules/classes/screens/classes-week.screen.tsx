@@ -8,6 +8,7 @@ import { ErrorState } from "@/components/ui/error-state";
 import { HeaderButton } from "@/components/ui/header-button";
 import { WeekMonthCalendar } from "@/components/week-month-calendar";
 import { StackHeaderTitle, useHeaderInset } from "@/navigation/stack-header";
+import { getBottomPadding } from "@/utils/bottom-padding";
 
 import { ClassCard } from "../components/class-card";
 import { ClassCardSkeleton } from "../components/class-card-skeleton";
@@ -83,7 +84,7 @@ export function ClassesWeekScreen({
           // The last card scrolls clear of the floating sport filter.
           contentContainerStyle={{
             paddingBottom:
-              Math.max(insets.bottom, 24) + DISCIPLINE_FILTER_CLEARANCE,
+              getBottomPadding(insets.bottom, 24) + DISCIPLINE_FILTER_CLEARANCE,
           }}
           refreshControl={
             <RefreshControl

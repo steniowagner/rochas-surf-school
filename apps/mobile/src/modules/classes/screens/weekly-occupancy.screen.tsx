@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { StackHeaderTitle } from "@/navigation/stack-header";
+import { getBottomPadding } from "@/utils/bottom-padding";
 
 import { ClassCard } from "../components/class-card";
 import { OccupancyMap } from "../components/occupancy-map";
@@ -98,7 +99,7 @@ export function WeeklyOccupancyScreen({ role }: WeeklyOccupancyScreenProps) {
         contentContainerClassName="gap-5 px-screen"
         contentContainerStyle={{
           paddingTop: 8,
-          paddingBottom: Math.max(insets.bottom, 24),
+          paddingBottom: getBottomPadding(insets.bottom, 24),
         }}
         refreshControl={
           <RefreshControl

@@ -14,6 +14,7 @@ import { useTheme } from "@/hooks/use-theme";
 import { PersonSheet } from "@/modules/people/components/person-sheet";
 import { usePinnedFooter } from "@/modules/school-settings/hooks/use-pinned-footer.hook";
 import { useCollapsingTitleHeader } from "@/navigation/stack-header";
+import { getBottomPadding } from "@/utils/bottom-padding";
 
 import { ClassMessageCard } from "../components/class-message-card";
 import { SendNoticeConfirmSheet } from "../components/send-notice-confirm-sheet";
@@ -40,7 +41,7 @@ export function SendNoticeScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
-  const restingPaddingBottom = Math.max(insets.bottom, 24);
+  const restingPaddingBottom = getBottomPadding(insets.bottom, 24);
   const footerStyle = usePinnedFooter(restingPaddingBottom);
   const screen = useSendNoticeScreen();
   const copy = screen.isClassMode ? "notices.classMessage" : "notices";

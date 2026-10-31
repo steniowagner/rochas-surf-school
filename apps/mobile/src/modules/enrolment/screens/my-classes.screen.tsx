@@ -11,6 +11,7 @@ import { ClassCardSkeleton } from "@/modules/classes/components/class-card-skele
 import { DisciplineFilter } from "@/modules/classes/components/discipline-filter";
 import { DISCIPLINE_FILTER_CLEARANCE } from "@/modules/classes/components/discipline-filter/discipline-filter.constants";
 import { StackHeaderTitle } from "@/navigation/stack-header";
+import { getBottomPadding } from "@/utils/bottom-padding";
 
 import { MyClassesFilters } from "../components/my-classes-filters";
 
@@ -99,7 +100,7 @@ export function MyClassesScreen() {
         contentContainerStyle={{
           paddingTop: 8,
           paddingBottom:
-            Math.max(insets.bottom, 24) + DISCIPLINE_FILTER_CLEARANCE,
+            getBottomPadding(insets.bottom, 24) + DISCIPLINE_FILTER_CLEARANCE,
         }}
         refreshControl={
           <RefreshControl

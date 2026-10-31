@@ -1,7 +1,7 @@
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Ionicons } from "@expo/vector-icons";
 import { Trans, useTranslation } from "react-i18next";
-import { KeyboardAvoidingView, Platform, Text, View } from "react-native";
+import { KeyboardAvoidingView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { ScreenIntro } from "@/components/ui/screen-intro";
 import { TextButton } from "@/components/ui/text-button";
 import { useTheme } from "@/hooks/use-theme";
 import { useHeaderInset, useKeyboardOffset } from "@/navigation/stack-header";
+import { getBottomPadding, getKeyboardGapOffset } from "@/utils/bottom-padding";
 
 import { CODE_LENGTH, useConfirmCode } from "./confirm-code.hook";
 import { ConfirmCodeProps } from "./confirm-code.types";
@@ -18,6 +19,7 @@ export function ConfirmCode({ email, name, onVerified }: ConfirmCodeProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const bottomPadding = getBottomPadding(insets.bottom, 24);
   const headerInset = useHeaderInset();
   const keyboardOffset = useKeyboardOffset();
   const {
@@ -35,15 +37,17 @@ export function ConfirmCode({ email, name, onVerified }: ConfirmCodeProps) {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      keyboardVerticalOffset={keyboardOffset}
+      behavior="padding"
+      keyboardVerticalOffset={
+        keyboardOffset + getKeyboardGapOffset(bottomPadding)
+      }
       className="flex-1 bg-page"
     >
       <View
         className="flex-1 px-screen"
         style={{
           paddingTop: headerInset,
-          paddingBottom: Math.max(insets.bottom, 24),
+          paddingBottom: bottomPadding,
         }}
       >
         <View className="mt-6 gap-4">

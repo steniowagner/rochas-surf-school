@@ -11,6 +11,7 @@ import { ScreenIntro } from "@/components/ui/screen-intro";
 import { TextInput } from "@/components/ui/text-input";
 import { useTheme } from "@/hooks/use-theme";
 import { useCollapsingTitleHeader } from "@/navigation/stack-header";
+import { getBottomPadding } from "@/utils/bottom-padding";
 
 import { PeopleSkeleton } from "../components/people-skeleton";
 import { PersonRow } from "../components/person-row";
@@ -107,7 +108,7 @@ export function PeopleScreen() {
         contentContainerClassName="px-screen"
         contentContainerStyle={{
           paddingTop: CONTENT_PADDING_TOP,
-          paddingBottom: Math.max(insets.bottom, 24),
+          paddingBottom: getBottomPadding(insets.bottom, 24),
         }}
         onScroll={header.scrollHandler}
         scrollEventThrottle={16}

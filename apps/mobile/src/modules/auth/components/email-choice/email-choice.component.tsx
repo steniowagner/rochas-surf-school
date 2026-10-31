@@ -7,6 +7,7 @@ import { ScreenIntro } from "@/components/ui/screen-intro";
 import { TextButton } from "@/components/ui/text-button";
 import { useTheme } from "@/hooks/use-theme";
 import { useHeaderInset } from "@/navigation/stack-header";
+import { getBottomPadding } from "@/utils/bottom-padding";
 
 import { ChoiceRow } from "../choice-row";
 import { EmailChoiceProps } from "./email-choice.types";
@@ -27,7 +28,7 @@ export function EmailChoice({
       className="flex-1 bg-page px-screen"
       style={{
         paddingTop: headerInset,
-        paddingBottom: Math.max(insets.bottom, 24),
+        paddingBottom: getBottomPadding(insets.bottom, 24),
       }}
     >
       <View className="mt-6 gap-6">

@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/button";
 import { ScreenIntro } from "@/components/ui/screen-intro";
 import { useTheme } from "@/hooks/use-theme";
+import { getBottomPadding } from "@/utils/bottom-padding";
 
 import { AccountStatusProps, AccountStatusTone } from "./account-status.types";
 
@@ -40,7 +41,7 @@ export function AccountStatus({
       className="flex-1 justify-between bg-page px-screen"
       style={{
         paddingTop: insets.top + 12,
-        paddingBottom: Math.max(insets.bottom, 24),
+        paddingBottom: getBottomPadding(insets.bottom, 24),
       }}
     >
       <View className="mt-6 gap-6">

@@ -12,6 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { TextInput } from "@/components/ui/text-input";
 import { Colors, shadowStyle } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
+import { getBottomPadding } from "@/utils/bottom-padding";
 
 import { ArchiveLocationSheet } from "../components/archive-location-sheet";
 import { LocationAddressCard } from "../components/location-address-card";
@@ -83,7 +84,7 @@ export function LocationFormScreen() {
           style={[
             shadowStyle("menuOption", theme),
             // Flush with the bottom of the screen: the home-indicator inset is the panel's own padding.
-            { paddingBottom: Math.max(insets.bottom, 16) },
+            { paddingBottom: getBottomPadding(insets.bottom, 16) },
           ]}
           onLayout={screen.measurePanel}
         >

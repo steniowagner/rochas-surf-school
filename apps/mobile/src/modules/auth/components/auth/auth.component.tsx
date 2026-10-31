@@ -18,6 +18,7 @@ import {
   localeNames,
   type AppLocale,
 } from "@/i18n/locales";
+import { getBottomPadding } from "@/utils/bottom-padding";
 
 import { AuthButton } from "../auth-button";
 import { AuthComponentProps } from "./auth.types";
@@ -115,7 +116,7 @@ export function AuthComponent({
 
       <View
         className="absolute left-screen right-screen gap-2.5"
-        style={{ bottom: Math.max(insets.bottom, 30) }}
+        style={{ bottom: getBottomPadding(insets.bottom, 30) }}
       >
         {/* Sign in with Apple isn't built yet, so its button isn't shown (spec 017, D-11). */}
         <AuthButton

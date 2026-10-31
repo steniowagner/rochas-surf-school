@@ -10,6 +10,7 @@ import {
   useCollapsingTitleHeader,
   useHeaderInset,
 } from "@/navigation/stack-header";
+import { getBottomPadding } from "@/utils/bottom-padding";
 
 import { SchoolSettingsForm } from "../components/school-settings-form";
 import { SchoolSettingsSkeleton } from "../components/school-settings-skeleton";
@@ -50,7 +51,7 @@ export function SchoolSettingsScreen() {
             className={`flex-1 bg-page px-screen ${isError ? "justify-center" : ""}`}
             style={{
               paddingTop: headerInset + CONTENT_PADDING_TOP,
-              paddingBottom: Math.max(insets.bottom, 24),
+              paddingBottom: getBottomPadding(insets.bottom, 24),
             }}
           >
             {isError ? (

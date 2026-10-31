@@ -2,10 +2,11 @@
 id: "080"
 slug: staging-mobile
 title: Staging builds of the mobile app on real phones
-status: in-review
+status: accepted
 created: 2026-10-30
 started: 2026-10-30
 base_commit: 701fa8106334bf8576c7345d240357a86f0a34dd
+reviewed_commit: 095380c882b89484dc2988d8eaeb92dce882bb6f
 fronts: [mobile]
 depends_on: ["079"]
 ---
@@ -257,3 +258,59 @@ completing a seat request on two real phones.
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-10-31 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ (apps/mobile, 9 tasks, cached); apps/mobile has no build script
+- related tests ✅ 6 passed (`app.config.test.ts`)
+- coverage of the changed lines ✅ `COVERAGE OK`: no changed line to measure, because all three changed source files
+  count as tests or tool config, which are always excluded. The two `GOOGLE_SERVICES_JSON` tests assert both branches
+  of `app.config.ts`, and would fail without the code
+- e2e ✅ `E2E PASSED`: no suite applies; no e2e suite exists for mobile
+- `eas.json` parses; `eas-build-post-install` with `TURBO_FORCE=true`: 5 tasks, 0 cached, exit 0, and its filter selects
+  the mobile app's five workspace dependencies
+- `eas env:list --environment preview` lists the six variables; `EXPO_PUBLIC_API_URL` is the staging address, and
+  `EXPO_PUBLIC_WEB_URL` the Vercel production URL, which answers 200. `GET /health` on staging answers 200
+- `eas build:view`: Android `048642b9…` is finished, `preview`, internal, APK, at `12edb576`; iOS `22569aa7…` is finished,
+  `testflight`, store, at `f3ade8cd`. No workspace code changed after `f3ade8cd`, and the only changes after `12edb576`
+  are the iOS encryption flag and the submit profile, so the Android build still stands for this commit
+
+**Expected Results**
+
+The phone checks ran on the user's real phones, and neither this session nor a simulator can repeat them, so each one
+below is judged from the evidence under T-04 and T-05, compared with staging's rows, the EAS builds and the code.
+
+- ER-01 ✅ — the user's report under T-04 (staging's classes, offline). The build's API variable is staging's
+- ER-02 ✅ with a recorded deviation — the Verify by passed: staging has `registration.approved` at 01:54:04 UTC, read at
+  01:54:13, and the user reports the closed-app push, its tap and Push off. One class message, at 02:51:42 UTC, is
+  reported as never arriving as a push and stays unconfirmed by the user's decision. Staging holds its three rows, with
+  the student's read at 02:51:56. The code agrees with T-04: `SendClassMessage` refuses only cancelled and finished
+  classes, the notifier has no branch on the class's state, and `PushReceiptCheckJob` drops tickets at 15 minutes, so
+  neither delivery nor failure can be proven. This is a recorded gap, not a proven failure, in a case the Verify by
+  doesn't require
+- ER-03 ✅ — the user's report under T-04 (Google account, cancelled picker). `registration.pending` at 01:53:48 UTC
+  shows a new account entering the registration flow
+- ER-04 ✅ — the user's report under T-04 (map, address suggestions)
+- ER-05 ✅ — the user's report under T-05. Staging's `registration.approved` at 03:10:32 UTC, read at 03:10:38, and its
+  ticket from the same second are there
+- ER-06 ✅ — the user's report under T-05. On class `89218aff-1ea7-402b-a65f-75003a09109f` the enrolment is `approved`,
+  requested at 02:53:43 and decided at 02:53:55 UTC; `enrolment.requested` was read at 02:53:52 and
+  `enrolment.approved` at 02:54:01
+
+**Findings**
+
+None.
+
+**Notes**
+
+- For the new spec on the class message: a second `class.message` reached the same student at 02:54:27 UTC, on a class
+  that hadn't started, and that row is unread. T-04 doesn't mention it, and it proves nothing alone, because a push
+  that arrives and isn't tapped looks the same. Its ticket is gone too. A rerun within 15 minutes of the send can read
+  the receipt.
+- Memory for `spec-finish`: `technical-context.md`'s Push section still says the keys are "not set up yet". `## Memory
+  Impact` leaves out T-03's deviations, which belong in it: the second Android OAuth client, `Android EAS staging`, and
+  the keystore's SHA-1 on the Maps key.
+- All six tasks and every Decision hold, nothing in Out of scope was built, and no secret, Firebase file or real
+  person's email is in the change.

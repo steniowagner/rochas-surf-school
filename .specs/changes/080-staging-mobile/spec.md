@@ -178,8 +178,11 @@ completing a seat request on two real phones.
   > 01:43:51 UTC, but that student has no row in `push_tokens` and there are no `push_tickets`, so the backend had no
   > device to send to. The only token is the iOS admin's. The build log shows `GOOGLE_SERVICES_JSON` and
   > `processReleaseGoogleServices`, so the Firebase file was in the build. The user then found notifications disabled on
-  > the phone, which explains the missing token: this was the phone's setting, not a bug. ER-02 must be run again with
-  > them allowed. ER-01, ER-03 and ER-04 have no result per check yet.
+  > the phone, which explains the missing token: this was the phone's setting, not a bug. Rerun with them allowed: a new
+  > Google account registered the Android token at 01:53:49 UTC, and the user reports the `registration.pending` push on
+  > the iPhone and the `registration.approved` push on Android; staging holds two tickets from those sends. Still
+  > unchecked: ER-02 with the app closed, its tap and the Push-off case; ER-01 against staging's classes and offline;
+  > ER-03's cancelled picker; ER-04.
 
 - [ ] **T-05** — With the user's Apple Developer account: upload the APNs key, build the `testflight` profile, submit
   it with `eas submit`, and add the user as an internal tester. This task stays blocked with ⛔ until the Apple

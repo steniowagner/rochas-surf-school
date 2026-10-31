@@ -16,6 +16,8 @@ import { EmailSignInProps } from "./email-sign-in.types";
 export function EmailSignIn({
   onCodeRequested,
   onCreateAccountPress,
+  onTermsPress,
+  onPrivacyPress,
 }: EmailSignInProps) {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -80,8 +82,8 @@ export function EmailSignIn({
               i18nKey="auth.terms"
               t={t}
               components={{
-                terms: <TextButton />,
-                privacy: <TextButton />,
+                terms: <TextButton onPress={onTermsPress} />,
+                privacy: <TextButton onPress={onPrivacyPress} />,
               }}
             />
           </Text>

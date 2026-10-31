@@ -5,6 +5,8 @@ export type EmailSignInProps = {
   onCodeRequested?: (email: string) => void;
   /** Called with the email typed so far, trimmed, when the person asks to create an account instead. */
   onCreateAccountPress?: (email: string) => void;
+  onTermsPress?: () => void;
+  onPrivacyPress?: () => void;
 };
 
 export type UseEmailSignInProps = EmailSignInProps;

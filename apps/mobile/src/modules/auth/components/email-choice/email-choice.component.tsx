@@ -14,6 +14,8 @@ import { EmailChoiceProps } from "./email-choice.types";
 export function EmailChoice({
   onHaveAccountPress = () => {},
   onNewPress = () => {},
+  onTermsPress,
+  onPrivacyPress,
 }: EmailChoiceProps) {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -59,8 +61,8 @@ export function EmailChoice({
           i18nKey="auth.terms"
           t={t}
           components={{
-            terms: <TextButton />,
-            privacy: <TextButton />,
+            terms: <TextButton onPress={onTermsPress} />,
+            privacy: <TextButton onPress={onPrivacyPress} />,
           }}
         />
       </Text>

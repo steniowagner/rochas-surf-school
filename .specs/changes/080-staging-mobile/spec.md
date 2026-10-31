@@ -183,8 +183,10 @@ completing a seat request on two real phones.
   > `ios.config.usesNonExemptEncryption: false` to `apps/mobile/app.json`, as Expo documents for an app whose only
   > encryption is the OS's HTTPS and `expo-secure-store`, so builds don't stop on Missing Compliance, and
   > `appName` to the `testflight` submit profile in `apps/mobile/eas.json`, because App Store names are unique and the
-  > default, `RSS`, is the short one under the icon. Waiting on the user's Apple sign-in for the build and `eas submit`,
-  > which need a password and two-factor code, and on the iPhone and Android checks.
+  > default, `RSS`, is the short one under the icon. The user ran the first `testflight` build with their Apple sign-in,
+  > generating the distribution certificate, the provisioning profile and the APNs key: build
+  > `22569aa7-9205-4e75-9190-58a26e86935c` (commit `f3ade8cd`, build number 1) finished with its `.ipa`. Waiting on
+  > `eas submit`, the iPhone and the ER-05 and ER-06 checks.
 
 ### Verification
 

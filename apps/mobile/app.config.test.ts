@@ -6,12 +6,18 @@ import createConfig from "./app.config";
 const contextOf = (config: unknown) => ({ config }) as ConfigContext;
 
 const original = process.env.GOOGLE_MAPS_ANDROID_API_KEY;
+const originalGoogleServices = process.env.GOOGLE_SERVICES_JSON;
 
 afterEach(() => {
   if (original === undefined) {
     delete process.env.GOOGLE_MAPS_ANDROID_API_KEY;
   } else {
     process.env.GOOGLE_MAPS_ANDROID_API_KEY = original;
+  }
+  if (originalGoogleServices === undefined) {
+    delete process.env.GOOGLE_SERVICES_JSON;
+  } else {
+    process.env.GOOGLE_SERVICES_JSON = originalGoogleServices;
   }
 });
 
@@ -46,6 +52,26 @@ describe("app.config", () => {
       "react-native-maps",
       { androidGoogleMapsApiKey: undefined },
     ]);
+  });
+
+  it("points android.googleServicesFile at the GOOGLE_SERVICES_JSON file and keeps the rest of android", () => {
+    process.env.GOOGLE_SERVICES_JSON = "/eas/google-services.json";
+
+    const config = createConfig(contextOf(expo));
+
+    expect(config.android?.googleServicesFile).toBe(
+      "/eas/google-services.json",
+    );
+    expect(config.android?.package).toBe(expo.android.package);
+  });
+
+  it("leaves android as it is when GOOGLE_SERVICES_JSON is missing", () => {
+    delete process.env.GOOGLE_SERVICES_JSON;
+
+    const config = createConfig(contextOf(expo));
+
+    expect(config.android).toEqual(expo.android);
+    expect(config.android).not.toHaveProperty("googleServicesFile");
   });
 
   it("falls back to the app name and slug when the base config has none", () => {

@@ -1386,8 +1386,8 @@ the exact design frames (every design entry now has its own anchor). The tester 
 "Approved" or "Denied" (one excludes the other; clicking the checked one clears it), adds notes to any case, and
 "Copy results" puts a plain-text summary (flow, tester, date, counter and one line per case) on the clipboard to
 send to the school; "Clear results" starts the flow over after a confirmation. Progress is kept per flow in that
-browser only, shared by the three languages. Notifications are judged by the Notifications screen, since the test
-build can't deliver pushes yet. The pages aren't linked from the site and aren't indexed by search engines. The
+browser only, shared by the three languages. Notifications are judged by the Notifications screen, which works whether or
+not a push arrives. The pages aren't linked from the site and aren't indexed by search engines. The
 backend's `test-accounts` command prints the 12 test sets' review accounts with fresh codes for the test server.
 
 **Test accounts page** (spec `077-test-accounts-page`) — `/{lang}/user-journeys/test-accounts` lists the 12 test
@@ -1407,7 +1407,13 @@ sign-in codes reach real inboxes from `admin@rochassurfschool.com`. It is a test
 about production. The site's privacy policy now names Amazon Web Services, Supabase and Vercel in the three languages,
 in place of the generic hosting line. The mobile builds that point at this server are spec 080.
 
-Active specs: `080-staging-mobile` and `081-staging-follow-ups`, both planned.
+**Staging builds on real phones** (spec `080-staging-mobile`) — the real app now runs on real phones against the
+staging server: Android from an install link and iOS through TestFlight. Pushes reach a closed app on both, and tapping
+one opens the same screen as its row in the Notifications screen; Google sign-in works on both, and the class map draws
+on Android. An admin and a student completed a seat request on two phones. These are test builds, not store releases.
+One class message sent during a class was reported as not arriving as a push and stays unconfirmed.
+
+Active specs: `081-staging-follow-ups`, planned.
 
 ## Out of scope (future evolution, recorded in the specs)
 
@@ -1456,8 +1462,8 @@ Active specs: `080-staging-mobile` and `081-staging-follow-ups`, both planned.
 - Deploying the public site (host and domain), linking the privacy policy from the store listings, the onboarding
   line linking the terms and the policy, a report button for objectionable content, the
   legal (LGPD) review of the pages' copy.
-- On the user journey pages (spec 076): distributing the test build to testers (TestFlight, Play internal testing),
-  keeping results anywhere but the tester's browser (no server, no sharing between browsers or testers), a print
+- On the staging builds (spec 080): store releases, public TestFlight and over-the-air updates.
+- On the user journey pages (spec 076): keeping results anywhere but the tester's browser (no server, no sharing between browsers or testers), a print
   layout, exporting to a file or sending the results from the page, linking the pages from the site, a page for the
   design system, test cases for features that aren't built or take longer than a session (the 30-day erasures), and
   removing the test sets' accounts before launch.

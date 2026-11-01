@@ -1,22 +1,17 @@
-import { DateTimePicker } from "@expo/ui/community/datetime-picker";
 import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
 import { BottomModal } from "@/components/ui/bottom-modal";
 import { Button } from "@/components/ui/button";
-import { useTheme } from "@/hooks/use-theme";
+
+import { TimeField } from "../time-field";
 
 import { useTimeRangeSheet } from "./time-range-sheet.hook";
 import { TimeRangeSheetProps } from "./time-range-sheet.types";
 
-// The native picker only sizes itself to its content vertically; without a width inside a centered column its frame
-// collapses to zero, so the wheels are drawn but never receive a touch.
-const pickerStyle = { width: "100%" } as const;
-
 /** "Novo horário": the start and the end of a range that is only for this batch. */
 export function TimeRangeSheet(props: TimeRangeSheetProps) {
   const { t } = useTranslation();
-  const theme = useTheme();
   const { start, end, valid, changeStart, changeEnd, submit, close } =
     useTimeRangeSheet(props);
 
@@ -40,30 +35,22 @@ export function TimeRangeSheet(props: TimeRangeSheetProps) {
             <Text className="ds-text-section-label text-ink-2">
               {t("timeRangeSheet.start")}
             </Text>
-            <DateTimePicker
+            <TimeField
               testID="time-range-start"
-              style={pickerStyle}
-              mode="time"
-              display="spinner"
-              is24Hour
-              accentColor={theme.grape}
+              label={t("timeRangeSheet.start")}
               value={start}
-              onValueChange={changeStart}
+              onChange={changeStart}
             />
           </View>
           <View className="flex-1 items-center gap-1">
             <Text className="ds-text-section-label text-ink-2">
               {t("timeRangeSheet.end")}
             </Text>
-            <DateTimePicker
+            <TimeField
               testID="time-range-end"
-              style={pickerStyle}
-              mode="time"
-              display="spinner"
-              is24Hour
-              accentColor={theme.grape}
+              label={t("timeRangeSheet.end")}
               value={end}
-              onValueChange={changeEnd}
+              onChange={changeEnd}
             />
           </View>
         </View>

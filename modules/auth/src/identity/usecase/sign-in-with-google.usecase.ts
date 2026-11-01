@@ -14,13 +14,13 @@ import {
   UserRepository,
   toAccountOut,
 } from "../../user";
-import { Identity } from "../model";
 import {
   GoogleIdTokenPayload,
   GoogleIdTokenProvider,
   IdentityRepository,
 } from "../provider";
 import { VerifySignInCodeOut } from "../../sign-in-code/usecase";
+import { ProviderAccountResolver } from "./provider-account-resolver";
 
 export interface SignInWithGoogleIn {
   idToken: string;
@@ -33,15 +33,23 @@ export type SignInWithGoogleOut = VerifySignInCodeOut;
 export class SignInWithGoogle
   implements UseCase<SignInWithGoogleIn, SignInWithGoogleOut>
 {
+  private readonly accountResolver: ProviderAccountResolver;
+
   constructor(
     private readonly googleIdTokenProvider: GoogleIdTokenProvider,
     private readonly userRepository: UserRepository,
-    private readonly identityRepository: IdentityRepository,
+    identityRepository: IdentityRepository,
     private readonly startSession: StartSession,
     private readonly refreshTokenTtlDays: number,
     private readonly rulesVersionProvider: RulesVersionProvider,
-    private readonly registrationNotifier: RegistrationNotifier,
-  ) {}
+    registrationNotifier: RegistrationNotifier,
+  ) {
+    this.accountResolver = new ProviderAccountResolver(
+      userRepository,
+      identityRepository,
+      registrationNotifier,
+    );
+  }
 
   async execute(input: SignInWithGoogleIn): Promise<SignInWithGoogleOut> {
     const idToken = typeof input?.idToken === "string" ? input.idToken : "";
@@ -79,34 +87,22 @@ export class SignInWithGoogle
     }
   }
 
-  /** A new user is validated before anything is written, so a bad name writes nothing. */
   private async resolveUser(
     payload: GoogleIdTokenPayload,
     email: string,
     name: unknown,
   ): Promise<User> {
-    const known = await this.identityRepository.findByProvider("google", payload.sub);
-    if (known) {
-      const owner = await this.userRepository.findById(known.userId);
-      if (owner) {
-        return owner;
-      }
-    }
-
-    const existing = await this.userRepository.findByEmail(email);
-    if (existing) {
-      await this.createIdentity(existing.id, payload.sub, email);
-      return existing;
-    }
-
-    const user = this.buildNewUser(email, name, payload.name);
-    await this.userRepository.create(user);
-    await this.createIdentity(user.id, payload.sub, email);
-    await this.registrationNotifier.registrationPending({
-      id: user.id,
-      name: user.name,
-    });
-    return user;
+    const known = await this.accountResolver.findByIdentity("google", payload.sub);
+    return (
+      known ??
+      this.accountResolver.linkOrCreate({
+        provider: "google",
+        sub: payload.sub,
+        email,
+        bodyName: name,
+        providerName: payload.name,
+      })
+    );
   }
 
   /** Google's picture is only a starting point: a photo already there stays, and a bad URL never stops the sign-in. */
@@ -117,33 +113,5 @@ export class SignInWithGoogle
 
     const written = await this.userRepository.fillPhotoUrl(user.id, picture);
     return written ? user.clone({ photoUrl: picture }) : user;
-  }
-
-  private buildNewUser(email: string, bodyName: unknown, googleName?: string): User {
-    const chosen = typeof bodyName === "string" ? bodyName : googleName;
-    const user = new User({
-      name: typeof chosen === "string" ? chosen.trim() : "",
-      email,
-      whatsappVisible: false,
-      role: "student",
-      status: "pending",
-    });
-    user.validate();
-    return user;
-  }
-
-  private async createIdentity(
-    userId: string,
-    sub: string,
-    email: string,
-  ): Promise<void> {
-    const identity = new Identity({
-      userId,
-      provider: "google",
-      providerUserId: sub,
-      email,
-    });
-    identity.validate();
-    await this.identityRepository.create(identity);
   }
 }

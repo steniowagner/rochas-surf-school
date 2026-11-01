@@ -296,12 +296,20 @@ because the app offers Google.
 
 ### Auth module (`modules/auth`)
 
-- [ ] **T-01** — Move the lookup of `SignInWithGoogle` to `ProviderAccountResolver` in
+- [x] **T-01** — Move the lookup of `SignInWithGoogle` to `ProviderAccountResolver` in
   `modules/auth/src/identity/usecase/provider-account-resolver.ts` (D-07), with its tests in
   `modules/auth/test/identity/usecase/provider-account-resolver.test.ts`. The tests of `sign-in-with-google.usecase.test.ts`
   stay as they are. Skill: [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: enabling · Done when: `npm test --workspace @rochas-surf-school/auth` passes with
   `sign-in-with-google.usecase.test.ts` unchanged.
+  > ✅ 2026-11-01 12:16 — moved the lookup of `SignInWithGoogle` to `ProviderAccountResolver` (`findByIdentity`,
+  > `linkOrCreate`), built inside the use case so its constructor signature is unchanged; the class stays out of the
+  > public barrel, its test imports it by path; files:
+  > `modules/auth/src/identity/usecase/provider-account-resolver.ts`,
+  > `modules/auth/src/identity/usecase/sign-in-with-google.usecase.ts`,
+  > `modules/auth/test/identity/usecase/provider-account-resolver.test.ts`; verified: `npm test --workspace
+  > @rochas-surf-school/auth` (39 suites, 553 passed) with `sign-in-with-google.usecase.test.ts` unchanged, lint and
+  > check-types exit 0; deviations: none
 
 - [ ] **T-02** — Add the `AppleIdTokenProvider` port in `modules/auth/src/identity/provider/apple-id-token.provider.ts`
   (D-04), the `SignInWithApple` use case in `modules/auth/src/identity/usecase/sign-in-with-apple.usecase.ts` (input

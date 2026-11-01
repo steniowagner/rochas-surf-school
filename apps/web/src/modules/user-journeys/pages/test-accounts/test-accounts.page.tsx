@@ -1,17 +1,14 @@
-import { testAccountSets } from "@rochas-surf-school/shared";
+import { testAccountCode, testAccountSets } from "@rochas-surf-school/shared";
 import { ArrowLeft, UsersRound } from "lucide-react";
 
 import { ContentCard } from "@/components/content-card";
 import { ScreenIntro } from "@/components/screen-intro";
 import { Button } from "@/components/ui/button";
 
-import { CopyEmailButton } from "../../components/copy-email-button";
 import type { TestAccountsPageProps } from "./test-accounts.types";
 
 export function TestAccountsPage({ locale, text }: TestAccountsPageProps) {
   const labels = text.testAccounts;
-  // Only the button's labels cross into the client component, not the whole page's text.
-  const copyLabels = { copyEmail: labels.copyEmail, copied: labels.copied, copyFailed: labels.copyFailed };
 
   return (
     <>
@@ -41,7 +38,9 @@ export function TestAccountsPage({ locale, text }: TestAccountsPageProps) {
                   <span className="ds-text-body wrap-anywhere text-ink" data-testid="test-account-email">
                     {account.email}
                   </span>
-                  <CopyEmailButton email={account.email} labels={copyLabels} />
+                  <span className="ds-text-body text-ink" data-testid="test-account-code">
+                    {labels.signInCode}: {testAccountCode}
+                  </span>
                 </li>
               ))}
             </ul>

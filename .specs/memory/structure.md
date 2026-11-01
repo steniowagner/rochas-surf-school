@@ -58,7 +58,7 @@ staging/      # the staging stack (spec 079), with its state in that bucket
   - `src/validation/rules/phone-number.rule.ts` — `PhoneNumberRule` (E.164, valid for its country, with
     `libphonenumber-js`).
   - `src/validation/` — `Validator` and the reusable rules in `rules/`.
-  - `src/test-accounts/test-account-sets.ts` — `testAccountSets`: the 12 test sets without codes, read by the
+  - `src/test-accounts/test-account-sets.ts` — `testAccountSets` and `testAccountCode`: the 12 test sets and their code, read by the
     backend's `npm run test-accounts` and the web's test accounts page (spec 077).
   - `test/` — Jest tests mirroring `src/`.
 - **`packages/design-tokens`** (`@rochas-surf-school/design-tokens`) — `src/tokens.ts` (source of truth) and
@@ -270,7 +270,7 @@ prisma/
   seed/main.ts                  # seed runner, one task per module
   seed/review-accounts.seed.ts  # upserts the REVIEW_ACCOUNTS users and their email identities
   seed/reset-staging.seed.ts    # wipes the database and seeds REVIEW_ACCOUNTS; reset-staging.ts runs it by hand
-  seed/test-accounts.ts         # the 12 test sets (testAccountSets from shared, spec 077) with the given code;
+  seed/test-accounts.ts         # the 12 test sets (testAccountSets from shared, spec 077) with testAccountCode;
                                 # print-test-accounts.ts prints their REVIEW_ACCOUNTS line and hand-out table
                                 # (`npm run test-accounts`, spec 076)
 src/
@@ -1136,8 +1136,7 @@ src/
     data/user-journey-flows.ts  # the locale-free flows: design page, groups, rows (AU/ST/IN/AD-NN) and their design ids
     i18n/                       # en.ts, pt-br.ts, es.ts (flow and row texts, typed by user-journey-texts.types.ts),
                                 # user-journey-texts.ts (by site locale)
-    components/                 # journey-board (client: progress, copy, clear), journey-row, results-summary,
-                                # copy-email-button (client, spec 077)
+    components/                 # journey-board (client: progress, copy, clear), journey-row, results-summary
     pages/                      # user-journeys-index, user-journey-flow, test-accounts (spec 077)
     types/                      # journey-progress.types.ts
     utils/                      # design-href.ts, results-summary.ts (the copied text), journey-progress-storage.ts

@@ -207,9 +207,7 @@ export type Dictionary = {
       title: string;
       intro: string;
       roles: { admin: string; instructor: string; student: string };
-      copyEmail: string;
-      copied: string;
-      copyFailed: string;
+      signInCode: string;
       /** The row that links the page from the user journeys index. */
       indexRow: { title: string; description: string };
       /** The link to the page in a flow page's "Account to use" card. */

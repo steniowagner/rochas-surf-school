@@ -1,4 +1,4 @@
-import { testAccountSets } from '@rochas-surf-school/shared';
+import { testAccountCode, testAccountSets } from '@rochas-surf-school/shared';
 
 import type { ReviewAccount } from '../../src/modules/auth/auth.config.js';
 
@@ -10,14 +10,11 @@ export interface FormattedTestAccounts {
 }
 
 /**
- * Builds the review accounts of the 12 test sets (`testAccountSets`, spec 076 D-21), in set order, all with the given
- * 6-digit code. Only the admins start approved: the others start as pending students, whatever the set calls them. The
- * code is never committed (D-22): it exists only in this output.
+ * Builds the review accounts of the 12 test sets (`testAccountSets`, spec 076 D-21), in set order, all with
+ * `testAccountCode`. Only the admins start approved: the others start as pending students, whatever the set calls them.
  */
-export function buildTestAccounts(code: string | undefined): ReviewAccount[] {
-  if (code === undefined || !/^\d{6}$/.test(code)) {
-    throw new Error('The test accounts need a 6-digit code');
-  }
+export function buildTestAccounts(): ReviewAccount[] {
+  const code = testAccountCode;
 
   return testAccountSets.flatMap(({ accounts }) =>
     accounts.map(({ email, role, name }) =>

@@ -1,4 +1,4 @@
-import { EmailRule, PersonNameRule, testAccountSets } from "../../src/index";
+import { EmailRule, PersonNameRule, testAccountCode, testAccountSets } from "../../src/index";
 
 const SET_NAMES = [
   "One",
@@ -95,6 +95,10 @@ describe("testAccountSets", () => {
       email: "student12@test.com",
       name: "Student User Twelve",
     });
+  });
+
+  test("has a 6-digit sign-in code", () => {
+    expect(testAccountCode).toMatch(/^\d{6}$/);
   });
 
   test("has 36 distinct emails that pass EmailRule", () => {

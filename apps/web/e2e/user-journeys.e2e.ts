@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { testAccountSets } from "@rochas-surf-school/shared";
+import { testAccountCode, testAccountSets } from "@rochas-surf-school/shared";
 
 import { en } from "../src/i18n/dictionaries/en";
 import { es } from "../src/i18n/dictionaries/es";
@@ -12,7 +12,7 @@ const dictionaries = { "pt-br": ptBr, es, en };
 const flows = ["auth", "student", "instructor", "admin"] as const;
 const caseCounts = { auth: 21, student: 28, instructor: 16, admin: 33 };
 
-// An email address or a 6-digit sign-in code: never on a user journey page (spec 076 D-06).
+// An email address or a 6-digit sign-in code: only the test accounts page shows them (spec 076 D-06).
 const emailOrCode = /[\w.+-]+@[\w-]+\.[\w.]+|\b\d{6}\b/;
 
 test.describe("user journeys index", () => {
@@ -405,8 +405,6 @@ test.describe("user journey flow pages", () => {
   });
 });
 
-// A 6-digit sign-in code: never on the test accounts page, which shows emails by design (spec 077 D-08).
-const sixDigits = /\b\d{6}\b/;
 const emailsOf = (page: Page) => page.getByTestId("test-account-email");
 
 test.describe("test accounts page", () => {
@@ -432,10 +430,13 @@ test.describe("test accounts page", () => {
           await expect(rows.nth(row)).toContainText(text.testAccounts.roles[account.role]);
           await expect(rows.nth(row)).toContainText(account.name);
           await expect(rows.nth(row).getByTestId("test-account-email")).toHaveText(account.email);
+          await expect(rows.nth(row).getByTestId("test-account-code")).toHaveText(
+            `${text.testAccounts.signInCode}: ${testAccountCode}`,
+          );
         }
       }
 
-      expect(await page.locator("main").innerText()).not.toMatch(sixDigits);
+      await expect(page.locator("main").getByRole("button")).toHaveCount(0);
     });
   }
 
@@ -480,26 +481,6 @@ test.describe("test accounts page", () => {
     await page.getByRole("link", { name: en.userJourneys.testAccounts.seeTestAccounts }).click();
     await expect(page).toHaveURL(/\/en\/user-journeys\/test-accounts$/);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(en.userJourneys.testAccounts.title);
-  });
-
-  test("copy an email on the test accounts page", async ({ page, context }) => {
-    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-    await page.goto("/en/user-journeys/test-accounts");
-    const student = page.getByRole("button", { name: "Copy email student05@test.com" });
-    const admin = page.getByRole("button", { name: "Copy email admin05@test.com" });
-
-    expect((await student.boundingBox())!.height).toBeGreaterThanOrEqual(44);
-    await student.click();
-
-    const copied = page.getByRole("button", { name: "Copied student05@test.com" });
-    await expect(copied).toBeVisible();
-    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe("student05@test.com");
-    await expect(admin).toBeVisible();
-    await expect(page.getByRole("button", { name: /^Copied / })).toHaveCount(1);
-    await expect(page.locator("main").getByRole("alert")).toHaveCount(0);
-
-    await expect(student).toBeVisible({ timeout: 4000 });
-    await expect(copied).toHaveCount(0);
   });
 
   test("test accounts page fits a phone and a desktop", async ({ page }) => {

@@ -811,9 +811,7 @@ src/
                                 # the sport filter on "Aula", fixed "Escolher aula" / "Inscrever" footer
     components/take-out-sheet/  # TakeOutSheet ("Retirar <nome> da aula?": a DenySheet with the visible "Motivo
                                 # (opcional)" of 300; no hook; spec 044; `trial`: the guest copy, no reason)
-    components/class-day-header/  # ClassDayHeader (the day block, the chips, the time range and the location;
-                                # `showYear` for "Inscrições em aulas", none for the message sheet; spec 082)
-    components/class-requests-group/  # ClassRequestsGroup (the class card — day block, time, location, capacity,
+    components/class-requests-group/  # ClassRequestsGroup (the class card — RequestSeatClassCard `embedded`, capacity,
                                 # free seats or "Esgotado", occupancy bar —, the waiting-list label, positions and
                                 # full-class note, one DecisionCard per request)
     components/denial-reason-sheet/  # DenialReasonSheet (the student's "Pedido recusado": class line, "Motivo da
@@ -869,7 +867,7 @@ src/
                                 # MessageSheet from a row or the notificationId route param (spec 082)
     components/notification-row/  # one notification: tinted icon, title, body, time, unread dot
     components/message-sheet/   # MessageSheet + hook: the admin's message, its sender and, with onOpenClass, its class
-                                # (ClassDayHeader in a pressable card; spec 082); also used by class details
+                                # (RequestSeatClassCard `embedded` in a pressable card; spec 082); also used by class details
     utils/notification-target.ts  # where a notification leads per type, class id and flow (push and row);
                                 # broadcast and class.message: routes.<role>.notificationMessage(id), or null without
                                 # an id or in another flow; isAdminMessageType, classDetailTarget (spec 082)

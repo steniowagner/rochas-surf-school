@@ -11,8 +11,12 @@ export type ClassRequestsGroupProps = {
   locale: Locale;
   discipline: "surf" | "skate";
   level: "beginner" | "advanced" | "expert";
-  /** The day block on the left of the class header: "QUA", "9", "set" and "2026". */
-  block: { weekday: string; day: string; month: string; year: string };
+  /** "Quarta" */
+  weekday: string;
+  /** "9 SET" */
+  date: string;
+  /** "1 h 30 min" */
+  duration: string;
   /** "08:00 – 09:30". */
   timeRange: string;
   locationName: string;

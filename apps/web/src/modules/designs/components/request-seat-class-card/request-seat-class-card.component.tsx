@@ -5,10 +5,10 @@ import { Chip } from "../chip";
 
 import type { RequestSeatClassCardProps } from "./request-seat-class-card.types";
 
-/** The class the student asks to join: the chips, its day and time range, and the location. */
-export function RequestSeatClassCard({ locale, discipline, level, weekday, date, duration, timeRange, locationName }: RequestSeatClassCardProps) {
+/** A class at a glance: the chips, its day and time range, and the location. */
+export function RequestSeatClassCard({ locale, discipline, level, weekday, date, duration, timeRange, locationName, embedded = false }: RequestSeatClassCardProps) {
   return (
-    <div className="flex flex-col items-start gap-3 rounded-card border border-line bg-surface p-4">
+    <div data-testid="request-seat-class-card" className={`flex flex-col items-start gap-3 ${embedded ? "" : "rounded-card border border-line bg-surface p-4"}`}>
       <div className="flex flex-wrap gap-2">
         <Chip tone={discipline}>{appT(locale, `newClass.discipline.${discipline}`)}</Chip>
         <Chip tone="info">{appT(locale, `newClass.level.${level}`)}</Chip>

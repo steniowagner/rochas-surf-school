@@ -12,4 +12,6 @@ export type RequestSeatClassCardProps = {
   duration: string;
   timeRange: string;
   locationName: string;
+  /** Inside another card: no frame of its own, the parent draws it. */
+  embedded?: boolean;
 };

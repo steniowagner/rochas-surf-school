@@ -16,7 +16,7 @@ import { schoolTimeOf } from "@/modules/classes/utils/week";
 import { getDateLocale } from "@/utils/calendar-dates";
 
 import { formatAskedAt } from "../../utils/class-requests";
-import { ClassDayHeader } from "../class-day-header";
+import { RequestSeatClassCard } from "../request-seat-class-card";
 
 import type { ClassRequestsGroupProps } from "./class-requests-group.types";
 
@@ -60,13 +60,13 @@ export function ClassRequestsGroup({
         onPress={() => onOpenClass(item)}
         className="gap-3 bg-dim p-4"
       >
-        <ClassDayHeader
+        <RequestSeatClassCard
+          embedded
           discipline={item.discipline}
           level={item.level}
           startsAt={item.startsAt}
           endsAt={item.endsAt}
           locationName={item.location.name}
-          showYear
         />
         <View className="gap-1.5">
           <View className="h-1.5 overflow-hidden rounded-full bg-sand">

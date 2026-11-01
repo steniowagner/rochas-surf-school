@@ -151,9 +151,9 @@ describe("ClassRequestsScreen list", () => {
 
     expect(screen.getByRole("header", { name: "Class enrolments" })).toBeOnTheScreen();
     expect(screen.getByText("2 requests · 1 class")).toBeOnTheScreen();
-    expect(screen.getByText("WED")).toBeOnTheScreen();
-    expect(screen.getByText("21")).toBeOnTheScreen();
-    expect(screen.getByText("OCT 2026")).toBeOnTheScreen();
+    expect(screen.getByText("Wednesday")).toBeOnTheScreen();
+    expect(screen.getByText("21 OCT")).toBeOnTheScreen();
+    expect(screen.getByText("1 hour")).toBeOnTheScreen();
     expect(screen.getByText("Surf")).toBeOnTheScreen();
     expect(screen.getByText("Beginner")).toBeOnTheScreen();
     expect(screen.getByText("08:00 – 09:00")).toBeOnTheScreen();

@@ -172,7 +172,7 @@ describe("MessageSheet", () => {
       fetchMock.mockResolvedValue(ok(CLASS));
       await renderSheet({ message: CLASS_MESSAGE, onOpenClass: jest.fn() });
 
-      expect(await screen.findByText("OCT")).toBeOnTheScreen();
+      expect(await screen.findByText("21 OCT")).toBeOnTheScreen();
       expect(screen.queryByText(/2026/)).toBeNull();
     });
 

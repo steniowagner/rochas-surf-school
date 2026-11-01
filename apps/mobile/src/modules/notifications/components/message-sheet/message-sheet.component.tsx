@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { BUTTON_ACTIVE_OPACITY } from "@/components/ui/button/button.constants";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTheme } from "@/hooks/use-theme";
-import { ClassDayHeader } from "@/modules/enrolment/components/class-day-header";
+import { RequestSeatClassCard } from "@/modules/enrolment/components/request-seat-class-card";
 
 import { useMessageSheet } from "./message-sheet.hook";
 import type { MessageSheetProps } from "./message-sheet.types";
@@ -43,7 +43,7 @@ export function MessageSheet({ message, visible, onClose, onOpenClass }: Message
           </View>
           {sheet.isClassLoading ? (
             <View testID="message-sheet-class-loading">
-              <Skeleton className="h-32 rounded-card" />
+              <Skeleton className="h-44 rounded-card" />
             </View>
           ) : null}
           {sheet.classItem ? (
@@ -58,7 +58,8 @@ export function MessageSheet({ message, visible, onClose, onOpenClass }: Message
                 className="flex-row items-center gap-3 rounded-card border border-line bg-surface p-4"
               >
                 <View className="flex-1">
-                  <ClassDayHeader
+                  <RequestSeatClassCard
+                    embedded
                     discipline={sheet.classItem.discipline}
                     level={sheet.classItem.level}
                     startsAt={sheet.classItem.startsAt}

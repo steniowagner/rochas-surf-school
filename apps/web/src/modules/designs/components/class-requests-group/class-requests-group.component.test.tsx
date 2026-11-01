@@ -8,7 +8,9 @@ const props: ClassRequestsGroupProps = {
   locale: "pt-br",
   discipline: "surf",
   level: "beginner",
-  block: { weekday: "QUA", day: "9", month: "set", year: "2026" },
+  weekday: "Quarta",
+  date: "9 SET",
+  duration: "1 h 30 min",
   timeRange: "08:00 – 09:30",
   locationName: "Praia de Iracema",
   seatsTaken: 5,
@@ -23,8 +25,9 @@ describe("ClassRequestsGroup", () => {
   it("draws the class header, its occupancy and the requests to enrol or deny", () => {
     render(<ClassRequestsGroup {...props} />);
 
-    expect(screen.getByText("QUA")).toBeInTheDocument();
-    expect(screen.getByText("set 2026")).toBeInTheDocument();
+    expect(screen.getByText("Quarta")).toBeInTheDocument();
+    expect(screen.getByText("9 SET")).toBeInTheDocument();
+    expect(screen.getByText("1 h 30 min")).toBeInTheDocument();
     expect(screen.getByText("08:00 – 09:30")).toBeInTheDocument();
     expect(screen.getByText("Máx. 8 alunos")).toBeInTheDocument();
     expect(screen.getByText("3 vagas livres")).toBeInTheDocument();

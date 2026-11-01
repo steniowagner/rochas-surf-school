@@ -51,7 +51,8 @@ export function ClassRequestsScreen({ locale, state }: ClassRequestsScreenProps)
                 locale={locale}
                 discipline={group.discipline}
                 level={group.level}
-                block={dates.dayBlock(group.date)}
+                {...dates.classCardDay(group.date)}
+                duration={t("enrolment.requestSheet.durationHoursMinutes", { hours: 1, minutes: 30 })}
                 timeRange={group.timeRange}
                 locationName={group.locationName}
                 seatsTaken={group.seatsTaken}

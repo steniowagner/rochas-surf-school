@@ -299,4 +299,5 @@ pedir.".
   notifications about a student can be deleted when the account is erased; the roster reader answers an erased
   student's `name` as `null`.
 - `082-admin-message-sheet` — no change to the module's rules or API: the app's class header of "Inscrições em aulas"
-  moves to `ClassDayHeader`, which the Notifications module's message sheet shares without the year.
+  moves to `ClassDayHeader`, which the Notifications module's message sheet shares without the year. Both have since
+  moved to `RequestSeatClassCard` (`embedded`), the card of the "Pedir para entrar" sheet, and `ClassDayHeader` is gone.

@@ -14,4 +14,13 @@ describe("RequestSeatClassCard", () => {
     expect(screen.getByText("16:00 – 17:30")).toHaveClass("text-ink");
     expect(screen.getByText("Praia do Futuro")).toBeInTheDocument();
   });
+
+  it("draws its own frame unless embedded", () => {
+    const props = { locale: "pt-br", discipline: "surf", level: "beginner", weekday: "Quarta", date: "9 SET", duration: "1 h 30 min", timeRange: "08:00 – 09:30", locationName: "Praia de Iracema" } as const;
+    const { rerender } = render(<RequestSeatClassCard {...props} />);
+
+    expect(screen.getByTestId("request-seat-class-card")).toHaveClass("border");
+    rerender(<RequestSeatClassCard {...props} embedded />);
+    expect(screen.getByTestId("request-seat-class-card")).not.toHaveClass("border");
+  });
 });

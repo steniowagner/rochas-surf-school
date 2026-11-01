@@ -2,7 +2,7 @@
 id: "082"
 slug: admin-message-sheet
 title: Admin messages open in a sheet and stay on the class
-status: in-review
+status: changes-requested
 created: 2026-10-31
 started: 2026-10-31
 base_commit: 1fad1cf64e369b66c7644648312065dd1db302fc
@@ -751,3 +751,79 @@ The sender, in every answer below (`null` by ER-05):
   text, with just the name, before the review. Approved by the user.
 
 ## Review
+
+### Round 1 — 2026-11-01 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (29 Turbo tasks, all cache hits; backend, mobile, classes, notifications,
+  app-messages, design-tokens)
+- related tests ⚠️ the gate printed `RELATED TESTS FAILED` with the machine at load 48: apps/mobile 2 of 1934 and apps/web
+  1 of 812, each a 5 s timeout, in tests this spec didn't write or change (see Notes). Each passed when rerun once alone,
+  so none is a finding. backend, classes, notifications, app-messages and enrolment ✅
+- coverage of the changed lines ✅ `COVERAGE OK`, 42 files; no coverage-ignore comment in the diff
+- e2e: backend suite ✅ 856 passed · web suite ✅ 77 passed · `E2E PASSED`
+- iOS simulator, signed in as a student, light theme ✅ for the Sheet and Section journeys; the real push tap and the
+  reload on a received push couldn't be driven (see Notes)
+
+**Expected Results**
+
+- ER-01 ✅ — `class-messages.e2e-spec.ts` "stores" and `send-class-message.usecase.test.ts`; `POST /classes/:id/message`
+  answered 204 and the row reads back from `GET /classes/:id/messages`
+- ER-02 ✅ — the "list" tests, and a live `GET /classes/:id/messages` as the student
+- ER-03 ✅ — the "sender" tests of both e2e files
+- ER-04 ✅ — the "whatsapp" tests of both e2e files and the two use case tests
+- ER-05 ✅ — the "erased sender" tests of both e2e files
+- ER-06 ✅ — `broadcast.usecase.test.ts`, the adapter's spec, `push-messages.spec.ts`; the stored row holds `senderId`
+- ER-07 ✅ — the "one notification" tests; live `GET /notifications/:id?locale=pt-BR` answered the item with `read: true`
+- ER-08 ✅ — the "admin message" tests; on screen the row keeps its class line and the sheet shows the text alone
+- ER-09 ❌ — see F-01. The routing edge cases hold: `use-notification-response.hook.test.tsx` runs the real router, and
+  the source of Expo Router 57 confirms that a singular push reuses the route. A real tap was not seen (see Notes)
+- ER-10 ✅ — on the simulator a notice row opened the sheet at once and its dot cleared; `notifications.screen.test.tsx`
+- ER-11 ✅ — notice sheet on the simulator: tile, "Mensagem da escola", "Dev Admin · Agora", title as written, no class
+  card, no close button; "Ok, entendi", the backdrop and dragging down all close it
+- ER-12 ✅ — "A aula", the card with DOM / 1 / NOV, no year and a chevron; pressing it closed the sheet and opened the class
+- ~~ER-13~~ — removed; no `InstructorPill`, `PersonSheet` or `hideMissingWhatsapp` left in the sheet
+- ER-14 ✅ — "Mensagens desta aula · 2" between the people and "Regras", newest first, with `HH:mm` times; the
+  component, screen and time tests cover the rest
+- ER-15 ✅ — a section row opened the sheet with no class card, on the simulator; `class-details.screen.test.tsx`
+- ER-16 ⚠️ — the named tests pass and assert the reload for that class only, but the reload was not seen on a device
+  (see Notes)
+- ER-17 ✅ — `notification-target.test.ts` and `use-notification-response.hook.test.tsx`
+
+**Findings**
+
+- [ ] **F-01** (ER-09) — a push tapped while Avisos is open leaves its row unread on screen, though the notification is
+  read. `handle` in `use-notification-response.hook.ts` sends `POST /notifications/:id/read` and never touches the list or
+  the count cache, and the screen doesn't mark the message it opens from the route, so nothing refreshes the row. It also
+  differs from ER-10, where the dot clears at once. Reproduce: with Avisos open on an unread `class.message` row, send
+  `POST /notifications/<id>/read` (what the handler does), then open
+  `rochassurfschool://student/notifications?notificationId=<id>`. `GET /notifications/<id>` answers `read: true`, but the
+  row keeps its orange dot behind the sheet and after closing it, until the list reloads. Expected: the row shows read and
+  the unread count drops by one, with a test for a push tapped while Avisos is open.
+
+**Notes**
+
+- Not seen on a device, for the next round: the real tap of ER-09 and the reload of ER-16. The simulator can't take them:
+  `simctl privacy` has no notifications service, and `getPushToken` returns `null` off a physical device. Steps, on a phone
+  build from EAS on staging: (1) with the app closed, tap a notice's push: Avisos opens with its sheet, and closing it
+  leaves Avisos. (2) With Avisos open, tap a second push: the sheet changes, the row shows read, and back goes home, not to
+  a second Avisos. (3) With a class's details open, have an admin send that class a message: the section's count goes up
+  without leaving the screen. Report what is seen.
+- The timed-out tests: `new-class.screen.test.tsx` "shows the no-connection toast when there is no answer",
+  `class-details.screen.test.tsx` "shows the closed text as a toast and reloads when the request is refused" and the web's
+  `location-form-screen.component.test.tsx` "AD-04-09". They are load-sensitive, and the whole `run-related-tests.mjs`
+  should print `RELATED TESTS PASSED` next round.
+- Not seen on screen: es-ES and en-US, which rest on the tests, and an instructor who doesn't teach the class, which rests
+  on `class-messages.e2e-spec.ts` and the screen tests. T-19's light theme is now seen.
+- `## Memory Impact` misses one item: the notifier event `ClassMessage` is now `ClassMessageSent`, and
+  `memory/modules/classes.md` line 609 still names the old one.
+- `visibleNumber` exists in both `modules/classes` and `modules/notifications`. That follows from D-07, as Notifications
+  depends on neither module, but a change to the WhatsApp rule must touch both.
+- `sender.role` and `sender.whatsappNumber` have no screen reading them, as D-20 says.
+- `check-spec.mjs` warns that T-10 and T-12 still cover the removed ER-13. Both are finished tasks, so this is only history.
+- `git status` showed the untracked `.specs/changes/081-staging-follow-ups/`, another spec's plan. It is not this spec's
+  code, so the review went on, and it isn't part of this commit.
+- The local database keeps this review's test data: the class message and notifications "Revisão 082: ponto de encontro"
+  on class `5a1e0000-0000-4000-8000-000000000108`, and the student's notice "Revisão 082: aviso geral". No push left the
+  machine: the local database has no push tokens.

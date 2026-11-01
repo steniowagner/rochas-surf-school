@@ -11,6 +11,7 @@ import { useTheme } from "@/hooks/use-theme";
 import { StackHeaderTitle } from "@/navigation/stack-header";
 import { getBottomPadding } from "@/utils/bottom-padding";
 
+import { MessageSheet } from "../components/message-sheet";
 import { NotificationRow } from "../components/notification-row";
 
 import { useNotificationsScreen } from "./notifications.screen.hook";
@@ -19,7 +20,8 @@ const LOADING_ROWS = [0, 1, 2, 3, 4];
 
 /**
  * "Avisos": every notification of the person, newest first, each read or unread. Tapping one marks it read and opens
- * what it is about; the header's button marks them all read (spec 055).
+ * what it is about, in a sheet for an admin's message; the header's button marks them all read (spec 055). The route's
+ * `notificationId` opens that message, for a tapped push.
  */
 export function NotificationsScreen() {
   const { t } = useTranslation();
@@ -124,6 +126,12 @@ export function NotificationsScreen() {
         }
         onEndReached={screen.loadMore}
         onEndReachedThreshold={0.5}
+      />
+      <MessageSheet
+        message={screen.message}
+        visible={screen.messageVisible}
+        onClose={screen.closeMessage}
+        onOpenClass={screen.openMessageClass}
       />
     </>
   );

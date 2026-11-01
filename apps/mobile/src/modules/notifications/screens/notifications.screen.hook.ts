@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { router } from "expo-router";
-import { useState } from "react";
+import { router, useLocalSearchParams } from "expo-router";
+import { useEffect, useEffectEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { routes } from "@/constants/routes";
@@ -12,10 +12,12 @@ import { SessionExpiredError } from "@/services/api";
 
 import { useMarkAllNotificationsRead } from "../hooks/use-mark-all-notifications-read.hook";
 import { useMarkNotificationRead } from "../hooks/use-mark-notification-read.hook";
+import { useNotification } from "../hooks/use-notification.hook";
 import { useNotifications } from "../hooks/use-notifications.hook";
 import { useUnreadNotificationsCount } from "../hooks/use-unread-notifications-count.hook";
-import { NotificationItem } from "../notifications.types";
-import { notificationTarget } from "../utils/notification-target";
+import { AdminMessage, NotificationItem } from "../notifications.types";
+import { toAdminMessage } from "../utils/admin-message";
+import { classDetailTarget, notificationTarget } from "../utils/notification-target";
 import {
   NOTIFICATIONS_LIST_QUERY_KEY,
   NotificationsListData,
@@ -48,6 +50,48 @@ export const useNotificationsScreen = (): UseNotificationsScreenResult => {
   const unread = useUnreadNotificationsCount();
   const markOne = useMarkNotificationRead();
   const markAll = useMarkAllNotificationsRead();
+  const flow = user
+    ? resolveFlow({ user, onboardingCompleted: isOnboardingCompleted(user) })
+    : "auth";
+
+  // Kept while the sheet slides away, so its content doesn't vanish before it is gone.
+  const [message, setMessage] = useState<AdminMessage | null>(null);
+  const [messageVisible, setMessageVisible] = useState(false);
+  // The route's message already shown: closing the sheet must not open it again.
+  const [shownNotificationId, setShownNotificationId] = useState<string | null>(null);
+  const notificationId = useLocalSearchParams<{ notificationId?: string }>().notificationId ?? null;
+  const loaded = query.notifications.find((notification) => notification.id === notificationId);
+  // One beyond the loaded pages: the list has to answer first to know.
+  const fetched = useNotification(notificationId, { enabled: !loaded && !query.isPending });
+  const pushed = loaded ?? fetched.data;
+  const pushedMessage = pushed ? toAdminMessage(pushed) : null;
+
+  if (pushedMessage && notificationId !== shownNotificationId) {
+    setShownNotificationId(notificationId);
+    setMessage(pushedMessage);
+    setMessageVisible(true);
+  }
+
+  const clearRouteMessage = () => {
+    if (notificationId !== null) {
+      router.setParams({ notificationId: undefined });
+    }
+  };
+
+  const reportFetchError = useEffectEvent((error: Error) => {
+    clearRouteMessage();
+
+    // An expired session is handled once, centrally.
+    if (!(error instanceof SessionExpiredError)) {
+      alertMessage.show(t("notifications.messageSheet.loadError"));
+    }
+  });
+
+  useEffect(() => {
+    if (fetched.error) {
+      reportFetchError(fetched.error);
+    }
+  }, [fetched.error]);
 
   // A list with no data goes back to pending when it is fetched again after an error: while "Try again" runs, the
   // error stays on screen with the spinner in its button.
@@ -60,9 +104,15 @@ export const useNotificationsScreen = (): UseNotificationsScreenResult => {
       markOne.mutate(notification.id);
     }
 
-    const flow = user
-      ? resolveFlow({ user, onboardingCompleted: isOnboardingCompleted(user) })
-      : "auth";
+    const adminMessage = toAdminMessage(notification);
+
+    if (adminMessage) {
+      setMessage(adminMessage);
+      setMessageVisible(true);
+
+      return;
+    }
+
     const target = notificationTarget(notification.type, notification.classId, flow);
 
     if (target !== null) {
@@ -78,13 +128,21 @@ export const useNotificationsScreen = (): UseNotificationsScreenResult => {
       user
     ) {
       void openNewRoleHome();
-
-      return;
     }
+  };
 
-    // A notice has no screen of its own (spec 063, D-05): the tap shows the current home.
-    if (notification.type === "broadcast") {
-      router.replace(routes.home);
+  const closeMessage = () => {
+    setMessageVisible(false);
+    clearRouteMessage();
+  };
+
+  const openMessageClass = (classId: string) => {
+    closeMessage();
+
+    const target = classDetailTarget(classId, flow);
+
+    if (target !== null) {
+      router.push(target);
     }
   };
 
@@ -137,5 +195,9 @@ export const useNotificationsScreen = (): UseNotificationsScreenResult => {
     loadMore,
     openNotification,
     markAllRead,
+    message,
+    messageVisible,
+    closeMessage,
+    openMessageClass,
   };
 };

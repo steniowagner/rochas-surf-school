@@ -510,12 +510,23 @@ The sender, in every answer below (`null` by ER-05):
   > push handler, rather than in T-12, because that is where the navigation happens; added `classDetailTarget`,
   > which T-12 uses.
 
-- [ ] **T-12** — In `notifications.screen.hook.ts` and the screen, open `MessageSheet` from a row with `adminMessage` (marking
+- [x] **T-12** — In `notifications.screen.hook.ts` and the screen, open `MessageSheet` from a row with `adminMessage` (marking
   it read, without navigating) and from the `notificationId` route param (from the loaded pages, else
   `useNotification`, with the toast of ER-09), clear the param on close, and make a tap on a push while Avisos is open show
   the message without stacking the screen. `onOpenClass` closes the sheet and opens the class in the account's flow.
   Remove the `broadcast` branch that went home. Update `notifications.screen.test.tsx`.
   Covers: ER-09, ER-10, ER-11, ER-12, ER-13 · Done when: `npx jest src/modules/notifications/screens` passes.
+  > ✅ 2026-10-31 23:55 — Avisos opens MessageSheet from a row with `adminMessage` (marked read, no navigation) and
+  > from the `notificationId` route param (loaded pages, else `useNotification` once the list answered, with the
+  > toast of ER-09), clears the param on close without reopening, and the card closes the sheet and opens the class
+  > in the account flow; the `broadcast` branch that went home is gone; files:
+  > `apps/mobile/src/modules/notifications/screens/notifications.screen.hook.ts`,
+  > `apps/mobile/src/modules/notifications/screens/notifications.screen.tsx`,
+  > `apps/mobile/src/modules/notifications/screens/notifications.screen.types.ts`,
+  > `apps/mobile/src/modules/notifications/screens/notifications.screen.test.tsx`; verified: `npx jest
+  > src/modules/notifications` (17 suites, 477 passed), `npx tsc --noEmit -p .` clean, and the expired-session test
+  > fails with its guard removed; deviations: the push handler part of not stacking the screen landed in T-11, as
+  > noted there.
 
 - [ ] **T-13** — Create `src/modules/classes/components/class-messages/` (the section of D-15, with `bg-sun-tint` megaphone
   tiles in one grouped card) and `src/modules/classes/utils/class-message-time.ts` (D-14), and render them in

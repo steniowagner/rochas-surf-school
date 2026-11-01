@@ -2,13 +2,14 @@
 id: "083"
 slug: apple-sign-in
 title: Sign in with Apple on iOS
-status: accepted
+status: finished
 created: 2026-11-01
 started: 2026-11-01
 base_commit: 37a8bbaf2f834d5575d2f06f1daf534f52312f82
 reviewed_commit: 3a6223ea0e5dc2f9a20679b67f1472745b0c32de
 fronts: [auth, backend, packages, web, mobile, infra]
 depends_on: []
+finished: 2026-11-01
 ---
 
 # 083 — Sign in with Apple on iOS

@@ -115,7 +115,10 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
     directory — access, query parsing, WhatsApp visibility).
   - `identity/` — `model/identity.entity.ts`, `provider/identity.repository.ts`,
     `provider/google-id-token.provider.ts` (`GoogleIdTokenProvider`: verifies a Google ID token),
-    `usecase/{create-identity,sign-in-with-google}.usecase.ts`.
+    `provider/apple-id-token.provider.ts` (`AppleIdTokenProvider`: verifies an Apple identity token; spec 083),
+    `usecase/{create-identity,sign-in-with-google,sign-in-with-apple}.usecase.ts`,
+    `usecase/provider-account-resolver.ts` (`ProviderAccountResolver`: finds, links or creates the account of a verified
+    provider token, shared by both sign-ins; spec 083).
   - `sign-in-code/` — `model/sign-in-code.entity.ts` (also the TTL / cooldown / max-attempts constants and
     `normalizeEmail`), `provider/{sign-in-code.repository,sign-in-code.provider,email.provider,clock.provider}.ts`,
     `usecase/{request-sign-in-code,verify-sign-in-code,delete-expired-sign-in-codes}.usecase.ts`.
@@ -289,7 +292,7 @@ src/
                                 # RegistrationNotifier and PushTokenRemover adapters) and ClassesModule (the
                                 # TeachingReleaser adapter)
     auth.controller.ts          # POST /auth/email/code (202), POST /auth/email/verify (200), POST /auth/refresh (200),
-                                # POST /auth/google (200), POST /auth/sign-out (204) — all @Public, throttled; GET /auth/me,
+                                # POST /auth/google (200), POST /auth/apple (200), POST /auth/sign-out (204) — all @Public, throttled; GET /auth/me,
                                 # PUT /auth/me/whatsapp, PUT /auth/me/name and POST /auth/me/reactivation-request
                                 # (200), DELETE /auth/me (204) (protected)
     auth.integration.http       # manual REST Client requests
@@ -306,13 +309,14 @@ src/
                                 # POST /people/:id/remove (200; RemoveUser) and POST /people/:id/restore (200;
                                 # RestoreAccount), with the clock and the account-removal notifier (spec 066)
     people.integration.http     # manual REST Client requests
-    auth.config.ts              # AuthConfig: AUTH_CODE_PEPPER, refresh TTL, REVIEW_ACCOUNTS parser, GOOGLE_WEB_CLIENT_ID
+    auth.config.ts              # AuthConfig: AUTH_CODE_PEPPER, refresh TTL, REVIEW_ACCOUNTS parser, GOOGLE_WEB_CLIENT_ID, APPLE_CLIENT_ID
     {user,identity,sign-in-code,refresh-token}.prisma.ts   # Prisma repositories
     rules-version.prisma.ts     # PrismaRulesVersionProvider (reads the single rules_versions row)
     hmac.sign-in-code.ts        # HmacSignInCodeProvider (code generation + HMAC)
     jwt.token.ts                # JwtTokenProvider (access JWT, refresh token + hash)
     resend.email.ts             # ResendEmailProvider (pt-BR/es/en copy, dev log fallback)
     google.id-token.ts          # GoogleAuthIdTokenProvider (google-auth-library verifyIdToken, web client id audience)
+    apple.id-token.ts           # AppleAuthIdTokenProvider (jose jwtVerify on Apple's keys, bundle id audience; spec 083)
     system.clock.ts             # SystemClockProvider
     sign-in-code-cleanup.job.ts # every-minute cron deleting expired codes
     account-erasure.job.ts      # every-minute cron running EraseDeniedRegistrations, then EraseClosedAccounts
@@ -470,6 +474,7 @@ test/
                                 # the deletion releasing seats and requests, spec 043)
   auth-reactivation.e2e-spec.ts # e2e suite of POST /auth/me/reactivation-request (accounts in each state through Prisma)
   auth-google.e2e-spec.ts       # e2e suite of POST /auth/google (GoogleAuthIdTokenProvider replaced by a fake)
+  auth-apple.e2e-spec.ts        # e2e suite of POST /auth/apple (AppleAuthIdTokenProvider replaced by a fake; spec 083)
   registrations.e2e-spec.ts     # e2e suite of the /registrations routes (accounts through Prisma; concurrency)
   reactivation-requests.e2e-spec.ts  # e2e suite of the /reactivation-requests routes and the reactivation
                                 # notifications (faked pushes; the classes taken; the approve/deny race; spec 064)
@@ -534,7 +539,8 @@ src/
     (public)/auth/create-account.tsx    # Create account screen (optional param: email, prefilled)
     (public)/auth/confirm-code.tsx      # Confirm email screen (params: email, optional name — absent on the
                                         # sign-in path)
-    (public)/auth/google-name.tsx       # "Your name" screen of a Google sign-up (params: idToken, optional name)
+    (public)/auth/provider-name.tsx     # "Your name" screen of a Google or Apple sign-up (params: provider, idToken,
+                                        # optional name)
     (pending)/pending/{_layout,index}.tsx            # pending flow: waiting for approval (/pending)
     (onboarding)/onboarding/_layout.tsx              # onboarding flow of an approved account
     (onboarding)/onboarding/index.tsx                # WhatsApp step (/onboarding)
@@ -958,16 +964,19 @@ src/
     components/                 # pending (header, timeline, sign-out; ticks every 60 s), pending-step (one row)
   modules/auth/
     screens/                    # auth.screen.tsx, email-choice.screen.tsx, email-sign-in.screen.tsx,
-                                # create-account.screen.tsx, confirm-code.screen.tsx, google-name.screen.tsx
+                                # create-account.screen.tsx, confirm-code.screen.tsx, provider-name.screen.tsx
     components/                 # auth (sign-in), auth-button, email-choice (+ its row,
                                 # choice-row), email-sign-in, create-account, confirm-code (code entry, verify,
-                                # resend countdown, both paths), google-name ("Your name") — each component + hook
+                                # resend countdown, both paths), provider-name ("Your name" for Google and Apple,
+                                # spec 083) — each component + hook
     email-auth.navigation.test.tsx  # navigation tests of the email paths against the real auth route files
     hooks/                      # use-request-sign-in-code.hook.ts (POST /auth/email/code),
                                 # use-verify-sign-in-code.hook.ts (POST /auth/email/verify),
                                 # use-sign-in-with-google.hook.ts (POST /auth/google),
                                 # use-google-sign-in.hook.ts (Google picker → POST /auth/google → session or
-                                # "Your name"), use-sign-out.hook.ts (the store's signOut(): clears the session
+                                # "Your name"), use-sign-in-with-apple.hook.ts (POST /auth/apple),
+                                # use-apple-sign-in.hook.ts (Apple's sheet → POST /auth/apple → session or
+                                # "Your name"; spec 083), use-sign-out.hook.ts (the store's signOut(): clears the session
                                 # at once, then POST /auth/sign-out with the newest refresh token; GoogleSignin.signOut()),
                                 # use-session-expired.hook.ts (useSessionExpired: the "session expired" toast once,
                                 # clears the query cache, signs out of Google)
@@ -975,7 +984,8 @@ src/
                                 # and inline or toast for the code check; on the sign-in path a name error
                                 # sends the person to Create account), field-validation.ts (isValid with the
                                 # shared rules, getStatus: error only after blur and when not empty, nameRules),
-                                # google-sign-in-error.ts (Google / API error → translation key, or null to ignore)
+                                # google-sign-in-error.ts (Google / API error → translation key, or null to ignore),
+                                # apple-sign-in-error.ts (the same for Apple; spec 083)
   components/ui/                # design-system components (same names/props as web), one folder each: button,
                                 # chip, bottom-modal (optional contentPanningEnabled, off in the time sheet so the
                                 # wheels can be dragged), otp-input, text-button, screen-intro,
@@ -1013,6 +1023,7 @@ src/
                                 # (CalendarMonthGrid: the fitted month); controlled selection, one dot per marked day;
                                 # optional month start, clearable selection and period reports (spec 053)
   services/google-sign-in.ts    # configures GoogleSignin once; the only import point of the Google library
+  services/apple-sign-in.ts     # requestAppleCredential; the only import point of the Apple library (spec 083)
   services/push/push.service.ts # expo-notifications: foreground handler and Android channel at load,
                                 # getPushToken({ askPermission }), isPushPermissionDenied(), the token registered
                                 # in this session

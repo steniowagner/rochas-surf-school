@@ -572,11 +572,21 @@ The sender, in every answer below (`null` by ER-05):
   > `apps/mobile/src/modules/notices/hooks/use-send-class-message.hook.test.tsx`; verified: `npx jest
   > src/modules/notifications/hooks src/modules/notices/hooks` (13 suites, 205 passed); deviations: none.
 
-- [ ] **T-17** — Extract the class header of `ClassRequestsGroup` to `src/modules/enrolment/components/class-day-header/`
+- [x] **T-17** — Extract the class header of `ClassRequestsGroup` to `src/modules/enrolment/components/class-day-header/`
   (`ClassDayHeader`, following `.claude/rules/react.md`), with an optional `showYear` that Class enrolments passes, so that
   screen doesn't change; without it the block shows only the uppercase month (D-18). Test in
   `class-day-header.component.test.tsx`. Skills: `vercel-react-native-skills`, `vercel-react-best-practices`.
   Covers: enabling · Done when: `npx jest src/modules/enrolment` passes.
+  > ✅ 2026-11-01 14:20 — Extracted the class header to ClassDayHeader, which Class enrolments renders with `showYear`,
+  > so that screen doesn't change; files:
+  > `apps/mobile/src/modules/enrolment/components/class-day-header/index.ts`,
+  > `apps/mobile/src/modules/enrolment/components/class-day-header/class-day-header.component.tsx`,
+  > `apps/mobile/src/modules/enrolment/components/class-day-header/class-day-header.hook.ts`,
+  > `apps/mobile/src/modules/enrolment/components/class-day-header/class-day-header.types.ts`,
+  > `apps/mobile/src/modules/enrolment/components/class-day-header/class-day-header.component.test.tsx`,
+  > `apps/mobile/src/modules/enrolment/components/class-requests-group/class-requests-group.component.tsx`; verified:
+  > `npx jest src/modules/enrolment` (31 suites passed, `class-requests.screen.test.tsx` still finds "OCT 2026"), `npx
+  > tsc --noEmit -p .` clean; deviations: none.
 
 - [ ] **T-18** — In `MessageSheet`: remove the close button and the `notifications.messageSheet.close` key (D-17), set the
   description of D-19, and replace `RequestSeatClassCard` with the label and the card of D-18, with a skeleton of that

@@ -1,0 +1,449 @@
+---
+id: "082"
+slug: admin-message-sheet
+title: Admin messages open in a sheet and stay on the class
+status: in-progress
+created: 2026-10-31
+started: 2026-10-31
+base_commit: 1fad1cf64e369b66c7644648312065dd1db302fc
+fronts: [classes, notifications, backend, packages, mobile]
+depends_on: []
+---
+
+# 082 — Admin messages open in a sheet and stay on the class
+
+## Goal
+
+Today, tapping the push of an admin's message takes the person away from what it said: a class message opens the
+class, and a notice opens the home. With this change the push and the Avisos row of a notice or a class message open a
+sheet with the message, its sender and, for a class message, the class. Every class also keeps its messages, so anyone
+who opens class details can read them in a new "Mensagens desta aula" section.
+
+## Context
+
+- Product: [product.md](../../memory/product.md) — relevant concepts: **Notification**, **Broadcast**, **Class message**,
+  the rule on text written by admins (shown as written), and the people directory's WhatsApp rule.
+- Requirements: [requirements.md → Notifications screen](../../../.docs/requirements.md#notifications-screen) — every
+  notification stays on the screen; [requirements.md → Broadcasts](../../../.docs/requirements.md#broadcasts) — notices
+  to an audience; [requirements.md → Text written by admins](../../../.docs/requirements.md#text-written-by-admins) —
+  shown as written, whatever the language.
+- Technical: [technical-context.md](../../memory/technical-context.md) — relevant sections: Applications (`apps/mobile`:
+  Push, Notifications screen, Dates), Persistence, Automated validation, Coverage.
+- Modules: [notifications.md](../../memory/modules/notifications.md), [classes.md](../../memory/modules/classes.md).
+- Design references (layout only, see D-01):
+  - [message-sheet.png](designs/message-sheet.png) — the sheet, with a class message on the left and a notice on the
+    right. It draws the sheet over the home; here it opens over Avisos or class details. Its one-line class card is
+    replaced by D-11 and its sender line by D-09.
+  - [class-messages-section.png](designs/class-messages-section.png) — the class details section.
+  - [request-seat-class-card.webp](designs/request-seat-class-card.webp) — the "Pedir para entrar" sheet; its class card
+    is the one this spec reuses.
+  - [sender-chip.png](designs/sender-chip.png) — the instructor pill of class details, used for the sender.
+- Existing code this builds on:
+  - `modules/classes/src/school-class/usecase/send-class-message.usecase.ts` — validates, then tells the instructors and
+    the class audience. It returns early when nobody is left to tell, and stores nothing.
+  - `modules/classes/src/school-class/usecase/get-class.usecase.ts` — `visibleNumber`, the WhatsApp rule; a local function
+    today.
+  - `modules/classes/src/school-class/provider/class-change-notifier.provider.ts` — the `ClassMessage` event.
+  - `modules/notifications/src/notification/usecase/send-broadcast.usecase.ts`, `list-notifications.usecase.ts`.
+  - `apps/backend/src/modules/notifications/notifications.controller.ts` — `GET /notifications`; `renderInApp` writes a
+    `class.message` body with the class line before the text, which is why the sheet needs the text on its own.
+  - `apps/backend/src/modules/notifications/notifications.class-change-notifier.ts` — stores `class.message`.
+  - `apps/mobile/src/modules/notifications/utils/notification-target.ts`, `hooks/use-notification-response.hook.ts`,
+    `hooks/use-notification-received.hook.ts`, `screens/notifications.screen.hook.ts`.
+  - `apps/mobile/src/modules/classes/screens/class-details.screen.tsx`, `components/instructor-pill/`,
+    `hooks/use-class.hook.ts` (query `["classes", "detail", id]`).
+  - `apps/mobile/src/modules/enrolment/components/request-seat-class-card/`.
+  - `apps/mobile/src/modules/people/components/person-sheet/` — takes `name`, `photoUrl`, `role` and `whatsappNumber`.
+  - `apps/mobile/src/modules/notices/hooks/use-send-class-message.hook.ts`.
+
+### API contract
+
+The sender, in every answer below (`null` by ER-05):
+
+```json
+{ "id": "uuid", "name": "Ana Souza", "photoUrl": null, "role": "admin", "whatsappNumber": null }
+```
+
+| Route | Auth | Answer |
+| --- | --- | --- |
+| `GET /classes/:id/messages` | approved account, any role | 200 `{ items: [{ id, title, message, createdAt, sender }] }`, newest first. 403 not approved, 404 `class.notFound`. |
+| `GET /notifications` | as today | Each item gains `adminMessage`: `{ title, text, sender }` for `broadcast` and `class.message`, `null` for every other type. `title`, `body` and the other fields don't change. |
+| `GET /notifications/:id?locale=` | any signed-in account | 200, one item of the same shape. 404 `notification.notFound` for a malformed id, an unknown one or someone else's. Declared after `unread-count`. |
+
+## Scope
+
+### In scope
+
+- The `class_messages` table, its aggregate in `modules/classes` and `GET /classes/:id/messages`.
+- `senderId` in the params of new `broadcast` and `class.message` notifications, and the sender read when reading.
+- `adminMessage` on notifications, and `GET /notifications/:id`.
+- The message sheet, opened on Avisos (from a push or a row) and on class details.
+- The "Mensagens desta aula" section of class details, for every role.
+- The copy in pt-BR, es-ES and en-US, and one type token.
+
+### Out of scope
+
+- The web designs (`apps/web/src/modules/designs`, `.docs/designs`) and the user journey pages.
+- Backfilling `class_messages` from notifications sent before this spec.
+- Editing or deleting a sent message.
+- A list of the notices an admin sent. Notices aren't stored outside the notifications.
+- The sheet for `class.cancelled` and for denial or take-out reasons. Those keep opening the class.
+- Unread dots in the section, or any link between a section row and the reader's notification.
+- The Avisos row's text, icon or layout.
+
+## Decisions
+
+| ID   | Decision | Reason |
+| ---- | -------- | ------ |
+| D-01 | All new app copy is Brazilian Portuguese in pt-BR, with es-ES and en-US next to it: "Mensagem da escola", "Mensagens desta aula", "Ok, entendi" (never "Ok, percebi"). The mockups are a layout reference only; their European Portuguese text doesn't bind. | Decided with the user: the product is written in Brazilian Portuguese. |
+| D-02 | `class_messages` belongs to the Classes module, in a new `class-message` aggregate: `id`, `class_id` (→ `classes`, `ON DELETE CASCADE`), `sender_id` (→ `users`, required, `ON DELETE RESTRICT`), `title`, `message`, `created_at`, indexed on `class_id` + `created_at`. | Decided with the user: messages must be readable by anyone who opens the class, which the per-recipient notifications can't do. Deleted classes were mistakes, so their messages go with them. Accounts stay as anonymous records (spec 067), so the sender row always exists. |
+| D-03 | Every approved account that can read a class can read its messages, in any class state and whether or not it has a seat there. The send screen's copy doesn't change. | Decided with the user. It also fits the product's rule that everything is visible to every approved user. |
+| D-04 | No backfill. The section starts empty, and notifications sent before this spec still open their sheet from their own params, without a sender. | The app is only on staging, and rebuilding old rows would mean guessing which notifications were one message. |
+| D-05 | The sheet is only for `broadcast` and `class.message`. This replaces spec 063 D-05 (a notice shows the home) and spec 069 (a class message opens the class), and it applies to both the push and the Avisos row, which spec 055 D-07 keeps the same. | They are the messages admins write to people. `class.cancelled` and the reasons already lead to a screen that shows them. |
+| D-06 | A `class.message` notification keeps its own `title` and `message`, as today, and doesn't reference the `class_messages` row. | An inbox must survive the class being deleted. |
+| D-07 | The sender is read when reading, never stored in a notification: notifications store only `senderId`, and name, photo, role and WhatsApp number come from the account. Notifications gets a new port, `MessageSenderReader` (it doesn't depend on `auth`), and the Classes read joins the account. `role` is part of the answer because the person sheet shows it. | Decided with the user. Storing a name would break erasure (spec 067), or force deleting the message from people's inboxes. |
+| D-08 | A sender whose account is closed but not yet erased keeps the chip, and their person sheet has no number (the WhatsApp rule answers `null` for anyone who isn't approved). | The same behavior as a class's instructors (`visibleNumber`). |
+| D-09 | The sender is drawn with `InstructorPill`, imported from `modules/classes`, not copied. It reads "Você" with a `lagoon` border when the viewer is the sender. It sits below the header row, which keeps the icon tile, "Mensagem da escola", the relative time and the close button. | Decided with the user: the chip describes the sender and opens their details. |
+| D-10 | Pressing the chip hides the message sheet and opens `PersonSheet`; closing `PersonSheet` shows the message sheet again. One sheet is visible at a time, and `MessageSheet` owns the swap, so both screens get it. | It doesn't depend on how the sheet library stacks modals. |
+| D-11 | The class card is `RequestSeatClassCard`, which gains an optional `onPress`: with it the card is pressable and shows a chevron. Without it, nothing changes on the "Pedir para entrar" sheet. Its data comes from the class query, so it's never stale. | Decided with the user (PS2 of the request), over the mockup's one-line card. A notification holds no level, end time or location, and those can change. |
+| D-12 | Opening a message from class details never marks a notification read. | Most readers have no notification for that message, and linking the two needs a new read across modules. The dot stays on Avisos until it is tapped there or marked with "mark all". |
+| D-13 | The sheet's title uses a new type token, `messageTitle` (`ds-text-message-title`): display font, weight 700, size 30, not uppercase. | Admin text is shown as written, and `sheetTitle` is uppercase. |
+| D-14 | A section row's time, in America/Fortaleza and the app's language: `HH:mm` for today, the short weekday for the 6 days before today ("Qui"), and `d MMM` before that ("12 out", without a trailing "."). | As in the mockup, which leaves older messages open. |
+| D-15 | The section sits between the people card (with its read-only note) and "Regras". Its label reads "Mensagens desta aula · N". Each row shows at most 2 lines of title and 2 of text, and there is no pagination. | A class is one session, so it holds few messages. |
+| D-16 | The sheet doesn't scroll. | 60 characters of title and 500 of text fit on a phone with the class card. |
+
+## Expected Results
+
+### ER-01 — A class message is stored on the class
+
+- **Front:** backend
+- **Behavior:** Given an approved admin and a class that hasn't finished, when they send a valid
+  `POST /classes/:id/message`, then one `class_messages` row holds the class, the sender and the trimmed title and
+  message, and the people of the class are told as before.
+- **Edge and error cases:** the row is stored when nobody would be told (a class with no students whose only instructor
+  is the sender). Every refusal of spec 069 (403, 404, 409, 422) stores nothing. A failing notifier still answers 204 and
+  keeps the row. A failing store answers an error and tells nobody.
+- **Verify by:** `npm test -w @rochas-surf-school/classes` (`send-class-message.usecase.test.ts`) and the "stores" tests
+  of `apps/backend/test/class-messages.e2e-spec.ts`.
+
+### ER-02 — Anyone who can open a class reads its messages
+
+- **Front:** backend
+- **Behavior:** Given a class with messages, when any approved account of any role calls `GET /classes/:id/messages`,
+  then it answers 200 with every message of the class, newest first, whether or not the reader is part of the class.
+- **Edge and error cases:** a class with none answers `{ items: [] }`. A started, finished or cancelled class still
+  answers its messages. A pending, denied, deleted or removed account answers 403. A malformed or unknown id answers 404
+  `class.notFound`. Deleting a class deletes its messages.
+- **Verify by:** `npm test -w @rochas-surf-school/classes` (`list-class-messages.usecase.test.ts`) and the "list" tests of
+  `apps/backend/test/class-messages.e2e-spec.ts`.
+
+### ER-03 — The sender comes from the account when reading
+
+- **Front:** backend
+- **Behavior:** Given a message or a new notice, when it is read through any route of the API contract, then `sender`
+  holds the account's current id, name, photo URL and role.
+- **Edge and error cases:** a sender who changed their name or photo after sending shows the new values. A notification
+  row holds no name, photo or number.
+- **Verify by:** the "sender" tests of `apps/backend/test/class-messages.e2e-spec.ts` and of
+  `apps/backend/test/notifications.e2e-spec.ts`.
+
+### ER-04 — The sender's WhatsApp number follows the existing rule
+
+- **Front:** backend
+- **Behavior:** Given a sender with a WhatsApp number, when a message is read, then `whatsappNumber` is the number when
+  the sender shares it or the reader is an admin, and `null` otherwise.
+- **Edge and error cases:** a sender who has no number, or who isn't approved any more (D-08), answers `null` to everyone,
+  admins included.
+- **Verify by:** `npm test -w @rochas-surf-school/classes` (`list-class-messages.usecase.test.ts`),
+  `npm test -w @rochas-surf-school/notifications` (`list-notifications.usecase.test.ts`) and the "whatsapp" tests of both
+  e2e files of ER-03.
+
+### ER-05 — A sender that can't be read is absent
+
+- **Front:** backend
+- **Behavior:** Given a notification or message whose sender's account was erased, when it is read, then `sender` is
+  `null` and the title and text still answer.
+- **Edge and error cases:** a notification stored before this spec, with no `senderId`, answers `sender: null`. So does
+  a `senderId` that matches no account.
+- **Verify by:** `npm test -w @rochas-surf-school/notifications` (`list-notifications.usecase.test.ts`) and the "erased
+  sender" tests of both e2e files of ER-03.
+
+### ER-06 — New notices and class messages store who sent them
+
+- **Front:** backend
+- **Behavior:** Given an admin sends a notice or a class message, when its notifications are stored, then their params
+  hold `senderId` next to the fields they already had.
+- **Edge and error cases:** the push title, the push body and the in-app text don't change.
+- **Verify by:** `npm test -w @rochas-surf-school/notifications` (`broadcast.usecase.test.ts`), the adapter's spec
+  `apps/backend/src/modules/notifications/notifications.class-change-notifier.spec.ts` and the existing
+  `push-messages.spec.ts`.
+
+### ER-07 — One notification can be read by its owner
+
+- **Front:** backend
+- **Behavior:** Given a person with a notification, when they call `GET /notifications/:id?locale=pt-BR`, then it answers
+  200 with the item in the same shape as the list.
+- **Edge and error cases:** a malformed id, an unknown one and someone else's answer 404 `notification.notFound`. An
+  invalid locale answers 422 `notifications.locale.invalid`. Reading doesn't mark it read. `GET /notifications/unread-count`
+  still answers the count.
+- **Verify by:** `npm test -w @rochas-surf-school/notifications` (`get-notification.usecase.test.ts`) and the "one
+  notification" tests of `apps/backend/test/notifications.e2e-spec.ts`.
+
+### ER-08 — Notifications carry the admin's text on its own
+
+- **Front:** backend
+- **Behavior:** Given a `broadcast` or `class.message` notification, when it is read, then `adminMessage` holds the title
+  and the text exactly as written, without the class line.
+- **Edge and error cases:** every other type answers `adminMessage: null`. `body` keeps the class line, so the Avisos row
+  doesn't change.
+- **Verify by:** the "admin message" tests of `apps/backend/test/notifications.e2e-spec.ts`.
+
+### ER-09 — A tapped push opens Avisos with its message
+
+- **Front:** mobile
+- **Behavior:** Given a `broadcast` or `class.message` push and an account in the student, instructor or admin flow, when
+  it is tapped, then the app opens that flow's Avisos screen with the sheet of that notification, and the notification is
+  marked read as before.
+- **Edge and error cases:** a notification beyond the loaded pages is fetched with `GET /notifications/:id`. A failed fetch
+  shows Avisos with the `notifications.messageSheet.loadError` toast and no sheet, and an expired session shows no toast. A
+  tap while Avisos is already open shows the new message on that screen: the back button doesn't lead to a second Avisos.
+  Closing the sheet leaves Avisos, and it doesn't open again on its own.
+- **Verify by:** `notification-target.test.ts`, `use-notification-response.hook.test.tsx` and
+  `notifications.screen.test.tsx` (`npx jest src/modules/notifications`, from `apps/mobile`); the user journey "Push".
+
+### ER-10 — An Avisos row of an admin's message opens the sheet
+
+- **Front:** mobile
+- **Behavior:** Given a `broadcast` or `class.message` row on Avisos, when it is tapped, then the sheet opens on that
+  screen at once, with no navigation and no extra request, and an unread row is marked read.
+- **Edge and error cases:** every other type behaves as before, `class.cancelled` and `class.edited` included.
+- **Verify by:** `notifications.screen.test.tsx` (`npx jest src/modules/notifications`).
+
+### ER-11 — The sheet shows a notice
+
+- **Front:** mobile
+- **Behavior:** Given a `broadcast`, when its sheet opens, then it shows the icon tile, "Mensagem da escola", the relative
+  time, the sender chip, the title and the text as written, and no class card; "Ok, entendi" closes it.
+- **Edge and error cases:** the close button, the backdrop and dragging down also close it. With no sender there is no
+  chip. The title isn't uppercased.
+- **Verify by:** `message-sheet.component.test.tsx` (`npx jest src/modules/notifications`); the user journey "Sheet".
+
+### ER-12 — The sheet shows the class of a class message
+
+- **Front:** mobile
+- **Behavior:** Given a `class.message` opened from Avisos, when its sheet opens, then it shows
+  `RequestSeatClassCard` with the class's current data and a chevron, and pressing it closes the sheet and opens that
+  class's details in the account's flow.
+- **Edge and error cases:** a skeleton shows while the class loads. A deleted class or a failed read shows the sheet
+  without the card, and the message stays readable. A cancelled class still shows the card.
+- **Verify by:** `message-sheet.component.test.tsx` and `notifications.screen.test.tsx`
+  (`npx jest src/modules/notifications`); the user journey "Sheet".
+
+### ER-13 — The sender chip opens their details
+
+- **Front:** mobile
+- **Behavior:** Given a sheet with a sender, when the chip is pressed, then the person sheet shows the sender's name,
+  photo, role and, when the API gave one, the WhatsApp row; closing it shows the message sheet again.
+- **Edge and error cases:** the chip reads "Você" when the viewer is the sender (D-09). A sender with no number shows no
+  WhatsApp row.
+- **Verify by:** `message-sheet.component.test.tsx` (`npx jest src/modules/notifications`); the user journey "Sheet".
+
+### ER-14 — Class details lists the class's messages
+
+- **Front:** mobile
+- **Behavior:** Given a class with messages, when any role opens its details, then "Mensagens desta aula · N" lists them
+  newest first, each with the megaphone tile, the title, the text and the time of D-14, in the place of D-15.
+- **Edge and error cases:** the section is hidden with no messages, while they load and when the read fails, and the rest
+  of the screen is unaffected. It shows on finished and cancelled classes.
+- **Verify by:** `class-messages.component.test.tsx` and `class-details.screen.test.tsx`
+  (`npx jest src/modules/classes`), and `class-message-time.test.ts`; the user journey "Section".
+
+### ER-15 — A section row opens the sheet
+
+- **Front:** mobile
+- **Behavior:** Given a row of the section, when it is pressed, then the message sheet opens with no class card, and no
+  notification is marked read.
+- **Edge and error cases:** the sender chip works as in ER-13. The Avisos bell's count doesn't change.
+- **Verify by:** `class-details.screen.test.tsx` (`npx jest src/modules/classes`).
+
+### ER-16 — A new message reaches an open class details screen
+
+- **Front:** mobile
+- **Behavior:** Given a person on a class's details, when a `class.message` push about that class arrives with the app
+  open, then the section reloads, and the same happens for the admin after sending one.
+- **Edge and error cases:** the notifications list and the unread count reload as before. A push about another class
+  doesn't reload this section.
+- **Verify by:** `use-notification-received.hook.test.tsx` (`npx jest src/modules/notifications`) and
+  `use-send-class-message.hook.test.tsx` (`npx jest src/modules/notices`); the user journey "Section".
+
+### ER-17 — Flows without Avisos keep working
+
+- **Front:** mobile
+- **Behavior:** Given an account in any flow but student, instructor or admin (onboarding or the rules-update screen, for
+  example), when a `broadcast` or `class.message` push is tapped, then the app goes to the flow's home as it does today.
+- **Edge and error cases:** the notification is marked read and stays on Avisos for later.
+- **Verify by:** `notification-target.test.ts` and `use-notification-response.hook.test.tsx`
+  (`npx jest src/modules/notifications`).
+
+## Tasks
+
+### Classes (`modules/classes`)
+
+- [ ] **T-01** — Create the `class-message` aggregate in `modules/classes/src/class-message/`: `model/class-message.entity.ts`
+  (`ClassMessage`, using `CLASS_MESSAGE_TITLE_MAX` and `CLASS_MESSAGE_TEXT_MAX`), `provider/class-message.repository.ts`
+  (`create`, `findByClass` → the view with the sender's contact and name, newest first) and
+  `usecase/list-class-messages.usecase.ts` (`assertCanReadClasses`, 404, the sender answer, `null` for an erased one),
+  with `FakeClassMessageRepository` in `test/mock/` and tests in `test/class-message/`. Move `visibleNumber` out of
+  `get-class.usecase.ts` to a shared helper, so both read the same rule. Skills:
+  [`module-aggregate`](../../../.claude/skills/module-aggregate), [`module-entity`](../../../.claude/skills/module-entity),
+  [`module-repository`](../../../.claude/skills/module-repository), [`module-use-case`](../../../.claude/skills/module-use-case).
+  Covers: ER-02, ER-03, ER-04, ER-05 · Done when: `npm test -w @rochas-surf-school/classes` passes.
+
+- [ ] **T-02** — In `send-class-message.usecase.ts`, store the `ClassMessage` after the state checks and before the early
+  return for nobody to tell, and pass `senderId` in the `ClassMessage` event (`class-change-notifier.provider.ts` and
+  `test/mock/fake-class-change.notifier.ts`), with one test per case of ER-01. Skill:
+  [`module-use-case`](../../../.claude/skills/module-use-case).
+  Covers: ER-01, ER-06 · Done when: `npm test -w @rochas-surf-school/classes` passes.
+
+### Notifications (`modules/notifications`)
+
+- [ ] **T-03** — In `modules/notifications/src/notification/`: `SendBroadcast` stores `senderId`; add
+  `provider/message-sender-reader.provider.ts` (`MessageSenderReader.findSenders(ids)`: the accounts found, by id, with
+  name, photo, role, status and WhatsApp fields, D-07) with its fake in `test/mock/`; add `repository.findById(userId, id)`;
+  `ListNotifications` takes whether the viewer is an admin and answers `adminMessage` for the two types, with one sender
+  read per page; add `usecase/get-notification.usecase.ts`, sharing that mapping. Tests in `test/notification/usecase/`.
+  Skills: [`module-use-case`](../../../.claude/skills/module-use-case),
+  [`module-repository`](../../../.claude/skills/module-repository).
+  Covers: ER-03, ER-04, ER-05, ER-06, ER-07, ER-08 · Done when: `npm test -w @rochas-surf-school/notifications` passes.
+
+### Backend (`apps/backend`)
+
+- [ ] **T-04** — Add `ClassMessage` to `apps/backend/prisma/models/classes.model.prisma` (D-02) with its back-relation in
+  `auth.model.prisma`, the migration `classes-add-class-messages`, and `src/modules/classes/class-message.prisma.ts`, with
+  its spec. Skills: [`backend-prisma-sync-module`](../../../.claude/skills/backend-prisma-sync-module),
+  [`backend-prisma-repository`](../../../.claude/skills/backend-prisma-repository).
+  Covers: enabling · Done when: `npm run prisma:migrate:deploy --workspace apps/backend` applies cleanly and the
+  repository's spec passes.
+
+- [ ] **T-05** — In `src/modules/classes/classes.controller.ts`, add `GET /classes/:id/messages` and give `SendClassMessage`
+  its repository, wire them in `classes.module.ts`, add the requests to `classes.integration.http`, and write
+  `apps/backend/test/class-messages.e2e-spec.ts` with the "stores", "list", "sender", "whatsapp" and "erased sender" tests.
+  Skill: [`backend-nest-controller`](../../../.claude/skills/backend-nest-controller).
+  Covers: ER-01, ER-02, ER-03, ER-04, ER-05 · Done when: `npm run test:e2e -- test/class-messages.e2e-spec.ts` passes from
+  `apps/backend`.
+
+- [ ] **T-06** — In `src/modules/notifications/`: add `message-sender-reader.prisma.ts` (leaving erased accounts out), pass
+  `senderId` in `notifications.class-change-notifier.ts`, add `adminMessage` to `GET /notifications`, and add
+  `GET /notifications/:id` after `unread-count`, with its requests in `notifications.integration.http`, specs for the
+  adapters and the "sender", "whatsapp", "erased sender", "one notification" and "admin message" tests in
+  `test/notifications.e2e-spec.ts`. Skills: [`backend-provider-implementation`](../../../.claude/skills/backend-provider-implementation),
+  [`backend-nest-controller`](../../../.claude/skills/backend-nest-controller).
+  Covers: ER-03, ER-04, ER-05, ER-06, ER-07, ER-08 · Done when: `npx vitest run src/modules/notifications` and
+  `npm run test:e2e -- test/notifications.e2e-spec.ts` pass from `apps/backend`.
+
+### Packages (`packages/design-tokens`, `packages/app-messages`)
+
+- [ ] **T-07** — Add the `messageTitle` type token to `packages/design-tokens/src/tokens.ts` (D-13) and regenerate
+  `tokens.css`. Add to `packages/app-messages/src/{pt-BR,es-ES,en-US}.ts` the keys `notifications.messageSheet.{eyebrow,
+  confirm,close,loadError}` and `classDetails.messages.title`, with pt-BR "Mensagem da escola", "Ok, entendi" and
+  "Mensagens desta aula · {{count}}", es-ES "Mensaje de la escuela", "Ok, entendido" and "Mensajes de esta clase ·
+  {{count}}", and en-US "Message from the school", "OK, got it" and "Messages for this class · {{count}}" (D-01).
+  Covers: enabling · Done when: `npm test -w @rochas-surf-school/app-messages` and
+  `npm run check-types -w @rochas-surf-school/design-tokens` pass.
+
+### Mobile (`apps/mobile`)
+
+- [ ] **T-08** — Add the types and the reads: `adminMessage` on `NotificationItem` with an `AdminMessage` type
+  (`title`, `text`, `createdAt`, `classId`, `sender`) in `src/modules/notifications/notifications.types.ts`;
+  `hooks/use-notification.hook.ts` (`GET /notifications/:id`, enabled only for an id that isn't in the loaded pages);
+  `src/modules/classes/hooks/use-class-messages.hook.ts` (query `["classes", "messages", id]`). Each with its hook test.
+  Covers: enabling · Done when: `npx jest src/modules/notifications/hooks src/modules/classes/hooks` passes from
+  `apps/mobile`.
+
+- [ ] **T-09** — Give `RequestSeatClassCard` the optional `onPress` of D-11 (a touchable card with a `chevron-forward`),
+  with its test; the sheet that uses it doesn't change.
+  Covers: enabling · Done when: `npx jest src/modules/enrolment/components/request-seat` passes.
+
+- [ ] **T-10** — Create `src/modules/notifications/components/message-sheet/` (`MessageSheet`, following
+  `.claude/rules/react.md`): `BottomModal` with the `bg-sun` megaphone tile, "Mensagem da escola", the relative time (the
+  helper the Avisos row uses, extracted when needed), a close button with a 44 px target, `InstructorPill` (D-09), the
+  title in `ds-text-message-title`, the text in `ds-text-body`, `RequestSeatClassCard` when `onOpenClass` is given and the
+  class loads (`useClass`, a skeleton while loading, nothing on failure), a primary "Ok, entendi", and its own
+  `PersonSheet` with the swap of D-10. Skills: `vercel-react-native-skills`, `vercel-react-best-practices`.
+  Covers: ER-11, ER-12, ER-13 · Done when: `npx jest src/modules/notifications/components/message-sheet` passes.
+
+- [ ] **T-11** — Lead the two types to Avisos: add `routes.<role>.notificationMessage(id)` in `src/constants/routes.ts`, take
+  the notification's id in `notificationTarget` (`broadcast` and `class.message`, for the three role flows) and pass it
+  from `use-notification-response.hook.ts`, so other flows still fall to `routes.home`. Update
+  `notification-target.test.ts` and `use-notification-response.hook.test.tsx`.
+  Covers: ER-09, ER-17 · Done when: `npx jest src/modules/notifications/utils src/modules/notifications/hooks` passes.
+
+- [ ] **T-12** — In `notifications.screen.hook.ts` and the screen, open `MessageSheet` from a row with `adminMessage` (marking
+  it read, without navigating) and from the `notificationId` route param (from the loaded pages, else
+  `useNotification`, with the toast of ER-09), clear the param on close, and make a tap on a push while Avisos is open show
+  the message without stacking the screen. `onOpenClass` closes the sheet and opens the class in the account's flow.
+  Remove the `broadcast` branch that went home. Update `notifications.screen.test.tsx`.
+  Covers: ER-09, ER-10, ER-11, ER-12, ER-13 · Done when: `npx jest src/modules/notifications/screens` passes.
+
+- [ ] **T-13** — Create `src/modules/classes/components/class-messages/` (the section of D-15, with `bg-sun-tint` megaphone
+  tiles in one grouped card) and `src/modules/classes/utils/class-message-time.ts` (D-14), and render them in
+  `class-details.screen.tsx` with `MessageSheet` and no `onOpenClass`. Tests in `class-messages.component.test.tsx`,
+  `class-message-time.test.ts` and `class-details.screen.test.tsx`.
+  Covers: ER-14, ER-15 · Done when: `npx jest src/modules/classes` passes.
+
+- [ ] **T-14** — Invalidate `["classes", "messages", classId]` for a received `class.message` in
+  `use-notification-received.hook.ts` and after a sent one in `src/modules/notices/hooks/use-send-class-message.hook.ts`, with
+  tests in both hook test files.
+  Covers: ER-16 · Done when: `npx jest src/modules/notifications/hooks src/modules/notices/hooks` passes.
+
+### Verification
+
+- [ ] **T-15** — Run every command in the Verification Plan from the repo root; all pass. Record the output summary as
+  evidence. Covers: all · Done when: every command exits 0 and each user journey is recorded.
+
+## Verification Plan
+
+- Automated:
+  - `node .specs/scripts/run-related-tests.mjs 082` — the tests this spec added or changed, and the existing tests related
+    to its changes, pass (with coverage).
+  - `node .specs/scripts/check-coverage.mjs 082` — every line this spec adds or changes is covered.
+  - `node .specs/scripts/run-e2e.mjs 082` — the backend e2e suite passes, `class-messages.e2e-spec.ts` and the new tests of
+    `notifications.e2e-spec.ts` included.
+  - `npx turbo run lint check-types build --concurrency=1 --filter=@rochas-surf-school/backend --filter=@rochas-surf-school/mobile --filter=@rochas-surf-school/classes --filter=@rochas-surf-school/notifications --filter=@rochas-surf-school/app-messages --filter=@rochas-surf-school/design-tokens`
+    — no errors.
+- User journeys (iOS simulator, with the backend running and one admin and one student signed in on separate runs):
+  - **Sheet** (ER-11, ER-12, ER-13): as an admin, send a notice to everyone and a message to a class the student holds a
+    seat in. As the student, open Avisos. Tap the notice's row: the sheet shows the sender chip, the title as written and no
+    class card, and "Ok, entendi" closes it. Tap the class message's row: the class card shows with a chevron. Press the
+    chip: the person sheet opens, and closing it brings the message back. Press the card: the class's details open.
+  - **Section** (ER-14, ER-16): on that class's details, "Mensagens desta aula · 1" shows between the people and "Regras".
+    Sign in as an instructor who doesn't teach it: the same message shows. As the admin, send another with the class open
+    on the student's side: the count becomes 2 without leaving the screen.
+  - **Push** (ER-09): on a build that receives pushes (a real phone on staging, or `xcrun simctl push` with a payload whose
+    `body` holds the `type` and the `notificationId`), tap a notice's push with the app closed: Avisos opens with its sheet.
+
+## Memory Impact
+
+- `memory/product.md` — **Class message**: kept on the class, and readable by every approved account that can open it;
+  **Broadcast** and **Notification**: tapping one opens its sheet on Avisos ("a notice has no screen of its own" no longer
+  holds); Current state.
+- `memory/technical-context.md` — Applications: the push routing of the two types, `MessageSheet`, the class messages
+  query; Persistence: `class_messages`; the `messageTitle` token under `packages/design-tokens`.
+- `memory/structure.md` — the `class-message` aggregate, `class-message.prisma.ts`, `message-sender-reader.prisma.ts`,
+  `class-messages.e2e-spec.ts`, the `MessageSheet` and `class-messages` components, the table in the Prisma models.
+- `memory/modules.md` — Classes keeps the messages sent to a class.
+- `memory/modules/classes.md` — the `class-message` aggregate, storing before telling, who reads messages.
+- `memory/modules/notifications.md` — `senderId` in the params, `adminMessage`, `GET /notifications/:id`,
+  `MessageSenderReader`, what tapping the two types does.
+
+## References
+
+- [How to execute](../../shared/how-to-execute.md)
+- [Task breakdown](../../shared/task-breakdown.md)
+- [Acceptance criteria rules](../../shared/acceptance-criteria.md)
+- [Naming rules](../../shared/naming-rules.md)
+- [Spec lifecycle](../../shared/spec-lifecycle.md)
+
+## Amendments
+
+## Review

@@ -305,6 +305,15 @@ describe("useNotificationReceived", () => {
       expect(invalidate).not.toHaveBeenCalledWith({ queryKey: ["classes", "messages", "c-1"] });
     });
 
+    it("reloads only the notifications for a push with no data", async () => {
+      answerMe(account("approved", "student"));
+      await openApp(account("approved", "student"));
+
+      await receive({ request: { content: {} } } as unknown as Notifications.Notification);
+
+      expect(invalidate.mock.calls).toEqual(NOTIFICATIONS_INVALIDATIONS);
+    });
+
     it("reloads only the notifications without a class", async () => {
       answerMe(account("approved", "student"));
       await openApp(account("approved", "student"));

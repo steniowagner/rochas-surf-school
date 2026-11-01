@@ -110,7 +110,22 @@ describe("MessageSheet", () => {
     );
   });
 
-  it.each(["OK, got it", "Close", "Drag down"])("closes with %s", async (name) => {
+  it("has no close button", async () => {
+    await renderSheet();
+
+    expect(screen.queryByRole("button", { name: "Close" })).toBeNull();
+  });
+
+  it("sets the description in the main ink", async () => {
+    await renderSheet();
+
+    expect(screen.getByText("Não há aulas na terça.")).toHaveProp(
+      "className",
+      "ds-text-body text-ink",
+    );
+  });
+
+  it.each(["OK, got it", "Drag down"])("closes with %s", async (name) => {
     const onClose = jest.fn();
     await renderSheet({ onClose });
 
@@ -147,13 +162,22 @@ describe("MessageSheet", () => {
 
       expect(screen.getByTestId("message-sheet-class-loading")).toBeOnTheScreen();
 
-      expect(await screen.findByTestId("request-seat-class-card-chevron")).toBeOnTheScreen();
+      expect(await screen.findByTestId("message-sheet-class-chevron")).toBeOnTheScreen();
       expect(screen.queryByTestId("message-sheet-class-loading")).toBeNull();
+      expect(screen.getByText("The class")).toBeOnTheScreen();
       expect(screen.getByText("Praia do Futuro")).toBeOnTheScreen();
 
-      await userEvent.setup().press(screen.getByTestId("request-seat-class-card-chevron"));
+      await userEvent.setup().press(screen.getByTestId("message-sheet-class-chevron"));
 
       expect(onOpenClass).toHaveBeenCalledWith("c-1");
+    });
+
+    it("shows the day with an uppercase month and no year", async () => {
+      fetchMock.mockResolvedValue(ok(CLASS));
+      await renderSheet({ message: CLASS_MESSAGE, onOpenClass: jest.fn() });
+
+      expect(await screen.findByText("OCT")).toBeOnTheScreen();
+      expect(screen.queryByText(/2026/)).toBeNull();
     });
 
     it("still shows a cancelled class", async () => {
@@ -169,7 +193,8 @@ describe("MessageSheet", () => {
 
       await waitFor(() => expect(screen.queryByTestId("message-sheet-class-loading")).toBeNull());
 
-      expect(screen.queryByTestId("request-seat-class-card-chevron")).toBeNull();
+      expect(screen.queryByTestId("message-sheet-class-chevron")).toBeNull();
+      expect(screen.queryByText("The class")).toBeNull();
       expect(screen.getByText("Escola fechada no feriado")).toBeOnTheScreen();
     });
 
@@ -178,14 +203,14 @@ describe("MessageSheet", () => {
       const onOpenClass = jest.fn();
       const props = { message: CLASS_MESSAGE, onClose: jest.fn(), onOpenClass };
       const { rerender } = await renderSheet(props);
-      await screen.findByTestId("request-seat-class-card-chevron");
+      await screen.findByTestId("message-sheet-class-chevron");
 
       fetchMock.mockResolvedValue(failure(404));
       await rerender(<MessageSheet {...props} visible={false} />);
       await rerender(<MessageSheet {...props} visible />);
 
       await waitFor(() =>
-        expect(screen.queryByTestId("request-seat-class-card-chevron")).toBeNull(),
+        expect(screen.queryByTestId("message-sheet-class-chevron")).toBeNull(),
       );
       expect(screen.getByText("Escola fechada no feriado")).toBeOnTheScreen();
     });

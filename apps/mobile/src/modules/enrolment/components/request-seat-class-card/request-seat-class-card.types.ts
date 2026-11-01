@@ -6,8 +6,6 @@ export type RequestSeatClassCardProps = {
   startsAt: string;
   endsAt: string;
   locationName: string;
-  /** Makes the card pressable, with a chevron. */
-  onPress?: () => void;
 };
 
 export type UseRequestSeatClassCardProps = Pick<RequestSeatClassCardProps, "startsAt" | "endsAt">;

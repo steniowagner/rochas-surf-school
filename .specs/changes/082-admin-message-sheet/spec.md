@@ -588,11 +588,24 @@ The sender, in every answer below (`null` by ER-05):
   > `npx jest src/modules/enrolment` (31 suites passed, `class-requests.screen.test.tsx` still finds "OCT 2026"), `npx
   > tsc --noEmit -p .` clean; deviations: none.
 
-- [ ] **T-18** — In `MessageSheet`: remove the close button and the `notifications.messageSheet.close` key (D-17), set the
+- [x] **T-18** — In `MessageSheet`: remove the close button and the `notifications.messageSheet.close` key (D-17), set the
   description of D-19, and replace `RequestSeatClassCard` with the label and the card of D-18, with a skeleton of that
   card's height. Undo T-09 in `request-seat-class-card/`. Update `message-sheet.component.test.tsx` and
   `notifications.screen.test.tsx`. Skills: `vercel-react-native-skills`, `vercel-react-best-practices`.
   Covers: ER-11, ER-12 · Done when: `npx jest src/modules/notifications src/modules/enrolment` passes.
+  > ✅ 2026-11-01 14:50 — MessageSheet has no close button, the description is `text-ink` 12 px under the title, and the
+  > class card is ClassDayHeader in a pressable card with a chevron, under the "A aula" label, with a `h-32` skeleton;
+  > `RequestSeatClassCard` is back to its `base_commit` content; files:
+  > `apps/mobile/src/modules/notifications/components/message-sheet/message-sheet.component.tsx`,
+  > `apps/mobile/src/modules/notifications/components/message-sheet/message-sheet.component.test.tsx`,
+  > `apps/mobile/src/modules/classes/screens/class-details.screen.test.tsx`,
+  > `apps/mobile/src/modules/enrolment/components/request-seat-class-card/request-seat-class-card.component.tsx`,
+  > `apps/mobile/src/modules/enrolment/components/request-seat-class-card/request-seat-class-card.component.test.tsx`,
+  > `apps/mobile/src/modules/enrolment/components/request-seat-class-card/request-seat-class-card.types.ts`,
+  > `packages/app-messages/src/pt-BR.ts`, `packages/app-messages/src/es-ES.ts`, `packages/app-messages/src/en-US.ts`;
+  > verified: `npx jest src/modules/notifications src/modules/enrolment src/modules/classes/screens/class-details` (49
+  > suites, 1039 passed), `npx tsc --noEmit -p .` clean; deviations: `notifications.screen.test.tsx` needed no change,
+  > because it reaches the card by its location's text, which is still there.
 
 ### Verification
 

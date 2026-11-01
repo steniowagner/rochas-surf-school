@@ -8,7 +8,7 @@ import { BUTTON_ACTIVE_OPACITY } from "@/components/ui/button/button.constants";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTheme } from "@/hooks/use-theme";
 import { InstructorPill } from "@/modules/classes/components/instructor-pill";
-import { RequestSeatClassCard } from "@/modules/enrolment/components/request-seat-class-card";
+import { ClassDayHeader } from "@/modules/enrolment/components/class-day-header";
 import { PersonSheet } from "@/modules/people/components/person-sheet";
 
 import { useMessageSheet } from "./message-sheet.hook";
@@ -41,15 +41,6 @@ export function MessageSheet({ message, visible, onClose, onOpenClass }: Message
                   <Text className="ds-text-list-subtitle text-ink-2">{sheet.time}</Text>
                 ) : null}
               </View>
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessibilityLabel={t("notifications.messageSheet.close")}
-                activeOpacity={BUTTON_ACTIVE_OPACITY}
-                onPress={sheet.close}
-                className="h-11 w-11 items-center justify-center rounded-full bg-dim"
-              >
-                <Ionicons name="close" size={22} color={theme.ink} />
-              </TouchableOpacity>
             </View>
             {sender ? (
               <View className="items-start">
@@ -61,24 +52,43 @@ export function MessageSheet({ message, visible, onClose, onOpenClass }: Message
                 />
               </View>
             ) : null}
-            <View className="gap-2">
+            <View className="gap-3">
               <Text className="ds-text-message-title text-ink">{message.title}</Text>
-              <Text className="ds-text-body text-ink-2">{message.text}</Text>
+              <Text className="ds-text-body text-ink">{message.text}</Text>
             </View>
             {sheet.isClassLoading ? (
               <View testID="message-sheet-class-loading">
-                <Skeleton className="h-40 rounded-card" />
+                <Skeleton className="h-32 rounded-card" />
               </View>
             ) : null}
             {sheet.classItem ? (
-              <RequestSeatClassCard
-                discipline={sheet.classItem.discipline}
-                level={sheet.classItem.level}
-                startsAt={sheet.classItem.startsAt}
-                endsAt={sheet.classItem.endsAt}
-                locationName={sheet.classItem.location.name}
-                onPress={sheet.openClass}
-              />
+              <View className="gap-2">
+                <Text className="ds-text-section-label text-ink-2">
+                  {t("notifications.messageSheet.classLabel")}
+                </Text>
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  activeOpacity={BUTTON_ACTIVE_OPACITY}
+                  onPress={sheet.openClass}
+                  className="flex-row items-center gap-3 rounded-card border border-line bg-surface p-4"
+                >
+                  <View className="flex-1">
+                    <ClassDayHeader
+                      discipline={sheet.classItem.discipline}
+                      level={sheet.classItem.level}
+                      startsAt={sheet.classItem.startsAt}
+                      endsAt={sheet.classItem.endsAt}
+                      locationName={sheet.classItem.location.name}
+                    />
+                  </View>
+                  <Ionicons
+                    testID="message-sheet-class-chevron"
+                    name="chevron-forward"
+                    size={20}
+                    color={theme.ink3}
+                  />
+                </TouchableOpacity>
+              </View>
             ) : null}
             <Button onPress={sheet.close}>{t("notifications.messageSheet.confirm")}</Button>
           </View>

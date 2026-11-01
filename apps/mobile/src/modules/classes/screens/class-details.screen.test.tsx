@@ -3860,7 +3860,7 @@ describe("ClassDetailsScreen class messages", () => {
 
       expect(await screen.findByText("Message from the school")).toBeOnTheScreen();
       expect(screen.getAllByText("Barraca azul.").length).toBeGreaterThan(1);
-      expect(screen.queryByTestId("request-seat-class-card-chevron")).toBeNull();
+      expect(screen.queryByTestId("message-sheet-class-chevron")).toBeNull();
       expect(screen.queryByTestId("message-sheet-class-loading")).toBeNull();
       expect(
         fetchMock.mock.calls.filter(([url]) => String(url).includes("/notifications")),

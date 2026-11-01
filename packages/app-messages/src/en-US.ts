@@ -1345,7 +1345,6 @@ const messages = {
     messageSheet: {
       eyebrow: "Message from the school",
       confirm: "OK, got it",
-      close: "Close",
       classLabel: "The class",
       loadError: "Couldn't open the message. Try again.",
     },

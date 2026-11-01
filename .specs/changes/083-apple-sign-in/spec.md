@@ -2,7 +2,7 @@
 id: "083"
 slug: apple-sign-in
 title: Sign in with Apple on iOS
-status: in-progress
+status: in-review
 created: 2026-11-01
 started: 2026-11-01
 base_commit: 37a8bbaf2f834d5575d2f06f1daf534f52312f82

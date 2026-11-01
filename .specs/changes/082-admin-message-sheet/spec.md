@@ -2,7 +2,7 @@
 id: "082"
 slug: admin-message-sheet
 title: Admin messages open in a sheet and stay on the class
-status: in-progress
+status: in-review
 created: 2026-10-31
 started: 2026-10-31
 base_commit: 1fad1cf64e369b66c7644648312065dd1db302fc
@@ -814,8 +814,11 @@ The sender, in every answer below (`null` by ER-05):
   > for the handler's mark, the only data touched), opening
   > `rochassurfschool://student/notifications?notificationId=<id>` shows the sheet with the dot already gone, the row stays
   > read after "Ok, entendi", the sheet doesn't reopen, and the bell goes from 2 to 1. The same steps on the app process
-  > that predated the fix kept the dot, as the finding says. Not verified: a real tapped push, as in the review's Notes;
-  > deviations: none.
+  > that predated the fix kept the dot, as the finding says. Verification Plan rerun on this commit: `node
+  > .specs/scripts/run-related-tests.mjs 082` RELATED TESTS PASSED, `node .specs/scripts/check-coverage.mjs 082` passed,
+  > `node .specs/scripts/run-e2e.mjs 082` E2E PASSED, and the `turbo run lint check-types build` of the plan exited 0 (29
+  > tasks). Not verified: a real tapped push and ER-16's reload on a received push, as in the review's Notes; deviations:
+  > none.
 
 **Notes**
 

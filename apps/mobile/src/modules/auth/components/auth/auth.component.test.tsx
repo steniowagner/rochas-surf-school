@@ -28,17 +28,69 @@ describe("AuthComponent providers", () => {
     Platform.OS = originalOS;
   });
 
-  it.each(["ios", "android"] as const)(
-    "hides Apple and shows Google and email on %s",
-    async (os) => {
-      Platform.OS = os;
-      await render(<AuthComponent />);
+  it("shows Apple on iOS, above Google, above email", async () => {
+    Platform.OS = "ios";
+    await render(<AuthComponent />);
 
-      expect(screen.queryByText("Continue with Apple")).toBeNull();
-      expect(screen.getByText("Continue with Google")).toBeOnTheScreen();
-      expect(screen.getByText("Continue with email")).toBeOnTheScreen();
-    },
-  );
+    const labels = screen
+      .getAllByRole("button", { name: /^Continue with / })
+      .map((button) => button.props.accessibilityLabel);
+
+    expect(labels).toEqual([
+      "Continue with Apple",
+      "Continue with Google",
+      "Continue with email",
+    ]);
+  });
+
+  it("hides Apple on Android and shows Google and email", async () => {
+    Platform.OS = "android";
+    await render(<AuthComponent />);
+
+    expect(screen.queryByText("Continue with Apple")).toBeNull();
+    expect(screen.getByText("Continue with Google")).toBeOnTheScreen();
+    expect(screen.getByText("Continue with email")).toBeOnTheScreen();
+  });
+
+  it.each([
+    ["es-ES", "Continuar con Apple"],
+    ["pt-BR", "Continuar com a Apple"],
+  ])("labels the Apple button in %s", async (locale, label) => {
+    Platform.OS = "ios";
+    await i18n.changeLanguage(locale);
+
+    await render(<AuthComponent />);
+
+    expect(screen.getByText(label)).toBeOnTheScreen();
+    await act(async () => {
+      await i18n.changeLanguage("en-US");
+    });
+  });
+});
+
+describe("AuthComponent Apple sign-in", () => {
+  it("calls onApplePress when Continue with Apple is pressed", async () => {
+    const user = userEvent.setup();
+    const onApplePress = jest.fn();
+    await render(<AuthComponent onApplePress={onApplePress} />);
+
+    await user.press(screen.getByText("Continue with Apple"));
+
+    expect(onApplePress).toHaveBeenCalledTimes(1);
+  });
+
+  it("loading: shows a spinner on the Apple button and ignores presses", async () => {
+    const user = userEvent.setup();
+    const onApplePress = jest.fn();
+    await render(<AuthComponent isAppleLoading onApplePress={onApplePress} />);
+
+    expect(screen.queryByText("Continue with Apple")).toBeNull();
+    await user.press(
+      screen.getByRole("button", { name: "Continue with Apple" }),
+    );
+
+    expect(onApplePress).not.toHaveBeenCalled();
+  });
 });
 
 describe("AuthComponent Google sign-in", () => {

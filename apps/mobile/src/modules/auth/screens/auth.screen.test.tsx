@@ -6,6 +6,7 @@ import {
   userEvent,
   waitFor,
 } from "@testing-library/react-native";
+import * as AppleAuthentication from "expo-apple-authentication";
 import { openBrowserAsync } from "expo-web-browser";
 import { Text } from "react-native";
 
@@ -98,6 +99,49 @@ describe("AuthScreen", () => {
     );
     expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({
       idToken: "id-token",
+    });
+  });
+
+  it("signs in with Apple and puts the answer in the session", async () => {
+    jest.mocked(AppleAuthentication.signInAsync).mockResolvedValue({
+      user: "sub-1",
+      identityToken: "apple-token",
+      fullName: { givenName: "Maria", familyName: "Silva" },
+    } as never);
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ ...TOKENS, user: ACCOUNT }),
+    });
+    const user = userEvent.setup();
+    await render(
+      <QueryClientProvider
+        client={
+          new QueryClient({ defaultOptions: { mutations: { retry: false } } })
+        }
+      >
+        <AlertMessageProvider>
+          <SessionProvider>
+            <AuthScreen />
+            <SessionUserProbe />
+          </SessionProvider>
+        </AlertMessageProvider>
+      </QueryClientProvider>,
+    );
+
+    await user.press(screen.getByText("Continue with Apple"));
+
+    await waitFor(() =>
+      expect(
+        screen.getByText(
+          `session: ${JSON.stringify({ user: ACCOUNT, tokens: TOKENS })}`,
+        ),
+      ).toBeOnTheScreen(),
+    );
+    expect(fetchMock.mock.calls[0][0]).toBe("http://api.test/auth/apple");
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({
+      idToken: "apple-token",
+      name: "Maria Silva",
     });
   });
 

@@ -473,7 +473,7 @@ because the app offers Google.
   > src/modules/auth/components/provider-name src/modules/auth/screens/provider-name.screen.test.tsx
   > src/modules/auth/hooks/use-google-sign-in` (3 suites, 47 passed), `tsc --noEmit` clean; deviations: none
 
-- [ ] **T-11** — Add `useAppleSignIn` in `src/modules/auth/hooks/use-apple-sign-in.hook.ts` (requests the full name and
+- [x] **T-11** — Add `useAppleSignIn` in `src/modules/auth/hooks/use-apple-sign-in.hook.ts` (requests the full name and
   the email, joins the name, `useSignInWithApple`, session on 200, `routes.auth.providerName` on a 422 `user.name.*`, D-10
   errors, `isLoading`, a second call ignored while one runs), and wire it through `auth.screen.tsx` to the button of D-09 in
   `auth.component.tsx`, removing the spec 017 comment. Tests: `use-apple-sign-in.hook.test.tsx` and, in
@@ -481,6 +481,20 @@ because the app offers Google.
   Covers: ER-11, ER-12, ER-13, ER-14 · Done when:
   `npx jest src/modules/auth/hooks/use-apple-sign-in src/modules/auth/components/auth src/modules/auth/screens/auth.screen.test.tsx`
   passes.
+  > ✅ 2026-11-01 12:31 — added `useAppleSignIn` (requests the full name and email through the service, joins the name,
+  > session on 200, `routes.auth.providerName` on a 422 `user.name.*`, D-10 errors, `isLoading`, second call ignored)
+  > and wired it through `auth.screen.tsx` to the D-09 button, removing the spec 017 comment; on Android the library
+  > loads with an optional native module and the button isn't rendered; files:
+  > `apps/mobile/src/modules/auth/hooks/use-apple-sign-in.hook.ts`,
+  > `apps/mobile/src/modules/auth/hooks/use-apple-sign-in.hook.test.tsx`,
+  > `apps/mobile/src/modules/auth/screens/auth.screen.tsx`,
+  > `apps/mobile/src/modules/auth/screens/auth.screen.test.tsx`,
+  > `apps/mobile/src/modules/auth/components/auth/auth.component.tsx`,
+  > `apps/mobile/src/modules/auth/components/auth/auth.component.test.tsx`,
+  > `apps/mobile/src/modules/auth/components/auth/auth.types.ts`; verified: `npx jest
+  > src/modules/auth/hooks/use-apple-sign-in src/modules/auth/components/auth
+  > src/modules/auth/screens/auth.screen.test.tsx` (4 suites, 44 passed), `tsc --noEmit` clean, eslint clean;
+  > deviations: none
 
 ### Infra (Apple Developer portal)
 

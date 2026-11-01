@@ -41,7 +41,8 @@ What the person is told, and how it reaches them.
     message (`message`, as written after trimming) when there is one. One per person, even one on both lists.
   - `class.message` — an admin sent a message to the people of a class the person teaches or holds a seat or a
     pending request in (spec 069); details: the class's id, its discipline, its start, and the admin's title
-    (`title`) and message (`message`), as written after trimming. One per person, even one on both lists.
+    (`title`) and message (`message`), as written after trimming, plus, since spec 082, who sent it (`senderId`).
+    One per person, even one on both lists.
   - `class.deleted` — a class the person taught was deleted; details: its discipline and its start (no class id:
     the class no longer exists).
   - `class.noInstructor` — an account deletion or an instructor's demotion to student left classes that haven't
@@ -80,7 +81,8 @@ What the person is told, and how it reaches them.
   - `account.restored` — an admin restored the person's removed account (spec 066); no details. One per restore, to
     the person only.
   - `broadcast` — an admin sent a notice (spec 063); details: its title (`title`, 1–60 characters) and message
-    (`message`, 1–500), as written after trimming. One per recipient of the notice's audience.
+    (`message`, 1–500), as written after trimming, plus, since spec 082, who sent it (`senderId`). One per recipient
+    of the notice's audience.
 - **Push text**: drawn per phone in its language (pt-BR, es, en):
 
   | Type | Title (en) | Body (en) |
@@ -179,9 +181,9 @@ What the person is told, and how it reaches them.
   Tapping a `location.changed` push reloads the account and opens its Aulas tab when it is still an instructor or
   an admin, and the Agenda for a student (else its home); one received with the app open reloads every class shown
   and the locations, for every role.
-  Tapping a `class.message` push, or its row, opens that class's details in the student's, instructor's or admin's
-  flow (else nothing; its row: a `chatbubble-outline` icon on the info tone, spec 069); one received with the app open
-  reloads only the notifications list and the unread count.
+  Tapping a `class.message` push, or its row, opens its message sheet (spec 082, below; its row: a
+  `chatbubble-outline` icon on the info tone, spec 069); one received with the app open also reloads that class's
+  messages, and no other class's.
   Tapping an `enrolment.expired`, `enrolment.approved`, `enrolment.denied`, `enrolment.enrolled`,
   `enrolment.takenOut`, `class.cancelled` or `class.edited` push as a student
   opens that class's details in the student's flow; tapping a `class.reminder` push opens that class's details in
@@ -204,9 +206,8 @@ What the person is told, and how it reaches them.
   the app open reloads the account (so the flow guards move the app to Access removed or back to the role's flow),
   the people lists and an admin's removed accounts; tapping it, or its row, reloads the account and opens the home of
   the flow it resolves to (rows: `person-remove-outline` on the bad tone and `person-add-outline` on the ok tone). A
-  `broadcast` leads to no screen of its own: tapping its push or
-  its row marks it read and shows the home of the account's current flow (its row: a `megaphone-outline` icon on
-  the info tone), and one received with the app open reloads only the notifications list and the unread count.
+  `broadcast` opens its message sheet too (spec 082, below; its row: a `megaphone-outline` icon on the info tone), and
+  one received with the app open reloads only the notifications list and the unread count.
   Tapping any push also marks its notification read (without waiting for it; a failure
   is ignored), and any push received with the app open reloads the notifications list and the bell's unread count
   (spec 055).
@@ -220,10 +221,28 @@ What the person is told, and how it reaches them.
   page), each with an icon and tone for its type (a bell on the info tone for a type the app doesn't know), its
   title, its body when there is one, when it arrived (relative up to a week, then the date) and an orange dot while
   unread. Tapping a row marks it read at once and opens the same screen its push opens for the account's current
-  flow; a type with no screen there only marks it read, and a failed mark shows nothing. The header's button marks
+  flow, or the message sheet for a `broadcast` or `class.message`; a type with no screen there only marks it read, and
+  a failed mark shows nothing. The header's button marks
   them all read at once, shows only while something is unread, and on failure puts the dots back with a toast. The
   bell's badge is the real unread count ("9+" above nine, none at zero or when the count fails), reloaded when the
   home screen is shown again, after any mark and when a push arrives.
+- **Admin message** (`adminMessage`, spec 082, not stored): what an admin wrote in a `broadcast` or `class.message` — the
+  title and the text as written, without the class line of its body — and its sender (id, name, photo, role and
+  WhatsApp number, or none). Every other type has none. The row's title and body don't change.
+- **Message sheet** (spec 082): the sheet that shows an admin message, the only way a `broadcast` or `class.message`
+  opens, and for no other type. It shows a megaphone tile, "Mensagem da escola", the sender's name with the relative
+  time as text ("Ana Rocha · há 5 minutos": only the time with no sender, only the sender with an unreadable date; the
+  account's own name even for the sender), the title and the text as written, and "Ok, entendi"; the backdrop and
+  dragging down close it too, and it has no close button and doesn't scroll. Opened from "Avisos", a `class.message` adds
+  "A aula" with a card of the class, read now, so never stale: a skeleton while it loads, and nothing on a deleted class
+  or a failed read, while the message stays readable; pressing the card closes the sheet and opens the class in the
+  account's flow. A push of either type opens "Avisos" with its sheet in the student's, instructor's and admin's flows;
+  other flows go to their home, and the message stays on "Avisos" for later. A tap while "Avisos" is open shows the new
+  message on that screen, never a second one. One beyond the loaded pages is read by its id: a failure shows "Avisos"
+  with a toast and no sheet, and none when the session expired. Its row shows read at once and, when the list doesn't
+  hold it, the list and the count reload, so a message tapped in the background joins the list. Closing the sheet leaves
+  "Avisos", and it doesn't open again on its own. [Classes](classes.md) opens the same sheet from class details, without
+  the card and without marking anything read.
 
 Rules:
 
@@ -250,6 +269,12 @@ Rules:
   (`broadcast.title.*`, `broadcast.message.*`). The same admin check and audience check apply to counting the
   recipients. Nothing is stored on a refusal, and nothing keeps a list of the notices sent.
 - **Nothing is retried**: a push that fails is not sent again; the notification stays stored.
+- **The sender is read when reading** (spec 082): a notification stores only `senderId`, never a name, photo or number,
+  so it survives erasure. The name, photo and role are the account's current ones. The WhatsApp number follows the
+  People directory's rule: the number of an approved sender who shares it, or of any approved sender for an approved
+  admin reader; otherwise none. A sender who isn't approved any more keeps their name. An erased or unknown sender, and
+  a notification stored before spec 082, read as no sender, and the title and text still answer. Senders are read once
+  per page.
 - **Read once** (spec 055): a notification is unread until its person marks it, by tapping its row or its push, or
   with "mark all"; marking a read one again changes nothing, so it keeps when it was first read. Nothing marks
   notifications read by being shown, and nothing deletes or expires them: they last as long as the account.
@@ -292,7 +317,9 @@ Rules:
   while it is off the phone never registers again and retries the removal at each launch or sign-in, and turning
   it on registers the phone at once (a refused OS permission turns it back off). Turning pushes off never touches
   the stored notifications.
-- **Any signed-in account, whatever its status** — lists its own notifications, counts its unread ones, and marks
+- **Any signed-in account, whatever its status** — lists its own notifications, reads one of them by its id without
+  marking it read (spec 082; a malformed or unknown id is `notification.notFound`, and an invalid language
+  `notifications.locale.invalid`), counts its unread ones, and marks
   one or all of them read (spec 055); someone else's notification is answered as not found. In the app only
   students, instructors and admins have the bell that opens them.
 - **Approved admins** — receive a push for each new registration.
@@ -342,7 +369,8 @@ Rules:
 ## Boundaries
 
 It knows people only by their ids and the phones they registered, and it doesn't depend on
-[Authentication](auth.md): the list of approved admins comes through its own contract, and Authentication reaches
+[Authentication](auth.md): the list of approved admins and the senders of admin messages (`MessageSenderReader`, spec
+082) come through its own contracts, and Authentication reaches
 it through seven contracts of its own (one that notifies about registrations, one that removes a phone's token on
 sign-out, one that deletes the "new registration" notifications about erased accounts, one that tells a person
 their role changed — spec 058, one that notifies about reactivation requests — spec 064, one that tells a person of
@@ -451,3 +479,9 @@ requests (spec 047).
   `ClassChangeNotifier`; errors logged and swallowed). In the app, its `chatbubble-outline` icon on the info tone, a
   tapped push or row opening the class's details in every role's flow, and the class mode of the Send notice screen
   (`/admin/send-notice?classId=`, `useSendClassMessage` → `POST /classes/:id/message`).
+- `082-admin-message-sheet` — `broadcast` and `class.message` store `senderId`; the `MessageSenderReader` contract (the
+  backend's `PrismaMessageSenderReader`, erased accounts left out); `adminMessage` on `GET /notifications` and the new
+  `GET /notifications/:id` (`GetNotification`, sharing `toNotificationsOut`; `ListNotifications` takes `viewerIsAdmin`).
+  In the app, `MessageSheet` opens from both types' rows and pushes on "Avisos"
+  (`routes.<role>.notificationMessage(id)`), which replaces spec 063's home and spec 069's class details, and on class
+  details; a received `class.message` reloads that class's messages.

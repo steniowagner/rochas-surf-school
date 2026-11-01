@@ -67,7 +67,8 @@ request that expired, a cancelled seat, a direct enrolment, a take-out). It also
 admin writes for everyone, the students or the instructors: who receives one is decided here, from the approved
 accounts of that audience.
 It also shows each person their own notifications, in the app's language, each read or unread, and lets them mark
-one or all of them read.
+one or all of them read. A notice or a message to a class opens in a sheet with what the admin wrote and who sent it;
+the sender is read from the account when the message is read, never stored here.
 
 - Where it physically lives: `modules/notifications`
 - Business details: [modules/notifications.md](modules/notifications.md)
@@ -96,7 +97,8 @@ for skate, read by everyone) and gives every upcoming class one cancellation dea
 background by a language model from its discipline's rule and its details; while a class has none, admins see it
 flagged "no cancellation deadline". The seats taken, the approved students, the pending requests and each
 reader's own enrolment come from Enrolment, through contracts this module owns; reading one class also gives
-each student's and instructor's WhatsApp number to who may see it, by the people directory's rule. Ratings and
+each student's and instructor's WhatsApp number to who may see it, by the people directory's rule. Each class keeps
+the messages admins send to it, which every approved person who can open the class reads there. Ratings and
 photos will build on its classes too.
 
 - Where it physically lives: `modules/classes`

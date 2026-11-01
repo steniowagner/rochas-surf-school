@@ -2,13 +2,14 @@
 id: "082"
 slug: admin-message-sheet
 title: Admin messages open in a sheet and stay on the class
-status: accepted
+status: finished
 created: 2026-10-31
 started: 2026-10-31
 base_commit: 1fad1cf64e369b66c7644648312065dd1db302fc
 reviewed_commit: 48320d22c9a3065608871aa418a65d3afa2505c4
 fronts: [classes, notifications, backend, packages, mobile]
 depends_on: []
+finished: 2026-11-01
 ---
 
 # 082 — Admin messages open in a sheet and stay on the class

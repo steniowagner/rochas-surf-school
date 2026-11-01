@@ -6,21 +6,39 @@ import { Keyboard } from "react-native";
 import { routes } from "@/constants/routes";
 import { useAlertMessage } from "@/providers/alert-message";
 
+import { useSignInWithApple } from "../../hooks/use-sign-in-with-apple.hook";
 import { useSignInWithGoogle } from "../../hooks/use-sign-in-with-google.hook";
+import { getAppleApiErrorKey } from "../../utils/apple-sign-in-error";
 import { getStatus, isValid, nameRules } from "../../utils/field-validation";
 import { getGoogleApiErrorKey } from "../../utils/google-sign-in-error";
-import { UseGoogleNameProps } from "./google-name.types";
+import { NameProvider, UseProviderNameProps } from "./provider-name.types";
 
-const TOKEN_INVALID_KEY = "googleSignIn.tokenInvalid";
+const errorsByProvider: Record<
+  NameProvider,
+  { getKey: (error: unknown) => string; tokenInvalidKey: string }
+> = {
+  google: {
+    getKey: getGoogleApiErrorKey,
+    tokenInvalidKey: "googleSignIn.tokenInvalid",
+  },
+  apple: {
+    getKey: getAppleApiErrorKey,
+    tokenInvalidKey: "appleSignIn.tokenInvalid",
+  },
+};
 
-export const useGoogleName = ({
+export const useProviderName = ({
+  provider,
   idToken,
   initialName = "",
   onSignedIn,
-}: UseGoogleNameProps) => {
+}: UseProviderNameProps) => {
   const { t } = useTranslation();
   const alertMessage = useAlertMessage();
-  const signIn = useSignInWithGoogle();
+  const googleSignIn = useSignInWithGoogle();
+  const appleSignIn = useSignInWithApple();
+  const signIn = provider === "apple" ? appleSignIn : googleSignIn;
+  const errors = errorsByProvider[provider];
   const [name, setName] = useState(initialName);
   const [isNameTouched, setIsNameTouched] = useState(false);
 
@@ -47,12 +65,12 @@ export const useGoogleName = ({
       {
         onSuccess: (response) => onSignedIn?.(response),
         onError: (error) => {
-          const key = getGoogleApiErrorKey(error);
+          const key = errors.getKey(error);
 
           alertMessage.show(t(key));
 
-          // The token expired while the person typed: only a new Google sign-in can get another.
-          if (key === TOKEN_INVALID_KEY) {
+          // The token expired while the person typed: only a new sign-in can get another.
+          if (key === errors.tokenInvalidKey) {
             router.replace(routes.auth.signIn);
           }
         },

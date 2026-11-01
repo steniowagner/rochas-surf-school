@@ -11,7 +11,7 @@ import { Text } from "react-native";
 import { AlertMessageProvider } from "@/providers/alert-message";
 import { SessionProvider, useSession } from "@/providers/session";
 
-import { GoogleNameScreen } from "./google-name.screen";
+import { ProviderNameScreen } from "./provider-name.screen";
 
 jest.mock("expo-router", () => ({
   router: { back: jest.fn(), replace: jest.fn() },
@@ -66,7 +66,7 @@ const renderScreen = () =>
     >
       <AlertMessageProvider>
         <SessionProvider>
-          <GoogleNameScreen />
+          <ProviderNameScreen />
           <SessionUserProbe />
         </SessionProvider>
       </AlertMessageProvider>
@@ -76,13 +76,13 @@ const renderScreen = () =>
 beforeEach(() => {
   jest
     .mocked(useLocalSearchParams)
-    .mockReturnValue({ idToken: "token", name: "Maria" });
+    .mockReturnValue({ provider: "google", idToken: "token", name: "Maria" });
   fetchMock.mockReset();
   globalThis.fetch = fetchMock;
   process.env.EXPO_PUBLIC_API_URL = "http://api.test";
 });
 
-describe("GoogleNameScreen", () => {
+describe("ProviderNameScreen", () => {
   it("fills the field with Google's name from the route", async () => {
     await renderScreen();
 
@@ -94,7 +94,7 @@ describe("GoogleNameScreen", () => {
   it("treats an empty name param as no name", async () => {
     jest
       .mocked(useLocalSearchParams)
-      .mockReturnValue({ idToken: "token", name: "" });
+      .mockReturnValue({ provider: "google", idToken: "token", name: "" });
 
     await renderScreen();
 
@@ -106,7 +106,11 @@ describe("GoogleNameScreen", () => {
   it("sends the token from the route and puts the answer in the session", async () => {
     jest
       .mocked(useLocalSearchParams)
-      .mockReturnValue({ idToken: "token", name: "Maria Souza" });
+      .mockReturnValue({
+        provider: "google",
+        idToken: "token",
+        name: "Maria Souza",
+      });
     fetchMock.mockResolvedValue(
       jsonResponse(200, { ...TOKENS, user: ACCOUNT }),
     );
@@ -123,9 +127,36 @@ describe("GoogleNameScreen", () => {
         ),
       ).toBeOnTheScreen(),
     );
+    expect(fetchMock.mock.calls[0][0]).toBe("http://api.test/auth/google");
     expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({
       idToken: "token",
       name: "Maria Souza",
     });
+  });
+
+  it("sends an Apple token to /auth/apple and puts the answer in the session", async () => {
+    jest
+      .mocked(useLocalSearchParams)
+      .mockReturnValue({
+        provider: "apple",
+        idToken: "token",
+        name: "Maria Souza",
+      });
+    fetchMock.mockResolvedValue(
+      jsonResponse(200, { ...TOKENS, user: ACCOUNT }),
+    );
+    const user = userEvent.setup();
+    await renderScreen();
+
+    await user.press(screen.getByRole("button", { name: "Continue" }));
+
+    await waitFor(() =>
+      expect(
+        screen.getByText(
+          `session: ${JSON.stringify({ user: ACCOUNT, tokens: TOKENS })}`,
+        ),
+      ).toBeOnTheScreen(),
+    );
+    expect(fetchMock.mock.calls[0][0]).toBe("http://api.test/auth/apple");
   });
 });

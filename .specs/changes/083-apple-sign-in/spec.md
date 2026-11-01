@@ -451,7 +451,7 @@ because the app offers Google.
   > src/modules/auth/hooks/use-sign-in-with-apple src/modules/auth/utils/apple-sign-in-error` (both files pass);
   > deviations: none
 
-- [ ] **T-10** — Generalize "Your name" (D-08): `routes.auth.providerName` in `src/constants/routes.ts`, route
+- [x] **T-10** — Generalize "Your name" (D-08): `routes.auth.providerName` in `src/constants/routes.ts`, route
   `src/app/(public)/auth/provider-name.tsx` replacing `google-name.tsx`, `src/modules/auth/screens/provider-name.screen.tsx`,
   and `src/modules/auth/components/provider-name/` with `useProviderName` choosing the mutation and error mapping by
   `provider`. `use-google-sign-in.hook.ts` opens it with `provider: "google"`. Tests move with the files and gain the Apple
@@ -459,6 +459,19 @@ because the app offers Google.
   Covers: ER-14 · Done when:
   `npx jest src/modules/auth/components/provider-name src/modules/auth/screens/provider-name.screen.test.tsx src/modules/auth/hooks/use-google-sign-in`
   passes.
+  > ✅ 2026-11-01 12:30 — generalized "Your name" (D-08): `routes.auth.providerName` on `/auth/provider-name`,
+  > `ProviderNameScreen`, `components/provider-name/` and `useProviderName`, with `provider` choosing the mutation and
+  > the error mapping; `useGoogleSignIn` opens it with `provider: "google"`; the tests moved with the files and gained
+  > the Apple cases; the `googleName.*` message keys keep their names; files: `apps/mobile/src/constants/routes.ts`,
+  > `apps/mobile/src/app/(public)/auth/provider-name.tsx` (was `google-name.tsx`),
+  > `apps/mobile/src/modules/auth/screens/provider-name.screen.tsx`,
+  > `apps/mobile/src/modules/auth/screens/provider-name.screen.test.tsx` (were `google-name.screen*`),
+  > `apps/mobile/src/modules/auth/components/provider-name/index.ts`, `provider-name.component.tsx`,
+  > `provider-name.component.test.tsx`, `provider-name.hook.ts`, `provider-name.types.ts` (were
+  > `components/google-name/`), `apps/mobile/src/modules/auth/hooks/use-google-sign-in.hook.ts`,
+  > `apps/mobile/src/modules/auth/hooks/use-google-sign-in.hook.test.tsx`; verified: `npx jest
+  > src/modules/auth/components/provider-name src/modules/auth/screens/provider-name.screen.test.tsx
+  > src/modules/auth/hooks/use-google-sign-in` (3 suites, 47 passed), `tsc --noEmit` clean; deviations: none
 
 - [ ] **T-11** — Add `useAppleSignIn` in `src/modules/auth/hooks/use-apple-sign-in.hook.ts` (requests the full name and
   the email, joins the name, `useSignInWithApple`, session on 200, `routes.auth.providerName` on a 422 `user.name.*`, D-10

@@ -5,6 +5,7 @@ import type {
 } from "@rochas-surf-school/classes";
 
 import type { MyEnrolment } from "../enrolment/enrolment.types";
+import type { AdminMessageSender } from "../notifications/notifications.types";
 
 /** A point on the map. */
 export type MapPoint = {
@@ -279,4 +280,19 @@ export type ClassHistoryDay = {
 export type ClassHistoryPeriod = {
   from: string;
   to: string;
+};
+
+/** A message an admin sent to a class, as `GET /classes/:id/messages` answers it. */
+export type ClassMessageItem = {
+  id: string;
+  title: string;
+  message: string;
+  // ISO 8601, UTC.
+  createdAt: string;
+  // Null once the sender's account was erased.
+  sender: AdminMessageSender | null;
+};
+
+export type ClassMessagesPage = {
+  items: ClassMessageItem[];
 };

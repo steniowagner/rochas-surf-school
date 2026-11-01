@@ -438,12 +438,26 @@ The sender, in every answer below (`null` by ER-05):
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-08** — Add the types and the reads: `adminMessage` on `NotificationItem` with an `AdminMessage` type
+- [x] **T-08** — Add the types and the reads: `adminMessage` on `NotificationItem` with an `AdminMessage` type
   (`title`, `text`, `createdAt`, `classId`, `sender`) in `src/modules/notifications/notifications.types.ts`;
   `hooks/use-notification.hook.ts` (`GET /notifications/:id`, enabled only for an id that isn't in the loaded pages);
   `src/modules/classes/hooks/use-class-messages.hook.ts` (query `["classes", "messages", id]`). Each with its hook test.
   Covers: enabling · Done when: `npx jest src/modules/notifications/hooks src/modules/classes/hooks` passes from
   `apps/mobile`.
+  > ✅ 2026-10-31 23:49 — Added `adminMessage` on NotificationItem with the AdminMessage type and `toAdminMessage`,
+  > the `useNotification` read of one notification, the class message types and `useClassMessages` with its query
+  > key; files: `apps/mobile/src/modules/notifications/notifications.types.ts`,
+  > `apps/mobile/src/modules/notifications/notifications.test-utils.tsx`,
+  > `apps/mobile/src/modules/notifications/hooks/use-notification.hook.ts`,
+  > `apps/mobile/src/modules/notifications/hooks/use-notification.hook.test.tsx`,
+  > `apps/mobile/src/modules/notifications/utils/admin-message.ts`,
+  > `apps/mobile/src/modules/notifications/utils/admin-message.test.ts`,
+  > `apps/mobile/src/modules/notifications/utils/notifications-cache.ts`,
+  > `apps/mobile/src/modules/classes/classes.types.ts`,
+  > `apps/mobile/src/modules/classes/hooks/use-class-messages.hook.ts`,
+  > `apps/mobile/src/modules/classes/hooks/use-class-messages.hook.test.tsx`,
+  > `apps/mobile/src/modules/classes/utils/class-messages-cache.ts`; verified: `npx jest
+  > src/modules/notifications/hooks src/modules/classes/hooks` passes; deviations: none.
 
 - [ ] **T-09** — Give `RequestSeatClassCard` the optional `onPress` of D-11 (a touchable card with a `chevron-forward`),
   with its test; the sheet that uses it doesn't change.

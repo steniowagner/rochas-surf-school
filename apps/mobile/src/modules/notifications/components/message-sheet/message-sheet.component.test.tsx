@@ -39,7 +39,7 @@ jest.mock("@/components/ui/bottom-modal", () => ({
     onClose: () => void;
     children: ReactNode;
   }) => {
-    const { Pressable, Text } = require("react-native");
+    const { Pressable, Text } = jest.requireActual("react-native");
 
     mockDismissals.push(onClose);
 

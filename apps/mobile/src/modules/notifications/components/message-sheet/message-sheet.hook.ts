@@ -31,11 +31,8 @@ export const useMessageSheet = ({ message, visible, onClose, onOpenClass }: UseM
         onClose();
       }
     },
-    openClass: () => {
-      if (classId !== null) {
-        onOpenClass?.(classId);
-      }
-    },
+    // The card shows only with a class to open, so both are there.
+    openClass: () => onOpenClass!(classId!),
     openPerson: () => setIsPersonOpen(true),
     closePerson: () => setIsPersonOpen(false),
   };

@@ -189,6 +189,13 @@ everyone else starts as a pending student, whatever their name says, so testers 
 migrations stay applied. Refresh tokens go too, so everyone is signed out. A deploy never runs it, and it leaves
 accounts that testers have changed alone.
 
+Select the staging AWS profile first. The machine's default profile is another account, where the parameters below
+don't exist, so the `aws` commands would fail or come back empty:
+
+```bash
+export AWS_PROFILE=rochas-surf-school
+```
+
 The sign-in code lives only in `REVIEW_ACCOUNTS`, so the repo never holds it. To set a new one, write the parameter with
 the printed value, without the `REVIEW_ACCOUNTS=` and the quotes, then deploy so the server reads it:
 

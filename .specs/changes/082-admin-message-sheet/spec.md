@@ -2,7 +2,7 @@
 id: "082"
 slug: admin-message-sheet
 title: Admin messages open in a sheet and stay on the class
-status: in-review
+status: in-progress
 created: 2026-10-31
 started: 2026-10-31
 base_commit: 1fad1cf64e369b66c7644648312065dd1db302fc
@@ -33,13 +33,15 @@ who opens class details can read them in a new "Mensagens desta aula" section.
 - Design references (layout only, see D-01):
   - [message-sheet.png](designs/message-sheet.png) — the sheet, with a class message on the left and a notice on the
     right. It draws the sheet over the home; here it opens over Avisos or class details. Its one-line class card is
-    replaced by D-18 and its sender line by D-09, and it has the close button D-17 removes.
+    replaced by D-18, and it has the close button D-17 removes. Its sender line is what D-20 goes back to.
   - [message-sheet-content.png](designs/message-sheet-content.png) — the title, the description, the label and the class
     card under them (D-18, D-19). The label reads "A aula" here, and the card's colors follow D-18.
+  - [message-sheet-sender.png](designs/message-sheet-sender.png) — the sender as text (D-20). The time stays relative.
   - [class-messages-section.png](designs/class-messages-section.png) — the class details section.
   - ~~[request-seat-class-card.webp](designs/request-seat-class-card.webp) — the "Pedir para entrar" sheet; its class card
     is the one this spec reuses.~~ (removed: D-18 replaces that card)
-  - [sender-chip.png](designs/sender-chip.png) — the instructor pill of class details, used for the sender.
+  - ~~[sender-chip.png](designs/sender-chip.png) — the instructor pill of class details, used for the sender.~~ (removed:
+    D-20)
 - Existing code this builds on:
   - `modules/classes/src/school-class/usecase/send-class-message.usecase.ts` — validates, then tells the instructors and
     the class audience. It returns early when nobody is left to tell, and stores nothing.
@@ -56,7 +58,8 @@ who opens class details can read them in a new "Mensagens desta aula" section.
     `hooks/use-class.hook.ts` (query `["classes", "detail", id]`).
   - ~~`apps/mobile/src/modules/enrolment/components/request-seat-class-card/`.~~ (removed: D-18)
   - `apps/mobile/src/modules/enrolment/components/class-requests-group/` — the class header of Class enrolments (D-18).
-  - `apps/mobile/src/modules/people/components/person-sheet/` — takes `name`, `photoUrl`, `role` and `whatsappNumber`.
+  - ~~`apps/mobile/src/modules/people/components/person-sheet/` — takes `name`, `photoUrl`, `role` and `whatsappNumber`.~~
+    (removed: D-20)
   - `apps/mobile/src/modules/notices/hooks/use-send-class-message.hook.ts`.
 
 ### API contract
@@ -105,9 +108,9 @@ The sender, in every answer below (`null` by ER-05):
 | D-05 | The sheet is only for `broadcast` and `class.message`. This replaces spec 063 D-05 (a notice shows the home) and spec 069 (a class message opens the class), and it applies to both the push and the Avisos row, which spec 055 D-07 keeps the same. | They are the messages admins write to people. `class.cancelled` and the reasons already lead to a screen that shows them. |
 | D-06 | A `class.message` notification keeps its own `title` and `message`, as today, and doesn't reference the `class_messages` row. | An inbox must survive the class being deleted. |
 | D-07 | The sender is read when reading, never stored in a notification: notifications store only `senderId`, and name, photo, role and WhatsApp number come from the account. Notifications gets a new port, `MessageSenderReader` (it doesn't depend on `auth`), and the Classes read joins the account. `role` is part of the answer because the person sheet shows it. | Decided with the user. Storing a name would break erasure (spec 067), or force deleting the message from people's inboxes. |
-| D-08 | A sender whose account is closed but not yet erased keeps the chip, and their person sheet has no number (the WhatsApp rule answers `null` for anyone who isn't approved). | The same behavior as a class's instructors (`visibleNumber`). |
-| D-09 | The sender is drawn with `InstructorPill`, imported from `modules/classes`, not copied. It reads "Você" with a `lagoon` border when the viewer is the sender. It sits below the header row, which keeps the icon tile, "Mensagem da escola" and the relative time~~ and the close button~~ (removed: D-17). | Decided with the user: the chip describes the sender and opens their details. |
-| D-10 | Pressing the chip hides the message sheet and opens `PersonSheet`; closing `PersonSheet` shows the message sheet again. One sheet is visible at a time, and `MessageSheet` owns the swap, so both screens get it. | It doesn't depend on how the sheet library stacks modals. |
+| D-08 | A sender whose account is closed but not yet erased keeps their name in the sheet, and the API answers no number (the WhatsApp rule answers `null` for anyone who isn't approved). | The same behavior as a class's instructors (`visibleNumber`). |
+| D-09 | ~~The sender is drawn with `InstructorPill`, imported from `modules/classes`, not copied. It reads "Você" with a `lagoon` border when the viewer is the sender. It sits below the header row, which keeps the icon tile, "Mensagem da escola" and the relative time.~~ (removed: replaced by D-20) | Decided with the user: the chip describes the sender and opens their details. |
+| D-10 | ~~Pressing the chip hides the message sheet and opens `PersonSheet`; closing `PersonSheet` shows the message sheet again. One sheet is visible at a time, and `MessageSheet` owns the swap, so both screens get it.~~ (removed: D-20, there is no chip to press) | It doesn't depend on how the sheet library stacks modals. |
 | D-11 | ~~The class card is `RequestSeatClassCard`, which gains an optional `onPress`: with it the card is pressable and shows a chevron. Without it, nothing changes on the "Pedir para entrar" sheet. Its data comes from the class query, so it's never stale.~~ (removed: replaced by D-18) | Decided with the user (PS2 of the request), over the mockup's one-line card. A notification holds no level, end time or location, and those can change. |
 | D-12 | Opening a message from class details never marks a notification read. | Most readers have no notification for that message, and linking the two needs a new read across modules. The dot stays on Avisos until it is tapped there or marked with "mark all". |
 | D-13 | The sheet's title uses a new type token, `messageTitle` (`ds-text-message-title`): display font, weight 700, size 30, not uppercase. | Admin text is shown as written, and `sheetTitle` is uppercase. |
@@ -117,6 +120,7 @@ The sender, in every answer below (`null` by ER-05):
 | D-17 | The sheet has no close button. "Ok, entendi", the backdrop and dragging down close it. | Decided with the user: the primary button already closes it. |
 | D-18 | The class card is the class header of Class enrolments (`ClassRequestsGroup`), extracted to `ClassDayHeader` in `modules/enrolment` and not copied: the day block, the chips, the time range and the location, with its colors and without its occupancy bar. In the sheet it sits in a pressable card with a chevron, under the "A aula" label, and the day block drops the year and shows the month in uppercase ("NOV"). Class enrolments doesn't change. Its data comes from the class query, so it's never stale. `RequestSeatClassCard` goes back to how it was. | Decided with the user. A notification holds no level, end time or location, and those can change. |
 | D-19 | The description is `ds-text-body` in `text-ink`, 12 px under the title, as in [message-sheet-content.png](designs/message-sheet-content.png). The title stays as D-13 says. | Decided with the user. |
+| D-20 | The sender is plain text in the header row, under "Mensagem da escola", with the relative time: "Ana Rocha · há 5 minutos", in `ds-text-list-subtitle`. It shows the account's name even for the viewer, and it isn't pressable. The API contract doesn't change, so `role` and `whatsappNumber` stay in the answer with no screen reading them. The time stays relative, as in ER-11. | Decided with the user, from [message-sheet-sender.png](designs/message-sheet-sender.png). |
 
 ## Expected Results
 
@@ -228,10 +232,12 @@ The sender, in every answer below (`null` by ER-05):
 ### ER-11 — The sheet shows a notice
 
 - **Front:** mobile
-- **Behavior:** Given a `broadcast`, when its sheet opens, then it shows the icon tile, "Mensagem da escola", the relative
-  time, the sender chip, the title and the text as written, and no class card; "Ok, entendi" closes it.
+- **Behavior:** Given a `broadcast`, when its sheet opens, then it shows the icon tile, "Mensagem da escola", the sender's
+  name with the relative time on one line (D-20), the title and the text as written, and no class card; "Ok, entendi"
+  closes it.
 - **Edge and error cases:** the backdrop and dragging down also close it, and there is no close button (D-17). With no
-  sender there is no chip. The title isn't uppercased.
+  sender the line holds only the time, and with a date it can't read, only the sender. The sender isn't pressable. The
+  title isn't uppercased.
 - **Verify by:** `message-sheet.component.test.tsx` (`npx jest src/modules/notifications`); the user journey "Sheet".
 
 ### ER-12 — The sheet shows the class of a class message
@@ -246,7 +252,7 @@ The sender, in every answer below (`null` by ER-05):
 - **Verify by:** `message-sheet.component.test.tsx` and `notifications.screen.test.tsx`
   (`npx jest src/modules/notifications`); the user journey "Sheet".
 
-### ER-13 — The sender chip opens their details
+### ~~ER-13 — The sender chip opens their details~~ (removed: D-20, the sender is plain text)
 
 - **Front:** mobile
 - **Behavior:** Given a sheet with a sender, when the chip is pressed, then the person sheet shows the sender's name,
@@ -270,7 +276,7 @@ The sender, in every answer below (`null` by ER-05):
 - **Front:** mobile
 - **Behavior:** Given a row of the section, when it is pressed, then the message sheet opens with no class card, and no
   notification is marked read.
-- **Edge and error cases:** the sender chip works as in ER-13. The Avisos bell's count doesn't change.
+- **Edge and error cases:** the sender shows as in ER-11. The Avisos bell's count doesn't change.
 - **Verify by:** `class-details.screen.test.tsx` (`npx jest src/modules/classes`).
 
 ### ER-16 — A new message reaches an open class details screen
@@ -607,6 +613,13 @@ The sender, in every answer below (`null` by ER-05):
   > suites, 1039 passed), `npx tsc --noEmit -p .` clean; deviations: `notifications.screen.test.tsx` needed no change,
   > because it reaches the card by its location's text, which is still there.
 
+- [ ] **T-20** — In `MessageSheet`, replace `InstructorPill` with the text of D-20 and remove `PersonSheet` and its swap from
+  the component and the hook. Undo the `hideMissingWhatsapp` prop of T-10 in `person-sheet/`, which nothing else uses. Update
+  `message-sheet.component.test.tsx` and `class-details.screen.test.tsx`.
+  Skills: `vercel-react-native-skills`, `vercel-react-best-practices`.
+  Covers: ER-11, ER-15 · Done when: `npx jest src/modules/notifications src/modules/people src/modules/classes/screens`
+  passes.
+
 ### Verification
 
 - [x] **T-15** — Run every command in the Verification Plan from the repo root; all pass. Record the output summary as
@@ -651,6 +664,10 @@ The sender, in every answer below (`null` by ER-05):
   > en-US on screen, which rest on the tests; to check the light theme, switch the app's theme in Perfil and open a class
   > message. T-15's other unverified items stand; deviations: none.
 
+- [ ] **T-21** — Run every command in the Verification Plan again and check the sender line of D-20 on the iOS simulator.
+  Record the output summary as evidence.
+  Covers: ER-11, ER-15 · Done when: every command exits 0 and the sheet is seen on the simulator.
+
 ## Verification Plan
 
 - Automated:
@@ -662,10 +679,9 @@ The sender, in every answer below (`null` by ER-05):
   - `npx turbo run lint check-types build --concurrency=1 --filter=@rochas-surf-school/backend --filter=@rochas-surf-school/mobile --filter=@rochas-surf-school/classes --filter=@rochas-surf-school/notifications --filter=@rochas-surf-school/app-messages --filter=@rochas-surf-school/design-tokens`
     — no errors.
 - User journeys (iOS simulator, with the backend running and one admin and one student signed in on separate runs):
-  - **Sheet** (ER-11, ER-12, ER-13): as an admin, send a notice to everyone and a message to a class the student holds a
-    seat in. As the student, open Avisos. Tap the notice's row: the sheet shows the sender chip, the title as written and no
-    class card, and "Ok, entendi" closes it. Tap the class message's row: the class card shows with a chevron. Press the
-    chip: the person sheet opens, and closing it brings the message back. Press the card: the class's details open.
+  - **Sheet** (ER-11, ER-12): as an admin, send a notice to everyone and a message to a class the student holds a
+    seat in. As the student, open Avisos. Tap the notice's row: the sheet shows the sender as text, the title as written and no
+    class card, and "Ok, entendi" closes it. Tap the class message's row: the class card shows with a chevron. Press the card: the class's details open.
   - **Section** (ER-14, ER-16): on that class's details, "Mensagens desta aula · 1" shows between the people and "Regras".
     Sign in as an instructor who doesn't teach it: the same message shows. As the admin, send another with the class open
     on the student's side: the count becomes 2 without leaving the screen.
@@ -709,5 +725,11 @@ The sender, in every answer below (`null` by ER-05):
   [message-sheet-content.png](designs/message-sheet-content.png). Approved by the user.
 - 2026-11-01 — T-19 added, and the status went from `in-review` back to `in-progress` for these changes. Reason: the
   user reopened the spec before the review. Approved by the user.
+- 2026-11-01 — D-08, ER-11 and ER-15 changed, D-09, D-10 and ER-13 removed, D-20, T-20 and T-21 added, and the sender
+  chip and `PersonSheet` references in Context struck: before, the sender was an `InstructorPill` that opened their
+  person sheet; after, it is plain text next to the relative time, and the sheet leads nowhere from it. T-20 undoes the
+  `hideMissingWhatsapp` prop of T-10. `sender.role` and `sender.whatsappNumber` stay in the API (ER-03, ER-04), with no
+  screen reading them. The status went from `in-review` back to `in-progress`. Reason: the user asked for the sender as
+  text, with just the name, before the review. Approved by the user.
 
 ## Review

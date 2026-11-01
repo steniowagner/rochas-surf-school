@@ -20,7 +20,6 @@ import { PersonSheetProps } from "./person-sheet.types";
 export function PersonSheet({
   person,
   email,
-  hideMissingWhatsapp = false,
   canChangeRole = false,
   canSetInstructorFlag = false,
   visible,
@@ -115,7 +114,7 @@ export function PersonSheet({
               </View>
               <Feather name="arrow-up-right" size={18} color={theme.ink3} />
             </Pressable>
-          ) : hideMissingWhatsapp ? null : (
+          ) : (
             <View
               accessible
               accessibilityState={{ disabled: true }}

@@ -107,20 +107,6 @@ describe("PersonSheet", () => {
     expect(openURL).not.toHaveBeenCalled();
   });
 
-  it("leaves out the WhatsApp row of a person with no number when asked to", async () => {
-    await renderSheet(
-      <PersonSheet
-        person={buildPerson(2, { whatsappNumber: null })}
-        hideMissingWhatsapp
-        visible
-        onClose={jest.fn()}
-      />,
-    );
-
-    expect(screen.queryByText("Chat on WhatsApp")).toBeNull();
-    expect(screen.queryByText("Number not shared.")).toBeNull();
-  });
-
   it("shows a number that can't be parsed as sent", async () => {
     await renderSheet(
       <PersonSheet person={buildPerson(3, { whatsappNumber: "12345" })} visible onClose={jest.fn()} />,

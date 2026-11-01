@@ -311,7 +311,7 @@ because the app offers Google.
   > @rochas-surf-school/auth` (39 suites, 553 passed) with `sign-in-with-google.usecase.test.ts` unchanged, lint and
   > check-types exit 0; deviations: none
 
-- [ ] **T-02** — Add the `AppleIdTokenProvider` port in `modules/auth/src/identity/provider/apple-id-token.provider.ts`
+- [x] **T-02** — Add the `AppleIdTokenProvider` port in `modules/auth/src/identity/provider/apple-id-token.provider.ts`
   (D-04), the `SignInWithApple` use case in `modules/auth/src/identity/usecase/sign-in-with-apple.usecase.ts` (input
   `{ idToken, name? }`; output as `SignInWithGoogleOut`; D-01, D-02, D-03, D-06), the barrels, and
   `FakeAppleIdTokenProvider` in `modules/auth/test/mock/`. Tests in
@@ -322,6 +322,14 @@ because the app offers Google.
   Covers: ER-01, ER-02, ER-03, ER-04, ER-05, ER-06, ER-07, ER-08 · Done when:
   `npm test --workspace @rochas-surf-school/auth` passes and
   `npx turbo run lint check-types --filter=@rochas-surf-school/auth` exits 0.
+  > ✅ 2026-11-01 12:17 — added the `AppleIdTokenProvider` port, the `SignInWithApple` use case (D-01 order, D-02,
+  > D-03, D-06, through `ProviderAccountResolver`), the barrels and `FakeAppleIdTokenProvider`; files:
+  > `modules/auth/src/identity/provider/apple-id-token.provider.ts`, `modules/auth/src/identity/provider/index.ts`,
+  > `modules/auth/src/identity/usecase/sign-in-with-apple.usecase.ts`, `modules/auth/src/identity/usecase/index.ts`,
+  > `modules/auth/test/mock/fake-apple-id-token.provider.ts`, `modules/auth/test/mock/index.ts`,
+  > `modules/auth/test/identity/usecase/sign-in-with-apple.usecase.test.ts`; verified: `npm test --workspace
+  > @rochas-surf-school/auth` (40 suites, 571 passed, the use case and resolver at 100%), `npx turbo run lint
+  > check-types --filter=@rochas-surf-school/auth` exit 0; deviations: none
 
 ### Backend (`apps/backend`)
 

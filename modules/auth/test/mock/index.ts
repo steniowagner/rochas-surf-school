@@ -8,6 +8,7 @@ export * from "./fake-refresh-token.repository";
 export * from "./fake-token.provider";
 export * from "./fake-rules-version.provider";
 export * from "./fake-google-id-token.provider";
+export * from "./fake-apple-id-token.provider";
 export * from "./fake-registration-notifier.provider";
 export * from "./fake-push-token-remover.provider";
 export * from "./fake-registration-notification-eraser.provider";

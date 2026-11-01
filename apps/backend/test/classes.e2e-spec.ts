@@ -2171,6 +2171,7 @@ describe('Classes (e2e)', () => {
         classId: id,
         discipline: 'surf',
         startsAt: '2026-10-15T11:00:00.000Z',
+        senderId: admin.id,
         title: 'Ponto de encontro',
         message: 'Barraca azul, 15 minutos antes.',
       };

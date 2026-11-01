@@ -498,12 +498,15 @@ because the app offers Google.
 
 ### Infra (Apple Developer portal)
 
-- [ ] **T-12** — Walk the user through steps 1–4 of [apple-setup.md](apple-setup.md), one step at a time, stopping for
+- [x] **T-12** — Walk the user through steps 1–4 of [apple-setup.md](apple-setup.md), one step at a time, stopping for
   their confirmation after each (D-15). They do every step in their own account.
   Covers: enabling · Done when: the user confirms Sign In with Apple shows as enabled on `com.rochassurfschool.app` after
   reloading the page.
-  > ⛔ 2026-11-01 12:40 — waiting for the user: only they can act in their Apple Developer account (D-15). T-13 and T-14
-  > depend on it. Steps 1–4 of apple-setup.md are being walked through one at a time.
+  > ✅ 2026-11-01 13:25 — the user did steps 1–4 in their own Apple Developer account, one at a time: individual
+  > enrolment (Account Holder), App ID `com.rochassurfschool.app`, Sign In with Apple enabled as a primary App ID, no
+  > server-to-server endpoint, no key or secret created; files: none besides this spec; verified: the user's screenshot
+  > after reloading the page shows Sign In with Apple ticked with "Enable as a primary App ID", and Push Notifications
+  > still ticked; deviations: none
 
 ### Infra (staging)
 

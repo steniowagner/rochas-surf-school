@@ -319,11 +319,18 @@ The sender, in every answer below (`null` by ER-05):
   > `ClassMessageSent`, because the module barrel cannot export it next to the new `ClassMessage` entity (this
   > touches the backend adapter too).
 
-- [ ] **T-02** — In `send-class-message.usecase.ts`, store the `ClassMessage` after the state checks and before the early
+- [x] **T-02** — In `send-class-message.usecase.ts`, store the `ClassMessage` after the state checks and before the early
   return for nobody to tell, and pass `senderId` in the `ClassMessage` event (`class-change-notifier.provider.ts` and
   `test/mock/fake-class-change.notifier.ts`), with one test per case of ER-01. Skill:
   [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-01, ER-06 · Done when: `npm test -w @rochas-surf-school/classes` passes.
+  > ✅ 2026-10-31 23:39 — SendClassMessage builds and validates the ClassMessage (same keys as before, now in the
+  > entity), stores it after the state checks and before the early return, and passes `senderId` in the event;
+  > files: `modules/classes/src/school-class/usecase/send-class-message.usecase.ts`,
+  > `modules/classes/src/school-class/provider/class-change-notifier.provider.ts`,
+  > `modules/classes/test/school-class/usecase/send-class-message.usecase.test.ts`; verified: `npm test -w
+  > @rochas-surf-school/classes` (42 suites, 647 passed, send-class-message.usecase.ts 100%); deviations: the
+  > validation moved from the use case to `ClassMessage.validate()` so the rule lives once.
 
 ### Notifications (`modules/notifications`)
 

@@ -33,6 +33,8 @@ export interface ClassMessageSent {
   classId: string;
   discipline: ClassDiscipline;
   startsAt: Date;
+  /** The admin who sent it. */
+  senderId: string;
   /** The admin's title and message, trimmed and shown as written. */
   title: string;
   message: string;

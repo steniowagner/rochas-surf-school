@@ -1,6 +1,7 @@
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useFonts } from "expo-font";
+import { NavigationBar } from "expo-navigation-bar";
 import { DarkTheme, DefaultTheme, ThemeProvider } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
@@ -45,6 +46,8 @@ export default function RootLayout() {
                 <SessionProvider>
                   <SplashGate fontsReady={fontsReady}>
                     <StatusBar style="auto" />
+                    {/* Without the contrast overlay (app.json), Android's bar buttons no longer follow the theme on their own. */}
+                    <NavigationBar style="auto" />
                     <RootNavigator />
                   </SplashGate>
                 </SessionProvider>

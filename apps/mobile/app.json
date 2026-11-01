@@ -41,6 +41,12 @@
       "expo-font",
       "expo-localization",
       [
+        "expo-navigation-bar",
+        {
+          "enforceContrast": false
+        }
+      ],
+      [
         "expo-location",
         {
           "locationWhenInUsePermission": "Rocha's Surf School uses your location to centre the map when you add a class location."

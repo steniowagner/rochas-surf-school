@@ -613,12 +613,24 @@ The sender, in every answer below (`null` by ER-05):
   > suites, 1039 passed), `npx tsc --noEmit -p .` clean; deviations: `notifications.screen.test.tsx` needed no change,
   > because it reaches the card by its location's text, which is still there.
 
-- [ ] **T-20** — In `MessageSheet`, replace `InstructorPill` with the text of D-20 and remove `PersonSheet` and its swap from
+- [x] **T-20** — In `MessageSheet`, replace `InstructorPill` with the text of D-20 and remove `PersonSheet` and its swap from
   the component and the hook. Undo the `hideMissingWhatsapp` prop of T-10 in `person-sheet/`, which nothing else uses. Update
   `message-sheet.component.test.tsx` and `class-details.screen.test.tsx`.
   Skills: `vercel-react-native-skills`, `vercel-react-best-practices`.
   Covers: ER-11, ER-15 · Done when: `npx jest src/modules/notifications src/modules/people src/modules/classes/screens`
   passes.
+  > ✅ 2026-11-01 15:30 — MessageSheet shows the sender as text next to the relative time, with no `InstructorPill`,
+  > `PersonSheet` or swap, so the hook no longer reads the session; `person-sheet/` is back to its `base_commit` content;
+  > files: `apps/mobile/src/modules/notifications/components/message-sheet/message-sheet.component.tsx`,
+  > `apps/mobile/src/modules/notifications/components/message-sheet/message-sheet.hook.ts`,
+  > `apps/mobile/src/modules/notifications/components/message-sheet/message-sheet.types.ts`,
+  > `apps/mobile/src/modules/notifications/components/message-sheet/message-sheet.component.test.tsx`,
+  > `apps/mobile/src/modules/classes/screens/class-details.screen.test.tsx`,
+  > `apps/mobile/src/modules/people/components/person-sheet/person-sheet.component.tsx`,
+  > `apps/mobile/src/modules/people/components/person-sheet/person-sheet.component.test.tsx`,
+  > `apps/mobile/src/modules/people/components/person-sheet/person-sheet.types.ts`; verified: `npx jest
+  > src/modules/notifications src/modules/people src/modules/classes/screens` (53 suites, 1226 passed), `npx tsc --noEmit
+  > -p .` and ESLint on the component clean; deviations: none.
 
 ### Verification
 

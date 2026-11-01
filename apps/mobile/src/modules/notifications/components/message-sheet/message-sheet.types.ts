@@ -9,4 +9,4 @@ export type MessageSheetProps = {
   onOpenClass?: (classId: string) => void;
 };
 
-export type UseMessageSheetProps = MessageSheetProps;
+export type UseMessageSheetProps = Omit<MessageSheetProps, "onClose">;

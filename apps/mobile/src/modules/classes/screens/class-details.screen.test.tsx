@@ -3867,15 +3867,14 @@ describe("ClassDetailsScreen class messages", () => {
       ).toEqual([]);
     });
 
-    it("shows the sender's details from the sheet", async () => {
+    it("shows the sender in the sheet as text", async () => {
       const user = userEvent.setup();
       serveMessages(makeClass());
       await renderScreen();
       await user.press(await screen.findByText("Ponto de encontro"));
 
-      await user.press(await screen.findByRole("button", { name: "Carla Dias" }));
-
-      expect(await screen.findByRole("button", { name: "Chat on WhatsApp" })).toBeOnTheScreen();
+      expect(await screen.findByText(/^Carla Dias · /)).toBeOnTheScreen();
+      expect(screen.queryByRole("button", { name: /Carla Dias/ })).toBeNull();
     });
 
     it("closes the sheet", async () => {

@@ -36,7 +36,7 @@ describe("TestAccountsPage", () => {
       expect(rows.map((row) => row.firstElementChild?.textContent)).toEqual(["Admin", "Instructor", "Student"]);
     });
     expect(screen.getAllByRole("button", { name: /^Copy email / })).toHaveLength(36);
-    expect(screen.getByRole("button", { name: "Copy email teste05.aluno@rochas-surf-school.test" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Copy email student05@test.com" })).toBeInTheDocument();
   });
 
   it("translates the labels but never the names", () => {
@@ -48,7 +48,7 @@ describe("TestAccountsPage", () => {
     expect(firstCard).not.toHaveTextContent("Conjunto");
     const rows = within(firstCard).getAllByRole("listitem");
     expect(rows.map((row) => row.firstElementChild?.textContent)).toEqual(["Admin", "Instrutor", "Aluno"]);
-    expect(rows[1]).toHaveTextContent("Instrutor Teste Um");
+    expect(rows[1]).toHaveTextContent("Instructor User One");
     expect(screen.getAllByRole("button", { name: /^Copiar e-mail / })).toHaveLength(36);
   });
 

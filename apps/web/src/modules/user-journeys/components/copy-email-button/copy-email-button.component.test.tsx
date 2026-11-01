@@ -5,8 +5,8 @@ import { en as dictionary } from "@/i18n/dictionaries/en";
 
 import { CopyEmailButton } from "./copy-email-button.component";
 
-const ADMIN = "teste01.admin@rochas-surf-school.test";
-const STUDENT = "teste05.aluno@rochas-surf-school.test";
+const ADMIN = "admin01@test.com";
+const STUDENT = "student05@test.com";
 const labels = dictionary.userJourneys.testAccounts;
 
 const mockClipboard = (writeText: (text: string) => Promise<void>) => {

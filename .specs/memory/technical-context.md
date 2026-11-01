@@ -1120,19 +1120,23 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   The home rows'
   "N na plataforma" is the constant `PEOPLE_COUNT_PLACEHOLDER = 9` (`constants/people.ts`) until a backend route
   gives the count.
-- Review accounts: seeded, pre-approved, one per role, each with a fixed code accepted only for its own email.
-  `REVIEW_ACCOUNTS` is a JSON array of `{ "email", "code", "role", "name" }` (6-digit code; role `student` |
-  `instructor` | `admin`), read by `AuthConfig` and by the seed through the same parser (`parseReviewAccounts`);
+- Review accounts: seeded, each with a fixed code accepted only for its own email, and approved unless the entry says
+  otherwise. `REVIEW_ACCOUNTS` is a JSON array of `{ "email", "code", "role", "status"?, "name" }` (6-digit code; role
+  `student` | `instructor` | `admin`; status `approved`, the default, or `pending`), read by `AuthConfig` and by the seed through the same parser (`parseReviewAccounts`);
   a malformed value stops the backend at startup. Requesting a code for a review email stores the hash of its
   fixed code and sends no email; the cooldown and the lockout apply as for anyone. The array takes any number of
-  entries (distinct emails): since spec 076, `npm run test-accounts --workspace apps/backend` (`tsx
+  entries (distinct emails): `TEST_ACCOUNTS_CODE=<6 digits> npm run test-accounts --workspace apps/backend` (`tsx
   prisma/seed/print-test-accounts.ts`, over `buildTestAccounts` / `formatTestAccounts` in
   `prisma/seed/test-accounts.ts`; since spec 077 `buildTestAccounts` maps `testAccountSets` from
-  `@rochas-surf-school/shared`, adding the codes) prints a `REVIEW_ACCOUNTS='…'` line for the 12 test sets — `testeNN.admin`,
-  `testeNN.instrutor` and `testeNN.aluno` `@rochas-surf-school.test` (`NN` 01–12; names "Admin / Instrutor / Aluno
-  Teste <Um…Doze>", the number spelled because `PersonNameRule` allows letters only) with distinct random 6-digit
-  codes (`node:crypto` `randomInt`) — and a Markdown hand-out table `| Set | Role | Email | Code |`. The codes live
-  only in the test server's environment: the repository is public, and `.env.example` keeps `REVIEW_ACCOUNTS=""`.
+  `@rochas-surf-school/shared`, adding the code) prints a `REVIEW_ACCOUNTS='…'` line for the 12 test sets — `adminNN`, `instructorNN` and `studentNN`
+  `@test.com` (`NN` 01–12; names "Admin / Instructor / Student User <One…Twelve>", the number spelled because
+  `PersonNameRule` allows letters only) with that one code. Only the admins are `approved`; the others are `pending`
+  `student`s whatever the set calls them, and the seed leaves an existing `pending` entry alone, so a deploy keeps what
+  testers did to it. It also prints a Markdown hand-out table `| Set | Role | Email | Code |`. The code lives only in
+  the test server's environment: the repository is public, and `.env.example` keeps `REVIEW_ACCOUNTS=""`.
+  `npm run reset-staging -- <database host>` (`prisma/seed/reset-staging.ts`, over `resetStagingSeed`) empties every
+  table but `_prisma_migrations`, puts back the `rules_versions` row and seeds `REVIEW_ACCOUNTS`. See
+  [.docs/staging.md](../../.docs/staging.md).
 
 ## Classes
 
@@ -2469,6 +2473,7 @@ apps/backend/src/main.ts                  # bootstrap only; exercised by the e2e
 apps/backend/src/**/*.module.ts           # Nest wiring (imports/providers lists); exercised by the e2e suite
 apps/backend/src/generated/**             # Prisma client, generated
 apps/backend/prisma/seed/main.ts          # seed runner; the seed tasks themselves are tested
+apps/backend/prisma/seed/reset-staging.ts # runner of resetStagingSeed, which is tested
 apps/mobile/jest.setup.ts                 # test setup (native mocks); loaded by Jest before every test, not as source
 apps/mobile/src/app/**                    # Expo Router routes that only render a screen; screens are tested
 apps/web/src/**                           # static public content pages; covered by the Playwright suite, unit-tested only in part (full coverage is a follow-up spec)

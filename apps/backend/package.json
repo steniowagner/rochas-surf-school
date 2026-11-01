@@ -34,7 +34,8 @@
     "prisma:migrate:deploy": "prisma migrate deploy",
     "prisma:seed": "prisma db seed",
     "prisma:studio": "prisma studio",
-    "test-accounts": "tsx prisma/seed/print-test-accounts.ts"
+    "test-accounts": "tsx prisma/seed/print-test-accounts.ts",
+    "reset-staging": "tsx prisma/seed/reset-staging.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.135.0",

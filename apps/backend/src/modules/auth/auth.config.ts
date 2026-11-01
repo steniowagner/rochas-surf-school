@@ -8,17 +8,23 @@ import {
   normalizeEmail,
 } from '@rochas-surf-school/auth';
 
+export type ReviewAccountStatus = 'approved' | 'pending';
+
 export interface ReviewAccount {
   email: string;
   code: string;
   role: UserRole;
+  status: ReviewAccountStatus;
   name: string;
 }
 
 const DEFAULT_REFRESH_TOKEN_EXPIRES_IN_DAYS = 30;
 
+const REVIEW_ACCOUNT_STATUSES: readonly unknown[] = ['approved', 'pending'];
+
 /**
- * Parses `REVIEW_ACCOUNTS`: a JSON array of `{ email, code, role, name }`. Unset or empty → no accounts.
+ * Parses `REVIEW_ACCOUNTS`: a JSON array of `{ email, code, role, status?, name }`, `status` being `approved` when
+ * left out. Unset or empty → no accounts.
  * Throws on anything malformed, so a bad value stops the backend (and the seed) at startup.
  */
 export function parseReviewAccounts(raw: string | undefined): ReviewAccount[] {
@@ -52,17 +58,19 @@ function parseReviewAccount(entry: unknown, index: number): ReviewAccount {
     return fail('is not an object');
   }
 
-  const { email, code, role, name } = entry as Record<string, unknown>;
+  const { email, code, role, status = 'approved', name } = entry as Record<string, unknown>;
   const normalizedEmail = normalizeEmail(email);
   if (!isValidEmail(normalizedEmail)) fail('has an invalid email');
   if (typeof code !== 'string' || !/^\d{6}$/.test(code)) fail('has a code that is not 6 digits');
   if (!(USER_ROLES as readonly unknown[]).includes(role)) fail('has an unknown role');
+  if (!REVIEW_ACCOUNT_STATUSES.includes(status)) fail('has an unknown status');
   if (typeof name !== 'string' || name.trim() === '') fail('has no name');
 
   return {
     email: normalizedEmail,
     code: code as string,
     role: role as UserRole,
+    status: status as ReviewAccountStatus,
     name: (name as string).trim(),
   };
 }

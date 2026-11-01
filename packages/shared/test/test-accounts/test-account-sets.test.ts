@@ -1,18 +1,18 @@
 import { EmailRule, PersonNameRule, testAccountSets } from "../../src/index";
 
 const SET_NAMES = [
-  "Um",
-  "Dois",
-  "Três",
-  "Quatro",
-  "Cinco",
-  "Seis",
-  "Sete",
-  "Oito",
-  "Nove",
-  "Dez",
-  "Onze",
-  "Doze",
+  "One",
+  "Two",
+  "Three",
+  "Four",
+  "Five",
+  "Six",
+  "Seven",
+  "Eight",
+  "Nine",
+  "Ten",
+  "Eleven",
+  "Twelve",
 ];
 
 const allAccounts = testAccountSets.flatMap(({ accounts }) => accounts);
@@ -51,49 +51,49 @@ describe("testAccountSets", () => {
       expect(accounts).toEqual([
         {
           role: "admin",
-          email: `teste${set}.admin@rochas-surf-school.test`,
-          name: `Admin Teste ${number}`,
+          email: `admin${set}@test.com`,
+          name: `Admin User ${number}`,
         },
         {
           role: "instructor",
-          email: `teste${set}.instrutor@rochas-surf-school.test`,
-          name: `Instrutor Teste ${number}`,
+          email: `instructor${set}@test.com`,
+          name: `Instructor User ${number}`,
         },
         {
           role: "student",
-          email: `teste${set}.aluno@rochas-surf-school.test`,
-          name: `Aluno Teste ${number}`,
+          email: `student${set}@test.com`,
+          name: `Student User ${number}`,
         },
       ]);
     });
   });
 
-  test("holds the accounts of spec 076 word for word", () => {
+  test("holds the accounts word for word", () => {
     expect(testAccountSets[2]).toEqual({
       set: "03",
       accounts: [
         {
           role: "admin",
-          email: "teste03.admin@rochas-surf-school.test",
-          name: "Admin Teste Três",
+          email: "admin03@test.com",
+          name: "Admin User Three",
         },
         {
           role: "instructor",
-          email: "teste03.instrutor@rochas-surf-school.test",
-          name: "Instrutor Teste Três",
+          email: "instructor03@test.com",
+          name: "Instructor User Three",
         },
         {
           role: "student",
-          email: "teste03.aluno@rochas-surf-school.test",
-          name: "Aluno Teste Três",
+          email: "student03@test.com",
+          name: "Student User Three",
         },
       ],
     });
-    expect(testAccountSets[0].accounts[0].name).toBe("Admin Teste Um");
+    expect(testAccountSets[0].accounts[0].name).toBe("Admin User One");
     expect(testAccountSets[11].accounts[2]).toEqual({
       role: "student",
-      email: "teste12.aluno@rochas-surf-school.test",
-      name: "Aluno Teste Doze",
+      email: "student12@test.com",
+      name: "Student User Twelve",
     });
   });
 

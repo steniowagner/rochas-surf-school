@@ -88,7 +88,7 @@ aws ssm put-parameter --region us-east-1 --type SecureString --overwrite --name 
 | `REFRESH_TOKEN_EXPIRES_IN_DAYS` | `30`                                                                                            |
 | `RESEND_API_KEY`                | From `apps/backend/.env`.                                                                       |
 | `EMAIL_FROM`                    | From `apps/backend/.env`: `admin@rochassurfschool.com`.                                         |
-| `REVIEW_ACCOUNTS`               | The first thing `npm run test-accounts --workspace apps/backend` prints. Keep its table safe.   |
+| `REVIEW_ACCOUNTS`               | The first line of `TEST_ACCOUNTS_CODE=<6 digits> npm run test-accounts -w apps/backend`.        |
 | `GOOGLE_WEB_CLIENT_ID`          | From `apps/backend/.env.example`; it isn't secret.                                              |
 | `APPLE_CLIENT_ID`               | `com.rochassurfschool.app`, the app's bundle id; it isn't secret.                               |
 | `ANTHROPIC_API_KEY`             | From `apps/backend/.env`.                                                                       |
@@ -96,7 +96,7 @@ aws ssm put-parameter --region us-east-1 --type SecureString --overwrite --name 
 | `EXPO_ACCESS_TOKEN`             | Optional: only with "enhanced push security" on in Expo. Leave it out otherwise.                |
 
 `PORT` and `NODE_ENV` come from the image, and the deploy script sets `CLIENT_IP_HEADER`, so none of them is a
-parameter. `REVIEW_ACCOUNTS` is about 4,030 bytes and the standard tier's limit is 4 KB, so adding accounts may not fit.
+parameter. `REVIEW_ACCOUNTS` is about 3,980 bytes and the standard tier's limit is 4 KB, so adding accounts may not fit.
 
 **`DATABASE_URL`.** The server has no IPv6, so it can't use Supabase's direct connection. Use the session pooler
 (port 5432): copy the string from **Connect → Session pooler** in the Supabase dashboard, because its host can't be
@@ -179,6 +179,41 @@ Open a session on the server. Port 22 is closed and there is no SSH key.
 
 ```bash
 aws ssm start-session --region us-east-1 --target "$(terraform -chdir=infra/terraform/staging output -raw server_instance_id)"
+```
+
+### Resetting the data
+
+`npm run reset-staging` erases everything in the database and leaves only the test accounts in `REVIEW_ACCOUNTS`: the 12
+sets of `admin01@test.com`, `instructor01@test.com` and `student01@test.com`, up to `12`. The admins start approved and
+everyone else starts as a pending student, whatever their name says, so testers approve them and set their roles. The
+migrations stay applied. Refresh tokens go too, so everyone is signed out. A deploy never runs it, and it leaves
+accounts that testers have changed alone.
+
+The sign-in code lives only in `REVIEW_ACCOUNTS`, so the repo never holds it. To set a new one, write the parameter with
+the printed value, without the `REVIEW_ACCOUNTS=` and the quotes, then deploy so the server reads it:
+
+```bash
+TEST_ACCOUNTS_CODE=<6 digits> npm run test-accounts -w apps/backend
+```
+
+Then, from `apps/backend`, load the two values into this shell:
+
+```bash
+export DATABASE_URL="$(aws ssm get-parameter --region us-east-1 --name /rochas/staging/DATABASE_URL --with-decryption --query Parameter.Value --output text)"
+```
+
+```bash
+export REVIEW_ACCOUNTS="$(aws ssm get-parameter --region us-east-1 --name /rochas/staging/REVIEW_ACCOUNTS --with-decryption --query Parameter.Value --output text)"
+```
+
+Run it without an argument to see which host it would erase, then pass that host to confirm:
+
+```bash
+npm run reset-staging
+```
+
+```bash
+npm run reset-staging -- <database host>
 ```
 
 Replacing the server (a new `user_data`, say) leaves it without the backend until the next deploy, because the running

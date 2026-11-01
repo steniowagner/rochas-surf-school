@@ -269,7 +269,8 @@ prisma/
                                 # the partial unique index enrolments_one_open_per_student_class in SQL
   seed/main.ts                  # seed runner, one task per module
   seed/review-accounts.seed.ts  # upserts the REVIEW_ACCOUNTS users and their email identities
-  seed/test-accounts.ts         # the 12 test sets (testAccountSets from shared, spec 077) with random codes;
+  seed/reset-staging.seed.ts    # wipes the database and seeds REVIEW_ACCOUNTS; reset-staging.ts runs it by hand
+  seed/test-accounts.ts         # the 12 test sets (testAccountSets from shared, spec 077) with the given code;
                                 # print-test-accounts.ts prints their REVIEW_ACCOUNTS line and hand-out table
                                 # (`npm run test-accounts`, spec 076)
 src/

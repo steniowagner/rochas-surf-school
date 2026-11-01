@@ -2,7 +2,7 @@
 id: "082"
 slug: admin-message-sheet
 title: Admin messages open in a sheet and stay on the class
-status: changes-requested
+status: in-progress
 created: 2026-10-31
 started: 2026-10-31
 base_commit: 1fad1cf64e369b66c7644648312065dd1db302fc
@@ -793,7 +793,7 @@ The sender, in every answer below (`null` by ER-05):
 
 **Findings**
 
-- [ ] **F-01** (ER-09) — a push tapped while Avisos is open leaves its row unread on screen, though the notification is
+- [x] **F-01** (ER-09) — a push tapped while Avisos is open leaves its row unread on screen, though the notification is
   read. `handle` in `use-notification-response.hook.ts` sends `POST /notifications/:id/read` and never touches the list or
   the count cache, and the screen doesn't mark the message it opens from the route, so nothing refreshes the row. It also
   differs from ER-10, where the dot clears at once. Reproduce: with Avisos open on an unread `class.message` row, send
@@ -801,6 +801,21 @@ The sender, in every answer below (`null` by ER-05):
   `rochassurfschool://student/notifications?notificationId=<id>`. `GET /notifications/<id>` answers `read: true`, but the
   row keeps its orange dot behind the sheet and after closing it, until the list reloads. Expected: the row shows read and
   the unread count drops by one, with a test for a push tapped while Avisos is open.
+  > ✅ 2026-11-01 08:36 — Avisos now marks the unread message it opens from the route, through the same
+  > `useMarkNotificationRead` as a row, so the row and the count change at once. The fix is on the screen, not in the push
+  > handler, so it also covers a list that answers before the handler's POST lands. The handler keeps its POST, because the
+  > flows without Avisos need it (ER-17), so a tap can send the mark twice, which `markRead` answers harmlessly and which
+  > keeps the first `readAt`; files: `apps/mobile/src/modules/notifications/screens/notifications.screen.hook.ts`,
+  > `apps/mobile/src/modules/notifications/screens/notifications.screen.test.tsx`; verified: the 2 new tests that expect
+  > the mark failed before the fix (the row kept its dot, and no POST left for one beyond the loaded pages), `npx jest
+  > src/modules/notifications` (17 suites, 487 passed), `npx tsc --noEmit -p .` and ESLint clean. Reproduced as the reviewer
+  > did, on the iOS simulator as the student, with the app relaunched on the current bundle: with Avisos open on the
+  > unread "Revisão 082: ponto de encontro" row (its `read_at` nulled in the local database and restored to the same value
+  > for the handler's mark, the only data touched), opening
+  > `rochassurfschool://student/notifications?notificationId=<id>` shows the sheet with the dot already gone, the row stays
+  > read after "Ok, entendi", the sheet doesn't reopen, and the bell goes from 2 to 1. The same steps on the app process
+  > that predated the fix kept the dot, as the finding says. Not verified: a real tapped push, as in the review's Notes;
+  > deviations: none.
 
 **Notes**
 

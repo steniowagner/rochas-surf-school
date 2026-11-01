@@ -48,7 +48,7 @@ export const useNotificationsScreen = (): UseNotificationsScreenResult => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const query = useNotifications();
   const unread = useUnreadNotificationsCount();
-  const markOne = useMarkNotificationRead();
+  const { mutate: markOneRead } = useMarkNotificationRead();
   const markAll = useMarkAllNotificationsRead();
   const flow = user
     ? resolveFlow({ user, onboardingCompleted: isOnboardingCompleted(user) })
@@ -71,6 +71,16 @@ export const useNotificationsScreen = (): UseNotificationsScreenResult => {
     setMessage(pushedMessage);
     setMessageVisible(true);
   }
+
+  // The push handler marks it on the server, which neither the row nor the count here can see. Marking one twice is
+  // harmless: the first read keeps its time.
+  const unreadPushedId = pushedMessage && !pushed?.read ? notificationId : null;
+
+  useEffect(() => {
+    if (unreadPushedId !== null) {
+      markOneRead(unreadPushedId);
+    }
+  }, [markOneRead, unreadPushedId]);
 
   const clearRouteMessage = () => {
     if (notificationId !== null) {
@@ -101,7 +111,7 @@ export const useNotificationsScreen = (): UseNotificationsScreenResult => {
   const openNotification = (notification: NotificationItem) => {
     // A read row sends nothing; an unread one is marked at once, without waiting for the request (D-07).
     if (!notification.read) {
-      markOne.mutate(notification.id);
+      markOneRead(notification.id);
     }
 
     const adminMessage = toAdminMessage(notification);

@@ -560,6 +560,48 @@ describe("NotificationsScreen", () => {
 
           await waitFor(() => expect(screen.getByText("Outro texto.")).toBeOnTheScreen());
         });
+
+        it("shows its row as read and lowers the count at once, with the screen already open", async () => {
+          mockParams = { notificationId: "n-1" };
+          serve({
+            list: () => page([notice()]),
+            count: () => ok({ count: posts().length > 0 ? 0 : 1 }),
+          });
+          await renderScreen();
+
+          await waitFor(() => expect(sheet()).toBeOnTheScreen());
+          await waitFor(() => expect(dots()).toHaveLength(0));
+          await waitFor(() => expect(markAllButton()).toBeNull());
+          expect(posts()).toEqual(["/notifications/n-1/read"]);
+        });
+
+        it("marks one beyond the loaded pages", async () => {
+          mockParams = { notificationId: "n-9" };
+          serve({ list: () => page([notice()]), one: () => ok(notice(9)) });
+          await renderScreen();
+
+          await waitFor(() => expect(posts()).toEqual(["/notifications/n-9/read"]));
+          expect(dots()).toHaveLength(1);
+        });
+
+        it("sends nothing for a message already read", async () => {
+          mockParams = { notificationId: "n-1" };
+          serve({ list: () => page([{ ...notice(), read: true }]) });
+          await renderScreen();
+
+          await waitFor(() => expect(sheet()).toBeOnTheScreen());
+          expect(posts()).toEqual([]);
+        });
+
+        it("doesn't mark a notification that has no message", async () => {
+          mockParams = { notificationId: "n-1" };
+          serve({ list: () => page([buildNotification(1)]) });
+          await renderScreen();
+
+          await waitFor(() => expect(dots()).toHaveLength(1));
+          expect(sheet()).toBeNull();
+          expect(posts()).toEqual([]);
+        });
       });
     });
 

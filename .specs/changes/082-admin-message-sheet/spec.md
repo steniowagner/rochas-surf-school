@@ -2,7 +2,7 @@
 id: "082"
 slug: admin-message-sheet
 title: Admin messages open in a sheet and stay on the class
-status: in-progress
+status: in-review
 created: 2026-10-31
 started: 2026-10-31
 base_commit: 1fad1cf64e369b66c7644648312065dd1db302fc
@@ -676,9 +676,15 @@ The sender, in every answer below (`null` by ER-05):
   > en-US on screen, which rest on the tests; to check the light theme, switch the app's theme in Perfil and open a class
   > message. T-15's other unverified items stand; deviations: none.
 
-- [ ] **T-21** — Run every command in the Verification Plan again and check the sender line of D-20 on the iOS simulator.
+- [x] **T-21** — Run every command in the Verification Plan again and check the sender line of D-20 on the iOS simulator.
   Record the output summary as evidence.
   Covers: ER-11, ER-15 · Done when: every command exits 0 and the sheet is seen on the simulator.
+  > ✅ 2026-11-01 15:45 — Ran the Verification Plan on the final code; verified: `node
+  > .specs/scripts/run-related-tests.mjs 082` RELATED TESTS PASSED; `node .specs/scripts/check-coverage.mjs 082` COVERAGE
+  > OK (42 files); `node .specs/scripts/run-e2e.mjs 082` E2E PASSED; the `turbo run lint check-types build` of the plan
+  > exited 0 (29 tasks). On the iOS simulator, signed in as a student, on the Metro of port 8081, restarted at 01:00 and so
+  > with the `messageTitle` token, a class message from Avisos shows "Dev Admin · há 33 minutos" as text under "Mensagem
+  > da escola", with no chip, and the title in the display font. Not verified: the same as T-19; deviations: none.
 
 ## Verification Plan
 

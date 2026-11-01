@@ -2,7 +2,7 @@
 id: "082"
 slug: admin-message-sheet
 title: Admin messages open in a sheet and stay on the class
-status: in-review
+status: in-progress
 created: 2026-10-31
 started: 2026-10-31
 base_commit: 1fad1cf64e369b66c7644648312065dd1db302fc
@@ -33,10 +33,12 @@ who opens class details can read them in a new "Mensagens desta aula" section.
 - Design references (layout only, see D-01):
   - [message-sheet.png](designs/message-sheet.png) — the sheet, with a class message on the left and a notice on the
     right. It draws the sheet over the home; here it opens over Avisos or class details. Its one-line class card is
-    replaced by D-11 and its sender line by D-09.
+    replaced by D-18 and its sender line by D-09, and it has the close button D-17 removes.
+  - [message-sheet-content.png](designs/message-sheet-content.png) — the title, the description, the label and the class
+    card under them (D-18, D-19). The label reads "A aula" here, and the card's colors follow D-18.
   - [class-messages-section.png](designs/class-messages-section.png) — the class details section.
-  - [request-seat-class-card.webp](designs/request-seat-class-card.webp) — the "Pedir para entrar" sheet; its class card
-    is the one this spec reuses.
+  - ~~[request-seat-class-card.webp](designs/request-seat-class-card.webp) — the "Pedir para entrar" sheet; its class card
+    is the one this spec reuses.~~ (removed: D-18 replaces that card)
   - [sender-chip.png](designs/sender-chip.png) — the instructor pill of class details, used for the sender.
 - Existing code this builds on:
   - `modules/classes/src/school-class/usecase/send-class-message.usecase.ts` — validates, then tells the instructors and
@@ -52,7 +54,8 @@ who opens class details can read them in a new "Mensagens desta aula" section.
     `hooks/use-notification-received.hook.ts`, `screens/notifications.screen.hook.ts`.
   - `apps/mobile/src/modules/classes/screens/class-details.screen.tsx`, `components/instructor-pill/`,
     `hooks/use-class.hook.ts` (query `["classes", "detail", id]`).
-  - `apps/mobile/src/modules/enrolment/components/request-seat-class-card/`.
+  - ~~`apps/mobile/src/modules/enrolment/components/request-seat-class-card/`.~~ (removed: D-18)
+  - `apps/mobile/src/modules/enrolment/components/class-requests-group/` — the class header of Class enrolments (D-18).
   - `apps/mobile/src/modules/people/components/person-sheet/` — takes `name`, `photoUrl`, `role` and `whatsappNumber`.
   - `apps/mobile/src/modules/notices/hooks/use-send-class-message.hook.ts`.
 
@@ -103,14 +106,17 @@ The sender, in every answer below (`null` by ER-05):
 | D-06 | A `class.message` notification keeps its own `title` and `message`, as today, and doesn't reference the `class_messages` row. | An inbox must survive the class being deleted. |
 | D-07 | The sender is read when reading, never stored in a notification: notifications store only `senderId`, and name, photo, role and WhatsApp number come from the account. Notifications gets a new port, `MessageSenderReader` (it doesn't depend on `auth`), and the Classes read joins the account. `role` is part of the answer because the person sheet shows it. | Decided with the user. Storing a name would break erasure (spec 067), or force deleting the message from people's inboxes. |
 | D-08 | A sender whose account is closed but not yet erased keeps the chip, and their person sheet has no number (the WhatsApp rule answers `null` for anyone who isn't approved). | The same behavior as a class's instructors (`visibleNumber`). |
-| D-09 | The sender is drawn with `InstructorPill`, imported from `modules/classes`, not copied. It reads "Você" with a `lagoon` border when the viewer is the sender. It sits below the header row, which keeps the icon tile, "Mensagem da escola", the relative time and the close button. | Decided with the user: the chip describes the sender and opens their details. |
+| D-09 | The sender is drawn with `InstructorPill`, imported from `modules/classes`, not copied. It reads "Você" with a `lagoon` border when the viewer is the sender. It sits below the header row, which keeps the icon tile, "Mensagem da escola" and the relative time~~ and the close button~~ (removed: D-17). | Decided with the user: the chip describes the sender and opens their details. |
 | D-10 | Pressing the chip hides the message sheet and opens `PersonSheet`; closing `PersonSheet` shows the message sheet again. One sheet is visible at a time, and `MessageSheet` owns the swap, so both screens get it. | It doesn't depend on how the sheet library stacks modals. |
-| D-11 | The class card is `RequestSeatClassCard`, which gains an optional `onPress`: with it the card is pressable and shows a chevron. Without it, nothing changes on the "Pedir para entrar" sheet. Its data comes from the class query, so it's never stale. | Decided with the user (PS2 of the request), over the mockup's one-line card. A notification holds no level, end time or location, and those can change. |
+| D-11 | ~~The class card is `RequestSeatClassCard`, which gains an optional `onPress`: with it the card is pressable and shows a chevron. Without it, nothing changes on the "Pedir para entrar" sheet. Its data comes from the class query, so it's never stale.~~ (removed: replaced by D-18) | Decided with the user (PS2 of the request), over the mockup's one-line card. A notification holds no level, end time or location, and those can change. |
 | D-12 | Opening a message from class details never marks a notification read. | Most readers have no notification for that message, and linking the two needs a new read across modules. The dot stays on Avisos until it is tapped there or marked with "mark all". |
 | D-13 | The sheet's title uses a new type token, `messageTitle` (`ds-text-message-title`): display font, weight 700, size 30, not uppercase. | Admin text is shown as written, and `sheetTitle` is uppercase. |
 | D-14 | A section row's time, in America/Fortaleza and the app's language: `HH:mm` for today, the short weekday for the 6 days before today ("Qui"), and `d MMM` before that ("12 out", without a trailing "."). | As in the mockup, which leaves older messages open. |
 | D-15 | The section sits between the people card (with its read-only note) and "Regras". Its label reads "Mensagens desta aula · N". Each row shows at most 2 lines of title and 2 of text, and there is no pagination. | A class is one session, so it holds few messages. |
 | D-16 | The sheet doesn't scroll. | 60 characters of title and 500 of text fit on a phone with the class card. |
+| D-17 | The sheet has no close button. "Ok, entendi", the backdrop and dragging down close it. | Decided with the user: the primary button already closes it. |
+| D-18 | The class card is the class header of Class enrolments (`ClassRequestsGroup`), extracted to `ClassDayHeader` in `modules/enrolment` and not copied: the day block, the chips, the time range and the location, with its colors and without its occupancy bar. In the sheet it sits in a pressable card with a chevron, under the "A aula" label, and the day block drops the year and shows the month in uppercase ("NOV"). Class enrolments doesn't change. Its data comes from the class query, so it's never stale. `RequestSeatClassCard` goes back to how it was. | Decided with the user. A notification holds no level, end time or location, and those can change. |
+| D-19 | The description is `ds-text-body` in `text-ink`, 12 px under the title, as in [message-sheet-content.png](designs/message-sheet-content.png). The title stays as D-13 says. | Decided with the user. |
 
 ## Expected Results
 
@@ -224,18 +230,19 @@ The sender, in every answer below (`null` by ER-05):
 - **Front:** mobile
 - **Behavior:** Given a `broadcast`, when its sheet opens, then it shows the icon tile, "Mensagem da escola", the relative
   time, the sender chip, the title and the text as written, and no class card; "Ok, entendi" closes it.
-- **Edge and error cases:** the close button, the backdrop and dragging down also close it. With no sender there is no
-  chip. The title isn't uppercased.
+- **Edge and error cases:** the backdrop and dragging down also close it, and there is no close button (D-17). With no
+  sender there is no chip. The title isn't uppercased.
 - **Verify by:** `message-sheet.component.test.tsx` (`npx jest src/modules/notifications`); the user journey "Sheet".
 
 ### ER-12 — The sheet shows the class of a class message
 
 - **Front:** mobile
-- **Behavior:** Given a `class.message` opened from Avisos, when its sheet opens, then it shows
-  `RequestSeatClassCard` with the class's current data and a chevron, and pressing it closes the sheet and opens that
-  class's details in the account's flow.
+- **Behavior:** Given a `class.message` opened from Avisos, when its sheet opens, then it shows the "A aula" label and
+  the card of D-18 with the class's current data and a chevron, and pressing it closes the sheet and opens that class's
+  details in the account's flow.
 - **Edge and error cases:** a skeleton shows while the class loads. A deleted class or a failed read shows the sheet
-  without the card, and the message stays readable. A cancelled class still shows the card.
+  without the label or the card, and the message stays readable. A cancelled class still shows the card. The day block
+  shows no year, and its month is uppercase.
 - **Verify by:** `message-sheet.component.test.tsx` and `notifications.screen.test.tsx`
   (`npx jest src/modules/notifications`); the user journey "Sheet".
 
@@ -436,6 +443,10 @@ The sender, in every answer below (`null` by ER-05):
   > copy for `close` and `loadError`, so they follow the existing wording of each locale; `messageTitle` has line
   > height 1.1 so wrapped lowercase text does not clip.
 
+- [ ] **T-16** — Add `notifications.messageSheet.classLabel` to `packages/app-messages/src/{pt-BR,es-ES,en-US}.ts`: "A aula",
+  "La clase" and "The class" (D-18).
+  Covers: enabling · Done when: `npm test -w @rochas-surf-school/app-messages` passes.
+
 ### Mobile (`apps/mobile`)
 
 - [x] **T-08** — Add the types and the reads: `adminMessage` on `NotificationItem` with an `AdminMessage` type
@@ -558,6 +569,18 @@ The sender, in every answer below (`null` by ER-05):
   > `apps/mobile/src/modules/notices/hooks/use-send-class-message.hook.test.tsx`; verified: `npx jest
   > src/modules/notifications/hooks src/modules/notices/hooks` (13 suites, 205 passed); deviations: none.
 
+- [ ] **T-17** — Extract the class header of `ClassRequestsGroup` to `src/modules/enrolment/components/class-day-header/`
+  (`ClassDayHeader`, following `.claude/rules/react.md`), with an optional `showYear` that Class enrolments passes, so that
+  screen doesn't change; without it the block shows only the uppercase month (D-18). Test in
+  `class-day-header.component.test.tsx`. Skills: `vercel-react-native-skills`, `vercel-react-best-practices`.
+  Covers: enabling · Done when: `npx jest src/modules/enrolment` passes.
+
+- [ ] **T-18** — In `MessageSheet`: remove the close button and the `notifications.messageSheet.close` key (D-17), set the
+  description of D-19, and replace `RequestSeatClassCard` with the label and the card of D-18, with a skeleton of that
+  card's height. Undo T-09 in `request-seat-class-card/`. Update `message-sheet.component.test.tsx` and
+  `notifications.screen.test.tsx`. Skills: `vercel-react-native-skills`, `vercel-react-best-practices`.
+  Covers: ER-11, ER-12 · Done when: `npx jest src/modules/notifications src/modules/enrolment` passes.
+
 ### Verification
 
 - [x] **T-15** — Run every command in the Verification Plan from the repo root; all pass. Record the output summary as
@@ -584,6 +607,11 @@ The sender, in every answer below (`null` by ER-05):
   > uppercased. (3) The Sheet and Section journeys signed in as a student and as an instructor who does not teach
   > the class, covered by `class-messages.e2e-spec.ts` and the screen tests; deviations: journeys ran as an admin
   > rather than the signed-in student of the plan.
+
+- [ ] **T-19** — Run every command in the Verification Plan again and check the sheet of D-17, D-18 and D-19 on the iOS
+  simulator, on a Metro started after the `messageTitle` token, with the look T-15 couldn't check. Record the output
+  summary as evidence.
+  Covers: ER-11, ER-12 · Done when: every command exits 0 and the sheet is seen on the simulator.
 
 ## Verification Plan
 
@@ -614,7 +642,7 @@ The sender, in every answer below (`null` by ER-05):
 - `memory/technical-context.md` — Applications: the push routing of the two types, `MessageSheet`, the class messages
   query; Persistence: `class_messages`; the `messageTitle` token under `packages/design-tokens`.
 - `memory/structure.md` — the `class-message` aggregate, `class-message.prisma.ts`, `message-sender-reader.prisma.ts`,
-  `class-messages.e2e-spec.ts`, the `MessageSheet` and `class-messages` components, the table in the Prisma models.
+  `class-messages.e2e-spec.ts`, the `MessageSheet`, `class-messages` and `ClassDayHeader` components, the table in the Prisma models.
 - `memory/modules.md` — Classes keeps the messages sent to a class.
 - `memory/modules/classes.md` — the `class-message` aggregate, storing before telling, who reads messages.
 - `memory/modules/notifications.md` — `senderId` in the params, `adminMessage`, `GET /notifications/:id`,
@@ -629,5 +657,19 @@ The sender, in every answer below (`null` by ER-05):
 - [Spec lifecycle](../../shared/spec-lifecycle.md)
 
 ## Amendments
+
+- 2026-11-01 — D-09, D-11 and ER-11 changed, D-17 added, T-18 added: before, the sheet had a close button; after, it has
+  none. The `notifications.messageSheet.close` key of T-07 goes with it. Reason: the user asked to remove it before the
+  review. Approved by the user.
+- 2026-11-01 — D-11 removed, D-18 added, ER-12 changed, T-16, T-17 and T-18 added, and the `RequestSeatClassCard`
+  references in Context struck: before, the class card was `RequestSeatClassCard` with the `onPress` of T-09; after, it is
+  the class header of Class enrolments, extracted to `ClassDayHeader`, with no year and an uppercase month, under an "A
+  aula" label, and T-18 undoes T-09. Reason: the user asked for that component and that label before the review. Class
+  enrolments keeps its year: the user asked to remove it from this card only. Approved by the user.
+- 2026-11-01 — D-19 added, T-18 added: before, the description was `text-ink-2`, 8 px under the title; after, it is
+  `text-ink`, 12 px under it. Reason: the user asked to match
+  [message-sheet-content.png](designs/message-sheet-content.png). Approved by the user.
+- 2026-11-01 — T-19 added, and the status went from `in-review` back to `in-progress` for these changes. Reason: the
+  user reopened the spec before the review. Approved by the user.
 
 ## Review

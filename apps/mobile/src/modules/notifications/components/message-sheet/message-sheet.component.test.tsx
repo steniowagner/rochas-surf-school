@@ -173,6 +173,29 @@ describe("MessageSheet", () => {
       expect(screen.getByText("Escola fechada no feriado")).toBeOnTheScreen();
     });
 
+    it("reads the class again each time it opens, so a class deleted since shows no card", async () => {
+      fetchMock.mockResolvedValue(ok(CLASS));
+      const onOpenClass = jest.fn();
+      const props = { message: CLASS_MESSAGE, onClose: jest.fn(), onOpenClass };
+      const { rerender } = await renderSheet(props);
+      await screen.findByTestId("request-seat-class-card-chevron");
+
+      fetchMock.mockResolvedValue(failure(404));
+      await rerender(<MessageSheet {...props} visible={false} />);
+      await rerender(<MessageSheet {...props} visible />);
+
+      await waitFor(() =>
+        expect(screen.queryByTestId("request-seat-class-card-chevron")).toBeNull(),
+      );
+      expect(screen.getByText("Escola fechada no feriado")).toBeOnTheScreen();
+    });
+
+    it("doesn't read the class while it is closed", async () => {
+      await renderSheet({ message: CLASS_MESSAGE, onOpenClass: jest.fn(), visible: false });
+
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
     it("doesn't read the class when the screen can't lead there", async () => {
       await renderSheet({ message: CLASS_MESSAGE });
 
@@ -225,10 +248,13 @@ describe("MessageSheet", () => {
 
     it("doesn't close when hiding the message dismisses its sheet", async () => {
       const onClose = jest.fn();
+      mockDismissals.length = 0;
       await renderSheet({ onClose });
+      // The sheet library can call the callback of the render that presented it, from before the chip was pressed.
+      const presentedWith = mockDismissals[0];
 
       await press("Ana Souza");
-      await act(async () => mockDismissals.at(-2)?.());
+      await act(async () => presentedWith());
 
       expect(onClose).not.toHaveBeenCalled();
       expect(screen.getByText("Admin")).toBeOnTheScreen();

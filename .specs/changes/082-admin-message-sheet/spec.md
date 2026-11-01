@@ -2,7 +2,7 @@
 id: "082"
 slug: admin-message-sheet
 title: Admin messages open in a sheet and stay on the class
-status: in-progress
+status: in-review
 created: 2026-10-31
 started: 2026-10-31
 base_commit: 1fad1cf64e369b66c7644648312065dd1db302fc
@@ -560,8 +560,30 @@ The sender, in every answer below (`null` by ER-05):
 
 ### Verification
 
-- [ ] **T-15** — Run every command in the Verification Plan from the repo root; all pass. Record the output summary as
+- [x] **T-15** — Run every command in the Verification Plan from the repo root; all pass. Record the output summary as
   evidence. Covers: all · Done when: every command exits 0 and each user journey is recorded.
+  > ✅ 2026-11-01 00:27 — Ran the Verification Plan on the final code; verified: `node
+  > .specs/scripts/run-related-tests.mjs 082` RELATED TESTS PASSED; `node .specs/scripts/check-coverage.mjs 082`
+  > COVERAGE OK (41 files); `node .specs/scripts/run-e2e.mjs 082` E2E PASSED (backend 856 tests in 30 files, web
+  > 77); the `turbo run lint check-types build` of the plan exited 0 (29 tasks). Journeys, on the iOS simulator as
+  > the signed-in Dev Admin (not a student or instructor), with a second local admin sending through the local API.
+  > Sheet: notice with chip, text and no card; class message with card and chevron; chip swaps to the person sheet
+  > and Fechar brings the message back; the card closes the sheet and opens the class; a deleted class shows the
+  > message with no card. Section: "Mensagens desta aula" between the people and Regras, newest first, its row opens
+  > the sheet with no card. Push: the `notificationId` route param, opened by deep link, shows the sheet, stays
+  > closed once closed, and an unknown id shows the toast and no sheet. The simulator found two bugs the Jest mock
+  > could not, both fixed in `bc9fc178` with tests that failed first: the library calling a stale dismiss callback
+  > closed both sheets on the swap, and reopening the sheet for the same class never read the class again. Not
+  > verified: (1) a real tapped push and ER-16 reloading on a received push, because `xcrun simctl push` is refused
+  > (UNErrorDomain 2003, the simulator app has no notification permission), so those rest on
+  > `use-notification-response.hook.test.tsx` and `use-notification-received.hook.test.tsx`; to check them, on a
+  > phone build from EAS tap a notice push with the app closed and see Avisos open with its sheet, then with a class
+  > open receive a message for it and see the count go up. (2) The `messageTitle` look on screen: the running Metro
+  > predates the token, so the title showed as body text, and a fresh Metro bundle was confirmed to contain
+  > `ds-text-message-title`; restart Metro with `--clear`, open a message and see the title in the display font, not
+  > uppercased. (3) The Sheet and Section journeys signed in as a student and as an instructor who does not teach
+  > the class, covered by `class-messages.e2e-spec.ts` and the screen tests; deviations: journeys ran as an admin
+  > rather than the signed-in student of the plan.
 
 ## Verification Plan
 

@@ -423,12 +423,19 @@ because the app offers Google.
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-08** — Install `expo-apple-authentication` (`npx expo install`), set `ios.usesAppleSignIn: true` in
+- [x] **T-08** — Install `expo-apple-authentication` (`npx expo install`), set `ios.usesAppleSignIn: true` in
   `apps/mobile/app.json`, keeping the plugin entry when the install adds one, create
   `apps/mobile/src/services/apple-sign-in.ts` as the only import point of the library, with its test, and mock the library
   in `apps/mobile/jest.setup.ts`.
   Covers: enabling · Done when: `npx jest src/services/apple-sign-in` passes and
   `npx turbo run lint check-types --filter=@rochas-surf-school/mobile` exits 0.
+  > ✅ 2026-11-01 12:28 — installed `expo-apple-authentication` ~57.0.2, set `ios.usesAppleSignIn` (the expanded config
+  > shows the `com.apple.developer.applesignin` entitlement), added `src/services/apple-sign-in.ts` as the only import
+  > point, and the Jest mock; the install added no plugin entry, and the library's plugin only localizes the native
+  > button this app doesn't use (D-09), so none was added; files: `apps/mobile/package.json`, `package-lock.json`,
+  > `apps/mobile/app.json`, `apps/mobile/jest.setup.ts`, `apps/mobile/src/services/apple-sign-in.ts`,
+  > `apps/mobile/src/services/apple-sign-in.test.ts`; verified: `npx jest src/services/apple-sign-in` (2 passed), `npx
+  > turbo run lint check-types --filter=@rochas-surf-school/mobile` exit 0; deviations: none
 
 - [ ] **T-09** — Add the `useSignInWithApple` mutation on `POST /auth/apple` in
   `apps/mobile/src/modules/auth/hooks/use-sign-in-with-apple.hook.ts`, and

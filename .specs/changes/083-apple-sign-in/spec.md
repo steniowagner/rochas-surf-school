@@ -333,7 +333,7 @@ because the app offers Google.
 
 ### Backend (`apps/backend`)
 
-- [ ] **T-03** — Add `jose` to `apps/backend`; implement `AppleAuthIdTokenProvider` in
+- [x] **T-03** — Add `jose` to `apps/backend`; implement `AppleAuthIdTokenProvider` in
   `apps/backend/src/modules/auth/apple.id-token.ts` (D-04, D-16) and register it in `auth.module.ts`; make `AuthConfig`
   read `APPLE_CLIENT_ID` (required in production); add it to `apps/backend/.env.example`. Tests:
   `apple.id-token.spec.ts` (`maps the payload`, `string email_verified`, `no email`, `rejects`, `no client id`, D-14) and
@@ -342,6 +342,14 @@ because the app offers Google.
   Covers: ER-04, ER-09, ER-10 · Done when:
   `npx vitest run src/modules/auth/apple.id-token.spec.ts src/modules/auth/auth.config.spec.ts` passes (from
   `apps/backend`).
+  > ✅ 2026-11-01 12:20 — added `jose` 6.2.14 to the backend, `AppleAuthIdTokenProvider` (D-04),
+  > `AuthConfig.appleClientId` required in production (D-16) and `APPLE_CLIENT_ID` in `.env.example`, and registered
+  > the provider; the existing Google production-config tests now also pass `APPLE_CLIENT_ID`, since production needs
+  > both; files: `apps/backend/package.json`, `package-lock.json`, `apps/backend/.env.example`,
+  > `apps/backend/src/modules/auth/apple.id-token.ts`, `apps/backend/src/modules/auth/apple.id-token.spec.ts`,
+  > `apps/backend/src/modules/auth/auth.config.ts`, `apps/backend/src/modules/auth/auth.config.spec.ts`,
+  > `apps/backend/src/modules/auth/auth.module.ts`; verified: `npx vitest run src/modules/auth/apple.id-token.spec.ts
+  > src/modules/auth/auth.config.spec.ts` (2 files, 44 passed), `tsc --noEmit` clean; deviations: none
 
 - [ ] **T-04** — Expose `POST /auth/apple` in `apps/backend/src/modules/auth/auth.controller.ts` (D-05), with its cases in
   `auth.controller.spec.ts` and requests in `auth.integration.http`; add `apps/backend/test/auth-apple.e2e-spec.ts`,

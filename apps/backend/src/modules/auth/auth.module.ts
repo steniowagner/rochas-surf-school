@@ -6,6 +6,7 @@ import { ClassesModule } from '../classes/classes.module.js';
 import { EnrolmentModule } from '../enrolment/enrolment.module.js';
 import { NotificationsModule } from '../notifications/notifications.module.js';
 import { AccountErasureJob } from './account-erasure.job.js';
+import { AppleAuthIdTokenProvider } from './apple.id-token.js';
 import { AuthConfig } from './auth.config.js';
 import { AuthController } from './auth.controller.js';
 import { GoogleAuthIdTokenProvider } from './google.id-token.js';
@@ -50,6 +51,7 @@ import { PrismaUserRepository } from './user.prisma.js';
     JwtTokenProvider,
     ResendEmailProvider,
     GoogleAuthIdTokenProvider,
+    AppleAuthIdTokenProvider,
     SignInCodeCleanupJob,
     AccountErasureJob,
   ],

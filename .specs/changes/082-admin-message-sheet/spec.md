@@ -289,7 +289,7 @@ The sender, in every answer below (`null` by ER-05):
 
 ### Classes (`modules/classes`)
 
-- [ ] **T-01** — Create the `class-message` aggregate in `modules/classes/src/class-message/`: `model/class-message.entity.ts`
+- [x] **T-01** — Create the `class-message` aggregate in `modules/classes/src/class-message/`: `model/class-message.entity.ts`
   (`ClassMessage`, using `CLASS_MESSAGE_TITLE_MAX` and `CLASS_MESSAGE_TEXT_MAX`), `provider/class-message.repository.ts`
   (`create`, `findByClass` → the view with the sender's contact and name, newest first) and
   `usecase/list-class-messages.usecase.ts` (`assertCanReadClasses`, 404, the sender answer, `null` for an erased one),
@@ -298,6 +298,26 @@ The sender, in every answer below (`null` by ER-05):
   [`module-aggregate`](../../../.claude/skills/module-aggregate), [`module-entity`](../../../.claude/skills/module-entity),
   [`module-repository`](../../../.claude/skills/module-repository), [`module-use-case`](../../../.claude/skills/module-use-case).
   Covers: ER-02, ER-03, ER-04, ER-05 · Done when: `npm test -w @rochas-surf-school/classes` passes.
+  > ✅ 2026-10-31 23:38 — Created the class-message aggregate (entity with the title/text limits, repository contract
+  > with the sender view, ListClassMessages) and moved visibleNumber to a shared helper; files:
+  > `modules/classes/src/index.ts`, `modules/classes/src/class-message/index.ts`,
+  > `modules/classes/src/class-message/model/index.ts`,
+  > `modules/classes/src/class-message/model/class-message.entity.ts`,
+  > `modules/classes/src/class-message/provider/index.ts`,
+  > `modules/classes/src/class-message/provider/class-message.repository.ts`,
+  > `modules/classes/src/class-message/usecase/index.ts`,
+  > `modules/classes/src/class-message/usecase/list-class-messages.usecase.ts`,
+  > `modules/classes/src/school-class/usecase/visible-number.ts`,
+  > `modules/classes/src/school-class/usecase/get-class.usecase.ts`,
+  > `modules/classes/src/school-class/provider/class-change-notifier.provider.ts`,
+  > `modules/classes/test/mock/index.ts`, `modules/classes/test/mock/fake-class-message.repository.ts`,
+  > `modules/classes/test/mock/fake-class-change.notifier.ts`,
+  > `modules/classes/test/class-message/model/class-message.entity.test.ts`,
+  > `modules/classes/test/class-message/usecase/list-class-messages.usecase.test.ts`,
+  > `apps/backend/src/modules/notifications/notifications.class-change-notifier.ts`; verified: `npm test -w
+  > @rochas-surf-school/classes` (42 suites, 638 passed); deviations: the notifier event `ClassMessage` was renamed
+  > `ClassMessageSent`, because the module barrel cannot export it next to the new `ClassMessage` entity (this
+  > touches the backend adapter too).
 
 - [ ] **T-02** — In `send-class-message.usecase.ts`, store the `ClassMessage` after the state checks and before the early
   return for nobody to tell, and pass `senderId` in the `ClassMessage` event (`class-change-notifier.provider.ts` and

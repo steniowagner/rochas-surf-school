@@ -1,7 +1,6 @@
 import { NotFoundError, UseCase, UuidRule } from "@rochas-surf-school/shared";
 import { ClassActor, assertCanReadClasses } from "../../access";
 import {
-  ClassContact,
   ClassContactReader,
   ClassRosterReader,
   ClassStudent,
@@ -11,6 +10,7 @@ import {
   ViewerEnrolmentReader,
 } from "../provider";
 import { ClassItem, canSeeGuestNames, toClassItem } from "./class-item";
+import { visibleNumber } from "./visible-number";
 
 export interface GetClassIn {
   actor: ClassActor;
@@ -36,16 +36,6 @@ export interface GetClassOut extends Omit<ClassItem, "students" | "instructors">
 }
 
 const uuidRule = new UuidRule();
-
-/**
- * The directory's rule (`ListPeople`): an approved person's number, when they share it or the viewer is an
- * admin. A person missing from the contacts has none.
- */
-function visibleNumber(contact: ClassContact | undefined, actor: ClassActor): string | null {
-  if (!contact || contact.status !== "approved" || !contact.whatsappNumber) return null;
-
-  return contact.whatsappVisible || actor.role === "admin" ? contact.whatsappNumber : null;
-}
 
 export class GetClass implements UseCase<GetClassIn, GetClassOut> {
   constructor(

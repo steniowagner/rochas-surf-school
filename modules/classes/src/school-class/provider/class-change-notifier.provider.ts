@@ -26,7 +26,7 @@ export interface ClassDeleted {
   startsAt: Date;
 }
 
-export interface ClassMessage {
+export interface ClassMessageSent {
   instructorIds: string[];
   /** The students with a seat or a pending request who don't teach the class; absent when there are none. */
   studentIds?: string[];
@@ -42,5 +42,5 @@ export interface ClassChangeNotifier {
   classEdited(event: ClassEdited): Promise<void>;
   classCancelled(event: ClassCancelled): Promise<void>;
   classDeleted(event: ClassDeleted): Promise<void>;
-  classMessage(event: ClassMessage): Promise<void>;
+  classMessage(event: ClassMessageSent): Promise<void>;
 }

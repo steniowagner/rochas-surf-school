@@ -6,4 +6,5 @@ export * from "./access";
 
 export * from "./location";
 export * from "./school-class";
+export * from "./class-message";
 export * from "./cancellation-rule";

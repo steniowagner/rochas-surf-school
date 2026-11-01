@@ -85,7 +85,11 @@ describe("SendBroadcast", () => {
     });
 
     expect(notifications.items.map((item) => [item.userId, item.type, item.params])).toEqual([
-      [USER_A, "broadcast", { title: "Aula <b>cancelada</b>", message: "Sem aula 🌊 amanhã" }],
+      [
+        USER_A,
+        "broadcast",
+        { title: "Aula <b>cancelada</b>", message: "Sem aula 🌊 amanhã", senderId: USER_C },
+      ],
     ]);
     expect(provider.sent.map((message) => [message.token, message.locale, message.type])).toEqual([
       ["ExpoPushToken[a1]", "pt-BR", "broadcast"],

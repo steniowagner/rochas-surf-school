@@ -1,26 +1,19 @@
 import { UseCase, ValidationError, ValidationException } from "@rochas-surf-school/shared";
-import { PUSH_LOCALES, PushLocale } from "../../push-token/model";
-import { NotificationParams, NotificationType } from "../model";
-import { NotificationRepository } from "../provider";
+import { PushLocale } from "../../push-token/model";
+import { MessageSenderReader, NotificationRepository } from "../provider";
+import { NotificationOut, parseLocale, toNotificationsOut } from "./notification-out";
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_PER_PAGE = 20;
 const MAX_PER_PAGE = 50;
-const DEFAULT_LOCALE: PushLocale = "pt-BR";
 
 export interface ListNotificationsIn {
   userId: string;
+  /** Whether the caller is an approved admin, who sees a sender's unshared number. */
+  viewerIsAdmin: boolean;
   page?: string;
   perPage?: string;
   locale?: string;
-}
-
-export interface NotificationOut {
-  id: string;
-  type: NotificationType;
-  params: NotificationParams;
-  createdAt: string;
-  read: boolean;
 }
 
 export interface ListNotificationsOut {
@@ -41,15 +34,12 @@ function parseInteger(value: unknown, fallback: number, min: number, max: number
   return parsed >= min && parsed <= max ? parsed : null;
 }
 
-function parseLocale(value: unknown): PushLocale | null {
-  if (value === undefined) return DEFAULT_LOCALE;
-
-  return (PUSH_LOCALES as readonly unknown[]).includes(value) ? (value as PushLocale) : null;
-}
-
 /** One page of the caller's own notifications, newest first, whatever the account's status. */
 export class ListNotifications implements UseCase<ListNotificationsIn, ListNotificationsOut> {
-  constructor(private readonly notificationRepository: NotificationRepository) {}
+  constructor(
+    private readonly notificationRepository: NotificationRepository,
+    private readonly messageSenderReader: MessageSenderReader,
+  ) {}
 
   async execute(input: ListNotificationsIn): Promise<ListNotificationsOut> {
     const errors: ValidationError[] = [];
@@ -72,13 +62,7 @@ export class ListNotifications implements UseCase<ListNotificationsIn, ListNotif
     );
 
     return {
-      items: result.items.map((notification) => ({
-        id: notification.id,
-        type: notification.type,
-        params: notification.params,
-        createdAt: notification.createdAt.toISOString(),
-        read: notification.readAt !== null,
-      })),
+      items: await toNotificationsOut(result.items, this.messageSenderReader, input.viewerIsAdmin),
       page: page as number,
       perPage: perPage as number,
       total: result.total,

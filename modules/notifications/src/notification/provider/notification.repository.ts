@@ -17,6 +17,8 @@ export interface NotificationRepository {
   deleteAbout(userIds: string[]): Promise<void>;
   /** One page of the user's notifications, newest first (`createdAt`, then `id`, descending); `page` starts at 1. */
   findPage(userId: string, page: number, perPage: number): Promise<NotificationPage>;
+  /** The user's notification `id`; `null` when it is unknown or someone else's. */
+  findById(userId: string, id: string): Promise<Notification | null>;
   countUnread(userId: string): Promise<number>;
   /**
    * Sets `readAt` of the user's notification `id` when it is still unread (a read one keeps its first `readAt`).

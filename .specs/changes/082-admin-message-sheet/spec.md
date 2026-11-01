@@ -334,7 +334,7 @@ The sender, in every answer below (`null` by ER-05):
 
 ### Notifications (`modules/notifications`)
 
-- [ ] **T-03** — In `modules/notifications/src/notification/`: `SendBroadcast` stores `senderId`; add
+- [x] **T-03** — In `modules/notifications/src/notification/`: `SendBroadcast` stores `senderId`; add
   `provider/message-sender-reader.provider.ts` (`MessageSenderReader.findSenders(ids)`: the accounts found, by id, with
   name, photo, role, status and WhatsApp fields, D-07) with its fake in `test/mock/`; add `repository.findById(userId, id)`;
   `ListNotifications` takes whether the viewer is an admin and answers `adminMessage` for the two types, with one sender
@@ -342,6 +342,24 @@ The sender, in every answer below (`null` by ER-05):
   Skills: [`module-use-case`](../../../.claude/skills/module-use-case),
   [`module-repository`](../../../.claude/skills/module-repository).
   Covers: ER-03, ER-04, ER-05, ER-06, ER-07, ER-08 · Done when: `npm test -w @rochas-surf-school/notifications` passes.
+  > ✅ 2026-10-31 23:40 — SendBroadcast stores `senderId`; added the MessageSenderReader port and fake, `findById` on
+  > the repository, the shared `toNotificationsOut` mapping (one sender read per page, `adminMessage` only for the
+  > two types, the WhatsApp rule), `viewerIsAdmin` on ListNotifications and the GetNotification use case; files:
+  > `modules/notifications/src/notification/provider/message-sender-reader.provider.ts`,
+  > `modules/notifications/src/notification/provider/index.ts`,
+  > `modules/notifications/src/notification/provider/notification.repository.ts`,
+  > `modules/notifications/src/notification/usecase/notification-out.ts`,
+  > `modules/notifications/src/notification/usecase/get-notification.usecase.ts`,
+  > `modules/notifications/src/notification/usecase/list-notifications.usecase.ts`,
+  > `modules/notifications/src/notification/usecase/send-broadcast.usecase.ts`,
+  > `modules/notifications/src/notification/usecase/index.ts`,
+  > `modules/notifications/test/mock/fake-message-sender.reader.ts`,
+  > `modules/notifications/test/mock/fake-notification.repository.ts`, `modules/notifications/test/mock/index.ts`,
+  > `modules/notifications/test/notification/usecase/get-notification.usecase.test.ts`,
+  > `modules/notifications/test/notification/usecase/list-notifications.usecase.test.ts`,
+  > `modules/notifications/test/notification/usecase/broadcast.usecase.test.ts`; verified: `npm test -w
+  > @rochas-surf-school/notifications` (19 suites, all passed; the new and changed use cases at 100%); deviations:
+  > none.
 
 ### Backend (`apps/backend`)
 

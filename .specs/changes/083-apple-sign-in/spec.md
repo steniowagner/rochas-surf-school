@@ -549,10 +549,14 @@ because the app offers Google.
 
 ### Verification
 
-- [ ] **T-15** — Run every command in the Verification Plan from the repo root; all pass. Record the output summary as
+- [x] **T-15** — Run every command in the Verification Plan from the repo root; all pass. Record the output summary as
   evidence.
   Covers: all · Done when: `run-related-tests.mjs 083` passes, `check-coverage.mjs 083` prints `COVERAGE OK`,
   `run-e2e.mjs 083` prints `E2E PASSED`, and the lint, type check, build and design commands exit 0.
+  > ✅ 2026-11-01 15:22 — ran the whole Verification Plan on 7048face; files: none besides this spec; verified:
+  > run-related-tests.mjs 083 RELATED TESTS PASSED; check-coverage.mjs 083 COVERAGE OK, 20 files; lint and check-types
+  > 21 of 21 tasks; build 11 of 11 tasks; pack.mjs --check exit 0; run-e2e.mjs 083 E2E PASSED, backend 31 files and
+  > 865 tests, web 79 passed, first run this time; deviations: none
 
 ## Verification Plan
 

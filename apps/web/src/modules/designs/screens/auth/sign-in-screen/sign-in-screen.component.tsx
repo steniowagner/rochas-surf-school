@@ -25,7 +25,7 @@ const wordmark = [
 const grapeFade = "linear-gradient(to bottom, transparent 45%, color-mix(in srgb, var(--ds-grape) 90%, transparent) 100%)";
 
 /** The sign-in screen: always the light palette (the app draws it so in both themes), the photo under everything. */
-export function SignInScreen({ locale, languageSheetOpen = false, googleLoading = false, toastKey }: SignInScreenProps) {
+export function SignInScreen({ locale, languageSheetOpen = false, appleLoading = false, googleLoading = false, toastKey }: SignInScreenProps) {
   const t = (key: string) => appT(locale, key);
   const current = appLocaleBySiteLocale[locale];
   const option = localeOptions.find((candidate) => candidate.key === current) ?? localeOptions[0];
@@ -61,6 +61,7 @@ export function SignInScreen({ locale, languageSheetOpen = false, googleLoading 
         </h1>
 
         <div className="absolute inset-x-5 bottom-8.5 flex flex-col gap-2.5">
+          <AuthButton variant="light" label={t("auth.continueWithApple")} loading={appleLoading} icon={<AppIcon name="Ionicons:logo-apple" size={20} className="text-ink" />} />
           <AuthButton
             variant="light"
             label={t("auth.continueWithGoogle")}

@@ -380,7 +380,7 @@ because the app offers Google.
 
 ### Web (`apps/web`, `.docs/designs`)
 
-- [ ] **T-06** — Add the Apple button to the design mock `sign-in-screen` above Google, with an `appleLoading` prop and
+- [x] **T-06** — Add the Apple button to the design mock `sign-in-screen` above Google, with an `appleLoading` prop and
   `Ionicons:logo-apple` in `app-icon.constants.ts`; add the frames `AF-01-06` and `AF-01-07` (toast
   `appleSignIn.tokenInvalid`) to `auth-flow-sign-in`, `data/auth-flow-ids.ts` (with `authFlowOtherMessages`) and the
   dictionaries `apps/web/src/i18n/dictionaries/{en,pt-br,es}.ts`, and say in `AF-01-01`'s note that the button is iOS only.
@@ -390,6 +390,19 @@ because the app offers Google.
   Covers: ER-15 · Done when: `npm test --workspace @rochas-surf-school/web` passes,
   `npm run test:e2e --workspace @rochas-surf-school/web -- e2e/designs.e2e.ts` passes and
   `node .docs/designs/scripts/pack.mjs --check` exits 0.
+  > ✅ 2026-11-01 12:25 — added the Apple button above Google in the `sign-in-screen` mock with `appleLoading`,
+  > `Ionicons:logo-apple`, the frames `AF-01-06` and `AF-01-07` (51 entries), their copy and other messages, the
+  > iOS-only note on `AF-01-01`, replaced the "no Apple" checks with the test `auth flow shows the Apple button`, and
+  > regenerated the design; files: `apps/web/src/modules/designs/components/app-icon/app-icon.constants.ts`,
+  > `apps/web/src/modules/designs/screens/auth/sign-in-screen/sign-in-screen.component.tsx`,
+  > `apps/web/src/modules/designs/screens/auth/sign-in-screen/sign-in-screen.types.ts`,
+  > `apps/web/src/modules/designs/screens/auth/sign-in-screen/sign-in-screen.component.test.tsx`,
+  > `apps/web/src/modules/designs/components/auth-flow-sign-in/auth-flow-sign-in.component.tsx`,
+  > `apps/web/src/modules/designs/data/auth-flow-ids.ts`, `apps/web/src/i18n/dictionaries/en.ts`,
+  > `apps/web/src/i18n/dictionaries/es.ts`, `apps/web/src/i18n/dictionaries/pt-br.ts`, `apps/web/e2e/designs.e2e.ts`,
+  > `.docs/designs/src/auth-flow/template.html`, `.docs/designs/auth-flow.html`; verified: `npm test --workspace
+  > @rochas-surf-school/web` (242 files, 816 passed), `playwright test e2e/designs.e2e.ts` (29 passed), `node
+  > .docs/designs/scripts/pack.mjs --check` exit 0; deviations: none
 
 - [ ] **T-07** — Add the rows `AU-20` (`designIds: ["AF-01-06", "AF-02-15", "AF-03-01"]`) and `AU-21`
   (`designIds: ["AF-01-01"]`) to the `signIn` group in `apps/web/src/modules/user-journeys/data/user-journey-flows.ts`,

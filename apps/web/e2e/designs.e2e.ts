@@ -227,7 +227,26 @@ test.describe("auth flow page", () => {
       await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", authFlow.description);
       const text = await page.locator("body").innerText();
       expect(text).not.toMatch(/\{\{|<\/?[a-z]+>/);
-      expect(text).not.toMatch(/Apple/);
+    }
+  });
+
+  test("auth flow shows the Apple button", async ({ page }) => {
+    const labels = {
+      "pt-br": ["Continuar com a Apple", "Continuar com o Google", "Continuar com e-mail"],
+      es: ["Continuar con Apple", "Continuar con Google", "Continuar con email"],
+      en: ["Continue with Apple", "Continue with Google", "Continue with email"],
+    } as const;
+    const ios = { "pt-br": "só no iOS", es: "solo en iOS", en: "on iOS only" } as const;
+
+    expect(authFlowIds).toHaveLength(51);
+    for (const locale of locales) {
+      await page.goto(`/${locale}/designs/auth-flow`);
+
+      const signIn = page.locator('[data-design-id="AF-01-01"]');
+      await expect(signIn.getByRole("button", { name: /^(Continuar con?|Continue with)/ })).toHaveText([...labels[locale]]);
+      await expect(signIn).toContainText(ios[locale]);
+      await expect(page.locator('[data-design-id="AF-01-06"]').getByRole("status", { name: labels[locale][0] })).toBeVisible();
+      await expect(page.locator('[data-design-id="AF-01-07"]').getByRole("alert")).toBeVisible();
     }
   });
 

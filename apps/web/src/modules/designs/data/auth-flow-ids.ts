@@ -5,6 +5,8 @@ export const authFlowIds = [
   "AF-01-03",
   "AF-01-04",
   "AF-01-05",
+  "AF-01-06",
+  "AF-01-07",
   "AF-02-01",
   "AF-02-02",
   "AF-02-03",
@@ -56,6 +58,7 @@ export type AuthFlowEntryId = (typeof authFlowIds)[number];
 /** The app message keys an entry's element can show besides the one drawn (spec 072 D-02), listed in its note. */
 export const authFlowOtherMessages: Partial<Record<AuthFlowEntryId, string[]>> = {
   "AF-01-04": ["googleSignIn.emailNotVerified", "googleSignIn.playServices", "createAccount.errors.noConnection", "createAccount.errors.generic"],
+  "AF-01-07": ["appleSignIn.emailNotVerified", "appleSignIn.emailMissing", "createAccount.errors.noConnection", "createAccount.errors.generic"],
   "AF-02-05": ["createAccount.errors.invalidEmail", "createAccount.errors.tooManyAttempts", "createAccount.errors.noConnection", "createAccount.errors.generic"],
   "AF-02-09": ["createAccount.errors.invalidEmail", "createAccount.errors.tooManyAttempts", "createAccount.errors.noConnection", "createAccount.errors.generic"],
   "AF-02-12": ["confirmCode.errors.expired", "confirmCode.errors.locked"],

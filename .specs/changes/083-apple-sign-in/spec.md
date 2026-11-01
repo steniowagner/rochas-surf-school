@@ -510,13 +510,19 @@ because the app offers Google.
 
 ### Infra (staging)
 
-- [ ] **T-13** — Add `APPLE_CLIENT_ID` to the parameter table of `.docs/staging.md`. Ask the user to create
+- [x] **T-13** — Add `APPLE_CLIENT_ID` to the parameter table of `.docs/staging.md`. Ask the user to create
   `/rochas/staging/APPLE_CLIENT_ID` with the value `com.rochassurfschool.app`, as `.docs/staging.md` describes, before any
   deploy, since production mode refuses to start without it (D-16). With their go-ahead, deploy the branch's commit as D-17
   says, and wait for the workflow to pass.
   Covers: enabling · Done when: the deploy finishes, `GET https://api-staging.rochassurfschool.com/health` answers 200, and
   `POST https://api-staging.rochassurfschool.com/auth/apple` with `{ "idToken": "x" }` answers 401
   `auth.apple.tokenInvalid`.
+  > ✅ 2026-11-01 14:35 — added APPLE_CLIENT_ID to the parameter table; the user created
+  > /rochas/staging/APPLE_CLIENT_ID and pushed c9b0f939 to deploy/staging themselves; files: .docs/staging.md;
+  > verified: get-parameter with the rochas-surf-school profile returns com.rochassurfschool.app, workflow run
+  > 41331859406 succeeded, GET /health answered 200, POST /auth/apple with { "idToken": "x" } answered 401
+  > auth.apple.tokenInvalid; deviations: the first put-parameter went to the machine's default AWS account because the
+  > executor's command had no profile, and the user removed that copy; the user, not the executor, ran the D-17 push
 
 ### Mobile (`apps/mobile`, TestFlight)
 

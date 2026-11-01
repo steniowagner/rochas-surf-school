@@ -358,6 +358,15 @@
   text-transform: none;
 }
 
+.ds-text-message-title {
+  font-family: var(--ds-font-display), sans-serif;
+  font-weight: 700;
+  font-size: 30px;
+  line-height: 1.1;
+  letter-spacing: 0em;
+  text-transform: none;
+}
+
 .ds-text-tab-bar-label {
   font-family: var(--ds-font-display), sans-serif;
   font-weight: 700;

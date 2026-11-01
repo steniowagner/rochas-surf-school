@@ -23,6 +23,7 @@ export const buildNotification = (
   body: `Body ${index}`,
   createdAt: "2026-10-20T12:00:00.000Z",
   read: false,
+  adminMessage: null,
   ...overrides,
 });
 

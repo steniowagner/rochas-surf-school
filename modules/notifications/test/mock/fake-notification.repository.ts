@@ -46,6 +46,10 @@ export class FakeNotificationRepository implements NotificationRepository {
     return { items: own.slice(start, start + perPage), total: own.length };
   }
 
+  async findById(userId: string, id: string): Promise<Notification | null> {
+    return this.items.find((item) => item.id === id && item.userId === userId) ?? null;
+  }
+
   async countUnread(userId: string): Promise<number> {
     return this.items.filter((item) => item.userId === userId && item.readAt === null).length;
   }

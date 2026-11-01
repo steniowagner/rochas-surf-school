@@ -17,11 +17,13 @@ import { getDateLocale } from "@/utils/calendar-dates";
 import { useClassEnrolment } from "@/modules/enrolment/hooks/use-class-enrolment.hook";
 import { useTakeGuestOut } from "@/modules/enrolment/hooks/use-take-guest-out.hook";
 import { useTakeOut } from "@/modules/enrolment/hooks/use-take-out.hook";
+import type { AdminMessage } from "@/modules/notifications/notifications.types";
 import { useSchoolRules } from "@/modules/school-rules/hooks/use-school-rules.hook";
 
-import type { ClassDetailsStudent, Named } from "../classes.types";
+import type { ClassDetailsStudent, ClassMessageItem, Named } from "../classes.types";
 import { useCancelClass } from "../hooks/use-cancel-class.hook";
 import { useClass } from "../hooks/use-class.hook";
+import { useClassMessages } from "../hooks/use-class-messages.hook";
 import { useDeleteClass } from "../hooks/use-delete-class.hook";
 import { useNow } from "../hooks/use-now.hook";
 import { todayInSchoolZone } from "../utils/calendar";
@@ -62,6 +64,7 @@ export const useClassDetailsScreen = ({
   const now = useNow();
   const alertMessage = useAlertMessage();
   const query = useClass(id);
+  const messagesQuery = useClassMessages(id);
   const { data: schoolSettings } = useSchoolSettings();
   // Loading, failed or empty: the school rules row shows its title only.
   const { data: schoolRules } = useSchoolRules();
@@ -87,6 +90,9 @@ export const useClassDetailsScreen = ({
   const [selectedPerson, setSelectedPerson] =
     useState<ClassDetailsPerson | null>(null);
   const [personVisible, setPersonVisible] = useState(false);
+  // Kept while the sheet slides away, like the person. Opening one marks no notification read (D-12).
+  const [selectedMessage, setSelectedMessage] = useState<AdminMessage | null>(null);
+  const [messageVisible, setMessageVisible] = useState(false);
 
   const instructors: ClassDetailsInstructor[] = (item?.instructors ?? []).map(
     (instructor) => ({
@@ -195,6 +201,11 @@ export const useClassDetailsScreen = ({
     } finally {
       deleting.current = false;
     }
+  };
+
+  const openMessage = ({ title, message, createdAt, sender }: ClassMessageItem) => {
+    setSelectedMessage({ title, text: message, createdAt, classId: id, sender });
+    setMessageVisible(true);
   };
 
   const openPerson = (person: ClassDetailsPerson) => {
@@ -340,6 +351,13 @@ export const useClassDetailsScreen = ({
     }: Named<ClassDetailsStudent>) =>
       openPerson({ name, photoUrl, role: "student", whatsappNumber }),
     closePerson: () => setPersonVisible(false),
+    now,
+    // Hidden while they load and when the read fails: the rest of the screen doesn't depend on them.
+    messages: messagesQuery.data?.items ?? [],
+    selectedMessage,
+    messageVisible,
+    openMessage,
+    closeMessage: () => setMessageVisible(false),
     toolsVisible,
     openTools: () => setToolsVisible(true),
     closeTools: () => setToolsVisible(false),

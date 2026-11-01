@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -6,6 +6,7 @@ import {
   isClassFinishedError,
   isClassNotFoundError,
 } from "@/modules/classes/utils/class-error";
+import { classMessagesQueryKey } from "@/modules/classes/utils/class-messages-cache";
 import { useAlertMessage } from "@/providers/alert-message";
 import { apiPost, NetworkError, SessionExpiredError } from "@/services/api";
 
@@ -30,12 +31,13 @@ const errorKeyOf = (error: unknown): string => {
 };
 
 /**
- * Sends an admin's message to one class (spec 069). A failure shows in the toast, except an expired session, which is
+ * Sends an admin's message to one class (spec 069); the class's section then reloads. A failure shows in the toast, except an expired session, which is
  * handled once for the whole app; the caller keeps the text it typed. Never retried: a message can't be taken back.
  */
 export const useSendClassMessage = (classId: string) => {
   const { t } = useTranslation();
   const alertMessage = useAlertMessage();
+  const queryClient = useQueryClient();
 
   return useMutation({
     retry: false,
@@ -43,6 +45,8 @@ export const useSendClassMessage = (classId: string) => {
       apiPost<void>(`/classes/${classId}/message`, variables, {
         authenticated: true,
       }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: classMessagesQueryKey(classId) }),
     onError: (error) => {
       if (error instanceof SessionExpiredError) {
         return;

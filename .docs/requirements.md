@@ -556,6 +556,8 @@ The system SHALL deliver notifications as pushes to the user's phone. It SHALL N
 
 _Implemented in spec 055-notifications-screen._
 
+_Implemented in spec 082-admin-message-sheet._
+
 Every notification SHALL also appear on an in-app notifications screen, whether or not its push was shown.
 
 - _Push not shown:_ When a user who turned pushes off is notified, then the notification appears on their notifications screen.
@@ -580,6 +582,8 @@ Users SHALL be able to turn pushes on or off on each phone they use; the setting
 #### Broadcasts
 
 _Implemented in spec 063-admin-send-notice._
+
+_Implemented in spec 082-admin-message-sheet._
 
 Admins SHALL be able to send a notification with a title and a description to everyone, to students only, or to instructors only. Audiences SHALL follow roles, "everyone" SHALL include admins, and only approved, active users SHALL receive broadcasts.
 
@@ -629,6 +633,8 @@ The app SHALL offer a light theme and a dark theme. Until a user chooses one, th
 _Implemented in spec 063-admin-send-notice._
 
 _Implemented in spec 069-class-message._
+
+_Implemented in spec 082-admin-message-sheet._
 
 Text written by admins, such as school rules, cancellation rules, class notes, reasons, broadcasts and messages to a class, SHALL be shown as written, whatever language the user chose.
 

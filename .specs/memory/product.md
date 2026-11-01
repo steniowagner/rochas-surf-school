@@ -297,20 +297,24 @@ Listed in the order people meet them.
   notifications screen, with a read/unread state (mark one or all as read), and also pushed to the phone
   unless the user turned pushes off. Pushes are the only outbound channel. Its text is written for the reader in
   their language, the same on the push and on the screen (without the push's "open the app"), and it stays until
-  the account is gone.
+  the account is gone. A notice or a class message opens in a sheet, with its text and its sender (spec 082); every
+  other notification leads to the screen it concerns.
 - **Broadcast** (`broadcast`): a notification an admin writes (title and description) for an audience —
   `everyone` (admins included), `students` or `instructors` — reaching the approved, active users of those
   roles. The admin sees the number of recipients and confirms before it is sent.
   - As built (spec 063): `everyone` is every approved student, instructor and admin, the sender included; `students`
     and `instructors` follow the role, so the sender never receives a notice to them. Pending, denied, deleted and
     removed accounts never receive one. The title has 1–60 characters and the message 1–500, both trimmed. The count
-    is advisory: sending finds the recipients again. Nothing keeps a list of the notices sent, and a notice has no
-    screen of its own.
+    is advisory: sending finds the recipients again. Nothing keeps a list of the notices sent. A notice opens in a
+    sheet on the notifications screen, from its push or its row (spec 082).
 - **Class message** (`class-message`, spec 069): a notification an admin writes (title and message) to the people of
   one class that hasn't finished and isn't cancelled — its instructors and its students with a seat or a pending
   request, each person once, never the sender and never the trial guests. The title has 1–60 characters and the
-  message 1–500, both trimmed and shown as written, after a line naming the class. Like a notice, it isn't kept
-  anywhere but in the recipients' notifications.
+  message 1–500, both trimmed and shown as written, after a line naming the class.
+  - As built (spec 082): the class keeps its messages, each with who sent it, so every approved account that can open
+    the class reads them there, in any class state and with or without a seat; deleting a class deletes them. The
+    recipients' notifications keep their own copy, so an inbox survives the class being deleted, and each opens in the
+    same sheet as a notice. Messages sent before spec 082 aren't on their class.
 - **People directory**: not a concept of its own — the list of every approved user of any role, the viewer
   included (name, photo, role, member since, and the WhatsApp number when its owner shares it or the viewer is an
   admin), always sorted A–Z by name ignoring case and accents, 20 at a time. It is searched by name (ignoring case
@@ -1203,8 +1207,8 @@ pessoas?", says who they are ("Todos os alunos recebem uma notificação. Depois
 shows the notice in a preview card and offers "Sim, enviar" and "Voltar e editar" (which keeps the text). Sending
 closes the screen with the toast "Aviso enviado"; a failure keeps the text and shows an error. Every recipient gets
 the notice as a notification — on the notifications screen with a megaphone icon, and as a push — with its title
-and message as written, in every language; tapping it marks it read and shows the home. All copy is in pt-BR,
-es-ES and en-US.
+and message as written, in every language; tapping it marks it read and opens it in a sheet on the notifications
+screen (since spec 082). All copy is in pt-BR, es-ES and en-US.
 
 **Admins decide reactivation requests** (spec `064-admin-reactivation-decisions`) — when a deleted account sends its
 request, every approved admin is notified ("Pedido de reativação" / "Ana Souza quer voltar para a escola."); a
@@ -1295,7 +1299,7 @@ meanwhile, no connection or any other failure keeps the text and shows an error.
 students with a seat or a pending request get it once each — never the admin who sends it, even when they teach the
 class, and never the trial guests — as a notification with a chat bubble and as a push: the admin's title as written,
 and the class line before the message ("Surf, qua 28/10 às 16:00: Nos encontramos 15 min antes."). Tapping it marks it
-read and opens the class's details in the reader's own flow. The counts on the tools' "Enviar mensagem" and "Cancelar
+read and, since spec 082, opens it in a sheet on the notifications screen. The counts on the tools' "Enviar mensagem" and "Cancelar
 aula" cards now leave out the admin viewing them. Opened from the admin home, the Send notice screen is unchanged.
 All copy is in pt-BR, es-ES and en-US.
 
@@ -1413,6 +1417,19 @@ one opens the same screen as its row in the Notifications screen; Google sign-in
 on Android. An admin and a student completed a seat request on two phones. These are test builds, not store releases.
 One class message sent during a class was reported as not arriving as a push and stays unconfirmed.
 
+**Admin messages open in a sheet and stay on the class** (spec `082-admin-message-sheet`) — tapping the push of a
+notice or a class message, or its row on "Avisos", now shows what the admin wrote instead of leading away from it: a
+student, instructor or admin lands on "Avisos" with a sheet over it, and the notification is marked read. The sheet shows
+"Mensagem da escola", the sender's name with how long ago it arrived ("Ana Rocha · há 5 minutos"), the title and the
+text as written, and "Ok, entendi"; the backdrop and dragging down close it too. A class message adds the card of its
+class under "A aula", with its current day, time and location; pressing it closes the sheet and opens the class, and a
+deleted class leaves the message readable without the card. Every class now keeps its messages: anyone who opens class
+details, of any role, reads them in "Mensagens desta aula · N", between the people and "Regras", newest first, and a row
+opens the same sheet without the card and without marking any notification read. A message reaches an open class
+details screen without leaving it. Notices and class messages sent from now on remember who sent them; older ones open
+without a sender, and older class messages aren't on their class. In an account's other flows, such as onboarding, a
+tap still goes to the flow's home. The copy is in pt-BR, es-ES and en-US.
+
 Active specs: `081-staging-follow-ups`, planned.
 
 ## Out of scope (future evolution, recorded in the specs)
@@ -1447,12 +1464,16 @@ Active specs: `081-staging-follow-ups`, planned.
 - On notifications: badges on the app icon, rich pushes, and a screen before the OS
   permission dialog (or asking again after a refusal); deleting, hiding or expiring notifications (spec 055 keeps
   them for as long as the account), and class names or before/after values in their text.
-- On notices (spec 063): a history of the notices sent, a screen of its own for a notice, editing or deleting one
+- On notices (spec 063): a history of the notices sent, editing or deleting one
   once sent, and choosing people one by one (an audience is a whole role, everyone, or one class's people since
   spec 069).
-- On class messages (spec 069): a history of the messages sent to a class, a message to several classes at once,
+- On class messages (spec 069): a message to several classes at once,
   naming the people with a pending request (the class details carry only their number), and the design's stack of
   avatars (profile photos aren't built).
+- On the message sheet (spec 082): filling the class's messages from notifications sent before it, editing or deleting
+  a sent message, unread dots in the class's section or any link between a section row and the reader's notification,
+  the sheet for a class's cancellation message and for denial or take-out reasons, and the sheet and the section on the
+  site's design and user journey pages.
 - On erasing deleted and removed accounts (spec 067): removing the name from the seat notifications stored before
   spec 067; "Former student" / "Former instructor" on photos, deleting comments and keeping star ratings without a
   name (they come with ratings and photos); listing or showing erased accounts anywhere.

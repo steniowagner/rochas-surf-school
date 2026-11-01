@@ -11,16 +11,20 @@ import {
   Query,
 } from '@nestjs/common';
 import {
+  AdminMessage,
   BroadcastActor,
   CountBroadcastRecipients,
   CountBroadcastRecipientsOut,
   CountUnreadNotifications,
   CountUnreadNotificationsOut,
+  GetNotification,
   ListNotifications,
   MarkAllNotificationsRead,
   MarkNotificationRead,
+  NotificationOut,
   NotificationType,
   Notify,
+  PushLocale,
   RegisterPushToken,
   RegisterPushTokenIn,
   SendBroadcast,
@@ -29,6 +33,7 @@ import {
 import { CurrentUser } from '../../shared/decorators/current-user.decorator.js';
 import type { AuthenticatedUser } from '../../shared/types/current-user.type.js';
 import { ExpoPushProvider } from './expo.push.js';
+import { PrismaMessageSenderReader } from './message-sender-reader.prisma.js';
 import { PrismaNotificationRepository } from './notification.prisma.js';
 import { renderInApp } from './push-messages.js';
 import { PrismaPushTicketRepository } from './push-ticket.prisma.js';
@@ -45,6 +50,8 @@ export interface NotificationItemOut {
   body: string;
   createdAt: string;
   read: boolean;
+  /** What an admin wrote and who sent it, for `broadcast` and `class.message`; null for every other type. */
+  adminMessage: AdminMessage | null;
 }
 
 export interface NotificationsPageOut {
@@ -60,6 +67,19 @@ const actorOf = (user: AuthenticatedUser): BroadcastActor => ({
   status: user.status,
 });
 
+const isApprovedAdmin = (user: AuthenticatedUser): boolean =>
+  user.role === 'admin' && user.status === 'approved';
+
+const toItem = (item: NotificationOut, locale: PushLocale): NotificationItemOut => ({
+  id: item.id,
+  type: item.type,
+  classId: typeof item.params.classId === 'string' ? item.params.classId : null,
+  ...renderInApp(item.type, item.params, locale),
+  createdAt: item.createdAt,
+  read: item.read,
+  adminMessage: item.adminMessage,
+});
+
 @Controller('notifications')
 export class NotificationsController {
   constructor(
@@ -69,32 +89,30 @@ export class NotificationsController {
     private readonly pushTicketRepository: PrismaPushTicketRepository,
     private readonly pushProvider: ExpoPushProvider,
     private readonly recipientsProvider: PrismaRecipientsProvider,
+    private readonly messageSenderReader: PrismaMessageSenderReader,
   ) {}
 
   @Get()
   @HttpCode(HttpStatus.OK)
   async list(
-    @CurrentUser('id') id: string,
+    @CurrentUser() user: AuthenticatedUser,
     @Query('page') page?: string,
     @Query('perPage') perPage?: string,
     @Query('locale') locale?: string,
   ): Promise<NotificationsPageOut> {
-    const result = await new ListNotifications(this.notificationRepository).execute({
-      userId: id,
+    const result = await new ListNotifications(
+      this.notificationRepository,
+      this.messageSenderReader,
+    ).execute({
+      userId: user.id,
+      viewerIsAdmin: isApprovedAdmin(user),
       page,
       perPage,
       locale,
     });
 
     return {
-      items: result.items.map((item) => ({
-        id: item.id,
-        type: item.type,
-        classId: typeof item.params.classId === 'string' ? item.params.classId : null,
-        ...renderInApp(item.type, item.params, result.locale),
-        createdAt: item.createdAt,
-        read: item.read,
-      })),
+      items: result.items.map((item) => toItem(item, result.locale)),
       page: result.page,
       perPage: result.perPage,
       total: result.total,
@@ -138,6 +156,26 @@ export class NotificationsController {
   @HttpCode(HttpStatus.OK)
   countUnread(@CurrentUser('id') id: string): Promise<CountUnreadNotificationsOut> {
     return new CountUnreadNotifications(this.notificationRepository).execute({ userId: id });
+  }
+
+  @Get(':id')
+  @HttpCode(HttpStatus.OK)
+  async one(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id') notificationId: string,
+    @Query('locale') locale?: string,
+  ): Promise<NotificationItemOut> {
+    const result = await new GetNotification(
+      this.notificationRepository,
+      this.messageSenderReader,
+    ).execute({
+      userId: user.id,
+      notificationId,
+      viewerIsAdmin: isApprovedAdmin(user),
+      locale,
+    });
+
+    return toItem(result.item, result.locale);
   }
 
   @Post('read-all')

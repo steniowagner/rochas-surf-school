@@ -291,7 +291,15 @@ Content-Type: application/json
 
 {}
 
-### Send a message to a class (expects 204 with no body; admins only; while the class hasn't finished and isn't cancelled; its instructors and its students with a seat or a request get a class.message notification and a push, never the caller; title 1-60, message 1-500 characters, trimmed)
+### Read a class's messages (expects 200 { items: [{ id, title, message, createdAt, sender }] }, newest first; any approved account, in any class state; sender is { id, name, photoUrl, role, whatsappNumber }, or null when the account was erased)
+GET {{baseUrl}}/classes/{{classId}}/messages
+Authorization: Bearer {{session.response.body.accessToken}}
+
+### Read the messages of a malformed or unknown id (expects 404 class.notFound)
+GET {{baseUrl}}/classes/not-a-uuid/messages
+Authorization: Bearer {{session.response.body.accessToken}}
+
+### Send a message to a class (expects 204 with no body; admins only; while the class hasn't finished and isn't cancelled; kept on the class, readable with GET /classes/:id/messages; its instructors and its students with a seat or a request get a class.message notification and a push, never the caller; title 1-60, message 1-500 characters, trimmed)
 POST {{baseUrl}}/classes/{{classId}}/message
 Authorization: Bearer {{token}}
 Content-Type: application/json

@@ -3,14 +3,14 @@ import {
   ClassChangeNotifier,
   ClassDeleted,
   ClassEdited,
-  ClassMessage,
+  ClassMessageSent,
 } from "../../src";
 
 export class FakeClassChangeNotifier implements ClassChangeNotifier {
   readonly editedEvents: ClassEdited[] = [];
   readonly cancelledEvents: ClassCancelled[] = [];
   readonly deletedEvents: ClassDeleted[] = [];
-  readonly messageEvents: ClassMessage[] = [];
+  readonly messageEvents: ClassMessageSent[] = [];
 
   async classEdited(event: ClassEdited): Promise<void> {
     this.editedEvents.push(event);
@@ -24,7 +24,7 @@ export class FakeClassChangeNotifier implements ClassChangeNotifier {
     this.deletedEvents.push(event);
   }
 
-  async classMessage(event: ClassMessage): Promise<void> {
+  async classMessage(event: ClassMessageSent): Promise<void> {
     this.messageEvents.push(event);
   }
 }

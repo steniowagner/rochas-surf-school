@@ -143,10 +143,14 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
     no text; `readAt`, null while unread), `provider/{notification.repository,push.provider,recipients.provider,clock.provider}.ts`
     (`PushProvider`: `send` → tickets, `getReceipts`; `RecipientsProvider.findApprovedAdminIds()` and, spec 063,
     `findApprovedUserIdsByAudience(audience)` with `BROADCAST_AUDIENCES` = `all` | `students` | `instructors`),
+    `provider/message-sender-reader.provider.ts` (`MessageSenderReader.findSenders(ids)`: the accounts found, by id,
+    without depending on `auth`; spec 082),
     `usecase/{notify,notify-approved-admins,notify-classes-without-instructor}.usecase.ts` (store every
     notification, then push to each device; the last one tells the approved admins minus the excluded ones),
     `usecase/{list-notifications,count-unread-notifications,mark-notification-read,mark-all-notifications-read}.usecase.ts`
     (the caller's own notifications on the notifications screen; spec 055),
+    `usecase/get-notification.usecase.ts` and `usecase/notification-out.ts` (`GetNotification`; `toNotificationsOut`,
+    shared with the list: `adminMessage`, one sender read per page and the WhatsApp rule; spec 082),
     `usecase/delete-notifications-about.usecase.ts` (`DeleteNotificationsAbout`: the notifications about erased
     people in anyone's inbox; spec 067),
     `usecase/{count-broadcast-recipients,send-broadcast}.usecase.ts` and `usecase/broadcast-access.ts` (the approved
@@ -158,7 +162,7 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
     (`RemovePushToken` on sign-out; `UnregisterPushToken` when a phone turns pushes off). Fakes of every port and
     entity factories are in `test/mock/`.
 - **`modules/classes`** (`@rochas-surf-school/classes`; depends on `@rochas-surf-school/auth` for `UserRole` /
-  `UserStatus` only, and on `date-fns` + `@date-fns/tz`; also imported by `apps/mobile`) — 3 aggregates and an
+  `UserStatus` only, and on `date-fns` + `@date-fns/tz`; also imported by `apps/mobile`) — 4 aggregates and an
   access helper:
   - `access/class-actor.ts` — `ClassActor`, `assertCanReadClasses` (approved) and `assertCanManageClasses`
     (approved admin; status first).
@@ -176,6 +180,9 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
     rule and the clearing of its discipline's upcoming deadlines in one write),
     `usecase/{list-cancellation-rules,save-cancellation-rule}.usecase.ts`, `usecase/cancellation-rules.out.ts`
     (`{ surf, skate }`).
+  - `class-message/` (spec 082) — `model/class-message.entity.ts` (`ClassMessage`: the title and message checks, with
+    `CLASS_MESSAGE_TITLE_MAX` / `CLASS_MESSAGE_TEXT_MAX`), `provider/class-message.repository.ts` (`create`, `findByClass`
+    → `ClassMessageView` with the sender, newest first), `usecase/list-class-messages.usecase.ts`.
   - `school-class/` — `model/class-limits.ts` (disciplines, levels, capacity / notes / batch limits,
     `CLASS_TIME_ZONE`), `model/time-range.ts` (`HH:mm` parsing, end after start, overlap),
     `model/class-batch.ts` (date, weekday and excluded-date checks, `listBatchDates`, `listBatchClasses`: the batch expanded
@@ -191,7 +198,7 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
     `findNeedingDeadline`, `saveDeadline` and `recordDeadlineFailure` conditional on the deadline revision;
     `CancellationDeadlineDescriber.describe` (the language-model port);
     `TeacherLookup.findTeachers`; `ClassAssignmentNotifier.classAssigned` / `classUnassigned`;
-    `ClassChangeNotifier.classEdited` / `classCancelled` / `classDeleted`;
+    `ClassChangeNotifier.classEdited` / `classCancelled` / `classDeleted` / `classMessage` (event `ClassMessageSent`);
     `NoInstructorNotifier.classesWithoutInstructor`; `SeatCounter.countSeatsTaken`; `PendingRequestCounter.countPendingRequests`; `ClassViewReader.findStartingBetween` / `findById` / `findByIds` (spec 048) → `ClassView`, the read model
     with the location and the instructors' names; `ClassRosterReader.findRosters` → `ClassRoster` per class id, the
     seats taken and the approved students, with `CLASS_CARD_STUDENTS_LIMIT`; `ViewerEnrolmentReader.findLatest` → the
@@ -206,7 +213,8 @@ Organized by **aggregate**: each has `model/` (entities), `provider/` (repositor
     `usecase/{create-class-batch,list-time-range-suggestions,list-week-classes,get-class,edit-class,cancel-class,delete-class,release-upcoming-classes,work-out-cancellation-deadlines,list-my-classes,list-my-class-history,send-class-reminders,list-teaching-classes,list-teaching-class-history}.usecase.ts`
     (`list-my-classes` also exports `assertIsStudent` and `toMyClassItems`, shared with the history;
     `list-teaching-classes` exports `assertIsTeacher`, spec 057), `usecase/class-history-period.ts`
-    (`toHistoryPeriod`, the period check both histories share, and `MY_CLASS_HISTORY_MAX_DAYS`; spec 062), and
+    (`toHistoryPeriod`, the period check both histories share, and `MY_CLASS_HISTORY_MAX_DAYS`; spec 062),
+    `usecase/visible-number.ts` (`visibleNumber`, the WhatsApp rule `GetClass` and `ListClassMessages` share; spec 082), and
     `usecase/class-item.ts` (`ClassItem`, `toClassItem`: the answer shape both reads share, with the seats taken,
     the students, the guests — names only for `canSeeGuestNames`, spec 045 — and `myEnrolment`). Fakes of every port and entity
     factories are in `test/mock/`.
@@ -250,7 +258,9 @@ prisma/
                                 # deadline_attempts, deadline_next_attempt_at, indexed for the job; location_id →
                                 # locations, created_by → users, both RESTRICT), class_instructors (class_id +
                                 # user_id key; → classes and → users, cascade), cancellation_rules (keyed by
-                                # discipline; updated_by → users, SET NULL); enums class_discipline, class_level
+                                # discipline; updated_by → users, SET NULL), class_messages (class_id → classes
+                                # CASCADE, sender_id → users RESTRICT; indexed on class_id + created_at; spec 082);
+                                # enums class_discipline, class_level
   models/enrolment.model.prisma # enrolments (class_id → classes CASCADE, student_id → users RESTRICT; indexed on
                                 # class_id + status and on student_id); enum enrolment_status. The migration adds
                                 # the partial unique index enrolments_one_open_per_student_class in SQL
@@ -327,10 +337,13 @@ src/
     notifications.controller.ts # PUT and DELETE /notifications/push-token (204); GET /notifications,
                                 # GET /notifications/unread-count, POST /notifications/read-all and
                                 # POST /notifications/:id/read (spec 055); GET /notifications/broadcast/recipients
-                                # ?audience= (200 { count }) and POST /notifications/broadcast (204; spec 063) — protected
+                                # ?audience= (200 { count }) and POST /notifications/broadcast (204; spec 063);
+                                # GET /notifications/:id?locale= (200, after unread-count; spec 082) — protected
     notifications.integration.http  # manual REST Client requests
     {notification,push-token,push-ticket,recipients}.prisma.ts  # Prisma repositories; PrismaRecipientsProvider
                                 # (role admin and status approved; approved users by audience, spec 063)
+    message-sender-reader.prisma.ts  # PrismaMessageSenderReader (the senders of admin messages, erased accounts left
+                                # out; spec 082)
     expo.push.ts                # ExpoPushProvider (expo-server-sdk: chunks, tickets, receipts)
     push-messages.ts            # renderPush: the push copy in pt-BR / es / en; renderInApp: the notifications
                                 # screen's text, the push's minus "open the app" (spec 055); broadcast: the
@@ -352,7 +365,7 @@ src/
     notifications.class-assignment-notifier.ts  # ClassAssignmentNotifier adapter of classes (Notify
                                 # class.assigned / class.unassigned; logs and swallows every error)
     notifications.class-change-notifier.ts  # ClassChangeNotifier adapter of classes (Notify class.edited /
-                                # class.cancelled / class.deleted; logs and swallows every error)
+                                # class.cancelled / class.deleted / class.message; logs and swallows every error)
     notifications.class-reminder-notifier.ts  # ClassReminderNotifier adapter of classes (Notify class.reminder;
                                 # logs and swallows every error; spec 054)
     notifications.no-instructor-notifier.ts  # NoInstructorNotifier adapter of classes
@@ -378,11 +391,13 @@ src/
                                 # spec 057), GET /classes/teaching/history?from=&to= (200 { items }, instructors
                                 # and admins; spec 062), GET /classes/:id (200), in that order, and
                                 # PUT /classes/:id (200 ClassItem), POST /classes/:id/cancel (200 ClassItem),
-                                # DELETE /classes/:id (204) — protected
+                                # DELETE /classes/:id (204), GET /classes/:id/messages (200 { items }; spec 082)
+                                # — protected
     cancellation-rules.controller.ts  # GET /cancellation-rules (200), PUT /cancellation-rules/:discipline (200)
                                 # — protected
     cancellation-rule.prisma.ts # PrismaCancellationRuleRepository (save: the upsert and the clearing in one
                                 # $transaction)
+    class-message.prisma.ts     # PrismaClassMessageRepository (an erased sender reads as null; spec 082)
     anthropic.deadline-describer.ts  # AnthropicDeadlineDescriber: the CancellationDeadlineDescriber adapter (Claude,
                                 # structured outputs; ANTHROPIC_API_KEY required in production)
     cancellation-deadline.job.ts  # CancellationDeadlineJob (every minute, cron cancellation-deadline): runs
@@ -496,6 +511,8 @@ test/
                                 # a configurable fake; works out, retries, without a rule, edits, stale results)
   class-reminders.e2e-spec.ts   # e2e suite of ClassReminderJob (spec 054; clock in 2037, ExpoPushProvider faked):
                                 # recipients, only once, cancelled and started, start moved through PUT /classes/:id
+  class-messages.e2e-spec.ts    # e2e suite of class messages (spec 082): storing them, the list, the sender, the
+                                # WhatsApp rule and an erased sender
 Dockerfile, docker-compose.yml  # backend + Postgres; the image builds from the repo root, also for linux/arm64
 ```
 
@@ -565,7 +582,8 @@ src/
                                                      # /instructor/people), above the tab bar; the student's
                                                      # (tabs)/school.tsx renders it as a tab with no header
     (private)/{student,instructor,admin}/notifications.tsx  # "Avisos" (/<role>/notifications, spec 055), opened
-                                                     # from the home bell, above the tab bar
+                                                     # from the home bell, above the tab bar; ?notificationId=
+                                                     # opens that message's sheet (spec 082)
   navigation/
     resolve-flow.ts             # Flow, resolveFlow (session user → flow), isOnboardingCompleted (number +
                                 # rulesAccepted; rulesAcceptedBefore picks rules-update), onboardingStep (whatsapp / school-rules), flowEntryRoute
@@ -669,7 +687,7 @@ src/
                                 # with canEnrol,
                                 # the admin's tools button with canEdit,
                                 # the tools, cancel and delete sheets, the cancel and delete requests and their
-                                # errors)
+                                # errors; "Mensagens desta aula" and its MessageSheet, spec 082)
     screens/teaching-classes.screen.tsx  # TeachingClassesScreen + hook, types (spec 057): "Minhas aulas" of an
                                 # instructor or a teaching admin — the classes under way on grape cards, then by day
                                 # with TeachingDayHeaders, the next class highlighted; loading, empty, error + retry,
@@ -690,6 +708,7 @@ src/
     classes.types.ts            # ClassLocation (with the point and upcomingClasses), MapPoint, Teacher, NewClassForm, BatchRequest, EditClassRequest, ClassItem, ClassDetails (the one-class answer, with numbers),
                                 # WeekClasses and the answers (mirror the API); ClassHistoryDay, ClassHistoryPeriod
                                 # (spec 062)
+    components/class-messages/  # "Mensagens desta aula · N": one grouped card, newest first (spec 082)
     components/                 # form-section, date-range-calendar (+ calendar-day), date-range-summary (the
                                 # range and its removed days), time-range-picker, time-range-hint (the chips' hint),
                                 # time-range-sheet (two @expo/ui DateTimePickers in time mode),
@@ -737,6 +756,7 @@ src/
                                 # use-week-classes (["classes", "week", weekStart], weekClassesOptions),
                                 # use-visible-weeks-classes (useQueries over every week a calendar draws, same key),
                                 # use-class (["classes", "detail", id]; `{ enabled }`), use-now (the clock, every 60 s),
+                                # use-class-messages (GET /classes/:id/messages, ["classes", "messages", id]; spec 082),
                                 # use-teaching-classes (GET /classes/teaching, ["classes", "teaching"]; spec 057),
                                 # use-teaching-class-history (GET /classes/teaching/history?from=&to=, ["classes",
                                 # "teaching", "history", from, to]; spec 062)
@@ -749,6 +769,8 @@ src/
                                 # class-message.ts (classMessageRecipients: the instructors, the students with a seat
                                 # and the pending requests a message or a cancellation reaches, each once, never the
                                 # viewer; the tools cards' count and the class mode of Send notice, spec 069),
+                                # class-message-time.ts (a section row's time), class-messages-cache.ts (its query
+                                # key; spec 082),
                                 # locations-cache.ts (add, replace, remove), map.ts (Fortaleza, regions, the
                                 # provider per platform, directions URL, the place zoom, formatPoint),
                                 # session-token.ts (UUID v4 per opening of the location screen),
@@ -789,6 +811,8 @@ src/
                                 # the sport filter on "Aula", fixed "Escolher aula" / "Inscrever" footer
     components/take-out-sheet/  # TakeOutSheet ("Retirar <nome> da aula?": a DenySheet with the visible "Motivo
                                 # (opcional)" of 300; no hook; spec 044; `trial`: the guest copy, no reason)
+    components/class-day-header/  # ClassDayHeader (the day block, the chips, the time range and the location;
+                                # `showYear` for "Inscrições em aulas", none for the message sheet; spec 082)
     components/class-requests-group/  # ClassRequestsGroup (the class card — day block, time, location, capacity,
                                 # free seats or "Esgotado", occupancy bar —, the waiting-list label, positions and
                                 # full-class note, one DecisionCard per request)
@@ -824,7 +848,8 @@ src/
   modules/notifications/
     hooks/                      # use-push-registration (PUT /notifications/push-token for pending / approved;
                                 # the DELETE instead while pushes are off), use-push-preference (the Profile's switch),
-                                # use-notification-response (a tapped push → refresh → "Join the school", the
+                                # use-notification-response (a tapped push → refresh → "Join the school", "Avisos"
+                                # with the message for broadcast / class.message (spec 082), the
                                 # Aulas tab for class.assigned / location.changed, a class's details for the class
                                 # pushes — the student's for enrolment.expired / approved / denied, class.cancelled and
                                 # class.edited, the student's Agenda for location.changed (spec 047),
@@ -833,14 +858,22 @@ src/
                                 # enrolment.requested, or "/"), use-notification-received
                                 # (a push with the app open → refresh, or invalidate ["registrations"] / ["classes",
                                 # "week"], ["classes"] for the class and enrolment pushes (plus ["enrolments",
-                                # "pending"] for enrolment.requested and enrolment.cancelled), and ["classes"] +
-                                # ["locations"] for location.changed; every push also ["notifications", …]);
+                                # "pending"] for enrolment.requested and enrolment.cancelled), ["classes"] +
+                                # ["locations"] for location.changed and ["classes", "messages", classId] for
+                                # class.message; every push also ["notifications", …]);
                                 # use-notifications, use-unread-notifications-count, use-mark-notification-read,
-                                # use-mark-all-notifications-read (the notifications screen and the bell; spec 055)
-    screens/notifications.screen.tsx  # "Avisos": the list, its states, row taps and "mark all" (spec 055)
+                                # use-mark-all-notifications-read (the notifications screen and the bell; spec 055),
+                                # use-notification (GET /notifications/:id, for one beyond the loaded pages),
+                                # use-relative-time (the row's and the sheet's time; both spec 082)
+    screens/notifications.screen.tsx  # "Avisos": the list, its states, row taps, "mark all" (spec 055) and the
+                                # MessageSheet from a row or the notificationId route param (spec 082)
     components/notification-row/  # one notification: tinted icon, title, body, time, unread dot
-    utils/notification-target.ts  # where a notification leads per type, class id and flow (push and row); a
-                                # broadcast leads nowhere: its row and push only mark it read and show the home
+    components/message-sheet/   # MessageSheet + hook: the admin's message, its sender and, with onOpenClass, its class
+                                # (ClassDayHeader in a pressable card; spec 082); also used by class details
+    utils/notification-target.ts  # where a notification leads per type, class id and flow (push and row);
+                                # broadcast and class.message: routes.<role>.notificationMessage(id), or null without
+                                # an id or in another flow; isAdminMessageType, classDetailTarget (spec 082)
+    utils/admin-message.ts      # toAdminMessage: what the sheet shows of a notification (spec 082)
     utils/notifications-cache.ts  # query keys, page size, markReadInPages; utils/notification-icon.ts per type
     utils/refresh-account.ts    # GET /auth/me → updateUser; null on failure, rethrows SessionExpiredError
     utils/unregister-push-token.ts  # DELETE /notifications/push-token without asking the permission; failures ignored

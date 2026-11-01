@@ -10,6 +10,7 @@ import {
   buildClass,
   FakeClassAudienceReader,
   FakeClassChangeNotifier,
+  FakeClassMessageRepository,
   FakeClockProvider,
   FakeSchoolClassRepository,
   INSTRUCTOR,
@@ -28,6 +29,7 @@ interface Options {
   audience?: string[];
   failNotifier?: boolean;
   failAudience?: boolean;
+  failStore?: boolean;
 }
 
 function setup(options: Options = {}) {
@@ -40,6 +42,8 @@ function setup(options: Options = {}) {
   const changes = new FakeClassChangeNotifier();
   const audience = new FakeClassAudienceReader({ [stored.id]: options.audience ?? [S1] });
   audience.fail = options.failAudience ?? false;
+  const messages = new FakeClassMessageRepository();
+  messages.fail = options.failStore ?? false;
 
   if (options.failNotifier) {
     changes.classMessage = async () => {
@@ -52,11 +56,13 @@ function setup(options: Options = {}) {
     audience,
     changes,
     new FakeClockProvider(options.now ?? NOW),
+    messages,
   );
 
   return {
     useCase,
     changes,
+    messages,
     stored,
     input: { actor: ADMIN, id: stored.id, title: "Aviso", message: "Tragam protetor." },
   };
@@ -88,6 +94,7 @@ describe("SendClassMessage", () => {
         classId: stored.id,
         discipline: "surf",
         startsAt: stored.startsAt,
+        senderId: ADMIN.id,
         title: "Aviso",
         message: "Tragam protetor.",
       },
@@ -103,6 +110,70 @@ describe("SendClassMessage", () => {
 
     expect(started.changes.messageEvents).toHaveLength(1);
     expect(atStart.changes.messageEvents).toHaveLength(1);
+  });
+
+  it("stores one message on the class, with the sender and the trimmed title and message", async () => {
+    const { useCase, input, messages, stored } = setup();
+
+    await useCase.execute({ ...input, title: "  Aviso  ", message: "  Tragam protetor.  " });
+
+    expect(messages.stored).toHaveLength(1);
+    expect(messages.stored[0]).toMatchObject({
+      classId: stored.id,
+      senderId: ADMIN.id,
+      title: "Aviso",
+      message: "Tragam protetor.",
+    });
+  });
+
+  it("stores the message when nobody would be told", async () => {
+    const { useCase, input, changes, messages } = setup({
+      stored: { instructorIds: [ADMIN.id] },
+      audience: [],
+    });
+
+    await useCase.execute(input);
+
+    expect(changes.messageEvents).toEqual([]);
+    expect(messages.stored).toHaveLength(1);
+  });
+
+  it("keeps the message and answers when the notifier fails", async () => {
+    const { useCase, input, messages } = setup({ failNotifier: true });
+
+    await expect(useCase.execute(input)).resolves.toBeUndefined();
+    expect(messages.stored).toHaveLength(1);
+  });
+
+  it("answers the error and tells nobody when the store fails", async () => {
+    const { useCase, input, changes } = setup({ failStore: true });
+
+    await expect(useCase.execute(input)).rejects.toThrow("store down");
+    expect(changes.messageEvents).toEqual([]);
+  });
+
+  it.each([
+    ["a student", (input: { actor: unknown }) => ({ ...input, actor: STUDENT })],
+    ["an unknown class", (input: { actor: unknown }) => ({ ...input, id: MISSING })],
+    ["a blank title", (input: { actor: unknown }) => ({ ...input, title: "" })],
+    ["a blank message", (input: { actor: unknown }) => ({ ...input, message: "" })],
+  ])("stores nothing for %s", async (_name, change) => {
+    const { useCase, input, messages } = setup();
+
+    await errorOf(useCase.execute(change(input) as typeof input));
+
+    expect(messages.stored).toEqual([]);
+  });
+
+  it("stores nothing for a finished or a cancelled class", async () => {
+    const finished = setup({ now: new Date("2026-10-15T12:00:00.000Z") });
+    const cancelled = setup({ stored: { cancelledAt: new Date("2026-10-13T10:00:00.000Z") } });
+
+    await errorOf(finished.useCase.execute(finished.input));
+    await errorOf(cancelled.useCase.execute(cancelled.input));
+
+    expect(finished.messages.stored).toEqual([]);
+    expect(cancelled.messages.stored).toEqual([]);
   });
 
   it("refuses a finished class, even at the exact end, and sends nothing", async () => {

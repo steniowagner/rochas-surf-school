@@ -1,9 +1,8 @@
 import { useTranslation } from "react-i18next";
 
 import { useTheme } from "@/hooks/use-theme";
-import type { AppLocale } from "@/i18n/locales";
-import { formatCreatedAt } from "@/utils/format-created-at";
 
+import { useRelativeTime } from "../../hooks/use-relative-time.hook";
 import { notificationIcon, NotificationTone } from "../../utils/notification-icon";
 
 import { UseNotificationRowProps } from "./notification-row.types";
@@ -16,13 +15,12 @@ const TILE_CLASS: Record<NotificationTone, string> = {
 };
 
 export const useNotificationRow = ({ notification, now }: UseNotificationRowProps) => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const theme = useTheme();
   const icon = notificationIcon(notification.type);
   const glyphColor = { info: theme.lagoon, ok: theme.ok, bad: theme.bad, warn: theme.warn }[icon.tone];
 
-  const label = formatCreatedAt(notification.createdAt, now, i18n.language as AppLocale);
-  const time = label?.type === "now" ? t("notifications.now") : (label?.text ?? "");
+  const time = useRelativeTime(notification.createdAt, now);
 
   const accessibilityLabel =
     [notification.title, notification.body, time].filter(Boolean).join(", ") +

@@ -34,6 +34,6 @@ export class SendBroadcast implements UseCase<SendBroadcastIn, void> {
       input.audience as BroadcastAudience,
     );
 
-    await this.notify.execute({ userIds, type: "broadcast", params: { title, message } });
+    await this.notify.execute({ userIds, type: "broadcast", params: { title, message, senderId: input.actor.id } });
   }
 }

@@ -18,6 +18,7 @@ import { RequestSeatSheet } from "@/modules/enrolment/components/request-seat-sh
 import { TakeOutSheet } from "@/modules/enrolment/components/take-out-sheet";
 import { WithdrawRequestSheet } from "@/modules/enrolment/components/withdraw-request-sheet";
 import { BANNER_CLASSES } from "@/modules/enrolment/utils/enrolment-status";
+import { MessageSheet } from "@/modules/notifications/components/message-sheet";
 import { PersonSheet } from "@/modules/people/components/person-sheet";
 import { useHeaderInset } from "@/navigation/stack-header";
 import { getBottomPadding } from "@/utils/bottom-padding";
@@ -25,6 +26,7 @@ import { getBottomPadding } from "@/utils/bottom-padding";
 import { CancelClassSheet } from "../components/cancel-class-sheet";
 import { ClassDetailsSkeleton } from "../components/class-details-skeleton";
 import { ClassLocationCard } from "../components/class-location-card";
+import { ClassMessages } from "../components/class-messages";
 import { ClassPeople } from "../components/class-people";
 import { ClassRuleRow } from "../components/class-rule-row";
 import { ClassToolsSheet } from "../components/class-tools-sheet";
@@ -306,6 +308,13 @@ export function ClassDetailsScreen({
                   </Text>
                 </View>
               ) : null}
+              {screen.messages.length > 0 ? (
+                <ClassMessages
+                  messages={screen.messages}
+                  now={screen.now}
+                  onOpenMessage={screen.openMessage}
+                />
+              ) : null}
               {screen.showRules ? (
                 <View className="gap-2">
                   <Text className="ds-text-section-label text-ink-2">
@@ -480,6 +489,11 @@ export function ClassDetailsScreen({
         person={screen.selectedPerson}
         visible={screen.personVisible}
         onClose={screen.closePerson}
+      />
+      <MessageSheet
+        message={screen.selectedMessage}
+        visible={screen.messageVisible}
+        onClose={screen.closeMessage}
       />
       <CancellationRulesSheet
         visible={screen.rulesVisible}

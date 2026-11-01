@@ -8,7 +8,7 @@ import { useSession } from "@/providers/session";
 import { apiPost } from "@/services/api";
 import { getSession } from "@/services/session/session.store";
 
-import { notificationTarget } from "../utils/notification-target";
+import { isAdminMessageType, notificationTarget } from "../utils/notification-target";
 import { refreshAccount } from "../utils/refresh-account";
 
 const handle = async (response: Notifications.NotificationResponse) => {
@@ -38,7 +38,15 @@ const handle = async (response: Notifications.NotificationResponse) => {
     : "auth";
 
   const classId = typeof data?.classId === "string" ? data.classId : null;
-  const target = notificationTarget(data?.type, classId, flow);
+  const notificationId = typeof data?.notificationId === "string" ? data.notificationId : null;
+  const target = notificationTarget(data?.type, classId, flow, notificationId);
+
+  // Avisos shows the message in its own place: a tap while it is open must not stack a second one.
+  if (target !== null && isAdminMessageType(data?.type)) {
+    router.push(target, { dangerouslySingular: true });
+
+    return;
+  }
 
   if (target !== null) {
     router.push(target);

@@ -3,16 +3,35 @@ import type { Href } from "expo-router";
 import { routes } from "@/constants/routes";
 import type { Flow } from "@/navigation/resolve-flow.types";
 
+const isRoleFlow = (flow: Flow): flow is "student" | "instructor" | "admin" =>
+  flow === "student" || flow === "instructor" || flow === "admin";
+
+/** A message an admin wrote to people: it opens in its sheet on the notifications screen (spec 082, D-05). */
+export const isAdminMessageType = (type: unknown): boolean =>
+  type === "broadcast" || type === "class.message";
+
+/** A class's details in the account's flow; `null` in a flow that has none. */
+export const classDetailTarget = (classId: string, flow: Flow): Href | null =>
+  isRoleFlow(flow) ? routes[flow].classDetail(classId) : null;
+
 /**
  * Where a notification leads for the account's current flow, the same from its push and from its row on the
  * notifications screen (spec 055, D-07); `null` when it leads nowhere in that flow (an unknown type, a class that
- * isn't named, a flow it doesn't concern).
+ * isn't named, a flow it doesn't concern). `notificationId` names the message of an admin to open; its row opens the
+ * sheet by itself and leaves it out.
  */
 export const notificationTarget = (
   type: unknown,
   classId: string | null,
   flow: Flow,
+  notificationId: string | null = null,
 ): Href | null => {
+  if (isAdminMessageType(type)) {
+    return notificationId !== null && isRoleFlow(flow)
+      ? routes[flow].notificationMessage(notificationId)
+      : null;
+  }
+
   if (type === "registration.pending" && flow === "admin") {
     return routes.admin.registrations;
   }
@@ -35,14 +54,13 @@ export const notificationTarget = (
     return routes.admin.classes;
   }
 
-  // An edited, unassigned, cancelled or soon-starting class, or an admin's message to it, opens that class, in the
-  // details of the flow the account resolves to.
+  // An edited, unassigned, cancelled or soon-starting class opens that class, in the details of the flow the account
+  // resolves to.
   const isClassChange =
     type === "class.edited" ||
     type === "class.unassigned" ||
     type === "class.cancelled" ||
-    type === "class.reminder" ||
-    type === "class.message";
+    type === "class.reminder";
 
   if (isClassChange && classId !== null && flow === "instructor") {
     return routes.instructor.classDetail(classId);
@@ -54,10 +72,9 @@ export const notificationTarget = (
 
   // A student hears that the class they asked for or held a seat in was edited or cancelled, or started without a seat
   // for them, or that their request was approved or denied, or that the school enrolled them in a class or took them
-  // out of one, or that their class starts soon, or an admin's message to it.
+  // out of one, or that their class starts soon.
   const isStudentClassNews =
     type === "class.edited" ||
-    type === "class.message" ||
     type === "class.reminder" ||
     type === "enrolment.expired" ||
     type === "enrolment.approved" ||

@@ -92,17 +92,19 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     launch response once the session is restored, then the listener; deduplicated by `notificationId`: with a
     session and a string `data.notificationId` it first sends `POST /notifications/<id>/read`, not awaited, failures
     ignored (spec 055); refreshes the account with `refreshAccount()`, then routes to
-    `notificationTarget(type, classId, flow)` (`src/modules/notifications/utils/notification-target.ts`, an href or
-    `null`, shared with the notifications screen since spec 055): `router.push(routes.admin.registrations)` for a
+    `notificationTarget(type, classId, flow, notificationId)` (`src/modules/notifications/utils/notification-target.ts`, an href or
+    `null`, shared with the notifications screen since spec 055): `router.push(routes.<role>.notificationMessage(id), { dangerouslySingular: true })`
+    for a `broadcast` / `class.message` push in the `student`, `instructor` or `admin` flow (spec 082; singular, so an open
+    "Avisos" takes the new message instead of stacking a second one), `router.push(routes.admin.registrations)` for a
     `registration.pending` push when the account resolves to the `admin` flow, `router.push(routes.instructor.classes)`
     / `router.push(routes.admin.classes)` for a `class.assigned`, `class.deleted` or `location.changed` push when it
     resolves to the `instructor` / `admin` flow (specs 030, 034, 037), `router.push(routes.instructor.classDetail(classId))` / `router.push(routes.admin.classDetail(classId))`
-    for a `class.edited` / `class.unassigned` / `class.cancelled` / `class.reminder` / `class.message` push with a
-    string `data.classId` (specs 032, 033, 054, 069), `router.push(routes.admin.classDetail(classId))` for a `class.noInstructor` push with a string
+    for a `class.edited` / `class.unassigned` / `class.cancelled` / `class.reminder` push with a
+    string `data.classId` (specs 032, 033, 054), `router.push(routes.admin.classDetail(classId))` for a `class.noInstructor` push with a string
     `data.classId` when it resolves to the `admin` flow (spec 035), `router.push(routes.student.classDetail(classId))`
     for an `enrolment.expired` / `enrolment.approved` / `enrolment.denied` / `enrolment.enrolled` /
-    `enrolment.takenOut` / `class.cancelled` / `class.edited` / `class.reminder` / `class.message` push in the
-    `student` flow (specs 041, 042, 044, 047, 054, 069),
+    `enrolment.takenOut` / `class.cancelled` / `class.edited` / `class.reminder` push in the
+    `student` flow (specs 041, 042, 044, 047, 054),
     `router.push(routes.student.home)` for a `location.changed` push in the `student` flow (spec 047), `router.push(routes.instructor.classDetail(classId))` for an `enrolment.requested` push in
     the `instructor` flow and `router.push(routes.admin.classRequests)` for one in the `admin` flow, with or without a
     class id (spec 042), `router.push(routes.instructor.classDetail(classId))` /
@@ -115,7 +117,8 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     `class.edited` / `class.unassigned` / `class.cancelled` / `class.deleted` / `class.noInstructor` invalidate
     `["classes"]` (weeks and details), `location.changed` invalidates `["classes"]` and `["locations"]` (spec 037; for every role, students included),
     the seven enrolment pushes invalidate `["classes"]` and `enrolment.requested` / `enrolment.cancelled` also
-    `["enrolments", "pending"]` (specs 041–044); `class.reminder` invalidates nothing else (spec 054); no navigation). `refreshAccount()` (`src/modules/notifications/utils/`) is `GET
+    `["enrolments", "pending"]` (specs 041–044); `class.reminder` invalidates nothing else (spec 054); `class.message` with a string
+    `data.classId` invalidates `["classes", "messages", classId]` (spec 082); no navigation). `refreshAccount()` (`src/modules/notifications/utils/`) is `GET
     /auth/me` → `updateUser`, `null` on failure, rethrowing only `SessionExpiredError`. The app → backend locale
     mapping (`en` / `es` / `pt-BR`) is `toBackendLocale` in `src/i18n/backend-locale.ts`, shared by the sign-in
     email and push registration. The Profile's push switch is `usePushPreference` (same folder): off → store
@@ -141,6 +144,22 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     (`UserHeader`, `src/components/user-header/`) pushes the signed-in role's route and shows
     `useUnreadNotificationsCount`, refetched by `useFocusEffect` (`cancelRefetch: false`); `HeaderButton`'s badge
     reads "9+" above 9 (`MAX_BADGE_COUNT`).
+  - Message sheet (spec 082): `MessageSheet` (`src/modules/notifications/components/message-sheet/`, a `BottomModal`) takes
+    an `AdminMessage` (`adminMessage` of the notification plus `createdAt` and `classId`, `utils/admin-message.ts`) and an
+    optional `onOpenClass`: with it, a message with a class reads `useClass` and shows `ClassDayHeader` (`modules/enrolment`)
+    in a pressable card, a skeleton of that height while loading and nothing on failure. The sender and the time are one
+    `ds-text-list-subtitle` line (`useRelativeTime`, shared with the row); `sender.role` and `sender.whatsappNumber` stay
+    in the API with no screen reading them. `NotificationsScreen` opens it from a row, and from the `notificationId` route
+    param (`routes.<role>.notificationMessage(id)`): from the loaded pages, else `useNotification` (`GET
+    /notifications/:id`, enabled once the list answered and doesn't hold it; a failure clears the param and toasts
+    `notifications.messageSheet.loadError`, except for an expired session). The screen marks an unread one read itself
+    (the push handler's POST isn't seen by the cache; marking twice keeps the first time) and, for one the list doesn't
+    hold, invalidates the list and the unread count, after the mark, because `useMarkNotificationRead` cancels list
+    queries in flight. Closing clears the param. `ClassDetailsScreen` renders it without `onOpenClass`, from
+    `ClassMessages` (`components/class-messages/`), and marks nothing read. `useClassMessages` is `["classes", "messages",
+    id]`, no retry, its key in `utils/class-messages-cache.ts`; `useSendClassMessage` invalidates it after sending.
+    `classMessageTime` (`utils/class-message-time.ts`) reuses `weekdayAbbreviation`, because date-fns `EEE` gives "Quinta"
+    in pt-BR. Copy under `notifications.messageSheet` and `classDetails.messages`.
   - Dates: `date-fns` 4 + `@date-fns/tz`, always displayed in `America/Fortaleza` (`format(…, { in: tz("America/Fortaleza") })`);
     relative times use date-fns locales `ptBR` / `es` / `enUS`, picked from the i18n language. The general
     `YYYY-MM-DD` helpers live in `src/utils/calendar-dates.ts` (spec 031; `CalendarMonth` in
@@ -367,7 +386,9 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
   `calendarDay` (`ds-text-calendar-day`, Barlow Condensed 24: the week row's numbers) and `calendarMonthDay`
   (`ds-text-calendar-month-day`, Barlow Condensed 19: the month grid's numbers). The class card (spec 040) uses
   `cardMeta` (`ds-text-card-meta`, Nunito 12.5, 400: the location pill) and `occupancy` (`ds-text-occupancy`, Nunito
-  11, 800, not uppercase: the "N/M vagas" line). `dayNumber`
+  11, 800, not uppercase: the "N/M vagas" line). The message sheet (spec 082) uses `messageTitle`
+  (`ds-text-message-title`, the display font at 30, 700, not uppercase, line height 1.1: an admin's title is shown as
+  written, and `sheetTitle` is uppercase). `dayNumber`
   (`ds-text-day-number`, 26 px; spec 030's day strip) is used again by spec 061. The week screen's
   sport filter (spec 050) adds the colors `scrim` (the backdrop that dims the screen under a floating menu) and
   `shadowGrape` (a `grape` button's shadow), both light and dark, and the elevations `fab` (`offsetY` 12, blur 26,
@@ -489,6 +510,9 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
   Store / Google Play review accounts (or, on a test server, the test sets' accounts) — never demo data.
 - **`users.status` is the authority for deleted and removed accounts**, not the `deleted_at` column inherited
   from `EntityState`: the product distinguishes deleted from removed, and two sources would disagree.
+- **`class_messages`** (spec 082, migration `20261031120000_classes_add_class_messages`): `class_id` → `classes` with
+  `ON DELETE CASCADE`, `sender_id` → `users` with `ON DELETE RESTRICT` (accounts stay as anonymous records, so the row
+  always exists), indexed on `class_id` + `created_at`. Not backfilled from notifications.
 - **An erased account is a storage-only status** (spec 067, migration `20261027184122_users_erasure` — named
   `users_erasure` by the spec rather than `auth-<change>`): the Prisma `UserStatus` has `erased` and `users` has
   `erased_at`, while `users.name` and `users.email` are nullable (email still unique; Postgres treats NULLs as
@@ -1602,6 +1626,12 @@ guard's 401 `auth.token.invalid`.
   `trash-outline` "Apagar aula" (`deleteEmpty`, or disabled with `deleteEnrolled` / `deleteStarted`). The sheet takes
   `messageCount` — the details' hook's instructors other than the viewer + `students.length` + `pendingRequests`, the
   same people the cancel sheet names (guests have no account) — and `deleteState`.
+- Class messages (spec 082): `POST /classes/:id/message` (`SendClassMessage`) validates through `ClassMessage` and stores it
+  after the state checks, before the early return for nobody to tell; `ClassChangeNotifier.classMessage` takes
+  `ClassMessageSent`, with `senderId` (the name `ClassMessage` is the entity's). `GET /classes/:id/messages`
+  (`ListClassMessages`, `assertCanReadClasses`) → `{ items: [{ id, title, message, createdAt, sender }] }`, newest first,
+  with `PrismaClassMessageRepository` joining the account and answering an erased one as `null`. See Persistence and
+  the mobile Message sheet.
 
 ## Enrolment
 
@@ -2049,14 +2079,24 @@ updates the policy's legal bases and retention list (spec 023) in the three web 
   `GET /notifications` (`ListNotifications`: `page` digits ≥ 1, default 1 → else `notifications.page.invalid`;
   `perPage` digits 1–50, default 20 → else `notifications.perPage.invalid`; `locale` `pt-BR` / `es` / `en`, default
   `pt-BR` → else `notifications.locale.invalid`; all in one 422; ordered `created_at` then `id` descending) →
-  `{ items: [{ id, type, classId, title, body, createdAt, read }], page, perPage, total }` (`classId` from a string
-  `params.classId`, else `null`; `title` / `body` from `renderInApp`; `params` not returned);
+  `{ items: [{ id, type, classId, title, body, createdAt, read, adminMessage }], page, perPage, total }` (`classId` from a string
+  `params.classId`, else `null`; `title` / `body` from `renderInApp`; `params` not returned; `adminMessage`, spec 082, below);
   `GET /notifications/unread-count` (`CountUnreadNotifications`) → `{ count }`; `POST /notifications/read-all`
   (`MarkAllNotificationsRead`, 204) and `POST /notifications/:id/read` (`MarkNotificationRead`, 204; an id that isn't
   a UUID, is unknown or someone else's → 404 `notification.notFound`). Marks use the clock and set `read_at` only
   while it is null (`PrismaNotificationRepository.markRead`: one conditional `updateMany`, then an existence
   count), so a repeat keeps the first time. `renderInApp` is `renderPush` except where a catalog entry has an
   `inAppBody` (`class.edited` without "open the app", `registration.denied` and `reactivation.denied` with the reason or `""`).
+- Admin messages (spec 082): `broadcast` and `class.message` store `senderId` in their params, and nothing else of the
+  sender (D-07: a stored name would break erasure). `toNotificationsOut` (`usecase/notification-out.ts`, shared by
+  `ListNotifications` and `GetNotification`) answers `adminMessage` — `{ title, text, sender }`, `sender`
+  `{ id, name, photoUrl, role, whatsappNumber }` or `null`, for those two types, `null` for every other — with one
+  `MessageSenderReader.findSenders` per page (`PrismaMessageSenderReader`, in `apps/backend/src/modules/notifications/`).
+  `viewerIsAdmin` is true only for an approved admin, because these routes answer accounts of any status.
+  `visibleNumber` exists in both `modules/classes` and `modules/notifications`, since Notifications depends on neither:
+  a change to the WhatsApp rule must touch both. `GET /notifications/:id?locale=` (`GetNotification`, any status, declared
+  after `unread-count`) answers one item of the same shape, without marking it read; a malformed, unknown or someone
+  else's id → 404 `notification.notFound`, an invalid locale → 422 `notifications.locale.invalid`.
 - Tickets and receipts: every `ok` ticket is stored in `push_tickets` (`id` = Expo ticket id, `token`, no foreign
   key); `PushReceiptCheckJob` runs `CheckPushReceipts` every minute — tickets 15 minutes old or more are asked
   about (`getPushNotificationReceiptsAsync` in chunks of up to 1000 ids), the token of each `DeviceNotRegistered`

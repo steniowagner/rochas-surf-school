@@ -70,6 +70,7 @@ model User {
   cancellationRules CancellationRule[]
   enrolments        Enrolment[]
   addedGuests       Guest[]
+  classMessages     ClassMessage[]
 
   @@map("users")
 }

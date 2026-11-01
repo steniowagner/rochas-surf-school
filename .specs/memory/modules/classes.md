@@ -130,6 +130,11 @@ The classes themselves, and how a batch becomes classes.
 - **Class view** (not stored): a class as people read it — its fields, its location's name, address and point
   (none when the location has none; an archived location reads the same), its instructors' ids and names, its
   roster and the reader's enrolment.
+- **Class message** (`class-message`, spec 082): what an admin wrote to the people of one class, kept on the class. Key
+  fields: the class, who sent it, the title, the message and when it was sent. It can't be edited or deleted on its own;
+  it goes when its class is deleted. Read with its sender (id, name, photo, role and WhatsApp number), or none once the
+  account was erased. The recipients' `class.message` notifications keep their own copy and don't refer to it, so an
+  inbox survives the class being deleted. Messages sent before spec 082 aren't stored here.
 
 Rules:
 
@@ -249,12 +254,24 @@ Sending a message to one class (spec 069):
   over 60 / 500 characters → `class.message.title.range.length` / `class.message.text.range.length`, 422, reported
   together); then, against the stored class and the server's now, `class.cancelled` (409, whatever time it is) and
   `class.finished` (409). A class that hasn't started or has started can be messaged.
+- **Stored before anyone is told** (spec 082): the message is stored on the class after those checks, also when nobody
+  is left to tell. A refusal stores nothing; a failed store answers an error and tells nobody; a failed notification
+  keeps the message.
 - **Who is told, never the admin who sends it** (even when teaching it or holding a seat): every instructor of the
   class and every student with an approved or pending enrolment (the class audience) get one `class.message` with
   the title and the message as written — a person on both lists once, as an instructor. Guests get nothing. Nobody
   left → nothing sent, and the answer is still 204. When the audience can't be read, only the instructors are told.
-  A notification that fails never changes the answer. Nothing is stored in the module: the message lives only in
-  the recipients' notifications.
+  A notification that fails never changes the answer. The event names who sent it (`senderId`), so Notifications stores
+  it next to the other details.
+
+Reading a class's messages (spec 082):
+
+- **Checked in this order**: access (any approved account); the id (not a UUID, or no class → `class.notFound`, 404).
+- **Every message of the class, newest first**, in any class state and whether or not the reader is part of the class;
+  a class with none answers an empty list. There is no paging: a class is one session, so it holds few.
+- **The sender is read from the account**, with its current name, photo and role; the WhatsApp number follows the same
+  rule as the class's people (`visibleNumber`), so a sender who isn't approved any more has none, for admins too, and
+  an erased one reads as no sender while the message stays.
 
 Deleting one class:
 
@@ -264,8 +281,8 @@ Deleting one class:
   whose start is exactly now included, and a finished one too), and `class.delete.notEmpty` (409, with the seats
   taken and the pending requests in the details) when anybody holds a seat or has a pending request (counted by
   Enrolment).
-- **Deleting is final and leaves nothing**: the class and its instructors are removed; it can't be restored, and
-  notifications already sent about it stay.
+- **Deleting is final and leaves nothing**: the class, its instructors and its messages are removed; it can't be
+  restored, and notifications already sent about it stay.
 - **Exactly one delete wins**: the checks sit on the delete itself. Two admins deleting the same class at the
   same moment — one succeeds, the other gets `class.notFound`; a delete that lost to a cancel gets
   `class.cancelled`, and one that lost to the clock `class.started`.
@@ -363,7 +380,7 @@ The account's status is checked before its role (`user.status.notApproved`, then
   reads any class with its notes, its cancellation deadline, its seats taken, its approved students, its guests
   as "Trial" (names only for admins and the class's instructors), its instructors' roles, the WhatsApp numbers of
   its students and instructors who share them (every number for an admin) and their own
-  latest enrolment in it, and reads both cancellation rules.
+  latest enrolment in it, reads every message sent to any class (spec 082), and reads both cancellation rules.
 - **An approved student** — lists their own classes: those that haven't ended where they have any enrolment
   (cancelled ones included), each with their latest enrolment, and, one period at a time (up to 42 days, spec 053),
   the classes they took — ended, not cancelled, with their latest enrolment approved, starting on an America/Fortaleza
@@ -432,7 +449,12 @@ arrow, nothing opening and no "Retirar" (spec 067) —, a "Turma cheia" banner o
 hasn't started, a "Regras" card (the "Cancelamento" row with "Até …" or "Ler a regra", opening the rules sheet, and
 "Regras da escola" with how many rules the school has; not on a cancelled class), the notes in a card, the "Onde e
 como" card and, for instructors, a note that the school makes the changes (a class
-they teach) or that they read it only (one they don't). A person without a photo shows their initials. A cancelled class shows "Cancelada" with its time struck through on its card and one "Aula
+they teach) or that they read it only (one they don't). "Mensagens desta aula · N" (spec 082) sits between that and
+"Regras", for every role and in any class state, hidden with no messages, while they load and when the read fails: one
+grouped card, newest first, each row with a megaphone tile, up to 2 lines of title and of text and its time (`HH:mm`
+today, the short weekday for the 6 days before, `d MMM` before that, in Fortaleza and the app's language); a row opens
+the Notifications module's message sheet without the class's card and marks nothing read, a `class.message` push about
+that class reloads the section and so does sending one. A person without a photo shows their initials. A cancelled class shows "Cancelada" with its time struck through on its card and one "Aula
 cancelada" banner with its message on its details. Admins reach a class's tools from a round button on its
 details (hidden once it has finished or is cancelled), four cards: "Editar aula" (one day, one time range, the other Nova
 aula sections; only the instructors once it has started), "Enviar mensagem" (with how many people it would reach — the
@@ -606,8 +628,9 @@ which stops that account from being erased while the link exists — a decision 
   erased student's generic avatar; "Editar aula" lists an erased kept teacher as "Ex-instrutor".
 - `069-class-message` — `SendClassMessage` (`POST /classes/:id/message`, 204, approved admins): the title (1–60) and
   message (1–500), trimmed (`CLASS_MESSAGE_TITLE_MAX`, `CLASS_MESSAGE_TEXT_MAX`), to a class that hasn't finished and
-  isn't cancelled, told through the new `ClassChangeNotifier.classMessage` (`ClassMessage` event: instructors,
-  students, class id, discipline, start, title, message) to the instructors and the class audience, each once, never
+  isn't cancelled, told through the new `ClassChangeNotifier.classMessage` (`ClassMessage` event, `ClassMessageSent`
+  since spec 082: instructors, students, class id, discipline, start, title, message) to the instructors and the class
+  audience, each once, never
   the sender. In the app, `classMessageRecipients` (`utils/class-message.ts`) counts the people the tools' "Enviar
   mensagem" and "Cancelar aula" cards reach (each once, never the viewer) and lists them for the class mode of the
   Send notice screen, which "Enviar mensagem" now opens with the class id; `useClass` takes `{ enabled }`.
@@ -615,3 +638,8 @@ which stops that account from being erased while the link exists — a decision 
   be assigned to teach: `TeacherRef.isInstructor` and one `canTeach` replace `TEACHER_ROLES` in `CreateClassBatch`
   and `EditClass` (still `class.instructors.invalid`; an edit checks only the added instructors), and the backend's
   teacher lookup reads the flag. In the app, `useTeachers` asks the directory with `teaches=true`.
+- `082-admin-message-sheet` — the `class-message` aggregate: `ClassMessage` (the title and message checks move into it),
+  the `class_messages` table (no backfill), `SendClassMessage` stores it before telling anyone and passes `senderId`,
+  and `ListClassMessages` (`GET /classes/:id/messages`) answers every approved account, with `visibleNumber` moved out
+  of `GetClass` to share the rule. The notifier event `ClassMessage` is now `ClassMessageSent`. In the app, the "Mensagens
+  desta aula" section of class details and `useClassMessages` (`["classes", "messages", id]`).

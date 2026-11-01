@@ -298,3 +298,5 @@ pedir.".
   the student's id (`studentId`), from `RequestSeat`, `CancelSeat` and `ReleaseStudentEnrolments`, so the
   notifications about a student can be deleted when the account is erased; the roster reader answers an erased
   student's `name` as `null`.
+- `082-admin-message-sheet` — no change to the module's rules or API: the app's class header of "Inscrições em aulas"
+  moves to `ClassDayHeader`, which the Notifications module's message sheet shares without the year.

@@ -1,7 +1,7 @@
 import { routes } from "@/constants/routes";
 import type { Flow } from "@/navigation/resolve-flow.types";
 
-import { notificationTarget } from "./notification-target";
+import { classDetailTarget, isAdminMessageType, notificationTarget } from "./notification-target";
 
 const ROLES = ["student", "instructor", "admin"] as const;
 const OTHER_FLOWS: Flow[] = [
@@ -45,11 +45,8 @@ const WITH_CLASS: Record<string, Record<(typeof ROLES)[number], unknown>> = {
     instructor: routes.instructor.classDetail("C"),
     admin: routes.admin.classDetail("C"),
   },
-  "class.message": {
-    student: routes.student.classDetail("C"),
-    instructor: routes.instructor.classDetail("C"),
-    admin: routes.admin.classDetail("C"),
-  },
+  // Without its notification's id: the push passes it (see below), and a row opens the sheet by itself.
+  "class.message": { student: null, instructor: null, admin: null },
   "location.changed": {
     student: routes.student.home,
     instructor: routes.instructor.classes,
@@ -114,7 +111,7 @@ describe("notificationTarget", () => {
     },
   );
 
-  it("leads a broadcast nowhere in any flow, so its tap only shows the current home", () => {
+  it("leads a broadcast with no id nowhere in any flow", () => {
     for (const flow of [...ROLES, ...OTHER_FLOWS]) {
       expect(notificationTarget("broadcast", null, flow)).toBeNull();
     }
@@ -128,6 +125,20 @@ describe("notificationTarget", () => {
     expect(notificationTarget(type, null, flow)).toEqual(WITHOUT_CLASS[type]?.[flow] ?? null);
   });
 
+  describe.each(["broadcast", "class.message"])("a %s", (type) => {
+    it.each(ROLES)("opens Avisos with its message in the %s flow", (role) => {
+      expect(notificationTarget(type, "C", role, "N")).toEqual(routes[role].notificationMessage("N"));
+    });
+
+    it.each(OTHER_FLOWS)("leads to the flow's home in the %s flow", (flow) => {
+      expect(notificationTarget(type, "C", flow, "N")).toBeNull();
+    });
+
+    it.each(ROLES)("leads nowhere without an id in the %s flow", (role) => {
+      expect(notificationTarget(type, "C", role)).toBeNull();
+    });
+  });
+
   it.each(OTHER_FLOWS)("leads nowhere in the %s flow", (flow) => {
     for (const type of Object.keys(WITH_CLASS)) {
       expect(notificationTarget(type, "C", flow)).toBeNull();
@@ -138,5 +149,25 @@ describe("notificationTarget", () => {
     for (const flow of ROLES) {
       expect(notificationTarget(type, "C", flow)).toBeNull();
     }
+  });
+});
+
+describe("isAdminMessageType", () => {
+  it.each(["broadcast", "class.message"])("takes %s", (type) => {
+    expect(isAdminMessageType(type)).toBe(true);
+  });
+
+  it.each(["class.cancelled", "class.edited", undefined])("leaves out %s", (type) => {
+    expect(isAdminMessageType(type)).toBe(false);
+  });
+});
+
+describe("classDetailTarget", () => {
+  it.each(ROLES)("opens the class in the %s flow", (role) => {
+    expect(classDetailTarget("C", role)).toEqual(routes[role].classDetail("C"));
+  });
+
+  it.each(OTHER_FLOWS)("leads nowhere in the %s flow", (flow) => {
+    expect(classDetailTarget("C", flow)).toBeNull();
   });
 });

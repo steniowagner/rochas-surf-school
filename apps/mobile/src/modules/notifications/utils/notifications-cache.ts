@@ -8,6 +8,8 @@ export const NOTIFICATIONS_LIST_QUERY_KEY = ["notifications", "list"] as const;
 
 export const UNREAD_NOTIFICATIONS_COUNT_QUERY_KEY = ["notifications", "unread-count"] as const;
 
+export const notificationQueryKey = (id: string | null) => ["notifications", "detail", id] as const;
+
 export type NotificationsListData = InfiniteData<NotificationsPage, number>;
 
 /** The cached pages with the notifications `isMarked` picks shown as read. */

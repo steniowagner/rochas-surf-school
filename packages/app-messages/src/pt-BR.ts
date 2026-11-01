@@ -703,6 +703,9 @@ const messages: Messages = {
   },
   classDetails: {
     title: "Detalhe",
+    messages: {
+      title: "Mensagens desta aula · {{count}}",
+    },
     today: "Hoje",
     tomorrow: "Amanhã",
     yesterday: "Ontem",
@@ -1339,6 +1342,12 @@ const messages: Messages = {
     },
     now: "Agora",
     unread: ", não lido",
+    messageSheet: {
+      eyebrow: "Mensagem da escola",
+      confirm: "Ok, entendi",
+      classLabel: "A aula",
+      loadError: "Não foi possível abrir a mensagem. Tente novamente.",
+    },
   },
   archiveLocation: {
     title: "Remover local?",

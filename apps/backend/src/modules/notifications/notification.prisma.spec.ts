@@ -126,6 +126,27 @@ describe('PrismaNotificationRepository', () => {
     expect(result.items[1].readAt).toBeNull();
   });
 
+  it("reads the user's notification by id, and null when it isn't theirs", async () => {
+    const id = '9e1b7a30-4c52-4d86-b0a3-6f2d8c5e1a47';
+    const record = {
+      id,
+      userId: USER_ID,
+      type: 'broadcast',
+      params: { title: 'Aviso', message: 'Oi' },
+      createdAt: NOW,
+      readAt: null,
+    };
+    const notification = { findFirst: vi.fn().mockResolvedValueOnce(record).mockResolvedValueOnce(null) };
+    const repository = new PrismaNotificationRepository({ notification } as unknown as PrismaService);
+
+    const found = await repository.findById(USER_ID, id);
+
+    expect(notification.findFirst).toHaveBeenCalledWith({ where: { id, userId: USER_ID } });
+    expect(found).toBeInstanceOf(Notification);
+    expect(found).toMatchObject({ id, type: 'broadcast', params: record.params });
+    await expect(repository.findById(USER_ID, id)).resolves.toBeNull();
+  });
+
   it('counts the user\'s unread notifications', async () => {
     const notification = { count: vi.fn().mockResolvedValue(3) };
     const repository = new PrismaNotificationRepository({ notification } as unknown as PrismaService);

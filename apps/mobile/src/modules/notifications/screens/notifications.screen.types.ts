@@ -1,4 +1,4 @@
-import type { NotificationItem } from "../notifications.types";
+import type { AdminMessage, NotificationItem } from "../notifications.types";
 
 export type UseNotificationsScreenResult = {
   now: Date;
@@ -16,4 +16,8 @@ export type UseNotificationsScreenResult = {
   loadMore: () => void;
   openNotification: (notification: NotificationItem) => void;
   markAllRead: () => void;
+  message: AdminMessage | null;
+  messageVisible: boolean;
+  closeMessage: () => void;
+  openMessageClass: (classId: string) => void;
 };

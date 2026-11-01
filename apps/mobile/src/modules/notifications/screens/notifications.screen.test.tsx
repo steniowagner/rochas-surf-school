@@ -1,8 +1,10 @@
 import { act, fireEvent, render, screen, userEvent, waitFor } from "@testing-library/react-native";
 import { router } from "expo-router";
+import { ReactNode } from "react";
 
 import { routes } from "@/constants/routes";
 import { Colors } from "@/constants/theme";
+import { buildClassItem } from "@/modules/classes/classes.test-utils";
 import { isOnboardingCompleted, resolveFlow } from "@/navigation/resolve-flow";
 import { getSession } from "@/services/session/session.store";
 
@@ -26,6 +28,7 @@ import { NotificationsScreen } from "./notifications.screen";
 const mockShow = jest.fn();
 let mockRole = "student";
 let mockSignedIn = true;
+let mockParams: { notificationId?: string } = {};
 
 jest.mock("@/providers/alert-message", () => ({
   useAlertMessage: () => ({ show: mockShow }),
@@ -45,7 +48,8 @@ jest.mock("@/providers/session", () => ({
 }));
 
 jest.mock("expo-router", () => ({
-  router: { push: jest.fn(), replace: jest.fn() },
+  router: { push: jest.fn(), replace: jest.fn(), setParams: jest.fn() },
+  useLocalSearchParams: () => mockParams,
   // Renders the header's title and right button so the tests can see and press them.
   Stack: {
     Screen: ({ options }: any) => (
@@ -57,7 +61,14 @@ jest.mock("expo-router", () => ({
   },
 }));
 
+// A sheet that is really gone when it isn't visible, to see whether it is open.
+jest.mock("@/components/ui/bottom-modal", () => ({
+  BottomModal: ({ visible, children }: { visible: boolean; children: ReactNode }) =>
+    visible ? children : null,
+}));
+
 const LIST = /^\/notifications\?/;
+const ONE = /^\/notifications\/[^/?]+\?/;
 
 type Handlers = {
   list?: (path: string) => unknown;
@@ -65,10 +76,20 @@ type Handlers = {
   read?: () => unknown;
   readAll?: () => unknown;
   me?: () => unknown;
+  one?: () => unknown;
+  classDetail?: () => unknown;
 };
 
 /** Answers each endpoint with its handler: the list, the unread count, one mark, the mark-all and the account. */
-const serve = ({ list, count = 0, read = noContent, readAll = noContent, me = failure }: Handlers) => {
+const serve = ({
+  list,
+  count = 0,
+  read = noContent,
+  readAll = noContent,
+  me = failure,
+  one = failure,
+  classDetail = failure,
+}: Handlers) => {
   fetchMock.mockImplementation(async (url: string) => {
     const path = String(url).replace("http://api.test", "");
 
@@ -88,6 +109,14 @@ const serve = ({ list, count = 0, read = noContent, readAll = noContent, me = fa
       return read();
     }
 
+    if (ONE.test(path)) {
+      return one();
+    }
+
+    if (path.startsWith("/classes/")) {
+      return classDetail();
+    }
+
     return list ? list(path) : ok(buildPage(1, 0, 0));
   });
 };
@@ -102,14 +131,17 @@ const listPaths = () => requests().filter((request) => LIST.test(request.path)).
 const posts = () => requests().filter((request) => request.method === "POST").map((r) => r.path);
 const markAllButton = () => screen.queryByRole("button", { name: "Mark all as read" });
 const dots = () => screen.queryAllByTestId("notification-row-unread-dot");
+const gets = () => requests().filter((request) => ONE.test(request.path)).map((r) => r.path);
 
 beforeEach(() => {
   setupSignedInUser();
   mockRole = "student";
   mockSignedIn = true;
+  mockParams = {};
   mockShow.mockReset();
   jest.mocked(router.push).mockReset();
   jest.mocked(router.replace).mockReset();
+  jest.mocked(router.setParams).mockReset();
 });
 
 describe("NotificationsScreen", () => {
@@ -331,40 +363,349 @@ describe("NotificationsScreen", () => {
         );
         expect(screen.getByText(glyph("chatbubble-outline"))).toHaveStyle({ color: Colors.light.lagoon });
       });
+    });
 
-      it.each([
-        ["student", routes.student.classDetail("c-1")],
-        ["instructor", routes.instructor.classDetail("c-1")],
-        ["admin", routes.admin.classDetail("c-1")],
-      ] as const)("marks it read and opens the class for a %s", async (role, target) => {
-        mockRole = role;
-        const user = userEvent.setup();
-        serve({ count: 1, list: classMessage });
-        await renderScreen();
-        await screen.findByText("Ponto de encontro");
+    describe("an admin's message", () => {
+      const SENDER = {
+        id: "s-1",
+        name: "Ana Souza",
+        photoUrl: null,
+        role: "admin",
+        whatsappNumber: null,
+      } as const;
+      const adminMessage = { title: "Ponto de encontro", text: "Barraca azul.", sender: SENDER };
+      const CLASS = buildClassItem("c-1", "2026-10-21T12:00:00.000Z", "2026-10-21T13:00:00.000Z");
+      const notice = (index = 1) =>
+        buildNotification(index, {
+          type: "broadcast",
+          classId: null,
+          title: "Ponto de encontro",
+          body: "Barraca azul.",
+          adminMessage,
+        });
+      const classMessage = () =>
+        buildNotification(1, {
+          type: "class.message",
+          classId: "c-1",
+          title: "Ponto de encontro",
+          body: "Surf, Thu 10/15 at 08:00: Barraca azul.",
+          adminMessage,
+        });
+      const sheet = () => screen.queryByText("Message from the school");
+      const press = (name: string | RegExp) =>
+        userEvent.setup().press(screen.getByRole("button", { name }));
 
-        await user.press(screen.getByRole("button", { name: /Ponto de encontro/ }));
+      describe("from its row", () => {
+        it("opens a notice's sheet at once, with no navigation and no extra request, marked read", async () => {
+          serve({ count: 1, list: () => page([notice()]) });
+          await renderScreen();
+          await screen.findByText("Barraca azul.");
 
-        expect(dots()).toHaveLength(0);
-        await waitFor(() => expect(posts()).toEqual(["/notifications/n-1/read"]));
-        expect(router.push).toHaveBeenCalledWith(target);
+          await press(/Ponto de encontro/);
+
+          expect(sheet()).toBeOnTheScreen();
+          expect(dots()).toHaveLength(0);
+          await waitFor(() => expect(posts()).toEqual(["/notifications/n-1/read"]));
+          expect(gets()).toEqual([]);
+          expect(router.push).not.toHaveBeenCalled();
+          expect(router.replace).not.toHaveBeenCalled();
+        });
+
+        it("sends nothing for a read row and still opens it", async () => {
+          serve({ list: () => page([{ ...notice(), read: true }]) });
+          await renderScreen();
+          await screen.findByText("Barraca azul.");
+
+          await press(/Ponto de encontro/);
+
+          expect(sheet()).toBeOnTheScreen();
+          expect(posts()).toEqual([]);
+        });
+
+        it("closes with its button, leaving no route param to clear", async () => {
+          serve({ list: () => page([notice()]) });
+          await renderScreen();
+          await screen.findByText("Barraca azul.");
+
+          await press(/Ponto de encontro/);
+          await press("OK, got it");
+
+          expect(sheet()).toBeNull();
+          expect(router.setParams).not.toHaveBeenCalled();
+        });
+
+        it.each([
+          ["student", routes.student.classDetail("c-1")],
+          ["instructor", routes.instructor.classDetail("c-1")],
+          ["admin", routes.admin.classDetail("c-1")],
+        ] as const)("closes the sheet and opens the class for a %s", async (role, target) => {
+          mockRole = role;
+          serve({ list: () => page([classMessage()]), classDetail: () => ok(CLASS) });
+          await renderScreen();
+          await screen.findByText("Ponto de encontro");
+
+          await press(/Ponto de encontro/);
+          await userEvent.setup().press(await screen.findByText("Praia do Futuro"));
+
+          expect(sheet()).toBeNull();
+          expect(router.push).toHaveBeenCalledWith(target);
+        });
+
+        it("opens no class for a session already gone (signing out)", async () => {
+          mockSignedIn = false;
+          serve({ list: () => page([classMessage()]), classDetail: () => ok(CLASS) });
+          await renderScreen();
+          await screen.findByText("Ponto de encontro");
+
+          await press(/Ponto de encontro/);
+          await userEvent.setup().press(await screen.findByText("Praia do Futuro"));
+
+          expect(router.push).not.toHaveBeenCalled();
+        });
+
+        it("keeps the sheet readable when the class is gone", async () => {
+          serve({ list: () => page([classMessage()]), classDetail: () => failure(404) });
+          await renderScreen();
+          await screen.findByText("Ponto de encontro");
+
+          await press(/Ponto de encontro/);
+
+          await waitFor(() => expect(screen.queryByTestId("message-sheet-class-loading")).toBeNull());
+          expect(sheet()).toBeOnTheScreen();
+          expect(screen.getByText("Barraca azul.")).toBeOnTheScreen();
+        });
+      });
+
+      describe("from a tapped push", () => {
+        it("opens the message of a loaded row, with no extra request", async () => {
+          mockParams = { notificationId: "n-1" };
+          serve({ list: () => page([notice()]) });
+          await renderScreen();
+
+          await waitFor(() => expect(sheet()).toBeOnTheScreen());
+          expect(gets()).toEqual([]);
+        });
+
+        it("fetches one beyond the loaded pages, once the list answered", async () => {
+          mockParams = { notificationId: "n-9" };
+          serve({ list: () => page([notice()]), one: () => ok(notice(9)) });
+          await renderScreen();
+
+          await waitFor(() => expect(sheet()).toBeOnTheScreen());
+          expect(gets()).toEqual(["/notifications/n-9?locale=en"]);
+        });
+
+        it("fetches it when the list failed", async () => {
+          mockParams = { notificationId: "n-9" };
+          serve({ list: () => failure(), one: () => ok(notice(9)) });
+          await renderScreen();
+
+          await waitFor(() => expect(sheet()).toBeOnTheScreen());
+        });
+
+        it("shows a toast and no sheet when the fetch fails", async () => {
+          mockParams = { notificationId: "n-9" };
+          serve({ list: () => page([notice()]) });
+          await renderScreen();
+
+          await waitFor(() =>
+            expect(mockShow).toHaveBeenCalledWith("Couldn't open the message. Try again."),
+          );
+          expect(mockShow).toHaveBeenCalledTimes(1);
+          expect(sheet()).toBeNull();
+          expect(router.setParams).toHaveBeenCalledWith({ notificationId: undefined });
+        });
+
+        it("shows no toast when the session expired", async () => {
+          mockParams = { notificationId: "n-9" };
+          fetchMock.mockImplementation(async () => ({
+            ok: false,
+            status: 401,
+            json: async () => ({ errors: ["auth.token.invalid"] }),
+          }));
+          await renderScreen();
+
+          await waitFor(() => expect(router.setParams).toHaveBeenCalled());
+          expect(mockShow).not.toHaveBeenCalled();
+        });
+
+        it("clears the route when it closes, and doesn't open again by itself", async () => {
+          mockParams = { notificationId: "n-1" };
+          serve({ list: () => page([notice()]) });
+          const { rerender } = await renderScreen();
+          await waitFor(() => expect(sheet()).toBeOnTheScreen());
+
+          await press("OK, got it");
+
+          expect(router.setParams).toHaveBeenCalledWith({ notificationId: undefined });
+          expect(sheet()).toBeNull();
+
+          await rerender(<NotificationsScreen />);
+
+          expect(sheet()).toBeNull();
+        });
+
+        it("shows a new message on the open screen", async () => {
+          mockParams = { notificationId: "n-1" };
+          const other = {
+            ...notice(2),
+            adminMessage: { ...adminMessage, title: "Outra mensagem", text: "Outro texto." },
+          };
+          serve({ list: () => page([notice(), other]) });
+          const { rerender } = await renderScreen();
+          await waitFor(() => expect(sheet()).toBeOnTheScreen());
+
+          mockParams = { notificationId: "n-2" };
+          await rerender(<NotificationsScreen />);
+
+          await waitFor(() => expect(screen.getByText("Outro texto.")).toBeOnTheScreen());
+        });
+
+        it("shows its row as read and lowers the count at once, with the screen already open", async () => {
+          mockParams = { notificationId: "n-1" };
+          serve({
+            list: () => page([notice()]),
+            count: () => ok({ count: posts().length > 0 ? 0 : 1 }),
+          });
+          await renderScreen();
+
+          await waitFor(() => expect(sheet()).toBeOnTheScreen());
+          await waitFor(() => expect(dots()).toHaveLength(0));
+          await waitFor(() => expect(markAllButton()).toBeNull());
+          expect(posts()).toEqual(["/notifications/n-1/read"]);
+        });
+
+        it("marks one beyond the loaded pages", async () => {
+          mockParams = { notificationId: "n-9" };
+          serve({ list: () => page([notice()]), one: () => ok(notice(9)) });
+          await renderScreen();
+
+          await waitFor(() => expect(posts()).toEqual(["/notifications/n-9/read"]));
+          expect(dots()).toHaveLength(1);
+        });
+
+        describe("one the loaded pages don't hold", () => {
+          const rowIds = () =>
+            screen.getByTestId("notifications-list").props.data.map((row: NotificationItem) => row.id);
+
+          it("brings a newer one into the list, read, and keeps it after closing the sheet", async () => {
+            mockParams = { notificationId: "n-9" };
+            const older = { ...notice(), read: true };
+            const newer = { ...notice(9), read: true };
+            serve({
+              list: () => page(listPaths().length > 1 ? [newer, older] : [older]),
+              one: () => ok(newer),
+            });
+            await renderScreen();
+
+            await waitFor(() => expect(rowIds()).toEqual(["n-9", "n-1"]));
+            expect(sheet()).toBeOnTheScreen();
+            expect(dots()).toHaveLength(0);
+            expect(posts()).toEqual([]);
+
+            await press("OK, got it");
+
+            expect(sheet()).toBeNull();
+            expect(rowIds()).toEqual(["n-9", "n-1"]);
+          });
+
+          it("reloads the list after its mark, which would cancel a reload in flight", async () => {
+            mockParams = { notificationId: "n-9" };
+            let answerRead: (value: unknown) => void = () => {};
+            let marked = false;
+            const older = { ...notice(), read: true };
+            serve({
+              list: () => page(marked ? [{ ...notice(9), read: true }, older] : [older]),
+              one: () => ok(notice(9)),
+              read: () => new Promise((resolve) => (answerRead = resolve)),
+            });
+            await renderScreen();
+
+            await waitFor(() => expect(posts()).toEqual(["/notifications/n-9/read"]));
+            expect(listPaths()).toHaveLength(1);
+
+            marked = true;
+            await act(async () => answerRead(noContent()));
+
+            await waitFor(() => expect(rowIds()).toEqual(["n-9", "n-1"]));
+            expect(dots()).toHaveLength(0);
+          });
+
+          it("reloads the count too, which other pushes may have changed", async () => {
+            mockParams = { notificationId: "n-9" };
+            const older = { ...notice(), read: true };
+            const newer = { ...notice(9), read: true };
+            serve({
+              list: () => page(listPaths().length > 1 ? [newer, notice(8), older] : [older]),
+              count: () => ok({ count: listPaths().length > 1 ? 1 : 0 }),
+              one: () => ok(newer),
+            });
+            await renderScreen();
+
+            await waitFor(() => expect(markAllButton()).toBeOnTheScreen());
+          });
+
+          it("reloads once for one older than the loaded pages, which stays out of the list", async () => {
+            mockParams = { notificationId: "n-9" };
+            serve({
+              list: () => page([{ ...notice(), read: true }]),
+              one: () => ok({ ...notice(9), read: true }),
+            });
+            await renderScreen();
+
+            await waitFor(() => expect(listPaths()).toHaveLength(2));
+            await act(async () => {});
+
+            expect(listPaths()).toHaveLength(2);
+            expect(gets()).toHaveLength(1);
+            expect(rowIds()).toEqual(["n-1"]);
+            expect(sheet()).toBeOnTheScreen();
+          });
+
+          it("doesn't reload the list for one it holds", async () => {
+            mockParams = { notificationId: "n-1" };
+            serve({ list: () => page([{ ...notice(), read: true }]) });
+            await renderScreen();
+
+            await waitFor(() => expect(sheet()).toBeOnTheScreen());
+            await act(async () => {});
+
+            expect(listPaths()).toHaveLength(1);
+          });
+        });
+
+        it("sends nothing for a message already read", async () => {
+          mockParams = { notificationId: "n-1" };
+          serve({ list: () => page([{ ...notice(), read: true }]) });
+          await renderScreen();
+
+          await waitFor(() => expect(sheet()).toBeOnTheScreen());
+          expect(posts()).toEqual([]);
+        });
+
+        it("doesn't mark a notification that has no message", async () => {
+          mockParams = { notificationId: "n-1" };
+          serve({ list: () => page([buildNotification(1)]) });
+          await renderScreen();
+
+          await waitFor(() => expect(dots()).toHaveLength(1));
+          expect(sheet()).toBeNull();
+          expect(posts()).toEqual([]);
+        });
       });
     });
 
-    it("marks a broadcast row read and shows the current home", async () => {
+    it("keeps opening the class of a class.cancelled row", async () => {
       serve({
-        count: 1,
-        list: () => page([buildNotification(1, { type: "broadcast", classId: null, title: "Aviso", body: "Sem aula" })]),
+        list: () => page([buildNotification(1, { type: "class.cancelled", classId: "c-1", title: "Row" })]),
       });
-      const user = userEvent.setup();
       await renderScreen();
-      await screen.findByText("Sem aula");
+      await screen.findByText("Row");
 
-      await user.press(screen.getByRole("button", { name: /Aviso/ }));
+      await userEvent.setup().press(screen.getByRole("button", { name: /Row/ }));
 
-      await waitFor(() => expect(router.replace).toHaveBeenCalledWith(routes.home));
-      expect(posts()).toEqual(["/notifications/n-1/read"]);
-      expect(router.push).not.toHaveBeenCalled();
+      expect(screen.queryByText("Message from the school")).toBeNull();
+      expect(router.push).toHaveBeenCalledWith(routes.student.classDetail("c-1"));
     });
 
     describe("a role.changed row", () => {

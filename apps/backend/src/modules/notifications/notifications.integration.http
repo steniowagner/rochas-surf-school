@@ -109,6 +109,14 @@ Authorization: Bearer {{accessToken}}
 GET {{baseUrl}}/notifications?page=0&perPage=51&locale=fr
 Authorization: Bearer {{accessToken}}
 
+### Read one of my notifications (expects 200 with one item of the list; adminMessage holds { title, text, sender } for a broadcast or a class.message; doesn't mark it read)
+GET {{baseUrl}}/notifications/{{notificationId}}?locale=pt-BR
+Authorization: Bearer {{token}}
+
+### Read a malformed, unknown or someone else's notification (expects 404 notification.notFound)
+GET {{baseUrl}}/notifications/not-a-uuid
+Authorization: Bearer {{token}}
+
 ### Count my unread notifications (expects 200 with { count })
 GET {{baseUrl}}/notifications/unread-count
 Authorization: Bearer {{accessToken}}

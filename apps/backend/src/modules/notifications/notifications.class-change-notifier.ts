@@ -4,7 +4,7 @@ import type {
   ClassChangeNotifier,
   ClassDeleted,
   ClassEdited,
-  ClassMessage,
+  ClassMessageSent,
 } from '@rochas-surf-school/classes';
 import { Notify } from '@rochas-surf-school/notifications';
 import { ExpoPushProvider } from './expo.push.js';
@@ -98,9 +98,10 @@ export class NotificationsClassChangeNotifier implements ClassChangeNotifier {
     classId,
     discipline,
     startsAt,
+    senderId,
     title,
     message,
-  }: ClassMessage): Promise<void> {
+  }: ClassMessageSent): Promise<void> {
     // The instructors and the students with a seat or a request get the admin's text as written; a person is told once.
     const recipientIds = [...new Set([...instructorIds, ...studentIds])];
 
@@ -108,7 +109,7 @@ export class NotificationsClassChangeNotifier implements ClassChangeNotifier {
       await this.notify.execute({
         userIds: recipientIds,
         type: 'class.message',
-        params: { classId, discipline, startsAt: startsAt.toISOString(), title, message },
+        params: { classId, discipline, startsAt: startsAt.toISOString(), senderId, title, message },
       });
     } catch (error) {
       this.logger.error(

@@ -1,14 +1,8 @@
-import {
-  DomainError,
-  NotFoundError,
-  RangeLengthRule,
-  RequiredRule,
-  UseCase,
-  UuidRule,
-  Validator,
-} from "@rochas-surf-school/shared";
+import { DomainError, NotFoundError, UseCase, UuidRule } from "@rochas-surf-school/shared";
 import { ClassActor, assertCanManageClasses } from "../../access";
-import { CLASS_MESSAGE_TEXT_MAX, CLASS_MESSAGE_TITLE_MAX, getClassState } from "../model";
+import { ClassMessage } from "../../class-message/model";
+import { ClassMessageRepository } from "../../class-message/provider";
+import { getClassState } from "../model";
 import {
   ClassAudienceReader,
   ClassChangeNotifier,
@@ -34,13 +28,17 @@ function trimmed(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
-/** Sends an admin's message to the people of a class that hasn't finished: its instructors and its audience. */
+/**
+ * Keeps an admin's message on a class that hasn't finished and sends it to its people: its instructors and its
+ * audience.
+ */
 export class SendClassMessage implements UseCase<SendClassMessageIn, void> {
   constructor(
     private readonly schoolClassRepository: SchoolClassRepository,
     private readonly classAudienceReader: ClassAudienceReader,
     private readonly classChangeNotifier: ClassChangeNotifier,
     private readonly clockProvider: ClockProvider,
+    private readonly classMessageRepository: ClassMessageRepository,
   ) {}
 
   async execute(input: SendClassMessageIn): Promise<void> {
@@ -54,21 +52,14 @@ export class SendClassMessage implements UseCase<SendClassMessageIn, void> {
       throw new NotFoundError("class.notFound");
     }
 
-    const title = trimmed(input.title);
-    const message = trimmed(input.message);
+    const classMessage = new ClassMessage({
+      classId: stored.id,
+      senderId: input.actor.id,
+      title: trimmed(input.title),
+      message: trimmed(input.message),
+    });
 
-    Validator.validate([
-      {
-        code: "class.message.title",
-        value: title,
-        rules: [new RequiredRule(), new RangeLengthRule(1, CLASS_MESSAGE_TITLE_MAX)],
-      },
-      {
-        code: "class.message.text",
-        value: message,
-        rules: [new RequiredRule(), new RangeLengthRule(1, CLASS_MESSAGE_TEXT_MAX)],
-      },
-    ]);
+    classMessage.validate();
 
     const state = getClassState(stored.startsAt, stored.endsAt, this.clockProvider.now(), stored.cancelledAt);
 
@@ -79,6 +70,8 @@ export class SendClassMessage implements UseCase<SendClassMessageIn, void> {
     if (state === "finished") {
       throw new DomainError("class.finished", 409);
     }
+
+    await this.classMessageRepository.create(classMessage);
 
     // Each person once, never the sender; someone who teaches the class is told as an instructor.
     const instructorIds = stored.instructorIds.filter((id) => id !== input.actor.id);
@@ -95,8 +88,9 @@ export class SendClassMessage implements UseCase<SendClassMessageIn, void> {
         classId: stored.id,
         discipline: stored.discipline,
         startsAt: stored.startsAt,
-        title,
-        message,
+        senderId: input.actor.id,
+        title: classMessage.title,
+        message: classMessage.message,
       });
     } catch {
       // A failed notification never changes the answer; the adapter logs it.

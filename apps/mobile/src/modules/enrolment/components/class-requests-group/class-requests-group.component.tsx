@@ -1,9 +1,7 @@
-import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { Text, TouchableOpacity, View } from "react-native";
 
 import { BUTTON_ACTIVE_OPACITY } from "@/components/ui/button/button.constants";
-import { Chip } from "@/components/ui/chip";
 import { DecisionCard } from "@/components/decision/decision-card";
 import { shadowStyle } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
@@ -17,7 +15,8 @@ import {
 import { schoolTimeOf } from "@/modules/classes/utils/week";
 import { getDateLocale } from "@/utils/calendar-dates";
 
-import { formatAskedAt, formatDayBlock } from "../../utils/class-requests";
+import { formatAskedAt } from "../../utils/class-requests";
+import { ClassDayHeader } from "../class-day-header";
 
 import type { ClassRequestsGroupProps } from "./class-requests-group.types";
 
@@ -42,7 +41,6 @@ export function ClassRequestsGroup({
   const { t, i18n } = useTranslation();
   const theme = useTheme();
   const locale = getDateLocale(i18n.language);
-  const block = formatDayBlock(item.startsAt, locale);
   const full = isClassFull(item.seatsTaken, item.capacity);
   const tone = getOccupancyTone(
     item.seatsTaken,
@@ -62,35 +60,14 @@ export function ClassRequestsGroup({
         onPress={() => onOpenClass(item)}
         className="gap-3 bg-dim p-4"
       >
-        <View className="flex-row items-center gap-3">
-          <View className="w-16 items-center justify-center rounded-control py-3 border border-line bg-dim">
-            <Text className="ds-text-chip text-lagoon">{block.weekday}</Text>
-            <Text className="ds-text-calendar-day text-ink">{block.day}</Text>
-            <Text className="ds-text-chip lowercase text-ink-2">{`${block.month} ${block.year}`}</Text>
-          </View>
-          <View className="flex-1 gap-2.5">
-            <View className="flex-row flex-wrap items-center gap-2">
-              <Chip
-                size="compact"
-                tone={item.discipline === "surf" ? "surf" : "skate"}
-              >
-                {t(`newClass.discipline.${item.discipline}`)}
-              </Chip>
-              <Chip size="compact" tone="info">
-                {t(`newClass.level.${item.level}`)}
-              </Chip>
-            </View>
-            <Text className="ds-text-day-number text-ink">
-              {`${schoolTimeOf(item.startsAt)} – ${schoolTimeOf(item.endsAt)}`}
-            </Text>
-            <View className="flex-row items-center gap-1 self-start rounded-full border border-line bg-dim px-2.5 py-1">
-              <Ionicons name="location-outline" size={12} color={theme.ink2} />
-              <Text className="ds-text-occupancy text-ink-2">
-                {item.location.name}
-              </Text>
-            </View>
-          </View>
-        </View>
+        <ClassDayHeader
+          discipline={item.discipline}
+          level={item.level}
+          startsAt={item.startsAt}
+          endsAt={item.endsAt}
+          locationName={item.location.name}
+          showYear
+        />
         <View className="gap-1.5">
           <View className="h-1.5 overflow-hidden rounded-full bg-sand">
             <View

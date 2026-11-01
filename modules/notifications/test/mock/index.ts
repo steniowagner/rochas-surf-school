@@ -4,4 +4,5 @@ export * from "./fake-push-ticket.repository";
 export * from "./fake-push.provider";
 export * from "./fake-recipients.provider";
 export * from "./fake-clock.provider";
+export * from "./fake-message-sender.reader";
 export * from "./factories";

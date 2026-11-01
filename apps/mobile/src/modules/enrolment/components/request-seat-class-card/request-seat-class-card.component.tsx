@@ -1,7 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
-import { Text, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 
+import { BUTTON_ACTIVE_OPACITY } from "@/components/ui/button/button.constants";
 import { Chip } from "@/components/ui/chip";
 import { useTheme } from "@/hooks/use-theme";
 
@@ -15,13 +16,14 @@ export function RequestSeatClassCard({
   startsAt,
   endsAt,
   locationName,
+  onPress,
 }: RequestSeatClassCardProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const card = useRequestSeatClassCard({ startsAt, endsAt });
 
-  return (
-    <View className="items-start gap-3 rounded-card border border-line bg-surface p-4">
+  const content = (
+    <>
       <View className="flex-row flex-wrap gap-2">
         <Chip tone={discipline === "surf" ? "surf" : "skate"}>
           {t(`newClass.discipline.${discipline}`)}
@@ -49,6 +51,31 @@ export function RequestSeatClassCard({
           {locationName}
         </Text>
       </View>
-    </View>
+    </>
+  );
+
+  if (!onPress) {
+    return (
+      <View className="items-start gap-3 rounded-card border border-line bg-surface p-4">
+        {content}
+      </View>
+    );
+  }
+
+  return (
+    <TouchableOpacity
+      accessibilityRole="button"
+      activeOpacity={BUTTON_ACTIVE_OPACITY}
+      onPress={onPress}
+      className="flex-row items-center gap-3 rounded-card border border-line bg-surface p-4"
+    >
+      <View className="flex-1 items-start gap-3">{content}</View>
+      <Ionicons
+        testID="request-seat-class-card-chevron"
+        name="chevron-forward"
+        size={20}
+        color={theme.ink3}
+      />
+    </TouchableOpacity>
   );
 }

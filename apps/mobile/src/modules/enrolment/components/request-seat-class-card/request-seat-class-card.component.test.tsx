@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react-native";
+import { render, screen, userEvent } from "@testing-library/react-native";
 
 import i18n from "@/i18n";
 
@@ -20,6 +20,25 @@ const renderCard = (overrides: Partial<RequestSeatClassCardProps> = {}) =>
 afterEach(() => i18n.changeLanguage("en-US"));
 
 describe("RequestSeatClassCard", () => {
+  it("can't be pressed and has no chevron without onPress", async () => {
+    await renderCard();
+
+    expect(screen.queryByRole("button")).toBeNull();
+    expect(screen.queryByTestId("request-seat-class-card-chevron")).toBeNull();
+  });
+
+  it("is a button with a chevron with onPress", async () => {
+    const onPress = jest.fn();
+    await renderCard({ onPress });
+
+    expect(screen.getByTestId("request-seat-class-card-chevron")).toBeOnTheScreen();
+
+    await userEvent.setup().press(screen.getByRole("button"));
+
+    expect(onPress).toHaveBeenCalledTimes(1);
+    expect(screen.getByText("Praia do Norte")).toBeOnTheScreen();
+  });
+
   it("shows the chips, the day, the duration, the time range and the location", async () => {
     await renderCard();
 

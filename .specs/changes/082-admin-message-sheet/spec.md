@@ -459,9 +459,15 @@ The sender, in every answer below (`null` by ER-05):
   > `apps/mobile/src/modules/classes/utils/class-messages-cache.ts`; verified: `npx jest
   > src/modules/notifications/hooks src/modules/classes/hooks` passes; deviations: none.
 
-- [ ] **T-09** — Give `RequestSeatClassCard` the optional `onPress` of D-11 (a touchable card with a `chevron-forward`),
+- [x] **T-09** — Give `RequestSeatClassCard` the optional `onPress` of D-11 (a touchable card with a `chevron-forward`),
   with its test; the sheet that uses it doesn't change.
   Covers: enabling · Done when: `npx jest src/modules/enrolment/components/request-seat` passes.
+  > ✅ 2026-10-31 23:49 — RequestSeatClassCard takes an optional `onPress`: a touchable card with a
+  > `chevron-forward`, unchanged without it; files:
+  > `apps/mobile/src/modules/enrolment/components/request-seat-class-card/request-seat-class-card.component.tsx`,
+  > `apps/mobile/src/modules/enrolment/components/request-seat-class-card/request-seat-class-card.types.ts`,
+  > `apps/mobile/src/modules/enrolment/components/request-seat-class-card/request-seat-class-card.component.test.tsx`;
+  > verified: `npx jest src/modules/enrolment/components/request-seat` passes; deviations: none.
 
 - [ ] **T-10** — Create `src/modules/notifications/components/message-sheet/` (`MessageSheet`, following
   `.claude/rules/react.md`): `BottomModal` with the `bg-sun` megaphone tile, "Mensagem da escola", the relative time (the

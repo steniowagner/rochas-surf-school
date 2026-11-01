@@ -437,11 +437,19 @@ because the app offers Google.
   > `apps/mobile/src/services/apple-sign-in.test.ts`; verified: `npx jest src/services/apple-sign-in` (2 passed), `npx
   > turbo run lint check-types --filter=@rochas-surf-school/mobile` exit 0; deviations: none
 
-- [ ] **T-09** — Add the `useSignInWithApple` mutation on `POST /auth/apple` in
+- [x] **T-09** — Add the `useSignInWithApple` mutation on `POST /auth/apple` in
   `apps/mobile/src/modules/auth/hooks/use-sign-in-with-apple.hook.ts`, and
   `apps/mobile/src/modules/auth/utils/apple-sign-in-error.ts` mapping the D-10 outcomes to translation keys or "ignore".
   Tests: `use-sign-in-with-apple.hook.test.tsx`, `apple-sign-in-error.test.ts`.
   Covers: ER-13 · Done when: both test files pass.
+  > ✅ 2026-11-01 12:29 — added the `useSignInWithApple` mutation on `POST /auth/apple` and `apple-sign-in-error.ts`
+  > mapping the D-10 outcomes to translation keys or `null` (ignore); files:
+  > `apps/mobile/src/modules/auth/hooks/use-sign-in-with-apple.hook.ts`,
+  > `apps/mobile/src/modules/auth/hooks/use-sign-in-with-apple.hook.test.tsx`,
+  > `apps/mobile/src/modules/auth/utils/apple-sign-in-error.ts`,
+  > `apps/mobile/src/modules/auth/utils/apple-sign-in-error.test.ts`; verified: `npx jest
+  > src/modules/auth/hooks/use-sign-in-with-apple src/modules/auth/utils/apple-sign-in-error` (both files pass);
+  > deviations: none
 
 - [ ] **T-10** — Generalize "Your name" (D-08): `routes.auth.providerName` in `src/constants/routes.ts`, route
   `src/app/(public)/auth/provider-name.tsx` replacing `google-name.tsx`, `src/modules/auth/screens/provider-name.screen.tsx`,

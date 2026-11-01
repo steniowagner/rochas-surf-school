@@ -584,6 +584,96 @@ describe("NotificationsScreen", () => {
           expect(dots()).toHaveLength(1);
         });
 
+        describe("one the loaded pages don't hold", () => {
+          const rowIds = () =>
+            screen.getByTestId("notifications-list").props.data.map((row: NotificationItem) => row.id);
+
+          it("brings a newer one into the list, read, and keeps it after closing the sheet", async () => {
+            mockParams = { notificationId: "n-9" };
+            const older = { ...notice(), read: true };
+            const newer = { ...notice(9), read: true };
+            serve({
+              list: () => page(listPaths().length > 1 ? [newer, older] : [older]),
+              one: () => ok(newer),
+            });
+            await renderScreen();
+
+            await waitFor(() => expect(rowIds()).toEqual(["n-9", "n-1"]));
+            expect(sheet()).toBeOnTheScreen();
+            expect(dots()).toHaveLength(0);
+            expect(posts()).toEqual([]);
+
+            await press("OK, got it");
+
+            expect(sheet()).toBeNull();
+            expect(rowIds()).toEqual(["n-9", "n-1"]);
+          });
+
+          it("reloads the list after its mark, which would cancel a reload in flight", async () => {
+            mockParams = { notificationId: "n-9" };
+            let answerRead: (value: unknown) => void = () => {};
+            let marked = false;
+            const older = { ...notice(), read: true };
+            serve({
+              list: () => page(marked ? [{ ...notice(9), read: true }, older] : [older]),
+              one: () => ok(notice(9)),
+              read: () => new Promise((resolve) => (answerRead = resolve)),
+            });
+            await renderScreen();
+
+            await waitFor(() => expect(posts()).toEqual(["/notifications/n-9/read"]));
+            expect(listPaths()).toHaveLength(1);
+
+            marked = true;
+            await act(async () => answerRead(noContent()));
+
+            await waitFor(() => expect(rowIds()).toEqual(["n-9", "n-1"]));
+            expect(dots()).toHaveLength(0);
+          });
+
+          it("reloads the count too, which other pushes may have changed", async () => {
+            mockParams = { notificationId: "n-9" };
+            const older = { ...notice(), read: true };
+            const newer = { ...notice(9), read: true };
+            serve({
+              list: () => page(listPaths().length > 1 ? [newer, notice(8), older] : [older]),
+              count: () => ok({ count: listPaths().length > 1 ? 1 : 0 }),
+              one: () => ok(newer),
+            });
+            await renderScreen();
+
+            await waitFor(() => expect(markAllButton()).toBeOnTheScreen());
+          });
+
+          it("reloads once for one older than the loaded pages, which stays out of the list", async () => {
+            mockParams = { notificationId: "n-9" };
+            serve({
+              list: () => page([{ ...notice(), read: true }]),
+              one: () => ok({ ...notice(9), read: true }),
+            });
+            await renderScreen();
+
+            await waitFor(() => expect(listPaths()).toHaveLength(2));
+            await act(async () => {});
+
+            expect(listPaths()).toHaveLength(2);
+            expect(gets()).toHaveLength(1);
+            expect(rowIds()).toEqual(["n-1"]);
+            expect(sheet()).toBeOnTheScreen();
+          });
+
+          it("doesn't reload the list for one it holds", async () => {
+            mockParams = { notificationId: "n-1" };
+            serve({ list: () => page([{ ...notice(), read: true }]) });
+            await renderScreen();
+
+            await waitFor(() => expect(sheet()).toBeOnTheScreen());
+            await act(async () => {});
+
+            expect(listPaths()).toHaveLength(1);
+          });
+        });
+
         it("sends nothing for a message already read", async () => {
           mockParams = { notificationId: "n-1" };
           serve({ list: () => page([{ ...notice(), read: true }]) });

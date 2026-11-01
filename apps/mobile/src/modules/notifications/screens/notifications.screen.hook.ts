@@ -21,6 +21,7 @@ import { classDetailTarget, notificationTarget } from "../utils/notification-tar
 import {
   NOTIFICATIONS_LIST_QUERY_KEY,
   NotificationsListData,
+  UNREAD_NOTIFICATIONS_COUNT_QUERY_KEY,
 } from "../utils/notifications-cache";
 import { refreshAccount } from "../utils/refresh-account";
 
@@ -75,12 +76,26 @@ export const useNotificationsScreen = (): UseNotificationsScreenResult => {
   // The push handler marks it on the server, which neither the row nor the count here can see. Marking one twice is
   // harmless: the first read keeps its time.
   const unreadPushedId = pushedMessage && !pushed?.read ? notificationId : null;
+  // One the list doesn't hold may be newer than it: a push tapped in the background fires no received event.
+  const missingPushedId = pushedMessage && !loaded ? notificationId : null;
 
   useEffect(() => {
-    if (unreadPushedId !== null) {
-      markOneRead(unreadPushedId);
+    const reloadMissing = () => {
+      if (missingPushedId !== null) {
+        void queryClient.invalidateQueries({ queryKey: NOTIFICATIONS_LIST_QUERY_KEY });
+        void queryClient.invalidateQueries({ queryKey: UNREAD_NOTIFICATIONS_COUNT_QUERY_KEY });
+      }
+    };
+
+    if (unreadPushedId === null) {
+      reloadMissing();
+
+      return;
     }
-  }, [markOneRead, unreadPushedId]);
+
+    // The mark cancels a list reload in flight, so the reload waits for it.
+    markOneRead(unreadPushedId, { onSettled: reloadMissing });
+  }, [markOneRead, missingPushedId, queryClient, unreadPushedId]);
 
   const clearRouteMessage = () => {
     if (notificationId !== null) {

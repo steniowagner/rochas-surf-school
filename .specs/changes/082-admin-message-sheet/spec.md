@@ -2,7 +2,7 @@
 id: "082"
 slug: admin-message-sheet
 title: Admin messages open in a sheet and stay on the class
-status: changes-requested
+status: in-progress
 created: 2026-10-31
 started: 2026-10-31
 base_commit: 1fad1cf64e369b66c7644648312065dd1db302fc
@@ -886,7 +886,7 @@ The sender, in every answer below (`null` by ER-05):
 
 **Findings**
 
-- [ ] **F-02** (ER-09) — a push tapped while the app is in the background with Avisos open shows the sheet, but the
+- [x] **F-02** (ER-09) — a push tapped while the app is in the background with Avisos open shows the sheet, but the
   message never joins the list. No received event fires in the background, and neither the tap nor the mark reloads
   `["notifications", "list"]`, so the screen keeps its old pages: the row is missing behind the sheet and after closing
   it, though `GET /notifications` holds it, read. `requirements.md → Notifications screen` says every notification
@@ -894,6 +894,18 @@ The sender, in every answer below (`null` by ER-05):
   Home, send a `broadcast` with `xcrun simctl push` and a `notifications` row for it, tap the banner, then press "Ok,
   entendi". Expected: the row shows at the top of the list, read, with no pull to refresh, with a test for a route's
   notification that isn't in the loaded pages.
+  > ✅ 2026-11-01 11:00 — A message the route opens that the loaded pages don't hold may be newer than them, so Avisos now reloads
+  > the list and the unread count for it, once: an older one stays out of the list, and one the list holds reloads
+  > nothing. The count goes with it because the same push's absence hides any other that arrived in the background. For an
+  > unread one the reload waits for the mark, because `useMarkNotificationRead` cancels list queries in flight; files:
+  > `apps/mobile/src/modules/notifications/screens/notifications.screen.hook.ts`,
+  > `apps/mobile/src/modules/notifications/screens/notifications.screen.test.tsx`; verified: the 4 new tests that expect the
+  > reload failed before the fix (and the one that expects none passed), `npx jest src/modules/notifications` (17 suites, 492
+  > passed), `npx tsc --noEmit -p .` and ESLint clean. Reproduced as the reviewer did, on the iOS simulator as the student,
+  > with the app relaunched on the current bundle: with Avisos open, Home, a new `broadcast` row and `xcrun simctl push`,
+  > then a tap on the banner: "F-02: aviso em segundo plano" shows at the top of the list behind the sheet, with no dot and
+  > no pull to refresh, it stays there after "Ok, entendi", the sheet doesn't reopen, and its stored `read_at` is set;
+  > deviations: none.
 
 **Notes**
 

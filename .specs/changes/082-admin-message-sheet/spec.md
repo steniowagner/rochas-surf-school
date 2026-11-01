@@ -2,7 +2,7 @@
 id: "082"
 slug: admin-message-sheet
 title: Admin messages open in a sheet and stay on the class
-status: in-review
+status: changes-requested
 created: 2026-10-31
 started: 2026-10-31
 base_commit: 1fad1cf64e369b66c7644648312065dd1db302fc
@@ -845,3 +845,75 @@ The sender, in every answer below (`null` by ER-05):
 - The local database keeps this review's test data: the class message and notifications "Revisão 082: ponto de encontro"
   on class `5a1e0000-0000-4000-8000-000000000108`, and the student's notice "Revisão 082: aviso geral". No push left the
   machine: the local database has no push tokens.
+
+### Round 2 — 2026-11-01 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (29 Turbo tasks, all cache hits; backend, mobile, classes, notifications,
+  app-messages, design-tokens)
+- related tests ✅ `RELATED TESTS PASSED`: backend, mobile, classes, notifications, app-messages, enrolment and web (812)
+- coverage of the changed lines ✅ `COVERAGE OK`, 42 files; no coverage-ignore comment in the diff
+- e2e: backend suite ✅ 856 passed · web suite ✅ 77 passed · `E2E PASSED`
+- iOS simulator, the first real pushes of this spec ✅ `xcrun simctl push` with the Verification Plan's payload, tapped on
+  the banner, as a student and as an instructor who doesn't teach the class; one case ❌ (F-02). How: see Notes
+
+**Expected Results**
+
+- F-01 of round 1 ✅ — pushes tapped with Avisos open, on home and with the app closed all show their row read at once,
+  and the stored `read_at` is set
+- ER-01 ✅ — `send-class-message.usecase.test.ts` and the "stores" tests
+- ER-02 ✅ — `list-class-messages.usecase.test.ts` and the "list" tests
+- ER-03 ✅ — the "sender" tests of both e2e files
+- ER-04 ✅ — the "whatsapp" tests of both e2e files and the two use case tests
+- ER-05 ✅ — the "erased sender" tests of both e2e files
+- ER-06 ✅ — `broadcast.usecase.test.ts`, the adapter's spec, `push-messages.spec.ts`
+- ER-07 ✅ — the "one notification" tests
+- ER-08 ✅ — the "admin message" tests; on screen the row keeps its class line and the sheet shows the text alone
+- ER-09 ❌ — see F-02. Everything else now seen on real taps: app closed, app open on home, and a second push with Avisos
+  and a sheet open (the sheet changes, its row reads as read, closing leaves Avisos and back goes home, not to a second
+  Avisos), plus the instructor flow
+- ER-10 ✅ — `notifications.screen.test.tsx`
+- ER-11 ✅ — notice sheet from a tapped push: tile, "Mensagem da escola", "Dev Admin · Agora", title as written, no card
+- ER-12 ✅ — "A aula", DOM / 1 / NOV, chevron; in the instructor flow the card closed the sheet and opened that flow's class
+  details
+- ~~ER-13~~ — removed; nothing in the code still builds it
+- ER-14 ✅ — seen as a student and as an instructor who doesn't teach the class, under the read-only note; 2-line rows
+- ER-15 ✅ — a section row opened the sheet with no card; the test asserts no read is sent
+- ER-16 ✅ — seen on a real push: with the class open the section went from 3 to 4 with nothing tapped; the tests cover
+  another class, which reloads nothing
+- ER-17 ✅ — `notification-target.test.ts` and `use-notification-response.hook.test.tsx`
+
+**Findings**
+
+- [ ] **F-02** (ER-09) — a push tapped while the app is in the background with Avisos open shows the sheet, but the
+  message never joins the list. No received event fires in the background, and neither the tap nor the mark reloads
+  `["notifications", "list"]`, so the screen keeps its old pages: the row is missing behind the sheet and after closing
+  it, though `GET /notifications` holds it, read. `requirements.md → Notifications screen` says every notification
+  appears there, and this is the screen the tap just opened. Pull to refresh brings it in. Reproduce: open Avisos, press
+  Home, send a `broadcast` with `xcrun simctl push` and a `notifications` row for it, tap the banner, then press "Ok,
+  entendi". Expected: the row shows at the top of the list, read, with no pull to refresh, with a test for a route's
+  notification that isn't in the loaded pages.
+
+**Notes**
+
+- How the pushes were driven, since round 1 couldn't: the simulator build never asks for the OS permission (`getPushToken`
+  stops at `isDevice`). A temporary line in `push.service.ts` asked once, Allow was tapped, and the line was reverted with
+  `git checkout` before any check ran, so no code changed. The permission stays granted on that simulator, so
+  `xcrun simctl push` works from now on. This makes round 1's "on a phone build" steps optional for ER-09 and ER-16; the
+  APNs delivery itself still isn't exercised here.
+- A push of **another** type tapped while a message sheet is open navigates under the sheet and leaves it up: tapping a
+  `location.changed` push left "app fechado" open over the home. "Ok, entendi" still closes it. The review started with the
+  app in this state. No Expected Result covers it and it follows from how every `BottomModal` works, so it isn't a finding.
+- D-16 holds on this phone: a 62-character title and a 505-character text (past the limits, inserted by SQL) fill 55% of
+  the screen with no card, and the card adds about 150 pt. A 667 pt phone would be tight; not checked.
+- `## Memory Impact` still misses that the notifier event `ClassMessage` is now `ClassMessageSent`;
+  `memory/modules/classes.md` line 609 still names the old one.
+- `DeleteUser` has no caller in the backend and `deleteDenied` only touches denied accounts, so `sender_id ON DELETE
+  RESTRICT` can't block anything today.
+- Not seen on screen, still resting on the tests: es-ES and en-US.
+- `git status` showed the untracked `.specs/changes/081-staging-follow-ups/`, another spec's plan; it isn't part of this
+  commit.
+- Local data: the account `6cdee4f8-3f18-4d0d-98bb-5619810cb3d4` was set to `instructor` by SQL for the journey and is
+  `student` again. Its "Revisão 082 R2: …" notifications and the class messages on class
+  `5a1e0000-0000-4000-8000-000000000108` remain. No push left the machine.

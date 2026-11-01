@@ -70,9 +70,9 @@ Tell the executor when this is done. That is T-12's "Done when".
 
 ## Starting over in the journey (T-14)
 
-iOS Settings → your name → **Sign-In & Security** → **Sign in with Apple** → pick the app → **Stop Using**. The next
-sign-in shows Apple's full sheet again, with the name and the choice to hide the email. The labels vary between iOS
-versions.
+iOS Settings → your name → **Sign-In & Security** → **Sign in with Apple** → pick the app → **Stop Using** (**Delete** on
+newer iOS versions). The next sign-in shows Apple's full sheet again, with the name and the choice to hide the email. The
+labels vary between iOS versions.
 
 Apple keeps giving the same person the same identity, so a sign-up on staging only starts from zero after that identity
 is also gone from staging's database, which is why the journey in T-14 removes its test row.

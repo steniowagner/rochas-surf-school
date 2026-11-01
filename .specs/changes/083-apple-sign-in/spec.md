@@ -526,7 +526,7 @@ because the app offers Google.
 
 ### Mobile (`apps/mobile`, TestFlight)
 
-- [ ] **T-14** — Build and send a TestFlight build with the `testflight` profile (`eas build`, `eas submit`, step 5 of
+- [x] **T-14** — Build and send a TestFlight build with the `testflight` profile (`eas build`, `eas submit`, step 5 of
   [apple-setup.md](apple-setup.md)), then ask the user to perform the ER-17 journey on their iPhone:
   1. "Continue with Apple", choosing Hide My Email: Pending shows the relay address.
   2. "Use another email", then "Continue with Apple" again: the same Pending screen, with no name asked.
@@ -538,6 +538,14 @@ because the app offers Google.
   Record their result and the row counts in the evidence, with no email address.
   Covers: ER-17 · Done when: the user reports the journey passed and staging shows one `users` row and one `apple`
   identity after step 2, and an `apple` identity on the real-email account after step 4.
+  > ✅ 2026-11-01 15:19 — EAS build 28cf6d31 (1.0.0, build 2, commit 549d4603, testflight profile) finished and was
+  > submitted to App Store Connect; the user ran ER-17 on their iPhone against staging; files:
+  > .specs/changes/083-apple-sign-in/apple-setup.md (the Delete label); verified, reported by the user with
+  > screenshots of the counts: step 1 Hide My Email reached Pending with a relay address; step 2 Use another email
+  > then Apple again reached the same Pending with no name asked, 1 relay user and 1 apple identity; step 3 the row
+  > was deleted, 0 and 0; step 4 after removing the app from Sign in with Apple, sharing the real email reached
+  > Pending, and staging shows one apple identity on a student, pending, non-relay account; deviations: iOS on the
+  > device labels Stop Using as Delete, so apple-setup.md now names both
 
 ### Verification
 

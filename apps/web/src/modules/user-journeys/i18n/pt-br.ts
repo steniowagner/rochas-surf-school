@@ -171,6 +171,18 @@ export const ptBr = {
       steps: "Deixe o app aberto enquanto o admin age.",
       expected: "Depois da remoção você recebe \"Acesso removido\" e o app vai para uma tela que diz que seu acesso foi removido e que a conta não pode ser reativada pelo app, com \"Falar com a escola\" e \"Usar outro email\". Depois da restauração você recebe \"Acesso restaurado\" e o app volta ao seu início.",
     },
+    "AU-20": {
+      title: "Criar conta com a Apple",
+      beforeYouStart: "Você precisa de um iPhone: o Android não oferece a Apple. Você está fora da conta. Use uma Conta Apple nunca usada no app.",
+      steps: "Toque em \"Continuar com a Apple\" e confirme na janela da Apple.",
+      expected: "O botão mostra um indicador de carregamento enquanto trabalha. Você chega à tela que diz que sua conta está aguardando aprovação. Se a Apple não compartilhar um nome válido, uma tela \"Qual é o seu nome?\" pede o nome antes.",
+    },
+    "AU-21": {
+      title: "Fechar a janela da Apple",
+      beforeYouStart: "Você precisa de um iPhone: o Android não oferece a Apple. Você está fora da conta.",
+      steps: "Toque em \"Continuar com a Apple\" e feche a janela da Apple sem confirmar.",
+      expected: "Você volta à tela de entrada, sem nenhuma mensagem de erro.",
+    },
     "ST-01": {
       title: "A agenda abre nesta semana",
       beforeYouStart: "A escola tem aulas nesta semana.",

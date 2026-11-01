@@ -404,11 +404,22 @@ because the app offers Google.
   > @rochas-surf-school/web` (242 files, 816 passed), `playwright test e2e/designs.e2e.ts` (29 passed), `node
   > .docs/designs/scripts/pack.mjs --check` exit 0; deviations: none
 
-- [ ] **T-07** — Add the rows `AU-20` (`designIds: ["AF-01-06", "AF-02-15", "AF-03-01"]`) and `AU-21`
+- [x] **T-07** — Add the rows `AU-20` (`designIds: ["AF-01-06", "AF-02-15", "AF-03-01"]`) and `AU-21`
   (`designIds: ["AF-01-01"]`) to the `signIn` group in `apps/web/src/modules/user-journeys/data/user-journey-flows.ts`,
   their texts in `i18n/{en,pt-br,es}.ts`, each saying an iPhone is needed, and in `e2e/user-journeys.e2e.ts` `caseCounts`
   `auth: 21` and the test `auth journeys list the Apple cases`.
   Covers: ER-16 · Done when: `npm run test:e2e --workspace @rochas-surf-school/web -- e2e/user-journeys.e2e.ts` passes.
+  > ✅ 2026-11-01 12:27 — added the rows `AU-20` and `AU-21` to the `signIn` group with their texts in the three
+  > languages, each saying an iPhone is needed, `caseCounts` `auth: 21` and the test `auth journeys list the Apple
+  > cases`; files: `apps/web/src/modules/user-journeys/data/user-journey-flows.ts`,
+  > `apps/web/src/modules/user-journeys/data/user-journey-flows.test.ts`,
+  > `apps/web/src/modules/user-journeys/utils/journey-groups.test.ts`,
+  > `apps/web/src/modules/user-journeys/pages/user-journeys-index/user-journeys-index.page.test.tsx`,
+  > `apps/web/src/modules/user-journeys/i18n/en.ts`, `apps/web/src/modules/user-journeys/i18n/es.ts`,
+  > `apps/web/src/modules/user-journeys/i18n/pt-br.ts`, `apps/web/e2e/user-journeys.e2e.ts`; verified: `playwright
+  > test e2e/user-journeys.e2e.ts` (25 passed), `npx vitest run src/modules/user-journeys` (12 files passed);
+  > deviations: the three unit tests that fixed 19 rows now say 21, and `numbers the auth rows sequentially` compares
+  > the sorted ids, because rows the task puts in the `signIn` group break page order
 
 ### Mobile (`apps/mobile`)
 

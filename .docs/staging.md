@@ -88,7 +88,7 @@ aws ssm put-parameter --region us-east-1 --type SecureString --overwrite --name 
 | `REFRESH_TOKEN_EXPIRES_IN_DAYS` | `30`                                                                                            |
 | `RESEND_API_KEY`                | From `apps/backend/.env`.                                                                       |
 | `EMAIL_FROM`                    | From `apps/backend/.env`: `admin@rochassurfschool.com`.                                         |
-| `REVIEW_ACCOUNTS`               | The first line of `TEST_ACCOUNTS_CODE=<6 digits> npm run test-accounts -w apps/backend`.        |
+| `REVIEW_ACCOUNTS`               | The first line of `npm run test-accounts -w apps/backend`.                                      |
 | `GOOGLE_WEB_CLIENT_ID`          | From `apps/backend/.env.example`; it isn't secret.                                              |
 | `APPLE_CLIENT_ID`               | `com.rochassurfschool.app`, the app's bundle id; it isn't secret.                               |
 | `ANTHROPIC_API_KEY`             | From `apps/backend/.env`.                                                                       |
@@ -195,9 +195,11 @@ everyone else starts as a pending student, whatever their name says, so testers 
 migrations stay applied. Refresh tokens go too, so everyone is signed out, and real accounts on staging go with the rest,
 including your own. A deploy never runs it, and it leaves accounts that testers have changed alone.
 
-The accounts come from the `REVIEW_ACCOUNTS` parameter, not from the code, and the repo never holds the sign-in code. If
-the emails you get are the old ones, the parameter wasn't updated. Steps 2 and 3 are only needed when the accounts or
-the code change. Run everything from `apps/backend`.
+The accounts come from the `REVIEW_ACCOUNTS` parameter, which `test-accounts` builds from `testAccountSets` and
+`testAccountCode` in `packages/shared`. The web's test accounts page shows that same list and code, so anyone with the
+page can sign in as a staging admin: never put these accounts on a production server. If the emails you get are the old
+ones, the parameter wasn't updated. Steps 2 and 3 are only needed when the accounts or the code change. Run everything
+from `apps/backend`.
 
 1. Select the staging AWS profile. The machine's default profile is another account, where these parameters don't
    exist, so the `aws` commands would fail or come back empty.
@@ -206,11 +208,10 @@ the code change. Run everything from `apps/backend`.
    export AWS_PROFILE=rochas-surf-school
    ```
 
-2. Generate the value, with the code you want, and keep it in this shell. `test-accounts` also prints the hand-out
-   table.
+2. Generate the value and keep it in this shell.
 
    ```bash
-   export REVIEW_ACCOUNTS="$(TEST_ACCOUNTS_CODE=<6 digits> npm run -s test-accounts | head -1 | sed -e "s/^REVIEW_ACCOUNTS='//" -e "s/'$//")"
+   export REVIEW_ACCOUNTS="$(npm run -s test-accounts | head -1 | sed -e "s/^REVIEW_ACCOUNTS='//" -e "s/'$//")"
    ```
 
 3. Save it to staging. If you paste the JSON instead of using the variable, wrap it in single quotes and leave out the

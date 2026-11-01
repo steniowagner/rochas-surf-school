@@ -38,7 +38,7 @@ describe("UserJourneysIndexPage", () => {
 
     const row = screen.getByRole("link", { name: /^Cuentas de prueba/ });
     expect(row).toHaveAttribute("href", "/es/user-journeys/test-accounts");
-    expect(row).toHaveTextContent("Los emails de los 12 conjuntos de prueba, sin los códigos.");
+    expect(row).toHaveTextContent("Los emails y los códigos de acceso de los 12 conjuntos de prueba.");
     expect(screen.getByTestId("user-journey-flows")).not.toContainElement(row);
     expect(within(screen.getByTestId("user-journey-flows")).getAllByRole("link")).toHaveLength(4);
   });

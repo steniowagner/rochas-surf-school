@@ -32,8 +32,14 @@ const SET_NAMES = [
 const EMAIL_DOMAIN = "test.com";
 
 /**
- * The 12 test sets of spec 076 (D-21): per set an admin, an instructor and a student review account. It holds
- * no sign-in code: the code is never committed (D-22), the backend's `npm run test-accounts` is given it.
+ * The sign-in code of every test account. It's public on purpose: the web's test accounts page shows it, and it only
+ * works where `REVIEW_ACCOUNTS` lists these accounts, so never on a production server.
+ */
+export const testAccountCode = "123456";
+
+/**
+ * The 12 test sets of spec 076 (D-21): per set an admin, an instructor and a student review account. They
+ * all sign in with `testAccountCode`.
  */
 export const testAccountSets: readonly TestAccountSet[] = SET_NAMES.map(
   (number, index) => {

@@ -1,9 +1,9 @@
-import { PersonNameRule, testAccountSets } from '@rochas-surf-school/shared';
+import { PersonNameRule, testAccountCode, testAccountSets } from '@rochas-surf-school/shared';
 
 import { parseReviewAccounts } from '../../src/modules/auth/auth.config.js';
 import { buildTestAccounts, formatTestAccounts } from './test-accounts.js';
 
-const CODE = '123456';
+const CODE = testAccountCode;
 
 const NUMBERS = [
   'One',
@@ -22,7 +22,7 @@ const NUMBERS = [
 
 describe('buildTestAccounts', () => {
   it('builds 36 accounts with the emails and names of the 12 sets', () => {
-    const accounts = buildTestAccounts(CODE);
+    const accounts = buildTestAccounts();
 
     expect(accounts).toHaveLength(36);
     NUMBERS.forEach((number, index) => {
@@ -54,7 +54,7 @@ describe('buildTestAccounts', () => {
   });
 
   it('approves only the admins and starts everyone else as a pending student', () => {
-    const accounts = buildTestAccounts(CODE);
+    const accounts = buildTestAccounts();
 
     expect(accounts.filter((account) => account.status === 'approved')).toHaveLength(12);
     expect(accounts.filter((account) => account.role === 'admin')).toHaveLength(12);
@@ -65,7 +65,7 @@ describe('buildTestAccounts', () => {
   });
 
   it('mirrors the emails and names of testAccountSets', () => {
-    const accounts = buildTestAccounts(CODE);
+    const accounts = buildTestAccounts();
 
     expect(accounts.map(({ email, name }) => ({ email, name }))).toEqual(
       testAccountSets.flatMap((set) => set.accounts.map(({ email, name }) => ({ email, name }))),
@@ -75,25 +75,21 @@ describe('buildTestAccounts', () => {
   it('gives every account a name that passes PersonNameRule', () => {
     const rule = new PersonNameRule();
 
-    for (const account of buildTestAccounts(CODE)) {
+    for (const account of buildTestAccounts()) {
       expect(rule.validate(account.name)).toBeNull();
     }
   });
 
-  it('gives every account the given code', () => {
-    const codes = buildTestAccounts('654321').map((account) => account.code);
+  it('gives every account the same code', () => {
+    const codes = buildTestAccounts().map((account) => account.code);
 
-    expect(new Set(codes)).toEqual(new Set(['654321']));
-  });
-
-  it.each([undefined, '', '12345', '1234567', 'abcdef'])('refuses the code %j', (code) => {
-    expect(() => buildTestAccounts(code)).toThrow('The test accounts need a 6-digit code');
+    expect(new Set(codes)).toEqual(new Set([testAccountCode]));
   });
 });
 
 describe('formatTestAccounts', () => {
   it('formats a REVIEW_ACCOUNTS line that parseReviewAccounts accepts as the 36 accounts', () => {
-    const accounts = buildTestAccounts(CODE);
+    const accounts = buildTestAccounts();
 
     const { env } = formatTestAccounts(accounts);
 
@@ -103,13 +99,13 @@ describe('formatTestAccounts', () => {
   });
 
   it('keeps the REVIEW_ACCOUNTS value under the 4 KB of a standard SSM parameter', () => {
-    const { env } = formatTestAccounts(buildTestAccounts(CODE));
+    const { env } = formatTestAccounts(buildTestAccounts());
 
     expect(Buffer.byteLength(/^REVIEW_ACCOUNTS='(.*)'$/.exec(env)![1])).toBeLessThan(4096);
   });
 
   it('formats a Markdown table with one row per account, in set order', () => {
-    const accounts = buildTestAccounts(CODE);
+    const accounts = buildTestAccounts();
 
     const lines = formatTestAccounts(accounts).table.split('\n');
 

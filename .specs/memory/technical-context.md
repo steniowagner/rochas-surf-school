@@ -271,9 +271,7 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     try / catch, so a blocked or full storage leaves the page working in memory. "Clear results" asks with
     `window.confirm` and removes the key. No cookie and no `sessionStorage`. Since spec 077, `pages/test-accounts`
     renders `testAccountSets` from `@rochas-surf-school/shared` as 12 untitled `ContentCard`s (`title` is optional since spec 078; one column, two from `md`, three
-    from `lg`; emails wrap with `wrap-anywhere`), each email with the client component `copy-email-button`
-    (`navigator.clipboard.writeText`, its own copied / failed state, "Copied" for 2 s, a `sr-only` copy of the email so
-    each button's accessible name is unique); its labels are `userJourneys.testAccounts` in the site dictionaries,
+    from `lg`; emails wrap with `wrap-anywhere`), each account with its email and `testAccountCode`; its labels are `userJourneys.testAccounts` in the site dictionaries,
     and the index and flow pages link to it.
   - Designs (spec 071): `src/modules/designs/` holds `components/` (presentational mocks of the mobile components
     with the mobile names and props, plus `phone-frame` — an iOS 402 × 874 frame that scales down with a container
@@ -540,7 +538,7 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   depend on NestJS, Prisma, React, any SDK, or another app. May depend on `@rochas-surf-school/shared` and on
   another module's public exports.
 - **Shared kernel** lives in `packages/shared` — base classes, contracts, errors and validation rules only, plus
-  one data list both apps read, `testAccountSets` (spec 077: the test sets without codes, no rule).
+  one data list both apps read, `testAccountSets` (spec 077: the test sets, with their shared `testAccountCode`, no rule).
   **Must not** depend on any module or app, or contain product rules.
 - **Backend adapters** live in `apps/backend/src/modules/<module>/` — the Nest module, thin controllers that
   reuse the use cases' `In`/`Out` types, `Prisma<Name>Repository` classes in `*.prisma.ts`, concrete provider
@@ -1125,15 +1123,16 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   `student` | `instructor` | `admin`; status `approved`, the default, or `pending`), read by `AuthConfig` and by the seed through the same parser (`parseReviewAccounts`);
   a malformed value stops the backend at startup. Requesting a code for a review email stores the hash of its
   fixed code and sends no email; the cooldown and the lockout apply as for anyone. The array takes any number of
-  entries (distinct emails): `TEST_ACCOUNTS_CODE=<6 digits> npm run test-accounts --workspace apps/backend` (`tsx
+  entries (distinct emails): `npm run test-accounts --workspace apps/backend` (`tsx
   prisma/seed/print-test-accounts.ts`, over `buildTestAccounts` / `formatTestAccounts` in
   `prisma/seed/test-accounts.ts`; since spec 077 `buildTestAccounts` maps `testAccountSets` from
   `@rochas-surf-school/shared`, adding the code) prints a `REVIEW_ACCOUNTS='…'` line for the 12 test sets — `adminNN`, `instructorNN` and `studentNN`
   `@test.com` (`NN` 01–12; names "Admin / Instructor / Student User <One…Twelve>", the number spelled because
   `PersonNameRule` allows letters only) with that one code. Only the admins are `approved`; the others are `pending`
   `student`s whatever the set calls them, and the seed leaves an existing `pending` entry alone, so a deploy keeps what
-  testers did to it. It also prints a Markdown hand-out table `| Set | Role | Email | Code |`. The code lives only in
-  the test server's environment: the repository is public, and `.env.example` keeps `REVIEW_ACCOUNTS=""`.
+  testers did to it. It also prints a Markdown hand-out table `| Set | Role | Email | Code |`. The code is public: it's
+  `testAccountCode` in `packages/shared`, and the web's test accounts page shows it, so these entries belong only on a
+  test server, and `.env.example` keeps `REVIEW_ACCOUNTS=""`.
   `npm run reset-staging -- <database host>` (`prisma/seed/reset-staging.ts`, over `resetStagingSeed`) empties every
   table but `_prisma_migrations`, puts back the `rules_versions` row and seeds `REVIEW_ACCOUNTS`. See
   [.docs/staging.md](../../.docs/staging.md).

@@ -1,4 +1,4 @@
-import { testAccountSets } from "@rochas-surf-school/shared";
+import { testAccountCode, testAccountSets } from "@rochas-surf-school/shared";
 import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
@@ -18,7 +18,7 @@ describe("TestAccountsPage", () => {
     expect(screen.getByRole("link", { name: "All flows" })).toHaveAttribute("href", "/en/user-journeys");
   });
 
-  it("shows one card per set, in order, with the role, name and email of its three accounts", () => {
+  it("shows one card per set, in order, with the role, name, email and code of its three accounts", () => {
     render(<TestAccountsPage locale="en" text={en.userJourneys} />);
 
     expect(cards()).toHaveLength(12);
@@ -32,11 +32,10 @@ describe("TestAccountsPage", () => {
       accounts.forEach((account, row) => {
         expect(rows[row]).toHaveTextContent(account.email);
         expect(rows[row]).toHaveTextContent(account.name);
+        expect(rows[row]).toHaveTextContent(`Sign-in code: ${testAccountCode}`);
       });
       expect(rows.map((row) => row.firstElementChild?.textContent)).toEqual(["Admin", "Instructor", "Student"]);
     });
-    expect(screen.getAllByRole("button", { name: /^Copy email / })).toHaveLength(36);
-    expect(screen.getByRole("button", { name: "Copy email student05@test.com" })).toBeInTheDocument();
   });
 
   it("translates the labels but never the names", () => {
@@ -49,12 +48,12 @@ describe("TestAccountsPage", () => {
     const rows = within(firstCard).getAllByRole("listitem");
     expect(rows.map((row) => row.firstElementChild?.textContent)).toEqual(["Admin", "Instrutor", "Aluno"]);
     expect(rows[1]).toHaveTextContent("Instructor User One");
-    expect(screen.getAllByRole("button", { name: /^Copiar e-mail / })).toHaveLength(36);
+    expect(rows[1]).toHaveTextContent(`Código de acesso: ${testAccountCode}`);
   });
 
-  it("shows no sign-in code", () => {
+  it("has no copy buttons", () => {
     render(<TestAccountsPage locale="en" text={en.userJourneys} />);
 
-    expect(document.body.textContent).not.toMatch(/\b\d{6}\b/);
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
 });

@@ -2,7 +2,7 @@
 id: "082"
 slug: admin-message-sheet
 title: Admin messages open in a sheet and stay on the class
-status: in-progress
+status: in-review
 created: 2026-10-31
 started: 2026-10-31
 base_commit: 1fad1cf64e369b66c7644648312065dd1db302fc
@@ -716,7 +716,8 @@ The sender, in every answer below (`null` by ER-05):
 - `memory/structure.md` — the `class-message` aggregate, `class-message.prisma.ts`, `message-sender-reader.prisma.ts`,
   `class-messages.e2e-spec.ts`, the `MessageSheet`, `class-messages` and `ClassDayHeader` components, the table in the Prisma models.
 - `memory/modules.md` — Classes keeps the messages sent to a class.
-- `memory/modules/classes.md` — the `class-message` aggregate, storing before telling, who reads messages.
+- `memory/modules/classes.md` — the `class-message` aggregate, storing before telling, who reads messages, and the notifier
+  event `ClassMessage`, now `ClassMessageSent`.
 - `memory/modules/notifications.md` — `senderId` in the params, `adminMessage`, `GET /notifications/:id`,
   `MessageSenderReader`, what tapping the two types does.
 
@@ -896,7 +897,7 @@ The sender, in every answer below (`null` by ER-05):
   notification that isn't in the loaded pages.
   > ✅ 2026-11-01 11:00 — A message the route opens that the loaded pages don't hold may be newer than them, so Avisos now reloads
   > the list and the unread count for it, once: an older one stays out of the list, and one the list holds reloads
-  > nothing. The count goes with it because the same push's absence hides any other that arrived in the background. For an
+  > nothing. The count goes with it because other pushes may have arrived in the background too. For an
   > unread one the reload waits for the mark, because `useMarkNotificationRead` cancels list queries in flight; files:
   > `apps/mobile/src/modules/notifications/screens/notifications.screen.hook.ts`,
   > `apps/mobile/src/modules/notifications/screens/notifications.screen.test.tsx`; verified: the 4 new tests that expect the
@@ -904,8 +905,11 @@ The sender, in every answer below (`null` by ER-05):
   > passed), `npx tsc --noEmit -p .` and ESLint clean. Reproduced as the reviewer did, on the iOS simulator as the student,
   > with the app relaunched on the current bundle: with Avisos open, Home, a new `broadcast` row and `xcrun simctl push`,
   > then a tap on the banner: "F-02: aviso em segundo plano" shows at the top of the list behind the sheet, with no dot and
-  > no pull to refresh, it stays there after "Ok, entendi", the sheet doesn't reopen, and its stored `read_at` is set;
-  > deviations: none.
+  > no pull to refresh, it stays there after "Ok, entendi", the sheet doesn't reopen, and its stored `read_at` is set.
+  > Verification Plan rerun on this commit (`3836b9e6`): `node .specs/scripts/run-related-tests.mjs 082` RELATED TESTS
+  > PASSED, `node .specs/scripts/check-coverage.mjs 082` COVERAGE OK (42 files), `node .specs/scripts/run-e2e.mjs 082` E2E
+  > PASSED, and the `turbo run lint check-types build` of the plan exited 0 (29 tasks). Not verified: APNs delivery on a
+  > real phone, and es-ES and en-US on screen, as in the review's Notes; deviations: none.
 
 **Notes**
 

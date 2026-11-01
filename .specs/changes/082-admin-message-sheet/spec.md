@@ -2,7 +2,7 @@
 id: "082"
 slug: admin-message-sheet
 title: Admin messages open in a sheet and stay on the class
-status: in-progress
+status: in-review
 created: 2026-10-31
 started: 2026-10-31
 base_commit: 1fad1cf64e369b66c7644648312065dd1db302fc
@@ -634,10 +634,22 @@ The sender, in every answer below (`null` by ER-05):
   > the class, covered by `class-messages.e2e-spec.ts` and the screen tests; deviations: journeys ran as an admin
   > rather than the signed-in student of the plan.
 
-- [ ] **T-19** — Run every command in the Verification Plan again and check the sheet of D-17, D-18 and D-19 on the iOS
+- [x] **T-19** — Run every command in the Verification Plan again and check the sheet of D-17, D-18 and D-19 on the iOS
   simulator, on a Metro started after the `messageTitle` token, with the look T-15 couldn't check. Record the output
   summary as evidence.
   Covers: ER-11, ER-12 · Done when: every command exits 0 and the sheet is seen on the simulator.
+  > ✅ 2026-11-01 15:05 — Ran the Verification Plan on the final code; verified: `node
+  > .specs/scripts/run-related-tests.mjs 082` RELATED TESTS PASSED; `node .specs/scripts/check-coverage.mjs 082` COVERAGE
+  > OK; `node .specs/scripts/run-e2e.mjs 082` E2E PASSED (web 77 passed); the `turbo run lint check-types build` of the
+  > plan exited 0 (29 tasks). On the iOS simulator, signed in as a student, on a Metro started with `--clear` on port 8082
+  > (the app launched with `-RCT_jsLocation localhost:8082`, and its connections checked to be on that port): a class
+  > message from Avisos shows no close button, the title in the display font at 30, not uppercased (the look T-15 left
+  > unverified: on the older Metro of port 8081 it shows as body text), the description, the "A aula" label and the card
+  > with DOM / 1 / NOV, no year, and a chevron; pressing the card closes the sheet and opens the class; a row of "Mensagens
+  > desta aula" opens the sheet with no label and no card; "Ok, entendi" closes it. Not verified: the light theme (the
+  > account uses the dark one, and the simulator's setting doesn't change it), the skeleton on a device, and es-ES and
+  > en-US on screen, which rest on the tests; to check the light theme, switch the app's theme in Perfil and open a class
+  > message. T-15's other unverified items stand; deviations: none.
 
 ## Verification Plan
 

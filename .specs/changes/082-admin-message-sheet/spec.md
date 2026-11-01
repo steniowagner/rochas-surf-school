@@ -493,11 +493,22 @@ The sender, in every answer below (`null` by ER-05):
   > shows "Number not shared". BottomModal calls `onClose` on any dismiss, so MessageSheet ignores it while the
   > person sheet is open.
 
-- [ ] **T-11** — Lead the two types to Avisos: add `routes.<role>.notificationMessage(id)` in `src/constants/routes.ts`, take
+- [x] **T-11** — Lead the two types to Avisos: add `routes.<role>.notificationMessage(id)` in `src/constants/routes.ts`, take
   the notification's id in `notificationTarget` (`broadcast` and `class.message`, for the three role flows) and pass it
   from `use-notification-response.hook.ts`, so other flows still fall to `routes.home`. Update
   `notification-target.test.ts` and `use-notification-response.hook.test.tsx`.
   Covers: ER-09, ER-17 · Done when: `npx jest src/modules/notifications/utils src/modules/notifications/hooks` passes.
+  > ✅ 2026-10-31 23:53 — Added `routes.<role>.notificationMessage(id)`; `notificationTarget` takes the id and leads
+  > `broadcast` and `class.message` to Avisos in the three role flows (other flows still fall to `routes.home`); a
+  > tap pushes it with `dangerouslySingular`, so an open Avisos takes the new message; files:
+  > `apps/mobile/src/constants/routes.ts`, `apps/mobile/src/modules/notifications/utils/notification-target.ts`,
+  > `apps/mobile/src/modules/notifications/utils/notification-target.test.ts`,
+  > `apps/mobile/src/modules/notifications/hooks/use-notification-response.hook.ts`,
+  > `apps/mobile/src/modules/notifications/hooks/use-notification-response.hook.test.tsx`; verified: `npx jest
+  > src/modules/notifications/utils src/modules/notifications/hooks` (14 suites, 407 passed), and the "without a
+  > second one" test fails with the singular option removed; deviations: not stacking Avisos is done here, in the
+  > push handler, rather than in T-12, because that is where the navigation happens; added `classDetailTarget`,
+  > which T-12 uses.
 
 - [ ] **T-12** — In `notifications.screen.hook.ts` and the screen, open `MessageSheet` from a row with `adminMessage` (marking
   it read, without navigating) and from the `notificationId` route param (from the loaded pages, else

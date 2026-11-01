@@ -75,6 +75,7 @@ const routeTree = {
   "(private)/student/(tabs)/(agenda)/_layout": AgendaLayout,
   "(private)/student/(tabs)/(agenda)/index": StudentRoute,
   "(private)/student/class/[id]": ClassStub,
+  "(private)/student/notifications": ClassStub,
   "(private)/admin/_layout": AdminLayout,
   "(private)/admin/(tabs)/(home)/_layout": AdminHomeLayout,
   "(private)/admin/(tabs)/(home)/index": AdminRoute,
@@ -86,7 +87,9 @@ const routeTree = {
   "(private)/instructor/(tabs)/(home)/index": InstructorRoute,
   "(private)/instructor/(tabs)/classes": InstructorClassesRoute,
   "(private)/instructor/class/[id]": ClassStub,
+  "(private)/instructor/notifications": ClassStub,
   "(private)/admin/class/[id]": ClassStub,
+  "(private)/admin/notifications": ClassStub,
 };
 
 const account = (
@@ -479,13 +482,51 @@ describe("useNotificationResponse", () => {
     },
   );
 
-  it("shows the current home when a broadcast push is tapped", async () => {
-    answerMe(account("approved", "student", true));
-    await openApp(account("approved", "student", true));
+  describe.each(["broadcast", "class.message"])("a tapped %s push", (type) => {
+    it.each(["student", "instructor", "admin"] as const)(
+      "opens Avisos with the message in the %s flow, marked read",
+      async (role) => {
+        answerMe(account("approved", role, true));
+        await openApp(account("approved", role, true));
 
-    await tap(response("broadcast", "n1"));
+        await tap(response(type, "n1", "c-1"));
 
-    await waitFor(() => expect(app.getPathname()).toBe(routes.student.home));
+        await waitFor(() => expect(app.getPathname()).toBe(routes[role].notifications));
+        expect(app.getSearchParams()).toMatchObject({ notificationId: "n1" });
+        expect(fetchMock).toHaveBeenCalledWith(
+          "http://api.test/notifications/n1/read",
+          expect.objectContaining({ method: "POST" }),
+        );
+      },
+    );
+
+    it("shows the new message on an open Avisos, without a second one under it", async () => {
+      answerMe(account("approved", "student", true));
+      await openApp(account("approved", "student", true));
+
+      await tap(response(type, "n1"));
+      await waitFor(() => expect(app.getPathname()).toBe(routes.student.notifications));
+
+      await tap(response(type, "n2"));
+      await waitFor(() => expect(app.getSearchParams()).toMatchObject({ notificationId: "n2" }));
+
+      await act(async () => router.back());
+
+      await waitFor(() => expect(app.getPathname()).toBe(routes.student.home));
+    });
+
+    it("goes to the flow's home in a flow without Avisos, and still marks it read", async () => {
+      answerMe(account("approved", "student", false));
+      await openApp(account("approved", "student", false));
+
+      await tap(response(type, "n1", "c-1"));
+
+      await waitFor(() => expect(app.getPathname()).toBe(routes.onboarding.whatsapp));
+      expect(fetchMock).toHaveBeenCalledWith(
+        "http://api.test/notifications/n1/read",
+        expect.objectContaining({ method: "POST" }),
+      );
+    });
   });
 
   it("goes home when a class.noInstructor push has no class id", async () => {

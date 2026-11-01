@@ -43,6 +43,10 @@ export const routes = {
     myClasses: "/student/my-classes",
     myHistory: "/student/my-history",
     notifications: "/student/notifications",
+    notificationMessage: (notificationId: string): Href => ({
+      pathname: "/student/notifications",
+      params: { notificationId },
+    }),
     school: "/student/school",
     profile: "/student/profile",
     editProfile: "/student/edit-profile",
@@ -60,6 +64,10 @@ export const routes = {
     myHistory: "/instructor/my-history",
     people: "/instructor/people",
     notifications: "/instructor/notifications",
+    notificationMessage: (notificationId: string): Href => ({
+      pathname: "/instructor/notifications",
+      params: { notificationId },
+    }),
     profile: "/instructor/profile",
     editProfile: "/instructor/edit-profile",
     whatsapp: "/instructor/whatsapp",
@@ -85,6 +93,10 @@ export const routes = {
     removedAccounts: "/admin/removed-accounts",
     weeklyOccupancy: "/admin/weekly-occupancy",
     notifications: "/admin/notifications",
+    notificationMessage: (notificationId: string): Href => ({
+      pathname: "/admin/notifications",
+      params: { notificationId },
+    }),
     newClass: (params?: { date?: string }): Href => ({
       pathname: "/admin/new-class",
       params,

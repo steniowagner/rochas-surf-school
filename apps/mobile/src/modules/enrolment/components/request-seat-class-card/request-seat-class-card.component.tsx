@@ -8,20 +8,24 @@ import { useTheme } from "@/hooks/use-theme";
 import { useRequestSeatClassCard } from "./request-seat-class-card.hook";
 import type { RequestSeatClassCardProps } from "./request-seat-class-card.types";
 
-/** The class the student asks to join: the chips, its day and time range, and the location. */
+/** A class at a glance: the chips, its day and time range, and the location. */
 export function RequestSeatClassCard({
   discipline,
   level,
   startsAt,
   endsAt,
   locationName,
+  embedded = false,
 }: RequestSeatClassCardProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const card = useRequestSeatClassCard({ startsAt, endsAt });
 
   return (
-    <View className="items-start gap-3 rounded-card border border-line bg-surface p-4">
+    <View
+      testID="request-seat-class-card"
+      className={`items-start gap-3 ${embedded ? "" : "rounded-card border border-line bg-surface p-4"}`}
+    >
       <View className="flex-row flex-wrap gap-2">
         <Chip tone={discipline === "surf" ? "surf" : "skate"}>
           {t(`newClass.discipline.${discipline}`)}

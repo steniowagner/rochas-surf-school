@@ -22,6 +22,8 @@ export function adminDates(locale: Locale) {
     new Intl.DateTimeFormat(appLocale, { ...options, timeZone: "UTC" }).format(new Date(`${date}T12:00:00Z`));
   const monthShort = (date: string) => format(date, { month: "short" }).replace(".", "").toUpperCase();
   const weekday = (date: string) => format(date, { weekday: "short" }).replace(".", "").toUpperCase();
+  const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
+  const weekdayName = (date: string) => capitalize(format(date, { weekday: "long" }).split("-")[0] ?? "");
 
   return {
     today: "2026-09-07",
@@ -29,15 +31,12 @@ export function adminDates(locale: Locale) {
     longDay: (date: string) => format(date, { weekday: "long", day: "numeric", month: "long" }),
     /** "Quarta, 9 Set": the class of a message (the app's `formatClassDate`). */
     classDate: (date: string) => {
-      const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
-      const weekdayName = format(date, { weekday: "long" }).split("-")[0] ?? "";
-
-      return `${capitalize(weekdayName)}, ${format(date, { day: "numeric" })} ${capitalize(format(date, { month: "short" }).replace(".", ""))}`;
+      return `${weekdayName(date)}, ${format(date, { day: "numeric" })} ${capitalize(format(date, { month: "short" }).replace(".", ""))}`;
     },
     /** "14 set": a day of the class form's range (the app's "d MMM"). */
     shortDay: (date: string) => `${format(date, { day: "numeric" })} ${format(date, { month: "short" }).replace(".", "")}`,
-    /** The class requests group's day block: "QUA", "9", "SET" and "2026" (the app's `formatDayBlock`). */
-    dayBlock: (date: string) => ({ weekday: weekday(date), day: format(date, { day: "numeric" }), month: monthShort(date), year: format(date, { year: "numeric" }) }),
+    /** The day on the class card: "Quarta" and "9 SET" (the app's `useRequestSeatClassCard`). */
+    classCardDay: (date: string) => ({ weekday: weekdayName(date), date: `${format(date, { day: "numeric" })} ${monthShort(date)}` }),
     /** "12 de ago. de 2026": the day a deleted account was deleted (the app's `formatReactivationDate`). */
     longDate: (date: string) => format(date, { day: "numeric", month: "short", year: "numeric" }),
     /** "2 set" / "Sep 2": a removed account's dates, the month first in English (the app's `formatRemovalDates`). */

@@ -42,6 +42,16 @@ describe("RequestSeatClassCard", () => {
     expect(screen.getByText(duration)).toBeOnTheScreen();
   });
 
+  it("draws its own frame unless embedded", async () => {
+    await renderCard();
+
+    expect(screen.getByTestId("request-seat-class-card").props.className).toContain("border");
+
+    await renderCard({ embedded: true });
+
+    expect(screen.getByTestId("request-seat-class-card").props.className).not.toContain("border");
+  });
+
   it("shortens the weekday in pt-BR", async () => {
     await i18n.changeLanguage("pt-BR");
     await renderCard();

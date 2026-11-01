@@ -146,7 +146,7 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     reads "9+" above 9 (`MAX_BADGE_COUNT`).
   - Message sheet (spec 082): `MessageSheet` (`src/modules/notifications/components/message-sheet/`, a `BottomModal`) takes
     an `AdminMessage` (`adminMessage` of the notification plus `createdAt` and `classId`, `utils/admin-message.ts`) and an
-    optional `onOpenClass`: with it, a message with a class reads `useClass` and shows `ClassDayHeader` (`modules/enrolment`)
+    optional `onOpenClass`: with it, a message with a class reads `useClass` and shows `RequestSeatClassCard` (`modules/enrolment`)
     in a pressable card, a skeleton of that height while loading and nothing on failure. The sender and the time are one
     `ds-text-list-subtitle` line (`useRelativeTime`, shared with the row); `sender.role` and `sender.whatsappNumber` stay
     in the API with no screen reading them. `NotificationsScreen` opens it from a row, and from the `notificationId` route

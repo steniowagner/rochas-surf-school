@@ -52,7 +52,9 @@ export function CalendarMonthGrid({
                 onPress={() => onSelectDate(day.date)}
                 className="min-h-12 flex-1 items-center justify-center gap-0.5"
               >
+                {/* Without a fill this view is flattened away, and on Android the one created when the fill arrives comes out square. */}
                 <View
+                  collapsable={false}
                   className={`h-10 w-10 items-center justify-center rounded-full ${day.selected ? "bg-grape" : ""}`}
                 >
                   <Text className={`ds-text-calendar-month-day ${number}`}>

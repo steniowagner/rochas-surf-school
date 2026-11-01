@@ -45,7 +45,9 @@ export function CalendarDay({
           inRange && bandStart ? "rounded-l-full" : ""
         } ${inRange && bandEnd ? "rounded-r-full" : ""}`}
       >
+        {/* Without a fill this view is flattened away, and on Android the one created when the fill arrives comes out square. */}
         <View
+          collapsable={false}
           className={`h-10 w-10 items-center justify-center rounded-full ${
             edge ? "bg-grape" : ""
           } ${today ? "border-2 border-grape" : ""}`}

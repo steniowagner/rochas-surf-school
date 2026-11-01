@@ -72,6 +72,12 @@ describe("CalendarDay", () => {
     expect(className()).not.toContain("rounded");
   });
 
+  it("keeps the circle of a day that isn't an end as a native view, so it stays round when it becomes one on Android", async () => {
+    await render(<CalendarDay {...base} />);
+
+    expect(screen.getByText("15").parent?.props.collapsable).toBe(false);
+  });
+
   it("lightens the label of a day of another month, unless it is an end of the range", async () => {
     const { rerender } = await render(<CalendarDay {...base} adjacentMonth />);
     expect(screen.getByText("15").props.className).toContain(

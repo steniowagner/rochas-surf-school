@@ -116,6 +116,12 @@ describe("CalendarMonthGrid", () => {
     expect(screen.getByTestId("calendar-day-2026-10-14")).toBeSelected();
   });
 
+  it("keeps the circle of a day that isn't selected as a native view, so it stays round when selected on Android", async () => {
+    await render(setup().ui);
+
+    expect(screen.getByText("20").parent?.props.collapsable).toBe(false);
+  });
+
   it("shows one dot, lagoon, for a day with classes, including adjacent days", async () => {
     await render(setup(["2026-10-14", "2026-10-15", "2026-11-01"]).ui);
 

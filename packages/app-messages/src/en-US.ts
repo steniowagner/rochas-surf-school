@@ -25,6 +25,12 @@ const messages = {
       "Your Google email isn't verified. Use another sign-in method.",
     playServices: "Google Play services is unavailable on this phone.",
   },
+  appleSignIn: {
+    tokenInvalid: "We couldn't sign you in with Apple. Try again.",
+    emailNotVerified:
+      "Your Apple email isn't verified. Use another sign-in method.",
+    emailMissing: "Apple didn't share your email. Use another sign-in method.",
+  },
   googleName: {
     title: "What's your name?",
     description: "Enter your full name so the school knows who you are.",

@@ -26,6 +26,13 @@ const messages: Messages = {
       "Seu e-mail do Google não está verificado. Use outra forma de entrar.",
     playServices: "O Google Play Services não está disponível neste celular.",
   },
+  appleSignIn: {
+    tokenInvalid: "Não conseguimos entrar com a Apple. Tente novamente.",
+    emailNotVerified:
+      "Seu e-mail da Apple não está verificado. Use outra forma de entrar.",
+    emailMissing:
+      "A Apple não compartilhou seu e-mail. Use outra forma de entrar.",
+  },
   googleName: {
     title: "Qual é o seu nome?",
     description: "Digite seu nome completo para a escola saber quem é você.",

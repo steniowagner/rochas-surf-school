@@ -370,9 +370,13 @@ because the app offers Google.
 
 ### Packages (`packages/app-messages`)
 
-- [ ] **T-05** — Add the `appleSignIn` messages of D-11 to `packages/app-messages/src/{en-US,es-ES,pt-BR}.ts`.
+- [x] **T-05** — Add the `appleSignIn` messages of D-11 to `packages/app-messages/src/{en-US,es-ES,pt-BR}.ts`.
   Covers: ER-13 · Done when: `npm test --workspace @rochas-surf-school/app-messages` passes and
   `npx turbo run check-types --filter=@rochas-surf-school/app-messages` exits 0.
+  > ✅ 2026-11-01 12:22 — added the `appleSignIn` messages of D-11 in the three languages; files:
+  > `packages/app-messages/src/en-US.ts`, `packages/app-messages/src/es-ES.ts`, `packages/app-messages/src/pt-BR.ts`;
+  > verified: `npm test --workspace @rochas-surf-school/app-messages` (4 passed), `npx turbo run check-types
+  > --filter=@rochas-surf-school/app-messages` exit 0; deviations: none
 
 ### Web (`apps/web`, `.docs/designs`)
 

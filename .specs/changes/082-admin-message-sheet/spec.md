@@ -469,13 +469,29 @@ The sender, in every answer below (`null` by ER-05):
   > `apps/mobile/src/modules/enrolment/components/request-seat-class-card/request-seat-class-card.component.test.tsx`;
   > verified: `npx jest src/modules/enrolment/components/request-seat` passes; deviations: none.
 
-- [ ] **T-10** — Create `src/modules/notifications/components/message-sheet/` (`MessageSheet`, following
+- [x] **T-10** — Create `src/modules/notifications/components/message-sheet/` (`MessageSheet`, following
   `.claude/rules/react.md`): `BottomModal` with the `bg-sun` megaphone tile, "Mensagem da escola", the relative time (the
   helper the Avisos row uses, extracted when needed), a close button with a 44 px target, `InstructorPill` (D-09), the
   title in `ds-text-message-title`, the text in `ds-text-body`, `RequestSeatClassCard` when `onOpenClass` is given and the
   class loads (`useClass`, a skeleton while loading, nothing on failure), a primary "Ok, entendi", and its own
   `PersonSheet` with the swap of D-10. Skills: `vercel-react-native-skills`, `vercel-react-best-practices`.
   Covers: ER-11, ER-12, ER-13 · Done when: `npx jest src/modules/notifications/components/message-sheet` passes.
+  > ✅ 2026-10-31 23:51 — Created MessageSheet (tile, eyebrow, relative time, close button, sender chip, title, text,
+  > class card with skeleton, confirm) and its own PersonSheet with the swap of D-10; the Avisos row and the sheet
+  > now share `useRelativeTime`; files: `apps/mobile/src/modules/notifications/components/message-sheet/index.ts`,
+  > `apps/mobile/src/modules/notifications/components/message-sheet/message-sheet.component.tsx`,
+  > `apps/mobile/src/modules/notifications/components/message-sheet/message-sheet.hook.ts`,
+  > `apps/mobile/src/modules/notifications/components/message-sheet/message-sheet.types.ts`,
+  > `apps/mobile/src/modules/notifications/components/message-sheet/message-sheet.component.test.tsx`,
+  > `apps/mobile/src/modules/notifications/hooks/use-relative-time.hook.ts`,
+  > `apps/mobile/src/modules/notifications/components/notification-row/notification-row.hook.ts`,
+  > `apps/mobile/src/modules/people/components/person-sheet/person-sheet.component.tsx`,
+  > `apps/mobile/src/modules/people/components/person-sheet/person-sheet.types.ts`,
+  > `apps/mobile/src/modules/people/components/person-sheet/person-sheet.component.test.tsx`; verified: `npx jest
+  > src/modules/notifications/components src/modules/people/components/person-sheet` passes; deviations: PersonSheet
+  > gained the optional `hideMissingWhatsapp` prop, because ER-13 asks for no WhatsApp row where the sheet otherwise
+  > shows "Number not shared". BottomModal calls `onClose` on any dismiss, so MessageSheet ignores it while the
+  > person sheet is open.
 
 - [ ] **T-11** — Lead the two types to Avisos: add `routes.<role>.notificationMessage(id)` in `src/constants/routes.ts`, take
   the notification's id in `notificationTarget` (`broadcast` and `class.message`, for the three role flows) and pass it

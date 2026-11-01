@@ -2,10 +2,11 @@
 id: "083"
 slug: apple-sign-in
 title: Sign in with Apple on iOS
-status: in-review
+status: accepted
 created: 2026-11-01
 started: 2026-11-01
 base_commit: 37a8bbaf2f834d5575d2f06f1daf534f52312f82
+reviewed_commit: 3a6223ea0e5dc2f9a20679b67f1472745b0c32de
 fronts: [auth, backend, packages, web, mobile, infra]
 depends_on: []
 ---
@@ -610,3 +611,70 @@ because the app offers Google.
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-11-01 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ (21 of 21 tasks) · build ✅ (11 of 11 tasks: auth, app-messages, backend, web)
+- related tests ✅ apps/backend 119 · apps/mobile 1711 · apps/web 666 · modules/auth 491 · packages/app-messages 4, plus
+  the whole suites of modules/classes 647, modules/enrolment 292 and modules/school-rules 113
+- coverage of the changed lines ✅ `COVERAGE OK`, 20 files measured at 100%; no coverage-ignore comment in the diff
+- e2e: backend suite ✅ 31 files, 865 passed · web suite ✅ 79 passed
+- designs: `pack.mjs --check` ✅ 5 files match their sources
+- diff: every changed file is explained by a task; no secret, real email address, debug leftover, `.only` or `.skip`
+
+**Expected Results**
+
+- ER-01 ✅ — `new account` and `creates a pending account`: 200, the session, a normalized email, a trimmed name, one user
+  and one `apple` identity row; the admins' notification is asserted in the use case and controller tests
+- ER-02 ✅ — `links an existing account`, `any status` (all five) and `links an email account`: same id, one identity
+  added, the body name ignored
+- ER-03 ✅ — `known identity` and `signs in a known identity`: with no email and with another email, the account's email
+  stays; an orphan identity continues by email or ends in `emailMissing`
+- ER-04 ✅ — `token required`, `token invalid`, `requires a token`, `refuses an invalid token`: the 422 never calls the
+  provider, and nothing is written
+- ER-05 ✅ — `email not verified` (matching account and matching identity) and `refuses an unverified email`
+- ER-06 ✅ — `email missing` and `refuses a token without an email`
+- ER-07 ✅ — `invalid name` and `asks for a name`: no name, one word and 81 characters each write nothing; the same token
+  then succeeds
+- ER-08 ✅ — `relay address` and `accepts a relay address`; the second sign-in opens the same account
+- ER-09 ✅ — `apple.id-token.spec.ts`: signed with a local RS256 key; every rejection in the Expected Result is its own test
+- ER-10 ✅ — `APPLE_CLIENT_ID` cases and `no client id`, which never loads the keys; a trimmed value is the audience
+- ER-11 ✅ — `shows Apple on iOS` asserts the order of the three buttons; `hides Apple on Android`; labels in es and pt
+- ER-12 ✅ — `signs in`, `leaves out an empty name`, `loading`, `ignores a second tap`; the screen test puts the answer in
+  the session
+- ER-13 ✅ — `apple-sign-in-error.test.ts` and the hook's error tests; `ERR_REQUEST_CANCELED` confirmed in the library's
+  own documentation
+- ER-14 ✅ — `provider-name` component and screen tests for both providers, and `opens "Your name"`
+- ER-15 ✅ — `auth flow shows the Apple button` and `auth flow shows every inventory entry`; 51 entries
+- ER-16 ✅ — `auth journeys list the Apple cases`, in the three languages; `caseCounts` holds `auth: 21`
+- ER-17 ✅ — performed by the user on a TestFlight build against staging (D-14), as T-14 records: Hide My Email reached
+  Pending; signing in again reached the same Pending with no name asked, with 1 relay user and 1 `apple` identity; after
+  the row was removed, 0 and 0; sharing the real email reached Pending, with one `apple` identity on a student, pending,
+  non-relay account. These rows are the user's report: the reviewer didn't query staging
+
+**Decisions:** D-01 to D-17 hold in the code. D-11's copy matches word for word in the three languages. Against staging,
+`GET /health` answered 200 and `POST /auth/apple` with `{ "idToken": "x" }` answered 401 `auth.apple.tokenInvalid`.
+`deploy/staging` is at c9b0f939, and only `.docs/staging.md` differs from it outside `.specs/`. The TestFlight build's
+commit, 549d4603, has no later code change. The spec branch isn't on the remote (D-17).
+
+**Findings**
+
+None.
+
+**Notes**
+
+- `apps/backend/.env` has no `APPLE_CLIENT_ID`, and the Docker image sets `NODE_ENV=production`, so
+  `docker compose up --build` on this machine won't start the backend until it is added (D-16). `.env.example` has it.
+  `npm run dev` isn't affected, but refuses every Apple token until then.
+- In `apps/mobile/jest.setup.ts` the Apple mock went in between the Google mock and its comment, so that comment now
+  sits above the wrong mock.
+- `FakeIdentityRepository` has no unique index, so the orphan-identity tests can't show that a real `create` would
+  conflict with `@@unique([provider, providerUserId])`. The state isn't reachable: `identities` cascades with its user,
+  and erasure deletes them in the same transaction.
+- `spec-finish`: `memory/modules/auth.md` also says "by email code or by Google" under User lifecycle and Registration,
+  and "The Apple button isn't shown until Apple sign-in is built". `technical-context.md` → Automated validation should
+  list the `expo-apple-authentication` mock. Memory Impact doesn't name these lines.
+- `.specs/changes/081-staging-follow-ups/` and `084-apple-token-revocation/` are untracked in the working tree. They are
+  other specs' plans, outside this review and this commit. 084 is the follow-up D-13 requires before App Store submission.

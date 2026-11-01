@@ -2,10 +2,11 @@
 id: "082"
 slug: admin-message-sheet
 title: Admin messages open in a sheet and stay on the class
-status: in-review
+status: accepted
 created: 2026-10-31
 started: 2026-10-31
 base_commit: 1fad1cf64e369b66c7644648312065dd1db302fc
+reviewed_commit: 48320d22c9a3065608871aa418a65d3afa2505c4
 fronts: [classes, notifications, backend, packages, mobile]
 depends_on: []
 ---
@@ -933,3 +934,60 @@ The sender, in every answer below (`null` by ER-05):
 - Local data: the account `6cdee4f8-3f18-4d0d-98bb-5619810cb3d4` was set to `instructor` by SQL for the journey and is
   `student` again. Its "Revisão 082 R2: …" notifications and the class messages on class
   `5a1e0000-0000-4000-8000-000000000108` remain. No push left the machine.
+
+### Round 3 — 2026-11-01 — accepted
+
+**Checks**
+
+- lint ✅ (0 errors) · type check ✅ · build ✅ (29 Turbo tasks; backend, mobile, classes, notifications, app-messages,
+  design-tokens)
+- related tests ✅ `RELATED TESTS PASSED`: backend 340, mobile 1943, classes 647, notifications 211, app-messages 4,
+  enrolment 292 and web 812
+- coverage of the changed lines ✅ `COVERAGE OK`, 42 files; no coverage-ignore comment in the diff
+- e2e: backend suite ✅ 856 passed · web suite ✅ 77 passed · `E2E PASSED`
+- iOS simulator, as the student, on a real `xcrun simctl push` tapped on its banner ✅ (F-02 below)
+
+**Expected Results**
+
+- F-02 of round 2 ✅ — with Avisos open, Home, a new unread `broadcast` row and a push, a tap on the banner shows the sheet
+  with "Revisão 082 R3: segundo plano" at the top of the list behind it, with no dot and no pull to refresh, and its stored
+  `read_at` set. It stays there after "Ok, entendi", the sheet doesn't reopen, and back goes home. The new tests cover a
+  read one, an unread one (the reload waits for the mark), the count, an older one (one reload, stays out of the list) and
+  one the list holds (no reload)
+- ER-01 ✅ — `send-class-message.usecase.test.ts` and the "stores" tests
+- ER-02 ✅ — `list-class-messages.usecase.test.ts` and the "list" tests
+- ER-03 ✅ — the "sender" tests of both e2e files
+- ER-04 ✅ — the "whatsapp" tests of both e2e files and the two use case tests
+- ER-05 ✅ — the "erased sender" tests of both e2e files
+- ER-06 ✅ — `broadcast.usecase.test.ts`, the adapter's spec, `push-messages.spec.ts`
+- ER-07 ✅ — the "one notification" tests; `:id` is declared after `unread-count`
+- ER-08 ✅ — the "admin message" tests; on screen the row keeps its class line and the sheet shows the text alone
+- ER-09 ✅ — the tap above, and rounds 1 and 2's cases on code this round's fix doesn't touch beyond the screen hook; the
+  hook's reload was read for loops and for a failed mark, and neither repeats
+- ER-10 ✅ — `notifications.screen.test.tsx`; a row opened its sheet at once on the simulator
+- ER-11 ✅ — notice sheet from the push: tile, "Mensagem da escola", "Dev Admin · há 5 minutos", title as written, no card
+- ER-12 ✅ — a `class.message` row: "A aula", DOM / 1 / NOV, no year, chevron; the rest in `message-sheet.component.test.tsx`
+  and round 2's journey
+- ~~ER-13~~ — removed; no `InstructorPill`, `PersonSheet` or `hideMissingWhatsapp` in the diff, and `people/` and
+  `request-seat-class-card/` match `base_commit`
+- ER-14 ✅ — the component, screen and time tests; seen in round 2, no change since
+- ER-15 ✅ — `class-details.screen.test.tsx`; seen in round 2, no change since
+- ER-16 ✅ — the named tests; seen on a real push in round 2, no change since
+- ER-17 ✅ — `notification-target.test.ts` and `use-notification-response.hook.test.tsx`
+
+**Findings**
+
+None.
+
+**Notes**
+
+- Since round 2 only `notifications.screen.hook.ts` and its test changed, so this round's journey covered that fix and the
+  sheet, and ER-14, ER-15 and ER-16 rest on round 2's journeys plus the tests.
+- Still not exercised: APNs delivery on a real phone, and es-ES and en-US on screen, which rest on the tests.
+- `## Memory Impact` now names `ClassMessageSent`; `memory/modules/classes.md` line 609 is for `spec-finish` to update.
+- Round 2's note stands: a push of another type tapped under an open message sheet navigates and leaves the sheet up.
+- Under load (about 12) the simulator shows a banner several seconds after `simctl push`, and it ignored taps in the
+  notification shade; waiting for the banner on screen before tapping worked.
+- `git status` showed the untracked `.specs/changes/081-staging-follow-ups/`, another spec's plan; it isn't part of this
+  commit.
+- Local data: notification `Revisão 082 R3: segundo plano` remains on the student account. No push left the machine.

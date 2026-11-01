@@ -502,6 +502,8 @@ because the app offers Google.
   their confirmation after each (D-15). They do every step in their own account.
   Covers: enabling · Done when: the user confirms Sign In with Apple shows as enabled on `com.rochassurfschool.app` after
   reloading the page.
+  > ⛔ 2026-11-01 12:40 — waiting for the user: only they can act in their Apple Developer account (D-15). T-13 and T-14
+  > depend on it. Steps 1–4 of apple-setup.md are being walked through one at a time.
 
 ### Infra (staging)
 

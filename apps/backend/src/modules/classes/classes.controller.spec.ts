@@ -4,7 +4,7 @@ import {
   METHOD_METADATA,
   PATH_METADATA,
 } from '@nestjs/common/constants.js';
-import { Location, SchoolClass } from '@rochas-surf-school/classes';
+import { ClassMessage, ClassMessageView, Location, SchoolClass } from '@rochas-surf-school/classes';
 import { IS_PUBLIC_KEY } from '../../shared/decorators/public.decorator.js';
 import type { AuthenticatedUser } from '../../shared/types/current-user.type.js';
 import type { PrismaClassRosterReader } from '../enrolment/class-roster-reader.prisma.js';
@@ -17,6 +17,7 @@ import type { PrismaViewerEnrolmentReader } from '../enrolment/viewer-enrolment-
 import { NotificationsClassAssignmentNotifier } from '../notifications/notifications.class-assignment-notifier.js';
 import { NotificationsClassChangeNotifier } from '../notifications/notifications.class-change-notifier.js';
 import type { PrismaClassContactReader } from './class-contact-reader.prisma.js';
+import type { PrismaClassMessageRepository } from './class-message.prisma.js';
 import { PrismaClassViewReader } from './class-view-reader.prisma.js';
 import { ClassesController } from './classes.controller.js';
 import { PrismaLocationRepository } from './location.prisma.js';
@@ -91,6 +92,10 @@ function setup() {
     findLocationAudience: vi.fn(async () => []),
   };
   const enrolmentsCloser = { closeOpenEnrolments: vi.fn(async (): Promise<string[]> => []) };
+  const classMessageRepository = {
+    create: vi.fn(async (message: ClassMessage) => message),
+    findByClass: vi.fn(async (): Promise<ClassMessageView[]> => []),
+  };
   const controller = new ClassesController(
     classRepository as unknown as PrismaSchoolClassRepository,
     locationRepository as unknown as PrismaLocationRepository,
@@ -108,6 +113,7 @@ function setup() {
     myClassesReader as unknown as PrismaMyClassesReader,
     classContactReader as unknown as PrismaClassContactReader,
     teachingClassesReader as unknown as PrismaTeachingClassesReader,
+    classMessageRepository as unknown as PrismaClassMessageRepository,
   );
   const body = {
     discipline: 'surf',
@@ -134,6 +140,7 @@ function setup() {
     classAudienceReader,
     myClassesReader,
     teachingClassesReader,
+    classMessageRepository,
     stored,
     location,
     body,
@@ -697,9 +704,20 @@ describe('ClassesController', () => {
         classId: CLASS_ID,
         discipline: 'surf',
         startsAt: new Date('2026-10-15T11:00:00.000Z'),
+        senderId: ADMIN_ID,
         title: 'Aviso',
         message: 'Tragam protetor.',
       });
+    });
+
+    it('keeps the message on the class', async () => {
+      const { controller, classMessageRepository } = withStoredClass();
+
+      await controller.message(userOf('admin'), CLASS_ID, { title: ' Aviso ', message: ' Tragam protetor. ' });
+
+      expect(classMessageRepository.create).toHaveBeenCalledWith(
+        expect.objectContaining({ classId: CLASS_ID, senderId: ADMIN_ID, title: 'Aviso' }),
+      );
     });
 
     it('answers 403 for an instructor, 404 for an unknown class and 422 without a body', async () => {
@@ -719,6 +737,46 @@ describe('ClassesController', () => {
         ],
       });
       expect(changeNotifier.classMessage).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('messages', () => {
+    const CLASS_ID = '9e1b7a30-4c52-4d86-b0a3-6f2d8c5e1a47';
+
+    it('is GET :id/messages and answers 200', () => {
+      const handler = handlerOf('messages');
+
+      expect(Reflect.getMetadata(METHOD_METADATA, handler)).toBe(RequestMethod.GET);
+      expect(Reflect.getMetadata(PATH_METADATA, handler)).toBe(':id/messages');
+      expect(Reflect.getMetadata(HTTP_CODE_METADATA, handler)).toBe(HttpStatus.OK);
+      expect(Reflect.getMetadata(IS_PUBLIC_KEY, handler)).toBeUndefined();
+    });
+
+    it("answers the class's messages to any approved role", async () => {
+      const { controller, classRepository, classMessageRepository } = setup();
+      const createdAt = new Date('2026-10-14T12:00:00.000Z');
+      classRepository.findById.mockResolvedValue({ id: CLASS_ID } as SchoolClass);
+      classMessageRepository.findByClass.mockResolvedValue([
+        { id: 'm-1', title: 'Aviso', message: 'Oi', createdAt, sender: null },
+      ]);
+
+      await expect(controller.messages(userOf('student'), CLASS_ID)).resolves.toEqual({
+        items: [{ id: 'm-1', title: 'Aviso', message: 'Oi', createdAt, sender: null }],
+      });
+      expect(classMessageRepository.findByClass).toHaveBeenCalledWith(CLASS_ID);
+    });
+
+    it('answers 403 for a pending account and 404 for an unknown class', async () => {
+      const { controller } = setup();
+
+      await expect(controller.messages(userOf('student', 'pending'), CLASS_ID)).rejects.toMatchObject({
+        statusCode: 403,
+        message: 'user.status.notApproved',
+      });
+      await expect(controller.messages(userOf('student'), CLASS_ID)).rejects.toMatchObject({
+        statusCode: 404,
+        message: 'class.notFound',
+      });
     });
   });
 

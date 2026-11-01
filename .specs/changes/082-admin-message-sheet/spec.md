@@ -379,12 +379,19 @@ The sender, in every answer below (`null` by ER-05):
   > src/modules/classes/class-message.prisma.spec.ts` (3 passed); deviations: the migration SQL came from `prisma
   > migrate diff` instead of `prisma migrate dev`, which needs a TTY; the file is what `migrate dev` would generate.
 
-- [ ] **T-05** — In `src/modules/classes/classes.controller.ts`, add `GET /classes/:id/messages` and give `SendClassMessage`
+- [x] **T-05** — In `src/modules/classes/classes.controller.ts`, add `GET /classes/:id/messages` and give `SendClassMessage`
   its repository, wire them in `classes.module.ts`, add the requests to `classes.integration.http`, and write
   `apps/backend/test/class-messages.e2e-spec.ts` with the "stores", "list", "sender", "whatsapp" and "erased sender" tests.
   Skill: [`backend-nest-controller`](../../../.claude/skills/backend-nest-controller).
   Covers: ER-01, ER-02, ER-03, ER-04, ER-05 · Done when: `npm run test:e2e -- test/class-messages.e2e-spec.ts` passes from
   `apps/backend`.
+  > ✅ 2026-10-31 23:43 — Added `GET /classes/:id/messages`, gave SendClassMessage its repository, wired the module,
+  > added the requests and the e2e suite; files: `apps/backend/src/modules/classes/classes.controller.ts`,
+  > `apps/backend/src/modules/classes/classes.controller.spec.ts`,
+  > `apps/backend/src/modules/classes/classes.module.ts`,
+  > `apps/backend/src/modules/classes/classes.integration.http`, `apps/backend/test/class-messages.e2e-spec.ts`;
+  > verified: `npm run test:e2e -- test/class-messages.e2e-spec.ts` from `apps/backend` (18 passed), `npx vitest run
+  > src/modules/classes/classes.controller.spec.ts` (54 passed); deviations: none.
 
 - [ ] **T-06** — In `src/modules/notifications/`: add `message-sender-reader.prisma.ts` (leaving erased accounts out), pass
   `senderId` in `notifications.class-change-notifier.ts`, add `adminMessage` to `GET /notifications`, and add

@@ -33,6 +33,8 @@ import {
   ListWeekClassesOut,
   ListTimeRangeSuggestions,
   ListTimeRangeSuggestionsOut,
+  ListClassMessages,
+  ListClassMessagesOut,
   SendClassMessage,
 } from '@rochas-surf-school/classes';
 import { CurrentUser } from '../../shared/decorators/current-user.decorator.js';
@@ -47,6 +49,7 @@ import { PrismaViewerEnrolmentReader } from '../enrolment/viewer-enrolment-reade
 import { NotificationsClassAssignmentNotifier } from '../notifications/notifications.class-assignment-notifier.js';
 import { NotificationsClassChangeNotifier } from '../notifications/notifications.class-change-notifier.js';
 import { PrismaClassContactReader } from './class-contact-reader.prisma.js';
+import { PrismaClassMessageRepository } from './class-message.prisma.js';
 import { PrismaClassViewReader } from './class-view-reader.prisma.js';
 import { PrismaLocationRepository } from './location.prisma.js';
 import { PrismaSchoolClassRepository } from './school-class.prisma.js';
@@ -82,6 +85,7 @@ export class ClassesController {
     private readonly myClassesReader: PrismaMyClassesReader,
     private readonly classContactReader: PrismaClassContactReader,
     private readonly teachingClassesReader: PrismaTeachingClassesReader,
+    private readonly classMessageRepository: PrismaClassMessageRepository,
   ) {}
 
   @Post('batch')
@@ -202,6 +206,18 @@ export class ClassesController {
     ).execute({ actor: actorOf(user), id });
   }
 
+  @Get(':id/messages')
+  @HttpCode(HttpStatus.OK)
+  messages(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id') id: string,
+  ): Promise<ListClassMessagesOut> {
+    return new ListClassMessages(this.schoolClassRepository, this.classMessageRepository).execute({
+      actor: actorOf(user),
+      id,
+    });
+  }
+
   @Put(':id')
   @HttpCode(HttpStatus.OK)
   async edit(
@@ -284,6 +300,7 @@ export class ClassesController {
       this.classAudienceReader,
       this.classChangeNotifier,
       this.clock,
+      this.classMessageRepository,
     ).execute({
       actor: actorOf(user),
       id,

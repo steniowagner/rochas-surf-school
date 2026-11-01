@@ -49,6 +49,11 @@ jest.mock("@gorhom/bottom-sheet", () => ({
 }));
 
 // The native module isn't available under Jest. Tests drive `signIn` / `hasPlayServices` / `signOut` directly.
+jest.mock("expo-apple-authentication", () => ({
+  signInAsync: jest.fn(),
+  AppleAuthenticationScope: { FULL_NAME: 0, EMAIL: 1 },
+}));
+
 jest.mock("@react-native-google-signin/google-signin", () => ({
   GoogleSignin: {
     configure: jest.fn(),

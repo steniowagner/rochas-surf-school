@@ -8,7 +8,7 @@ describe("buildJourneyGroups", () => {
     const groups = buildJourneyGroups("auth", es);
 
     expect(groups.map((group) => group.title)).toEqual(["Entrada", "Email", "Aprobación y primeros pasos", "Cuenta cerrada"]);
-    expect(groups.flatMap((group) => group.rows)).toHaveLength(19);
+    expect(groups.flatMap((group) => group.rows)).toHaveLength(21);
     expect(groups[0].rows[0]).toEqual({ id: "AU-01", designIds: ["AF-01-01", "AF-01-02"], ...es.rows["AU-01"] });
   });
 });

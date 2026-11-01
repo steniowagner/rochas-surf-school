@@ -10,6 +10,7 @@ import {
 import { Identity, RefreshToken, SignInCode, User } from '@rochas-surf-school/auth';
 import { ConflictError } from '@rochas-surf-school/shared';
 import { IS_PUBLIC_KEY } from '../../shared/decorators/public.decorator.js';
+import { AppleAuthIdTokenProvider } from './apple.id-token.js';
 import { AuthConfig } from './auth.config.js';
 import { AuthController } from './auth.controller.js';
 import { GoogleAuthIdTokenProvider } from './google.id-token.js';
@@ -113,6 +114,12 @@ function setup(
     hashRefreshToken: vi.fn((token: string) => (token === 'refresh' ? 'f'.repeat(64) : '0'.repeat(64))),
   };
   const emailProvider = { sendSignInCode: vi.fn().mockResolvedValue(undefined) };
+  const appleIdTokenProvider = {
+    verify: vi.fn(async (idToken: string) => {
+      if (idToken !== 'apple-token') throw new Error('invalid token');
+      return { sub: 'apple-sub', email: 'Bia@Example.com', emailVerified: true };
+    }),
+  };
   const googleIdTokenProvider = {
     verify: vi.fn(async (idToken: string) => {
       if (idToken !== 'google-token') throw new Error('invalid token');
@@ -136,6 +143,7 @@ function setup(
     tokenProvider as unknown as JwtTokenProvider,
     { getCurrentVersion: vi.fn(async () => rulesVersion) } as unknown as PrismaRulesVersionProvider,
     googleIdTokenProvider as unknown as GoogleAuthIdTokenProvider,
+    appleIdTokenProvider as unknown as AppleAuthIdTokenProvider,
     registrationNotifier as unknown as NotificationsRegistrationNotifier,
     pushTokenRemover as unknown as NotificationsPushTokenRemover,
     teachingReleaser as unknown as ClassesTeachingReleaser,
@@ -155,6 +163,7 @@ function setup(
     refreshTokens,
     tokenProvider,
     googleIdTokenProvider,
+    appleIdTokenProvider,
   };
 }
 
@@ -346,6 +355,62 @@ describe('AuthController', () => {
       await expect(controller.signInWithGoogle({ idToken: 'other' })).rejects.toMatchObject({
         statusCode: 401,
         message: 'auth.google.tokenInvalid',
+      });
+    });
+  });
+
+  describe('POST /auth/apple', () => {
+    it('is a public POST on apple answering 200', () => {
+      const handler = handlerOf('signInWithApple');
+
+      expect(Reflect.getMetadata(PATH_METADATA, handler)).toBe('apple');
+      expect(Reflect.getMetadata(METHOD_METADATA, handler)).toBe(RequestMethod.POST);
+      expect(Reflect.getMetadata(HTTP_CODE_METADATA, handler)).toBe(HttpStatus.OK);
+      expect(Reflect.getMetadata(IS_PUBLIC_KEY, handler)).toBe(true);
+      expect(Reflect.getMetadata(GUARDS_METADATA, handler)).toEqual([ClientIpThrottlerGuard]);
+      expect(Reflect.getMetadata('THROTTLER:LIMITdefault', handler)).toBe(10);
+      expect(Reflect.getMetadata('THROTTLER:TTLdefault', handler)).toBe(60_000);
+    });
+
+    it('runs SignInWithApple with StartSession, the name from the body and the configured TTL', async () => {
+      const { controller, identities, refreshTokens, registrationNotifier } = setup();
+
+      const result = await controller.signInWithApple({
+        idToken: 'apple-token',
+        name: 'Bia Costa',
+      });
+
+      expect(result.user).toMatchObject({
+        name: 'Bia Costa',
+        email: 'bia@example.com',
+        status: 'pending',
+      });
+      expect(registrationNotifier.registrationPending).toHaveBeenCalledWith({
+        id: result.user.id,
+        name: 'Bia Costa',
+      });
+      expect(identities).toHaveLength(1);
+      expect(identities[0]).toMatchObject({ provider: 'apple', providerUserId: 'apple-sub' });
+      expect(refreshTokens).toHaveLength(1);
+      expect(result.refreshTokenExpiresAt).toEqual(new Date('2026-11-06T12:00:00.000Z'));
+    });
+
+    it('answers idToken.token.required when there is no body', async () => {
+      const { controller, appleIdTokenProvider } = setup();
+
+      await expect(controller.signInWithApple(undefined)).rejects.toMatchObject({
+        statusCode: 422,
+        errors: [expect.objectContaining({ message: 'idToken.token.required' })],
+      });
+      expect(appleIdTokenProvider.verify).not.toHaveBeenCalled();
+    });
+
+    it('answers auth.apple.tokenInvalid for a token Apple refuses', async () => {
+      const { controller } = setup();
+
+      await expect(controller.signInWithApple({ idToken: 'other' })).rejects.toMatchObject({
+        statusCode: 401,
+        message: 'auth.apple.tokenInvalid',
       });
     });
   });

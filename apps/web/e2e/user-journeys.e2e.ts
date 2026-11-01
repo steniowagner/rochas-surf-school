@@ -10,7 +10,7 @@ import { userJourneyTexts } from "../src/modules/user-journeys/i18n/user-journey
 const locales = ["pt-br", "es", "en"] as const;
 const dictionaries = { "pt-br": ptBr, es, en };
 const flows = ["auth", "student", "instructor", "admin"] as const;
-const caseCounts = { auth: 19, student: 28, instructor: 16, admin: 33 };
+const caseCounts = { auth: 21, student: 28, instructor: 16, admin: 33 };
 
 // An email address or a 6-digit sign-in code: never on a user journey page (spec 076 D-06).
 const emailOrCode = /[\w.+-]+@[\w-]+\.[\w.]+|\b\d{6}\b/;
@@ -104,6 +104,23 @@ const flowCtasOf = (page: Page, labels: { allFlows: string; seeDesigns: string }
     );
 
 test.describe("user journey flow pages", () => {
+  test("auth journeys list the Apple cases", async ({ page }) => {
+    const labels = { "pt-br": "Continuar com a Apple", es: "Continuar con Apple", en: "Continue with Apple" } as const;
+
+    for (const locale of locales) {
+      await page.goto(`/${locale}/user-journeys/auth`);
+
+      await expect(rowsOf(page)).toHaveCount(21);
+      for (const [id, designId] of [["AU-20", "AF-01-06"], ["AU-21", "AF-01-01"]] as const) {
+        const row = page.locator(`tr[data-row-id="${id}"]`);
+        await expect(row).toContainText(userJourneyTexts[locale].rows[id].title);
+        await expect(row).toContainText(labels[locale]);
+        await expect(row).toContainText("iPhone");
+        await expect(row.getByRole("link", { name: designId })).toBeVisible();
+      }
+    }
+  });
+
   test("flow pages show every test case", async ({ page, request }) => {
     for (const flow of flows) {
       const ids = flowRows(flow).map((row) => row.id);

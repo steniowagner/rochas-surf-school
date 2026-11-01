@@ -3,7 +3,7 @@ import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
-import { Text, TouchableOpacity, View } from "react-native";
+import { Platform, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { LanguageSheet } from "@/components/language-sheet";
@@ -45,6 +45,8 @@ const GRAPE_FADE = `linear-gradient(to bottom, ${palette.grape}00 45%, ${palette
 export function AuthComponent({
   onTermsPress,
   onPrivacyPress,
+  onApplePress,
+  isAppleLoading = false,
   onGooglePress,
   isGoogleLoading = false,
 }: AuthComponentProps) {
@@ -76,10 +78,7 @@ export function AuthComponent({
         style={{ experimental_backgroundImage: GRAPE_FADE }}
       />
 
-      <View
-        className="absolute left-screen z-10"
-        style={{ top: topInset }}
-      >
+      <View className="absolute left-screen z-10" style={{ top: topInset }}>
         <TouchableOpacity
           accessibilityRole="button"
           accessibilityLabel={`${t("language.button")}: ${localeNames[currentLocale]}`}
@@ -118,7 +117,15 @@ export function AuthComponent({
         className="absolute left-screen right-screen gap-2.5"
         style={{ bottom: getBottomPadding(insets.bottom, 30) }}
       >
-        {/* Sign in with Apple isn't built yet, so its button isn't shown (spec 017, D-11). */}
+        {Platform.OS === "ios" ? (
+          <AuthButton
+            variant="light"
+            label={t("auth.continueWithApple")}
+            loading={isAppleLoading}
+            onPress={onApplePress}
+            icon={<Ionicons name="logo-apple" size={20} color={palette.ink} />}
+          />
+        ) : null}
         <AuthButton
           variant="light"
           label={t("auth.continueWithGoogle")}

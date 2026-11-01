@@ -10,21 +10,23 @@ import { useTheme } from "@/hooks/use-theme";
 import { useHeaderInset, useKeyboardOffset } from "@/navigation/stack-header";
 import { getBottomPadding, getKeyboardGapOffset } from "@/utils/bottom-padding";
 
-import { useGoogleName } from "./google-name.hook";
-import { GoogleNameProps } from "./google-name.types";
+import { useProviderName } from "./provider-name.hook";
+import { ProviderNameProps } from "./provider-name.types";
 
-export function GoogleName({
+export function ProviderName({
+  provider,
   idToken,
   initialName,
   onSignedIn,
-}: GoogleNameProps) {
+}: ProviderNameProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const bottomPadding = getBottomPadding(insets.bottom, 24);
   const headerInset = useHeaderInset();
   const keyboardOffset = useKeyboardOffset();
-  const { nameField, canSubmit, isSending, submit } = useGoogleName({
+  const { nameField, canSubmit, isSending, submit } = useProviderName({
+    provider,
     idToken,
     initialName,
     onSignedIn,

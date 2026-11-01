@@ -25,7 +25,7 @@ describe("UserJourneysIndexPage", () => {
       "/en/user-journeys/admin",
     ]);
     expect(links.map((link) => within(link).getByText(/test cases/).textContent?.split(" · ")[0])).toEqual([
-      "19 test cases",
+      "21 test cases",
       "28 test cases",
       "16 test cases",
       "33 test cases",

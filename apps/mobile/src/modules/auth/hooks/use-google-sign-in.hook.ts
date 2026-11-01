@@ -65,7 +65,13 @@ export const useGoogleSignIn = ({ onSignedIn }: UseGoogleSignInProps) => {
       onSignedIn(await signIn.mutateAsync({ idToken }));
     } catch (error) {
       if (idToken && isNameError(error)) {
-        router.push(routes.auth.googleName({ idToken, name: googleName }));
+        router.push(
+          routes.auth.providerName({
+            provider: "google",
+            idToken,
+            name: googleName,
+          }),
+        );
 
         return;
       }

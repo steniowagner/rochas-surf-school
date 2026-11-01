@@ -21,7 +21,7 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
   admin, spec 070). An erased account (spec 067) stays in storage as an anonymous record but the repository never returns
   it, so `erased` isn't a domain status. Relationships: one or
   more identities; many sessions. Lifecycle: as in Product; today the creation of a `pending` student
-  through an email code or Google is built, plus the seeded review accounts, an admin approving or denying a
+  through an email code, Google or Apple is built, plus the seeded review accounts, an admin approving or denying a
   `pending` account, an approved account adding or changing its WhatsApp number, an approved account changing
   its name, an approved account deleting itself, a deleted account sending its reactivation request, an
   approved admin approving or denying it, an approved admin changing another approved account's role, and an
@@ -163,8 +163,8 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
   refused the same way and nothing is overwritten. An id that isn't a UUID or names no account →
   `registration.notFound`; a reason that isn't text → `registration.reason.invalid`; a reason over 500 characters →
   `user.denialReason.max.length`. Nothing is written on any refusal.
-- **A registration is announced and its decision is told**: when an account is created (by email code or by
-  Google) — never when an existing account signs in — every approved admin is notified that it is waiting; once
+- **A registration is announced and its decision is told**: when an account is created (by email code, by
+  Google or by Apple) — never when an existing account signs in — every approved admin is notified that it is waiting; once
   a decision is written, the person is notified of the approval, or of the denial with the trimmed reason (or
   none). Nothing is notified on a refusal or on the decision that lost a race. Notifying happens after the
   account or the decision is stored and never changes the answer: a failure is logged and the request succeeds
@@ -175,7 +175,7 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
   acceptances, its notifications and phones), after the admins' "new registration" notifications about it are
   deleted. Nothing is kept, anonymized or notified. A denied account with no denial date is never erased, and this
   rule erases no other status. A second run finds nothing to do. The email address is then free: signing in with
-  it (by email code or Google) creates a new `pending` account, announced to the admins; the erased account's
+  it (by email code, Google or Apple) creates a new `pending` account, announced to the admins; the erased account's
   session is refused as invalid.
 - **A deleted or removed account is erased 30 days after the deletion or removal** (spec 067): every minute, after
   the denied registrations, the `deleted` accounts deleted and the `removed` accounts removed 30 × 24 hours ago or
@@ -190,7 +190,7 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
   An account with no date is never erased; a second run finds nothing. For this module the account no longer
   exists: it is never found by id, email, identity, page or name search, so its access token is refused with
   `auth.token.invalid`, a reactivation approval answers `reactivation.notFound` and a restore `user.notFound` (404),
-  and its email or Google account signs up again as a new `pending` account. Its past seats and class assignments
+  and its email, Google or Apple account signs up again as a new `pending` account. Its past seats and class assignments
   stay ([Classes](classes.md) shows them without a name).
 - **Any status gets a session**: a pending, denied, deleted or removed account still signs in and learns its
   status, so the app can show the waiting, denied or account-deleted screen.
@@ -212,6 +212,18 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
   by the app replaces it. When the name doesn't fit (Google names are often one word, the rule needs two), nothing
   is created and the app asks for one, then sends the same Google token with it. A name sent for an existing
   account is ignored.
+- **Apple sign-in** (iOS only in the app; spec 083): Apple's token is checked first, and a token with an address Apple
+  hasn't verified is refused, even for a known identity. The account is then found by the Apple identity's id, which
+  needs no email, because a token may carry none; a token with no email for an unknown identity is refused and nothing
+  is written. Else it is found by the email (an Apple identity is added to that account, whatever its status), else a
+  new pending student is created with an Apple identity. The account's email never changes, even when Apple's differs.
+- **Relay addresses**: an address from Apple's Hide My Email (`…@privaterelay.appleid.com`) is an ordinary verified
+  email and becomes the account's fixed email. It can't be traced to the real address and matches no account with it,
+  so the same person can hold two accounts: "one account per email address" holds address by address, not person by
+  person. A second sign-in with the same Apple identity opens the same account.
+- **Name of a new Apple account**: Apple's token carries no name, so the app sends the name Apple gave it, which it
+  gets only at the first authorization. When it is missing or doesn't fit the name rules, nothing is created and the app
+  asks for one, then sends the same token with it. A name sent for an existing account is ignored.
 
 ## Sign-in codes
 
@@ -265,7 +277,8 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
 ## Who can do what
 
 - **Anyone** — asks for a code and signs in or signs up with it; signs in or signs up with a Google account
-  whose address Google verified (10 requests per minute per network address).
+  whose address Google verified, or an Apple account whose address Apple verified, or with a known Apple identity (10
+  requests per minute per network address for each).
 - **A signed-in account, of any status** — reads its own account (name, email, role, status, creation date,
   WhatsApp number and its visibility, whether it accepted the current school rules, its denial reason and its
   reactivation status).
@@ -316,7 +329,14 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
   shows its loading state and ignores another tap meanwhile. When Google's name doesn't fit, the "Your name"
   screen opens with it filled in, checks it with Create account's rules and messages, and sends it; if Google's
   token expired meanwhile, it says so and returns to sign-in. Closing the picker shows nothing; every other
-  failure shows one short message. The Apple button isn't shown until Apple sign-in is built.
+  failure shows one short message.
+- **In the app**, on iOS only, "Continue with Apple" sits above "Continue with Google" and opens Apple's sheet, asking
+  for the name and the email, then signs the person in to the account the backend finds or creates, into the part of
+  the app that matches it; the button shows its loading state and ignores another tap meanwhile. When Apple's name is
+  missing or doesn't fit, "Your name", the same screen Google uses, opens with it filled in or empty, and sends the name;
+  if the token expired meanwhile, it says so and returns to sign-in. Closing the sheet shows nothing; an unverified or
+  missing address and an invalid token each show their own message, and every other failure one short message. Signing
+  out adds nothing for Apple, which keeps no session in the app.
 - **In the app**, every approved role has a Profile tab: "Editar perfil" changes the name (the email shown
   read-only, "can't be changed"; "Salvar" works only for a changed name that follows the rules), the WhatsApp row
   shows "Visível" or "Oculto" from the session's account and opens the number, its country and the share switch
@@ -418,7 +438,7 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
 
 ## Boundaries
 
-It does not check Google's tokens itself: a contract verifies them, provided by the backend. It does not send
+It does not check Google's or Apple's tokens itself: a contract for each verifies them, provided by the backend. It does not send
 email itself: it hands the code, the address and the language to the email-delivery
 capability through an abstract contract. It knows nothing about token formats or HTTP: the technical shape of
 tokens is behind its own contract, provided by the backend. The school rules themselves and their version belong to
@@ -554,3 +574,8 @@ fulfilled by the backend with [Notifications](notifications.md), to delete the n
   prints a `REVIEW_ACCOUNTS` value for 12 test sets (`testeNN.admin` / `.instrutor` / `.aluno`
   `@rochas-surf-school.test`) with fresh random codes, set only in the test server's environment. No change to the
   module's code.
+- `083-apple-sign-in` — Apple sign-in (`POST /auth/apple`, `SignInWithApple`): by Apple identity, else linked by email,
+  else a new pending student; an unverified address refused before any lookup, and an unknown identity with no email
+  refused; relay addresses are ordinary emails; a new account needs a name that fits the rules. The `AppleIdTokenProvider`
+  contract, and `ProviderAccountResolver`, now shared with `SignInWithGoogle`. The app's "Continue with Apple" on iOS, and
+  "Your name" serving both providers.

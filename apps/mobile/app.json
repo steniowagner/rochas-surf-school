@@ -10,6 +10,7 @@
     "backgroundColor": "#F0E6D8",
     "ios": {
       "bundleIdentifier": "com.rochassurfschool.app",
+      "usesAppleSignIn": true,
       "config": {
         "usesNonExemptEncryption": false
       }

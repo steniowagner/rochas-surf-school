@@ -37,15 +37,49 @@ describe('AuthConfig', () => {
     });
 
     it.each([undefined, '', '  '])('is required in production (%j)', (value) => {
-      const env: Record<string, string> = { NODE_ENV: 'production' };
+      const env: Record<string, string> = { NODE_ENV: 'production', APPLE_CLIENT_ID: 'bundle' };
       if (value !== undefined) env.GOOGLE_WEB_CLIENT_ID = value;
       expect(() => config(env)).toThrow('GOOGLE_WEB_CLIENT_ID is not configured');
     });
 
     it('builds in production when set', () => {
       expect(
-        config({ NODE_ENV: 'production', GOOGLE_WEB_CLIENT_ID: 'web-client' }).googleWebClientId,
+        config({
+          NODE_ENV: 'production',
+          GOOGLE_WEB_CLIENT_ID: 'web-client',
+          APPLE_CLIENT_ID: 'bundle',
+        }).googleWebClientId,
       ).toBe('web-client');
+    });
+  });
+
+  describe('APPLE_CLIENT_ID', () => {
+    it('is read and trimmed', () => {
+      expect(config({ APPLE_CLIENT_ID: ' com.example.app ' }).appleClientId).toBe('com.example.app');
+    });
+
+    it.each(['', '  '])('may be unset (%j) outside production', (value) => {
+      expect(config({ APPLE_CLIENT_ID: value }).appleClientId).toBeUndefined();
+      expect(config({ NODE_ENV: 'development' }).appleClientId).toBeUndefined();
+    });
+
+    it.each([undefined, '', '  '])('is required in production (%j)', (value) => {
+      const env: Record<string, string> = {
+        NODE_ENV: 'production',
+        GOOGLE_WEB_CLIENT_ID: 'web-client',
+      };
+      if (value !== undefined) env.APPLE_CLIENT_ID = value;
+      expect(() => config(env)).toThrow('APPLE_CLIENT_ID is not configured');
+    });
+
+    it('builds in production when set', () => {
+      expect(
+        config({
+          NODE_ENV: 'production',
+          GOOGLE_WEB_CLIENT_ID: 'web-client',
+          APPLE_CLIENT_ID: 'bundle',
+        }).appleClientId,
+      ).toBe('bundle');
     });
   });
 

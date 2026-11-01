@@ -90,6 +90,7 @@ aws ssm put-parameter --region us-east-1 --type SecureString --overwrite --name 
 | `EMAIL_FROM`                    | From `apps/backend/.env`: `admin@rochassurfschool.com`.                                         |
 | `REVIEW_ACCOUNTS`               | The first thing `npm run test-accounts --workspace apps/backend` prints. Keep its table safe.   |
 | `GOOGLE_WEB_CLIENT_ID`          | From `apps/backend/.env.example`; it isn't secret.                                              |
+| `APPLE_CLIENT_ID`               | `com.rochassurfschool.app`, the app's bundle id; it isn't secret.                               |
 | `ANTHROPIC_API_KEY`             | From `apps/backend/.env`.                                                                       |
 | `GOOGLE_MAPS_API_KEY`           | From `apps/backend/.env`.                                                                       |
 | `EXPO_ACCESS_TOKEN`             | Optional: only with "enhanced push security" on in Expo. Leave it out otherwise.                |

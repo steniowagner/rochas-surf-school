@@ -171,6 +171,18 @@ export const es = {
       steps: "Deja la app abierta mientras el admin actúa.",
       expected: "Tras quitarla recibes \"Acceso quitado\" y la app pasa a una pantalla que dice que tu acceso fue quitado y que la cuenta no se puede reactivar desde la app, con \"Hablar con la escuela\" y \"Usar otro email\". Tras restaurarla recibes \"Acceso restaurado\" y la app vuelve a tu inicio.",
     },
+    "AU-20": {
+      title: "Crear una cuenta con Apple",
+      beforeYouStart: "Necesitas un iPhone: Android no ofrece Apple. No has iniciado sesión. Usa una Cuenta de Apple que nunca se haya usado en la app.",
+      steps: "Toca \"Continuar con Apple\" y confirma en la ventana de Apple.",
+      expected: "El botón muestra un indicador de carga mientras trabaja. Llegas a la pantalla que dice que tu cuenta espera aprobación. Si Apple no comparte un nombre válido, una pantalla \"¿Cómo te llamas?\" lo pide antes.",
+    },
+    "AU-21": {
+      title: "Cerrar la ventana de Apple",
+      beforeYouStart: "Necesitas un iPhone: Android no ofrece Apple. No has iniciado sesión.",
+      steps: "Toca \"Continuar con Apple\" y cierra la ventana de Apple sin confirmar.",
+      expected: "Vuelves a la pantalla de entrada, sin ningún mensaje de error.",
+    },
     "ST-01": {
       title: "La agenda abre en esta semana",
       beforeYouStart: "La escuela tiene clases esta semana.",

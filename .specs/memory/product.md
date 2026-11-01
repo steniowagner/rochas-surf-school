@@ -103,7 +103,9 @@ Listed in the order people meet them.
 - **Identity** (`identity`): one way a user signs in — Google, Apple (iOS only) or a code sent by email. Key
   fields: method, the email it provides. Relationship: belongs to one user; a user has one or more. Any method
   that provides the same email opens the same account; a Google sign-in keeps opening its account even after
-  the Google address changes, and the account's email never changes. The name shared by Google or Apple becomes
+  the Google address changes, an Apple sign-in does the same, and the account's email never changes. Apple's Hide My
+  Email gives a relay address, which is an ordinary address here: it becomes the account's email and matches no account
+  with the person's real address, so the same person can hold two accounts. The name shared by Google or Apple becomes
   the account's name when it fits the name rules, otherwise the person types one before the account is created;
   email-code sign-ups type their name after entering a correct code, and the account is created (as a pending
   student) only then.
@@ -382,7 +384,9 @@ Detailed in [user-journeys.md](../../.docs/user-journeys.md) and, area by area, 
 - **Guests get nothing from the app and leave no trace**: no notifications, no link to a later account, and
   their name and WhatsApp number are erased 30 days after their class.
 - **One account per email address, and the email never changes**: every sign-in method with the same email
-  opens the same account; there are no passwords.
+  opens the same account; there are no passwords. This holds address by address, not person by person: Apple's relay
+  address can't be traced to the real one, and refusing it would likely fail App Review, so a person who hides their
+  email at Apple gets a separate account from one with their real address (spec 083).
 - **Five wrong guesses lock a sign-in code, review accounts included**: a 6-digit code is guessable, and the
   admin review account has a fixed code; a new code (after the 30-second wait) unlocks it.
 - **The sign-in email is the one text the backend writes in the user's language**: email can't be translated
@@ -541,9 +545,8 @@ one. The 30-day window isn't checked when a request is sent. The app sends it fr
 Before the spec workflow, groundwork was laid without a spec: the monorepo with the backend, mobile and web
 apps, the design tokens shared by web and mobile, the domain of user accounts and sign-in identities with its
 storage, and the app's sign-in screen with its language picker. The real screens of each flow (every student and instructor screen, every admin screen besides the
-School tools home, "Join the school" and the Profile tab included), reloading the account when the app returns from the
-background (a rule change or an admin's decision is seen at the next launch or session renewal), and Apple sign-in
-don't exist yet.
+School tools home, "Join the school" and the Profile tab included) and reloading the account when the app returns from the
+background (a rule change or an admin's decision is seen at the next launch or session renewal) don't exist yet.
 
 **The school's WhatsApp number on the backend** (spec `015-school-settings-whatsapp`) — an approved admin sets
 the school's WhatsApp number through the backend, with its country code and no spaces or other characters (the
@@ -573,9 +576,8 @@ address Google hasn't verified is refused. A new account takes Google's name whe
 otherwise the app opens "Your name", with Google's name filled in, and the account is created once a valid name
 is sent. The person then lands where any sign-in leads (Pending for a new account). Closing Google's account
 picker shows nothing; every other failure shows one short message in the app's language. Signing out also signs
-out of Google, so the next Google sign-in shows the account picker. The Apple button is hidden until Apple
-sign-in is built; Google's profile photo isn't stored, and Google sign-in on Android hasn't been tried on a
-device yet.
+out of Google, so the next Google sign-in shows the account picker. Google's profile photo isn't stored, and Google
+sign-in on Android hasn't been tried on a device yet.
 
 **Staying signed in on the phone** (spec `018-mobile-session-persistence`) — a signed-in person stays signed in
 when they close and reopen the app: the session is kept on the device, and at launch the app reloads the account
@@ -1330,8 +1332,8 @@ pages are wider than the legal pages and fit a phone screen without scrolling si
 languages now lives in one place shared by the app and the site.
 
 **Auth flow designs page** (spec `072-designs-auth-flow`) — the designs index lists a second page, the auth flow, at
-`/{lang}/designs/auth-flow`. It shows every screen a person goes through before reaching their role's home, in 49
-entries (`AF-<section>-<entry>`) in four sections: sign-in (with the language sheet, Google loading and the error and
+`/{lang}/designs/auth-flow`. It shows every screen a person goes through before reaching their role's home, in 51
+entries (`AF-<section>-<entry>`) in four sections: sign-in (with the language sheet, Google and Apple loading and the error and
 session-expired toasts), email (the choice, signing in, creating an account, confirming the code and the name asked
 after Google), approval and onboarding (pending approval, the WhatsApp number, the school rules and the rules update)
 and the closed-account screens (reactivation, registration denied, removed). Each state the app draws is one frame;
@@ -1430,7 +1432,20 @@ details screen without leaving it. Notices and class messages sent from now on r
 without a sender, and older class messages aren't on their class. In an account's other flows, such as onboarding, a
 tap still goes to the flow's home. The copy is in pt-BR, es-ES and en-US.
 
-Active specs: `081-staging-follow-ups`, planned.
+**Sign in with Apple on iOS** (spec `083-apple-sign-in`) — on iPhone, "Continue with Apple" sits above "Continue with
+Google" and signs a person in or up through Apple's own sheet; Android doesn't offer it. The backend checks Apple's token
+and opens the one account for that person: the account already signed in with that Apple account, else the account with
+the same email, which gets Apple as another way in, else a new pending student. An address Apple hasn't verified is
+refused, and so is a new person whose token carries no email. Hide My Email is allowed: the relay address becomes the
+account's fixed email, so that person can also hold a separate account with their real address. Apple shares the name
+only at the first authorization, so a new person whose name is missing or doesn't fit the rules gets "Your name", now one
+screen for both Google and Apple, with Apple's name filled in when there is one. Closing Apple's sheet shows nothing, and
+every other failure shows one short message in the app's language. A real sign-up, a second sign-in and a sign-up with the
+real address were proven on a TestFlight build against staging. The auth flow design shows the Apple button and the
+auth user journeys have 21 cases. **The App Store still needs token revocation**: an account deleted or erased keeps its
+Apple authorization until spec `084-apple-token-revocation` is built, which doesn't block TestFlight.
+
+Active specs: `081-staging-follow-ups` and `084-apple-token-revocation`, planned.
 
 ## Out of scope (future evolution, recorded in the specs)
 
@@ -1577,6 +1592,9 @@ Active specs: `081-staging-follow-ups`, planned.
   the seats, requests or classes the removal released; a confirmation before "Restaurar", a success toast, and any
   other way to undo a removal; ending a removed account's sessions or removing its phones; the real count on the
   homes' "9 na plataforma" rows.
+- On Sign in with Apple (spec 083): merging an account with a relay address and one with the real address, sending
+  email to relay addresses (the domain would need registering with Apple), reacting when a person stops using Apple
+  with the app (Apple's server notifications), and Sign in with Apple on Android or the web.
 - Items shown in the designs but not specified, to be decided by the spec that takes them up: class names (e.g. "Ondas da Manhã"); a message from an admin to one class;
   notes on registrations and enrolment requests.
 

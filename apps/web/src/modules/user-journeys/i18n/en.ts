@@ -171,6 +171,18 @@ export const en = {
       steps: "Keep the app open while the admin acts.",
       expected: "After the removal you get \"Access removed\" and the app moves to a screen that says your access was removed and the account can't be reactivated from the app, with \"Contact the school\" and \"Use another email\". After the restore you get \"Access restored\" and the app goes back to your home.",
     },
+    "AU-20": {
+      title: "Sign up with Apple",
+      beforeYouStart: "You need an iPhone: Android doesn't offer Apple. You are signed out. Use an Apple Account never used in the app.",
+      steps: "Tap \"Continue with Apple\" and confirm in Apple's sheet.",
+      expected: "The button shows a spinner while it works. You land on the screen that says your account is waiting for approval. If Apple doesn't share a usable name, a \"What's your name?\" screen asks for it first.",
+    },
+    "AU-21": {
+      title: "Close Apple's sheet",
+      beforeYouStart: "You need an iPhone: Android doesn't offer Apple. You are signed out.",
+      steps: "Tap \"Continue with Apple\" and close Apple's sheet without confirming.",
+      expected: "You are back on the sign-in screen, with no error message.",
+    },
     "ST-01": {
       title: "The schedule opens on this week",
       beforeYouStart: "The school has classes this week.",

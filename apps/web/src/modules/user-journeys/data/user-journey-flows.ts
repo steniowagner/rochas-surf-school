@@ -30,6 +30,8 @@ export const userJourneyFlows = {
           { id: "AU-01", designIds: ["AF-01-01", "AF-01-02"] },
           { id: "AU-02", designIds: ["AF-01-03", "AF-02-15", "AF-03-01"] },
           { id: "AU-03", designIds: ["AF-01-01"] },
+          { id: "AU-20", designIds: ["AF-01-06", "AF-02-15", "AF-03-01"] },
+          { id: "AU-21", designIds: ["AF-01-01"] },
         ],
       },
       {

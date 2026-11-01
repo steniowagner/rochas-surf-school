@@ -20,7 +20,7 @@ import { keyboardOffsetOf } from "@/navigation/stack-header/keyboard-offset.test
 import { AlertMessageProvider } from "@/providers/alert-message";
 import { getKeyboardGapOffset } from "@/utils/bottom-padding";
 
-import { GoogleName } from "./google-name.component";
+import { ProviderName } from "./provider-name.component";
 
 jest.mock("expo-router", () => ({
   router: { back: jest.fn(), replace: jest.fn() },
@@ -56,9 +56,11 @@ beforeEach(() => {
   jest.mocked(router.replace).mockClear();
 });
 
-describe("GoogleName", () => {
+describe("ProviderName", () => {
   it("renders the intro and Google's name in the field", async () => {
-    await renderScreen(<GoogleName idToken="token" initialName="Maria" />);
+    await renderScreen(
+      <ProviderName provider="google" idToken="token" initialName="Maria" />,
+    );
 
     expect(
       screen.getByRole("header", { name: "What's your name?" }),
@@ -73,7 +75,7 @@ describe("GoogleName", () => {
   });
 
   it("starts at the top under the opaque header", async () => {
-    await renderScreen(<GoogleName idToken="token" />);
+    await renderScreen(<ProviderName provider="google" idToken="token" />);
 
     expect(topPaddingsOf(screen.toJSON())).toContain(0);
   });
@@ -81,9 +83,9 @@ describe("GoogleName", () => {
   it("starts below the transparent header without offsetting the keyboard", async () => {
     const offset = await underTransparentHeader(116, async () => {
       const offset = await keyboardOffsetOf(() =>
-        renderScreen(<GoogleName idToken="token" />),
+        renderScreen(<ProviderName provider="google" idToken="token" />),
       );
-      await renderScreen(<GoogleName idToken="token" />);
+      await renderScreen(<ProviderName provider="google" idToken="token" />);
       expect(topPaddingsOf(screen.toJSON())).toContain(116);
       return offset;
     });
@@ -93,7 +95,7 @@ describe("GoogleName", () => {
 
   it("offsets the keyboard by the height of the header", async () => {
     const offset = await keyboardOffsetOf(() =>
-      renderScreen(<GoogleName idToken="token" />),
+      renderScreen(<ProviderName provider="google" idToken="token" />),
     );
 
     expect(offset).toBe(64 + getKeyboardGapOffset(24));
@@ -103,14 +105,14 @@ describe("GoogleName", () => {
     const original = Platform.OS;
     Platform.OS = "android";
 
-    await renderScreen(<GoogleName idToken="token" />);
+    await renderScreen(<ProviderName provider="google" idToken="token" />);
 
     expect(getButton()).toBeOnTheScreen();
     Platform.OS = original;
   });
 
   it("starts with an empty field when Google gave no name", async () => {
-    await renderScreen(<GoogleName idToken="token" />);
+    await renderScreen(<ProviderName provider="google" idToken="token" />);
 
     expect(screen.getByPlaceholderText(NAME_PLACEHOLDER)).toHaveDisplayValue(
       "",
@@ -123,7 +125,7 @@ describe("GoogleName", () => {
   ])("renders in %s", async (locale, title) => {
     await i18n.changeLanguage(locale);
 
-    await renderScreen(<GoogleName idToken="token" />);
+    await renderScreen(<ProviderName provider="google" idToken="token" />);
 
     expect(screen.getByRole("header", { name: title })).toBeOnTheScreen();
   });
@@ -137,7 +139,9 @@ describe("GoogleName", () => {
       "keeps Continue disabled and sends nothing for a name that is %s",
       async (_, name) => {
         const user = userEvent.setup();
-        await renderScreen(<GoogleName idToken="token" initialName={name} />);
+        await renderScreen(
+          <ProviderName provider="google" idToken="token" initialName={name} />,
+        );
 
         expect(getButton()).toBeDisabled();
         await user.press(getButton());
@@ -152,7 +156,9 @@ describe("GoogleName", () => {
 
     it("shows Create account's error on blur and hides it once the name is valid", async () => {
       const user = userEvent.setup();
-      await renderScreen(<GoogleName idToken="token" initialName="Maria" />);
+      await renderScreen(
+        <ProviderName provider="google" idToken="token" initialName="Maria" />,
+      );
       const input = screen.getByPlaceholderText(NAME_PLACEHOLDER);
 
       await fireEvent(input, "blur");
@@ -173,7 +179,8 @@ describe("GoogleName", () => {
       const user = userEvent.setup();
       const onSignedIn = jest.fn();
       await renderScreen(
-        <GoogleName
+        <ProviderName
+          provider="google"
           idToken="token"
           initialName="Maria"
           onSignedIn={onSignedIn}
@@ -199,7 +206,11 @@ describe("GoogleName", () => {
 
     it("submits from the keyboard's done key and works without a handler", async () => {
       await renderScreen(
-        <GoogleName idToken="token" initialName="Maria Souza" />,
+        <ProviderName
+          provider="google"
+          idToken="token"
+          initialName="Maria Souza"
+        />,
       );
 
       await fireEvent(
@@ -214,7 +225,11 @@ describe("GoogleName", () => {
       fetchMock.mockReturnValue(new Promise(() => {}));
       const user = userEvent.setup();
       await renderScreen(
-        <GoogleName idToken="token" initialName="Maria Souza" />,
+        <ProviderName
+          provider="google"
+          idToken="token"
+          initialName="Maria Souza"
+        />,
       );
 
       await user.press(getButton());
@@ -227,6 +242,121 @@ describe("GoogleName", () => {
     });
   });
 
+  describe("apple", () => {
+    it("starts with an empty field when Apple gave no name", async () => {
+      await renderScreen(<ProviderName provider="apple" idToken="token" />);
+
+      expect(screen.getByPlaceholderText(NAME_PLACEHOLDER)).toHaveDisplayValue(
+        "",
+      );
+    });
+
+    it("sends the token and the name to /auth/apple and signs in", async () => {
+      const user = userEvent.setup();
+      const onSignedIn = jest.fn();
+      await renderScreen(
+        <ProviderName
+          provider="apple"
+          idToken="token"
+          initialName="Maria Souza"
+          onSignedIn={onSignedIn}
+        />,
+      );
+
+      await user.press(getButton());
+
+      await waitFor(() =>
+        expect(onSignedIn).toHaveBeenCalledWith({ accessToken: "a" }),
+      );
+      expect(fetchMock.mock.calls[0][0]).toBe("http://api.test/auth/apple");
+      expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({
+        idToken: "token",
+        name: "Maria Souza",
+      });
+    });
+
+    it("shows the spinner and ignores a second press while sending", async () => {
+      fetchMock.mockReturnValue(new Promise(() => {}));
+      const user = userEvent.setup();
+      await renderScreen(
+        <ProviderName
+          provider="apple"
+          idToken="token"
+          initialName="Maria Souza"
+        />,
+      );
+
+      await user.press(getButton());
+      await user.press(getButton());
+
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    it("shows the toast and goes back to sign-in when the token expired", async () => {
+      fetchMock.mockResolvedValue(
+        jsonResponse(401, { errors: ["auth.apple.tokenInvalid"] }),
+      );
+      const user = userEvent.setup();
+      await renderScreen(
+        <ProviderName
+          provider="apple"
+          idToken="token"
+          initialName="Maria Souza"
+        />,
+      );
+
+      await user.press(getButton());
+
+      expect(
+        await screen.findByText(
+          "We couldn't sign you in with Apple. Try again.",
+        ),
+      ).toBeOnTheScreen();
+      expect(router.replace).toHaveBeenCalledWith(routes.auth.signIn);
+    });
+
+    it.each([
+      [
+        "no connection",
+        () => Promise.reject(new TypeError("Network request failed")),
+        "No connection. Check your internet and try again.",
+      ],
+      [
+        "an unverified email",
+        () => jsonResponse(401, { errors: ["auth.apple.emailNotVerified"] }),
+        "Your Apple email isn't verified. Use another sign-in method.",
+      ],
+      [
+        "a missing email",
+        () => jsonResponse(401, { errors: ["auth.apple.emailMissing"] }),
+        "Apple didn't share your email. Use another sign-in method.",
+      ],
+      [
+        "a server error",
+        () => jsonResponse(500, { errors: ["INTERNAL_SERVER_ERROR"] }),
+        "Something went wrong. Please try again.",
+      ],
+    ])(
+      "shows the message and stays on the screen for %s",
+      async (_, answer, message) => {
+        fetchMock.mockImplementation(async () => answer());
+        const user = userEvent.setup();
+        await renderScreen(
+          <ProviderName
+            provider="apple"
+            idToken="token"
+            initialName="Maria Souza"
+          />,
+        );
+
+        await user.press(getButton());
+
+        expect(await screen.findByText(message)).toBeOnTheScreen();
+        expect(router.replace).not.toHaveBeenCalled();
+      },
+    );
+  });
+
   describe("errors", () => {
     it("shows the toast and goes back to sign-in when the token expired", async () => {
       fetchMock.mockResolvedValue(
@@ -234,7 +364,11 @@ describe("GoogleName", () => {
       );
       const user = userEvent.setup();
       await renderScreen(
-        <GoogleName idToken="token" initialName="Maria Souza" />,
+        <ProviderName
+          provider="google"
+          idToken="token"
+          initialName="Maria Souza"
+        />,
       );
 
       await user.press(getButton());
@@ -269,7 +403,11 @@ describe("GoogleName", () => {
         fetchMock.mockImplementation(async () => answer());
         const user = userEvent.setup();
         await renderScreen(
-          <GoogleName idToken="token" initialName="Maria Souza" />,
+          <ProviderName
+            provider="google"
+            idToken="token"
+            initialName="Maria Souza"
+          />,
         );
 
         await user.press(getButton());

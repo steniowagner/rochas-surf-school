@@ -16,7 +16,7 @@ const idsByPage: Record<string, readonly string[]> = {
 };
 
 const expected = {
-  auth: { prefix: "AU", count: 19, groups: 4, designPage: "auth-flow" },
+  auth: { prefix: "AU", count: 21, groups: 4, designPage: "auth-flow" },
   student: { prefix: "ST", count: 28, groups: 6, designPage: "student-app" },
   instructor: { prefix: "IN", count: 16, groups: 6, designPage: "instructor-app" },
   admin: { prefix: "AD", count: 33, groups: 8, designPage: "admin-app" },
@@ -33,7 +33,8 @@ describe("userJourneyFlows", () => {
     const ids = flowRows(flow).map((row) => row.id);
 
     expect(ids).toHaveLength(count);
-    expect(ids).toEqual(Array.from({ length: count }, (_, index) => `${prefix}-${String(index + 1).padStart(2, "0")}`));
+    // AU-20 and AU-21 sit with the other sign-in rows, so the numbers have no gap but aren't all in page order.
+    expect([...ids].sort()).toEqual(Array.from({ length: count }, (_, index) => `${prefix}-${String(index + 1).padStart(2, "0")}`));
     expect(userJourneyFlows[flow].groups).toHaveLength(groups);
     expect(userJourneyFlows[flow].designPage).toBe(designPage);
     for (const group of userJourneyFlows[flow].groups) {

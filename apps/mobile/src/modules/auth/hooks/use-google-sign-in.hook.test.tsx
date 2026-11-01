@@ -153,7 +153,11 @@ describe("useGoogleSignIn", () => {
     await press(result);
 
     expect(router.push).toHaveBeenCalledWith(
-      routes.auth.googleName({ idToken: "id-token", name: "Maria" }),
+      routes.auth.providerName({
+        provider: "google",
+        idToken: "id-token",
+        name: "Maria",
+      }),
     );
     expect(onSignedIn).not.toHaveBeenCalled();
     expect(show).not.toHaveBeenCalled();
@@ -168,7 +172,11 @@ describe("useGoogleSignIn", () => {
     await press(result);
 
     expect(router.push).toHaveBeenCalledWith(
-      routes.auth.googleName({ idToken: "id-token", name: undefined }),
+      routes.auth.providerName({
+        provider: "google",
+        idToken: "id-token",
+        name: undefined,
+      }),
     );
   });
 

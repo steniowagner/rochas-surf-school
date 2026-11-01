@@ -51,8 +51,9 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     `page`, from `useTheme()`; label key, SF Symbol and Material icon per tab). iOS 26+ draws unselected labels
     and icons in its own color, whatever `ink-3` says.
   - Sign-in: `@react-native-google-signin/google-signin` 16 (Google; in use since spec 017, its config plugin in
-    `app.json` carries the iOS URL scheme) and `expo-apple-authentication` (Apple, iOS only; not installed yet,
-    it comes with the Apple spec).
+    `app.json` carries the iOS URL scheme) and `expo-apple-authentication` 57 (Apple, iOS only; in use since spec 083,
+    with `ios.usesAppleSignIn` in `app.json` for the entitlement and no config plugin entry, because its plugin only
+    localizes the native button, which the app doesn't use). See Authentication → Mobile Apple sign-in.
   - Server data: **TanStack Query 5** — every screen fetches, caches, retries and invalidates the same way.
     One `QueryClient` in the root layout, mutations without retry. Requests go through the `fetch` client in
     `src/services/api/` (`apiGet`, `apiPost`, `apiPut`, `apiDelete`): it builds the URL from `EXPO_PUBLIC_API_URL`, sends
@@ -287,7 +288,7 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     `screens/auth/` (one `*-screen` folder per whole-screen mock — sign-in, email choice and sign-in, create account,
     confirm code, Google name, pending, WhatsApp, school rules, reactivation, denied, removed — each taking its state
     as props and staying presentational), `assets/` (the app's `team-hero.jpg` and `google-logo.svg`, drawn with a
-    plain `<img>` through `assetSrc` so the generated `.html` can embed them), `data/auth-flow-ids.ts` (the 49 ids
+    plain `<img>` through `assetSrc` so the generated `.html` can embed them), `data/auth-flow-ids.ts` (the 51 ids
     `AF-<section>-<entry>` and each entry's other app messages), `i18n/auth-flow-note.ts` (an entry's note plus those
     messages in the app's copy), one `auth-flow-<section>` component per section and `pages/auth-flow/`; the mock
     school rules and denial reason are in the site dictionaries. `phone-frame` takes `fullBleed` for a screen drawn
@@ -799,6 +800,30 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   `user.name.*` and nothing is written (the app asks for a name and resends the same token). A body `name` is
   ignored for an existing account. Without `GOOGLE_WEB_CLIENT_ID` outside production every token is refused
   without calling Google.
+- Apple sign-in (spec 083; `POST /auth/apple`, `@Public()`, throttled 10 requests per 60 s, `SignInWithApple` in
+  `modules/auth/src/identity/usecase/`): takes `{ idToken, name? }` and answers 200 with the `POST /auth/google` answer.
+  It isn't limited by platform: the iOS-only rule belongs to the button. The token is verified behind the
+  `AppleIdTokenProvider` port (`modules/auth/src/identity/provider/apple-id-token.provider.ts`, `verify(idToken)` →
+  `{ sub, email?, emailVerified }`, rejecting any invalid token), implemented by `AppleAuthIdTokenProvider`
+  (`apps/backend/src/modules/auth/apple.id-token.ts`) with **`jose`** 6: `createRemoteJWKSet` on
+  `https://appleid.apple.com/auth/keys` (cached, refetched on an unknown key) and `jwtVerify` with issuer
+  `https://appleid.apple.com`, audience `APPLE_CLIENT_ID` (the bundle id, which a native token names) and
+  `algorithms: ["RS256"]`. `email_verified` counts for `true` or `"true"`, because the claim's type isn't reliable; a
+  payload without `sub` is rejected, and keys that fail to load count as a rejection. Verifying needs no Apple secret.
+  Order: a missing, empty or non-string `idToken` → 422 `idToken.token.required` (provider not called); a rejected
+  token → 401 `auth.apple.tokenInvalid`; a token with an unverified email → 401 `auth.apple.emailNotVerified`; the
+  `apple` identity's `sub` opens its account, before the email check, because a token may carry no email; no email →
+  401 `auth.apple.emailMissing`; the normalized email gets an `apple` identity on its account; else a new `pending`
+  `student` with an `apple` identity. A relay address is an ordinary email. Apple's token carries no name, so a new
+  account's name is the body `name`; when it fails `User.validate()` the answer is 422 `user.name.*` and nothing is
+  written. No `nonce` is used: one made on the phone proves nothing to the backend. Sign-out adds nothing for Apple,
+  which keeps no session in the app. Without `APPLE_CLIENT_ID` outside production every token is refused without
+  fetching Apple's keys. Tokens aren't revoked at Apple yet (spec 084, required before App Store submission).
+- `ProviderAccountResolver` (spec 083, `modules/auth/src/identity/usecase/provider-account-resolver.ts`, outside the
+  public barrel): the rule "one account per email", built inside `SignInWithGoogle` and `SignInWithApple`.
+  `findByIdentity(provider, sub)` counts an identity whose account no longer exists as none; `linkOrCreate({ provider,
+  sub, email, bodyName, providerName })` links by email or validates and creates the user, then calls
+  `registrationPending`.
 - Tokens: a short-lived **access JWT (15 minutes)**, HS256 signed with `JWT_SECRET`, payload
   `{ sub: user id, email }`, plus a **refresh token (30 days)**: 32 random bytes (base64url), stored only as a
   plain SHA-256 hex in `refresh_tokens` with a `family_id` per sign-in; a token is looked up by hashing the
@@ -822,8 +847,8 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
 - Registration notifications: `auth` declares the `RegistrationNotifier` port
   (`modules/auth/src/user/provider/registration-notifier.provider.ts`: `registrationPending({ id, name })`,
   `registrationApproved(userId)`, `registrationDenied(userId, reason?)`). `VerifySignInCode` and
-  `SignInWithGoogle` call `registrationPending` only on the path that creates the account, after the user and
-  identity are stored; `ApproveRegistration` / `DenyRegistration` call theirs only after `updateIfPending`
+  `ProviderAccountResolver` (for Google and Apple) call `registrationPending` only on the path that creates the
+  account, after the user and identity are stored; `ApproveRegistration` / `DenyRegistration` call theirs only after `updateIfPending`
   returned `true` (the deny reason trimmed, `undefined` when blank). Both ports are implemented in
   `apps/backend/src/modules/notifications/` (`NotificationsRegistrationNotifier`, which catches and logs every
   error so notifying never changes the answer, and `NotificationsPushTokenRemover`); `AuthModule` imports
@@ -862,7 +887,7 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   everywhere); a code is consumed with one atomic `deleteMany({ email, codeHash })`, which makes it single-use
   under concurrent verifies. A cleanup job deletes expired codes every minute.
 - Rate limits: `@nestjs/throttler`, in-memory, by client IP, bound per route with
-  `@UseGuards(ClientIpThrottlerGuard)` and `@Throttle` (code request 5; code verify, Google sign-in, refresh and sign-out
+  `@UseGuards(ClientIpThrottlerGuard)` and `@Throttle` (code request 5; code verify, Google and Apple sign-in, refresh and sign-out
   10 requests per 60 s); its error key is `request.rate.limited`. `ClientIpThrottlerGuard` (spec 079,
   `apps/backend/src/modules/auth/`) extends `ThrottlerGuard`: with `CLIENT_IP_HEADER` set it tracks that header's value,
   through the base `getTracker`, so IPv6 callers keep the library's /64 grouping; unset, or with the header missing, the
@@ -965,9 +990,10 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   (`15m`), `AUTH_CODE_PEPPER` (required: the backend refuses to start without it),
   `REFRESH_TOKEN_EXPIRES_IN_DAYS` (default 30), `REVIEW_ACCOUNTS`, `RESEND_API_KEY`, `EMAIL_FROM`,
   `GOOGLE_WEB_CLIENT_ID` (the audience of Google ID tokens; required in production — the backend refuses to
-  start without it — optional elsewhere). They are read and validated in
-  `apps/backend/src/modules/auth/auth.config.ts` (`AuthConfig`) and the providers. The Apple client id comes
-  with its sign-in spec. The app reads `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` and `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`
+  start without it — optional elsewhere), `APPLE_CLIENT_ID` (the audience of Apple identity tokens, the bundle id
+  `com.rochassurfschool.app`, not secret; required in production the same way, optional elsewhere, and the Docker image
+  sets `NODE_ENV=production`, so `docker compose up` needs it in `apps/backend/.env`). They are read and validated in
+  `apps/backend/src/modules/auth/auth.config.ts` (`AuthConfig`) and the providers. The app reads `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` and `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`
   (`apps/mobile/.env.example`; not secret).
 - Mobile session: the session logic lives in a plain, React-free module store in
   `apps/mobile/src/services/session/` (`session.store.ts`: `{ session, restoring, expired }`, a sign-out
@@ -980,7 +1006,7 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   backend sends them) or `null` —, `tokens` — `{ accessToken, accessTokenExpiresAt, refreshToken,
   refreshTokenExpiresAt }` or `null` —, `isRestoring`, `setSession({ user, tokens })`, `updateUser(user)` (an
   answer that carries the account) and `clearSession()`. The Confirm email screen sets it from the verify
-  response, and the sign-in and "Your name" screens from the `POST /auth/google` response. Every change is
+  response, and the sign-in and "Your name" screens from the `POST /auth/google` or `POST /auth/apple` response. Every change is
   written to SecureStore; a read or parse that throws, or only one key present, counts as no session and both
   keys are deleted (an Android backup restored to a new Keystore can't be decrypted).
   - Launch restore (`restoreSession()`, started once by `SessionProvider`): with a stored session it calls
@@ -1020,14 +1046,29 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   iosClientId })` once at module load and re-exports `GoogleSignin`, `statusCodes` and `isErrorWithCode`; import
   the library only from there. `useGoogleSignIn` (`modules/auth/hooks/`) runs `hasPlayServices()` (Android only)
   and `signIn()`, sends the ID token with `useSignInWithGoogle` (a mutation on `POST /auth/google`), puts a 200
-  answer in the session, and on a 422 `user.name.*` opens "Your name" (`routes.auth.googleName({ idToken, name })`,
-  route `/auth/google-name`; the token and Google's name travel only as route params); a ref ignores a second tap
+  answer in the session, and on a 422 `user.name.*` opens "Your name" (`routes.auth.providerName({ provider, idToken,
+  name })`, route `/auth/provider-name`; the token and the provider's name travel only as route params); a ref ignores a second tap
   while one runs. Errors map to toasts in `modules/auth/utils/google-sign-in-error.ts`: a `cancelled` answer,
   `SIGN_IN_CANCELLED` and `IN_PROGRESS` show nothing, `PLAY_SERVICES_NOT_AVAILABLE` → `googleSignIn.playServices`,
   `NetworkError` → no connection, the two 401 keys → their own toasts, anything else → generic. On "Your name" a
   401 `auth.google.tokenInvalid` also `router.replace`s to `/auth`, since only a new Google sign-in gets a new
   token. The name rules shared by Create account and "Your name" are `nameRules()` in
   `modules/auth/utils/field-validation.ts`, the same as `User.validate()`.
+- Mobile Apple sign-in (spec 083): `src/services/apple-sign-in.ts` is the only import point of
+  `expo-apple-authentication` (`requestAppleCredential()`, asking for the full name and the email, and
+  `APPLE_SIGN_IN_CANCELED`). The library's native module is optional, so importing it on Android is safe, and the button
+  is rendered only when `Platform.OS === "ios"` (`AuthButton` `variant="light"`, Ionicons `logo-apple` in `ink`, above
+  Google; Apple's native button would follow the phone's language, not the app's picker). `useAppleSignIn`
+  (`modules/auth/hooks/`) joins given and family names with a space, leaves `name` out when both are empty, sends them
+  with `useSignInWithApple` (a mutation on `POST /auth/apple`), puts a 200 answer in the session, and on a 422
+  `user.name.*` opens "Your name" with `provider: "apple"`; a ref ignores a second tap while one runs. Apple gives the
+  name only at the first authorization, so a lost first attempt or an erased account signing up again reaches "Your name"
+  with an empty field. Errors map to toasts in `modules/auth/utils/apple-sign-in-error.ts`: `ERR_REQUEST_CANCELED` shows
+  nothing, `NetworkError` → no connection, the three 401 keys → their `appleSignIn.*` toasts, a credential without
+  `identityToken` or anything else → generic. "Your name" is one screen for both providers (`ProviderNameScreen`,
+  `components/provider-name/`, `useProviderName`), `provider` choosing the mutation and the error mapping; a 401
+  `auth.apple.tokenInvalid` there also `router.replace`s to `/auth`. Its copy keeps the `googleName.*` keys, and the web
+  mock keeps the name `google-name-screen`.
 - Mobile closed-account calls: the Denied and Access removed screens read the school's number with a query on
   `GET /school-settings` (`useSchoolWhatsapp` in `src/hooks/use-school-whatsapp.hook.ts`, which reads
   `useSchoolSettings`, see Mobile school settings);
@@ -2165,6 +2206,16 @@ updates the policy's legal bases and retention list (spec 023) in the three web 
   client holds one SHA-1, so the debug keystore and EAS's keystore each have their own (spec 080); Google sign-in was
   proven on a real Android phone and on the TestFlight iOS build.
 
+### Apple sign-in
+
+- **Sign in with Apple** (spec 083), on iOS only. The phone gets an identity token with `expo-apple-authentication`; the
+  backend verifies it with `jose` and Apple's public keys behind the `AppleIdTokenProvider` port (see Authentication), so
+  it holds no Apple secret. Variable: `APPLE_CLIENT_ID` (backend). The capability is on the App ID
+  `com.rochassurfschool.app`, enabled as a primary App ID with no server-to-server endpoint. Tests never call Apple: the
+  backend e2e suite overrides `AppleAuthIdTokenProvider` with a fake, `apple.id-token.spec.ts` signs tokens with a local
+  key behind a mocked `createRemoteJWKSet`, and the mobile tests mock the library in `apps/mobile/jest.setup.ts`. Sign in
+  with Apple is unreliable on the simulator, so the real round trip is a journey on a TestFlight build, proven in spec 083.
+
 ### Language model (cancellation deadlines)
 
 - **Anthropic** (spec 036), behind the `CancellationDeadlineDescriber` port in `modules/classes`, implemented by
@@ -2286,6 +2337,8 @@ updates the policy's legal bases and retention list (spec 023) in the three web 
     profile, the APNs key, the FCM key and an App Store Connect API key (role `APP_MANAGER`) live on EAS.
   - `ios.config.usesNonExemptEncryption` is `false`, because the app's only encryption is the OS's HTTPS and
     `expo-secure-store`, so builds don't stop on Missing Compliance. EAS Update isn't installed.
+  - Sign In with Apple (spec 083) is on the App ID, and `ios.usesAppleSignIn` reaches the build. Changing a capability
+    invalidates the provisioning profile, and EAS makes a new one at the next build.
 
 ## Automated validation
 
@@ -2318,7 +2371,8 @@ Maestro suite for mobile would be a spec of its own.
   `react-native-maps` (spec 037) is `MapView` and `Marker` as host elements that keep their props (default and named
   exports, `PROVIDER_GOOGLE` `"google"`), so tests fire `onPress` with a coordinate and read the marker's
   `coordinate`; its ref has `setCamera` and `animateToRegion` as `jest.fn`s (spec 065). `expo-location` is mocked
-  (permission granted, a Fortaleza position, no address by default), and Reanimated's `useAnimatedKeyboard` answers
+  (permission granted, a Fortaleza position, no address by default), `expo-apple-authentication` is `signInAsync` as a
+  `jest.fn` with the scopes (spec 083), and Reanimated's `useAnimatedKeyboard` answers
   shared-value-like objects for a closed keyboard. Tests that need a signed-in app seed the real store
   (`hydrateSession`) with an access token far in the future, since one close to expiry triggers a refresh;
   `fetch` is mocked per test.

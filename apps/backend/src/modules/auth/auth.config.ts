@@ -74,6 +74,8 @@ export class AuthConfig {
   readonly reviewAccounts: ReviewAccount[];
   /** Audience of Google ID tokens. Optional outside production: without it every Google token is refused. */
   readonly googleWebClientId?: string;
+  /** Audience of Apple identity tokens, the app's bundle id. Optional outside production: without it every Apple token is refused. */
+  readonly appleClientId?: string;
 
   constructor(configService: ConfigService) {
     const pepper = configService.get<string>('AUTH_CODE_PEPPER');
@@ -91,6 +93,12 @@ export class AuthConfig {
       throw new Error('GOOGLE_WEB_CLIENT_ID is not configured');
     }
     this.googleWebClientId = googleWebClientId || undefined;
+
+    const appleClientId = configService.get<string>('APPLE_CLIENT_ID')?.trim();
+    if (!appleClientId && configService.get<string>('NODE_ENV') === 'production') {
+      throw new Error('APPLE_CLIENT_ID is not configured');
+    }
+    this.appleClientId = appleClientId || undefined;
   }
 
   /** Review-account email → its fixed code, for `RequestSignInCode`. */

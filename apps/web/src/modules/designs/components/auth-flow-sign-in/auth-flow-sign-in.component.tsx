@@ -13,6 +13,8 @@ export function AuthFlowSignIn({ locale, text }: AuthFlowSignInProps) {
     { id: "AF-01-03", screen: <SignInScreen locale={locale} googleLoading /> },
     { id: "AF-01-04", screen: <SignInScreen locale={locale} toastKey="googleSignIn.tokenInvalid" /> },
     { id: "AF-01-05", screen: <SignInScreen locale={locale} toastKey="session.expired" /> },
+    { id: "AF-01-06", screen: <SignInScreen locale={locale} appleLoading /> },
+    { id: "AF-01-07", screen: <SignInScreen locale={locale} toastKey="appleSignIn.tokenInvalid" /> },
   ] as const;
 
   return (

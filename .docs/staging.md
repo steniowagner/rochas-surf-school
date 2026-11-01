@@ -181,50 +181,76 @@ Open a session on the server. Port 22 is closed and there is no SSH key.
 aws ssm start-session --region us-east-1 --target "$(terraform -chdir=infra/terraform/staging output -raw server_instance_id)"
 ```
 
-### Resetting the data
-
-`npm run reset-staging` erases everything in the database and leaves only the test accounts in `REVIEW_ACCOUNTS`: the 12
-sets of `admin01@test.com`, `instructor01@test.com` and `student01@test.com`, up to `12`. The admins start approved and
-everyone else starts as a pending student, whatever their name says, so testers approve them and set their roles. The
-migrations stay applied. Refresh tokens go too, so everyone is signed out. A deploy never runs it, and it leaves
-accounts that testers have changed alone.
-
-Select the staging AWS profile first. The machine's default profile is another account, where the parameters below
-don't exist, so the `aws` commands would fail or come back empty:
-
-```bash
-export AWS_PROFILE=rochas-surf-school
-```
-
-The sign-in code lives only in `REVIEW_ACCOUNTS`, so the repo never holds it. To set a new one, write the parameter with
-the printed value, without the `REVIEW_ACCOUNTS=` and the quotes, then deploy so the server reads it:
-
-```bash
-TEST_ACCOUNTS_CODE=<6 digits> npm run test-accounts -w apps/backend
-```
-
-Then, from `apps/backend`, load the two values into this shell:
-
-```bash
-export DATABASE_URL="$(aws ssm get-parameter --region us-east-1 --name /rochas/staging/DATABASE_URL --with-decryption --query Parameter.Value --output text)"
-```
-
-```bash
-export REVIEW_ACCOUNTS="$(aws ssm get-parameter --region us-east-1 --name /rochas/staging/REVIEW_ACCOUNTS --with-decryption --query Parameter.Value --output text)"
-```
-
-Run it without an argument to see which host it would erase, then pass that host to confirm:
-
-```bash
-npm run reset-staging
-```
-
-```bash
-npm run reset-staging -- <database host>
-```
-
 Replacing the server (a new `user_data`, say) leaves it without the backend until the next deploy, because the running
 version isn't part of the Terraform.
 
 **After 60 days without traffic** the VPC link goes `INACTIVE` and API Gateway deletes its network interfaces, so the
 API fails. Any request starts bringing it back, and it answers again a few minutes later.
+
+## Resetting the data
+
+`npm run reset-staging` erases everything in the database and leaves only the test accounts in `REVIEW_ACCOUNTS`: the 12
+sets of `admin01@test.com`, `instructor01@test.com` and `student01@test.com`, up to `12`. The admins start approved and
+everyone else starts as a pending student, whatever their name says, so testers approve them and set their roles. The
+migrations stay applied. Refresh tokens go too, so everyone is signed out, and real accounts on staging go with the rest,
+including your own. A deploy never runs it, and it leaves accounts that testers have changed alone.
+
+The accounts come from the `REVIEW_ACCOUNTS` parameter, not from the code, and the repo never holds the sign-in code. If
+the emails you get are the old ones, the parameter wasn't updated. Steps 2 and 3 are only needed when the accounts or
+the code change. Run everything from `apps/backend`.
+
+1. Select the staging AWS profile. The machine's default profile is another account, where these parameters don't
+   exist, so the `aws` commands would fail or come back empty.
+
+   ```bash
+   export AWS_PROFILE=rochas-surf-school
+   ```
+
+2. Generate the value, with the code you want, and keep it in this shell. `test-accounts` also prints the hand-out
+   table.
+
+   ```bash
+   export REVIEW_ACCOUNTS="$(TEST_ACCOUNTS_CODE=<6 digits> npm run -s test-accounts | head -1 | sed -e "s/^REVIEW_ACCOUNTS='//" -e "s/'$//")"
+   ```
+
+3. Save it to staging. If you paste the JSON instead of using the variable, wrap it in single quotes and leave out the
+   `REVIEW_ACCOUNTS=` prefix. The command prints the parameter's new `Version`.
+
+   ```bash
+   aws ssm put-parameter --region us-east-1 --type SecureString --overwrite --name /rochas/staging/REVIEW_ACCOUNTS --value "$REVIEW_ACCOUNTS"
+   ```
+
+4. Load the staging database. If you skipped steps 2 and 3, load the accounts as well. Both variables have to be in this
+   shell: without them the script reads `apps/backend/.env`, which points at your local database and holds your local
+   review accounts.
+
+   ```bash
+   export DATABASE_URL="$(aws ssm get-parameter --region us-east-1 --name /rochas/staging/DATABASE_URL --with-decryption --query Parameter.Value --output text)"
+   ```
+
+   ```bash
+   export REVIEW_ACCOUNTS="$(aws ssm get-parameter --region us-east-1 --name /rochas/staging/REVIEW_ACCOUNTS --with-decryption --query Parameter.Value --output text)"
+   ```
+
+5. Check the accounts it will seed. This should print `36 admin01@test.com`.
+
+   ```bash
+   node -e 'const a = JSON.parse(process.env.REVIEW_ACCOUNTS); console.log(a.length, a[0].email)'
+   ```
+
+6. Run it without an argument. It erases nothing and prints the host it would erase, which is the session pooler's, for
+   example `aws-0-us-east-1.pooler.supabase.com`.
+
+   ```bash
+   npm run reset-staging
+   ```
+
+7. Run it again with that host to confirm. Pass only the host, not the whole `DATABASE_URL`. It prints how many accounts
+   it seeded.
+
+   ```bash
+   npm run reset-staging -- <database host>
+   ```
+
+8. If you changed the parameter, deploy, as in [Deploy](#deploy). The server reads `REVIEW_ACCOUNTS` only when it starts,
+   so until then the new accounts' code is refused.

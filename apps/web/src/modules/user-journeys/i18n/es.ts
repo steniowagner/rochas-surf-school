@@ -6,7 +6,7 @@ export const es = {
     auth: {
       title: "Acceso",
       description: "Todo lo que una persona recorre antes de llegar a su inicio: elegir el idioma, entrar con Google o con un código enviado por email, crear una cuenta, esperar la aprobación de la escuela, dar un número de WhatsApp, aceptar las normas de la escuela y las pantallas de una cuenta cerrada (eliminada, rechazada o quitada).",
-      account: "Los casos de registro necesitan un email o una cuenta de Google tuya que nunca se haya usado en la app (las cuentas de tu conjunto de prueba ya están aprobadas). Los demás casos pueden usar la cuenta de alumno de tu conjunto de prueba. Algunos casos necesitan que la escuela apruebe, rechace, quite o restaure una cuenta: pídelo cuando el caso lo diga.",
+      account: "Los casos de registro necesitan un email o una cuenta de Google tuya que nunca se haya usado en la app (las cuentas de tu conjunto de prueba ya existen). Los demás casos pueden usar la cuenta de alumno de tu conjunto de prueba. Algunos casos necesitan que la escuela apruebe, rechace, quite o restaure una cuenta: pídelo cuando el caso lo diga.",
       groups: {
         signIn: "Entrada",
         email: "Email",
@@ -17,7 +17,7 @@ export const es = {
     student: {
       title: "App del alumno",
       description: "Todo lo que hace un alumno aprobado: ver las clases de la escuela, pedir una plaza, entrar en una lista de espera, anular o cancelar, seguir sus reservas y su historial, encontrar personas, gestionar el perfil y leer los avisos. Un aviso que solo no llega como push no es un fallo: la versión de prueba todavía no puede enviar pushes, así que revisa la pantalla \"Avisos\" (la campana).",
-      account: "La cuenta de alumno de tu conjunto de prueba. La primera entrada pide un número de WhatsApp y las normas de la escuela (mira el flujo de acceso). Muchos casos necesitan clases que prepara la escuela o una acción de un admin: habla con la escuela antes de probarlos. Todo aviso también aparece en la pantalla \"Avisos\" (la campana en \"Agenda\"); revísala cuando no llegue ningún push.",
+      account: "La cuenta de alumno de tu conjunto de prueba, una vez que el admin de tu conjunto la apruebe. La primera entrada pide un número de WhatsApp y las normas de la escuela (mira el flujo de acceso). Muchos casos necesitan clases que prepara la escuela o una acción de un admin: habla con la escuela antes de probarlos. Todo aviso también aparece en la pantalla \"Avisos\" (la campana en \"Agenda\"); revísala cuando no llegue ningún push.",
       groups: {
         schedule: "Agenda",
         requestSeat: "Pedir una plaza",
@@ -30,7 +30,7 @@ export const es = {
     instructor: {
       title: "App del instructor",
       description: "Todo lo que hace un instructor aprobado: ver el inicio y las clases de la escuela, seguir las clases que da y que ya dio, ver quién está en cada clase, revisar la ocupación semanal, encontrar personas, gestionar el perfil y leer los avisos. Los instructores solo consultan: la escuela hace toda inscripción y cambio de horario. Un aviso que solo no llega como push no es un fallo: la versión de prueba todavía no puede enviar pushes, así que revisa la pantalla \"Avisos\" (la campana).",
-      account: "La cuenta de instructor de tu conjunto de prueba. Pide a la escuela (o al admin de tu conjunto) que te asigne algunas clases: una en curso o más tarde hoy, otras en los próximos días y una que ya terminó. Todo aviso también aparece en la pantalla \"Avisos\" (la campana en \"Inicio\"); revísala cuando no llegue ningún push.",
+      account: "La cuenta de instructor de tu conjunto de prueba, una vez que el admin de tu conjunto la apruebe y cambie su rol a instructor. Pide a la escuela (o al admin de tu conjunto) que te asigne algunas clases: una en curso o más tarde hoy, otras en los próximos días y una que ya terminó. Todo aviso también aparece en la pantalla \"Avisos\" (la campana en \"Inicio\"); revísala cuando no llegue ningún push.",
       groups: {
         home: "Inicio",
         classes: "Clases",
@@ -43,7 +43,7 @@ export const es = {
     admin: {
       title: "App del admin",
       description: "Todo lo que hace un admin aprobado para dirigir la escuela: decidir registros, reactivaciones y solicitudes de plaza, crear, editar, cancelar y eliminar clases, gestionar lugares, inscribir alumnos y alumnos de prueba, enviar avisos y mensajes de clase, cambiar roles, quitar y restaurar cuentas, definir los ajustes de la escuela, las reglas de cancelación y las normas de la escuela, y dar clases cuando también es instructor. Un aviso que solo no llega como push no es un fallo: la versión de prueba todavía no puede enviar pushes, así que revisa la pantalla \"Avisos\" (la campana).",
-      account: "La cuenta de admin de tu conjunto de prueba. Muchos casos necesitan una segunda persona — un alumno o un instructor — en otro teléfono: usa las cuentas de alumno y de instructor de tu conjunto, o prueba con otra persona que esté probando. Todo aviso también aparece en la pantalla \"Avisos\" (la campana en \"Inicio\"); revísala cuando no llegue ningún push.",
+      account: "La cuenta de admin de tu conjunto de prueba. Muchos casos necesitan una segunda persona — un alumno o un instructor — en otro teléfono: usa las cuentas de alumno y de instructor de tu conjunto (empiezan esperando tu aprobación), o prueba con otra persona que esté probando. Todo aviso también aparece en la pantalla \"Avisos\" (la campana en \"Inicio\"); revísala cuando no llegue ningún push.",
       groups: {
         home: "Inicio",
         accounts: "Cuentas",

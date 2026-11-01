@@ -1405,7 +1405,9 @@ copy the email. Try again." when the browser refuses). The page is linked from t
 accounts" row) and from each flow page's "Account to use" card ("See the test accounts"), and, like the other user
 journey pages, from nowhere else on the site and not indexed. Since spec 078 each flow page shows "All flows"
 before "See the designs". The page and the backend's `test-accounts` command read
-the same list of sets, so the emails and names a tester reads are always the accounts the server creates.
+the same list of sets, so the emails and names a tester reads are always the accounts the server creates. The page's
+intro and the flows' "Account to use" cards tell testers that only the admin starts approved, so the set's admin
+approves the other two accounts and changes the instructor account's role.
 
 **Staging server** (spec `079-staging-backend-infra`) — the school's API now runs all day on a test server at
 `https://api-staging.rochassurfschool.com`, so the app can be tested on real phones outside the developer's machine.

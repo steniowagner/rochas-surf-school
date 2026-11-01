@@ -363,12 +363,21 @@ The sender, in every answer below (`null` by ER-05):
 
 ### Backend (`apps/backend`)
 
-- [ ] **T-04** — Add `ClassMessage` to `apps/backend/prisma/models/classes.model.prisma` (D-02) with its back-relation in
+- [x] **T-04** — Add `ClassMessage` to `apps/backend/prisma/models/classes.model.prisma` (D-02) with its back-relation in
   `auth.model.prisma`, the migration `classes-add-class-messages`, and `src/modules/classes/class-message.prisma.ts`, with
   its spec. Skills: [`backend-prisma-sync-module`](../../../.claude/skills/backend-prisma-sync-module),
   [`backend-prisma-repository`](../../../.claude/skills/backend-prisma-repository).
   Covers: enabling · Done when: `npm run prisma:migrate:deploy --workspace apps/backend` applies cleanly and the
   repository's spec passes.
+  > ✅ 2026-10-31 23:41 — Added the ClassMessage model (D-02) with its back-relations, the migration and
+  > PrismaClassMessageRepository (an erased sender reads as null); files:
+  > `apps/backend/prisma/models/classes.model.prisma`, `apps/backend/prisma/models/auth.model.prisma`,
+  > `apps/backend/prisma/migrations/20261031120000_classes_add_class_messages/migration.sql`,
+  > `apps/backend/src/modules/classes/class-message.prisma.ts`,
+  > `apps/backend/src/modules/classes/class-message.prisma.spec.ts`; verified: `npm run prisma:migrate:deploy
+  > --workspace apps/backend` applied cleanly, `prisma migrate diff` against the schema is empty, `npx vitest run
+  > src/modules/classes/class-message.prisma.spec.ts` (3 passed); deviations: the migration SQL came from `prisma
+  > migrate diff` instead of `prisma migrate dev`, which needs a TTY; the file is what `migrate dev` would generate.
 
 - [ ] **T-05** — In `src/modules/classes/classes.controller.ts`, add `GET /classes/:id/messages` and give `SendClassMessage`
   its repository, wire them in `classes.module.ts`, add the requests to `classes.integration.http`, and write

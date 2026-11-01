@@ -65,6 +65,7 @@ model SchoolClass {
   instructors ClassInstructor[]
   enrolments  Enrolment[]
   guests      Guest[]
+  messages    ClassMessage[]
 
   @@index([startsAt])
   @@index([locationId])
@@ -82,6 +83,22 @@ model ClassInstructor {
   @@id([classId, userId])
   @@index([userId])
   @@map("class_instructors")
+}
+
+// What an admin sent to a class, kept so that anyone who opens the class can read it.
+model ClassMessage {
+  id        String   @id @db.Uuid
+  classId   String   @map("class_id") @db.Uuid
+  senderId  String   @map("sender_id") @db.Uuid
+  title     String
+  message   String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  schoolClass SchoolClass @relation(fields: [classId], references: [id], onDelete: Cascade)
+  sender      User        @relation(fields: [senderId], references: [id], onDelete: Restrict)
+
+  @@index([classId, createdAt])
+  @@map("class_messages")
 }
 
 model CancellationRule {

@@ -2,6 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import * as Notifications from "expo-notifications";
 import { useEffect } from "react";
 
+import { classMessagesQueryKey } from "@/modules/classes/utils/class-messages-cache";
 import { PENDING_REQUESTS_QUERY_KEY } from "@/modules/enrolment/hooks/use-pending-requests.hook";
 import { REACTIVATIONS_QUERY_KEY } from "@/modules/admin/utils/reactivations-cache";
 import { REGISTRATIONS_QUERY_KEY } from "@/modules/admin/utils/registrations-cache";
@@ -27,7 +28,7 @@ export const useNotificationReceived = () => {
   useEffect(() => {
     const subscription = Notifications.addNotificationReceivedListener(
       (notification) => {
-        const type = notification.request.content.data?.type;
+        const { type, classId } = notification.request.content.data ?? {};
 
         // Every push is a new notification: the list and the bell's badge reload, whatever its type (spec 055, D-09).
         void queryClient.invalidateQueries({ queryKey: NOTIFICATIONS_LIST_QUERY_KEY });
@@ -48,6 +49,13 @@ export const useNotificationReceived = () => {
           void queryClient.invalidateQueries({
             queryKey: REACTIVATIONS_QUERY_KEY,
           });
+
+          return;
+        }
+
+        // A class's details show its messages: only that class's section reloads (spec 082, ER-16).
+        if (type === "class.message" && typeof classId === "string") {
+          void queryClient.invalidateQueries({ queryKey: classMessagesQueryKey(classId) });
 
           return;
         }

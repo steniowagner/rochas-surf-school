@@ -547,10 +547,16 @@ The sender, in every answer below (`null` by ER-05):
   > src/modules/classes` (95 suites, 1120 passed); deviations: `classMessageTime` reuses `weekdayAbbreviation`,
   > because date-fns `EEE` gives "Quinta" in pt-BR.
 
-- [ ] **T-14** — Invalidate `["classes", "messages", classId]` for a received `class.message` in
+- [x] **T-14** — Invalidate `["classes", "messages", classId]` for a received `class.message` in
   `use-notification-received.hook.ts` and after a sent one in `src/modules/notices/hooks/use-send-class-message.hook.ts`, with
   tests in both hook test files.
   Covers: ER-16 · Done when: `npx jest src/modules/notifications/hooks src/modules/notices/hooks` passes.
+  > ✅ 2026-11-01 00:05 — A received `class.message` invalidates `["classes", "messages", classId]`, and so does a
+  > sent one; files: `apps/mobile/src/modules/notifications/hooks/use-notification-received.hook.ts`,
+  > `apps/mobile/src/modules/notifications/hooks/use-notification-received.hook.test.tsx`,
+  > `apps/mobile/src/modules/notices/hooks/use-send-class-message.hook.ts`,
+  > `apps/mobile/src/modules/notices/hooks/use-send-class-message.hook.test.tsx`; verified: `npx jest
+  > src/modules/notifications/hooks src/modules/notices/hooks` (13 suites, 205 passed); deviations: none.
 
 ### Verification
 

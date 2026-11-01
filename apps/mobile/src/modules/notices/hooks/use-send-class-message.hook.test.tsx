@@ -24,9 +24,9 @@ beforeEach(() => {
   jest.mocked(apiPost).mockReset();
 });
 
-const send = async () => {
+const send = async (queryClient = createQueryClient()) => {
   const { result } = await renderHook(() => useSendClassMessage("c-1"), {
-    wrapper: createQueryWrapper(createQueryClient()),
+    wrapper: createQueryWrapper(queryClient),
   });
 
   await act(async () => {
@@ -62,6 +62,26 @@ describe("useSendClassMessage", () => {
 
     expect(apiPost).toHaveBeenCalledTimes(1);
     expect(mockShow).toHaveBeenCalledWith(text);
+  });
+
+  it("reloads the messages of that class after sending", async () => {
+    jest.mocked(apiPost).mockResolvedValue(undefined);
+    const queryClient = createQueryClient();
+    const invalidate = jest.spyOn(queryClient, "invalidateQueries");
+
+    await send(queryClient);
+
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ["classes", "messages", "c-1"] });
+  });
+
+  it("reloads nothing when the send fails", async () => {
+    jest.mocked(apiPost).mockRejectedValue(new ApiError(500, []));
+    const queryClient = createQueryClient();
+    const invalidate = jest.spyOn(queryClient, "invalidateQueries");
+
+    await send(queryClient);
+
+    expect(invalidate).not.toHaveBeenCalled();
   });
 
   it("leaves an expired session to the app", async () => {

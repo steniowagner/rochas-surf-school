@@ -276,6 +276,45 @@ describe("useNotificationReceived", () => {
     expect(app.getPathname()).toBe(pathname);
   });
 
+  describe("a class.message push", () => {
+    const withClass = (classId?: unknown) =>
+      ({
+        request: { content: { data: { type: "class.message", classId } } },
+      }) as unknown as Notifications.Notification;
+
+    it("reloads the section of that class and the notifications, without navigating", async () => {
+      answerMe(account("approved", "student"));
+      await openApp(account("approved", "student"));
+      const pathname = app.getPathname();
+
+      await receive(withClass("c-1"));
+
+      expect(invalidate.mock.calls).toEqual([
+        ...NOTIFICATIONS_INVALIDATIONS,
+        [{ queryKey: ["classes", "messages", "c-1"] }],
+      ]);
+      expect(app.getPathname()).toBe(pathname);
+    });
+
+    it("leaves another class's section alone", async () => {
+      answerMe(account("approved", "student"));
+      await openApp(account("approved", "student"));
+
+      await receive(withClass("c-2"));
+
+      expect(invalidate).not.toHaveBeenCalledWith({ queryKey: ["classes", "messages", "c-1"] });
+    });
+
+    it("reloads only the notifications without a class", async () => {
+      answerMe(account("approved", "student"));
+      await openApp(account("approved", "student"));
+
+      await receive(withClass());
+
+      expect(invalidate.mock.calls).toEqual(NOTIFICATIONS_INVALIDATIONS);
+    });
+  });
+
   it.each(["student", "instructor", "admin"])(
     "reloads only the notifications and stays put when a class.reminder push arrives for a %s",
     async (role) => {

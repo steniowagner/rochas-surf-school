@@ -351,7 +351,7 @@ because the app offers Google.
   > `apps/backend/src/modules/auth/auth.module.ts`; verified: `npx vitest run src/modules/auth/apple.id-token.spec.ts
   > src/modules/auth/auth.config.spec.ts` (2 files, 44 passed), `tsc --noEmit` clean; deviations: none
 
-- [ ] **T-04** — Expose `POST /auth/apple` in `apps/backend/src/modules/auth/auth.controller.ts` (D-05), with its cases in
+- [x] **T-04** — Expose `POST /auth/apple` in `apps/backend/src/modules/auth/auth.controller.ts` (D-05), with its cases in
   `auth.controller.spec.ts` and requests in `auth.integration.http`; add `apps/backend/test/auth-apple.e2e-spec.ts`,
   overriding `AppleAuthIdTokenProvider` with a fake (D-14), with the tests `creates a pending account`,
   `links an email account`, `signs in a known identity`, `requires a token`, `refuses an invalid token`,
@@ -361,6 +361,12 @@ because the app offers Google.
   Covers: ER-01, ER-02, ER-03, ER-04, ER-05, ER-06, ER-07, ER-08 · Done when:
   `npx vitest run src/modules/auth/auth.controller.spec.ts` passes and `npm run test:e2e --workspace apps/backend` passes
   against the local database.
+  > ✅ 2026-11-01 12:21 — exposed `POST /auth/apple` (D-05), with controller cases, requests in the `.http` file and
+  > the e2e suite overriding `AppleAuthIdTokenProvider` with a fake (D-14); files:
+  > `apps/backend/src/modules/auth/auth.controller.ts`, `apps/backend/src/modules/auth/auth.controller.spec.ts`,
+  > `apps/backend/src/modules/auth/auth.integration.http`, `apps/backend/test/auth-apple.e2e-spec.ts`; verified: `npx
+  > vitest run src/modules/auth/auth.controller.spec.ts` (45 passed), `npm run test:e2e --workspace apps/backend`
+  > against local Postgres (31 files, 865 passed), `tsc --noEmit` clean; deviations: none
 
 ### Packages (`packages/app-messages`)
 

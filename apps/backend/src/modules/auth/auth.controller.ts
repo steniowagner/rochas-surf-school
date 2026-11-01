@@ -15,6 +15,9 @@ import {
   SetWhatsapp,
   SetWhatsappIn,
   SetWhatsappOut,
+  SignInWithApple,
+  SignInWithAppleIn,
+  SignInWithAppleOut,
   SignInWithGoogle,
   SignInWithGoogleIn,
   SignInWithGoogleOut,
@@ -30,6 +33,7 @@ import {
 } from '@rochas-surf-school/auth';
 import { CurrentUser } from '../../shared/decorators/current-user.decorator.js';
 import { Public } from '../../shared/decorators/public.decorator.js';
+import { AppleAuthIdTokenProvider } from './apple.id-token.js';
 import { AuthConfig } from './auth.config.js';
 import { ClientIpThrottlerGuard } from './client-ip-throttler.guard.js';
 import { GoogleAuthIdTokenProvider } from './google.id-token.js';
@@ -62,6 +66,7 @@ export class AuthController {
     private readonly tokenProvider: JwtTokenProvider,
     private readonly rulesVersionProvider: PrismaRulesVersionProvider,
     private readonly googleIdTokenProvider: GoogleAuthIdTokenProvider,
+    private readonly appleIdTokenProvider: AppleAuthIdTokenProvider,
     private readonly registrationNotifier: NotificationsRegistrationNotifier,
     private readonly pushTokenRemover: NotificationsPushTokenRemover,
     private readonly teachingReleaser: ClassesTeachingReleaser,
@@ -127,6 +132,29 @@ export class AuthController {
     );
     const useCase = new SignInWithGoogle(
       this.googleIdTokenProvider,
+      this.userRepository,
+      this.identityRepository,
+      startSession,
+      this.authConfig.refreshTokenTtlDays,
+      this.rulesVersionProvider,
+      this.registrationNotifier,
+    );
+    return useCase.execute({ idToken: body?.idToken as string, name: body?.name });
+  }
+
+  @Public()
+  @UseGuards(ClientIpThrottlerGuard)
+  @Throttle({ default: { limit: 10, ttl: seconds(60) } })
+  @Post('apple')
+  @HttpCode(HttpStatus.OK)
+  signInWithApple(@Body() body: SignInWithAppleIn | undefined): Promise<SignInWithAppleOut> {
+    const startSession = new StartSession(
+      this.refreshTokenRepository,
+      this.tokenProvider,
+      this.clock,
+    );
+    const useCase = new SignInWithApple(
+      this.appleIdTokenProvider,
       this.userRepository,
       this.identityRepository,
       startSession,

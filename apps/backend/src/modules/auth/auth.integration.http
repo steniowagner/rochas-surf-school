@@ -280,3 +280,28 @@ Content-Type: application/json
   "idToken": "{{googleIdToken}}",
   "name": "Ana Rocha"
 }
+
+### Sign in with Apple without an idToken (expects 422 idToken.token.required)
+POST {{baseUrl}}/auth/apple
+Content-Type: application/json
+
+{}
+
+### Sign in with a bad Apple idToken (expects 401 auth.apple.tokenInvalid)
+POST {{baseUrl}}/auth/apple
+Content-Type: application/json
+
+{
+  "idToken": "not-an-apple-token"
+}
+
+### Sign in with Apple (expects 200 with accessToken, refreshToken and user; needs a real idToken from the app
+### and APPLE_CLIENT_ID set; a new account answers 422 user.name.* without a valid "name")
+@appleIdToken = paste-an-id-token-here
+POST {{baseUrl}}/auth/apple
+Content-Type: application/json
+
+{
+  "idToken": "{{appleIdToken}}",
+  "name": "Ana Rocha"
+}

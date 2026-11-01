@@ -1361,6 +1361,7 @@ const messages: Messages = {
       eyebrow: "Mensaje de la escuela",
       confirm: "Ok, entendido",
       close: "Cerrar",
+      classLabel: "La clase",
       loadError: "No se pudo abrir el mensaje. Inténtalo de nuevo.",
     },
   },

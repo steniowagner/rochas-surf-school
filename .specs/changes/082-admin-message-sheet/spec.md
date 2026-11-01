@@ -443,9 +443,12 @@ The sender, in every answer below (`null` by ER-05):
   > copy for `close` and `loadError`, so they follow the existing wording of each locale; `messageTitle` has line
   > height 1.1 so wrapped lowercase text does not clip.
 
-- [ ] **T-16** — Add `notifications.messageSheet.classLabel` to `packages/app-messages/src/{pt-BR,es-ES,en-US}.ts`: "A aula",
+- [x] **T-16** — Add `notifications.messageSheet.classLabel` to `packages/app-messages/src/{pt-BR,es-ES,en-US}.ts`: "A aula",
   "La clase" and "The class" (D-18).
   Covers: enabling · Done when: `npm test -w @rochas-surf-school/app-messages` passes.
+  > ✅ 2026-11-01 14:10 — Added `notifications.messageSheet.classLabel` in the three locales; files:
+  > `packages/app-messages/src/pt-BR.ts`, `packages/app-messages/src/es-ES.ts`, `packages/app-messages/src/en-US.ts`;
+  > verified: `npm test -w @rochas-surf-school/app-messages` passes; deviations: none.
 
 ### Mobile (`apps/mobile`)
 

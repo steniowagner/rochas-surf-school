@@ -142,10 +142,11 @@ const refused = (status: number, key: string) => ({
   json: async () => ({ errors: [key] }),
 });
 
-// The screen also reads the school settings, for the waiting-list switch.
+// The screen also reads the school settings, for the waiting-list switch, and the class's messages.
 const classRequestCount = () =>
   fetchMock.mock.calls.filter(
-    ([url]) => !String(url).endsWith("/school-settings"),
+    ([url]) =>
+      !String(url).endsWith("/school-settings") && !String(url).endsWith("/messages"),
   ).length;
 
 const serve = (item: ClassDetails) => fetchMock.mockResolvedValue(ok(item));
@@ -3780,5 +3781,112 @@ describe("ClassDetailsScreen erased people", () => {
     expect(
       screen.getByRole("button", { name: "Take out Bia Lima" }),
     ).toBeOnTheScreen();
+  });
+});
+
+describe("ClassDetailsScreen class messages", () => {
+  beforeEach(() => {
+    setupSignedInUser();
+    mockUseSchoolRules.mockReturnValue(schoolRules(0));
+  });
+
+  describe("the class's messages", () => {
+    const SENDER = {
+      id: "s-1",
+      name: "Carla Dias",
+      photoUrl: null,
+      role: "admin",
+      whatsappNumber: "+5585977776666",
+    } as const;
+    const MESSAGES = [
+      { id: "m-2", title: "Ponto de encontro", message: "Barraca azul.", createdAt: "2026-10-14T12:00:00.000Z", sender: SENDER },
+      { id: "m-1", title: "Bem-vindos", message: "Tragam protetor.", createdAt: "2026-10-13T12:00:00.000Z", sender: null },
+    ];
+
+    const serveMessages = (
+      item: ClassDetails,
+      messages: () => unknown = () => ok({ items: MESSAGES }),
+    ) =>
+      fetchMock.mockImplementation(async (url: string) =>
+        String(url).endsWith("/messages") ? messages() : ok(item),
+      );
+
+    const textOrder = () => JSON.stringify(screen.toJSON());
+
+    it.each(["student", "instructor", "admin"] as const)(
+      "lists them newest first for a %s, between the people and the rules",
+      async (role) => {
+        signInAs(role);
+        serveMessages(makeClass());
+        await renderScreen();
+
+        expect(await screen.findByText("Messages for this class · 2")).toBeOnTheScreen();
+
+        const text = textOrder();
+        expect(text.indexOf("Ponto de encontro")).toBeLessThan(text.indexOf("Bem-vindos"));
+        expect(text.indexOf("Messages for this class")).toBeGreaterThan(text.indexOf("Bruno Lima"));
+        expect(text.indexOf("Messages for this class")).toBeLessThan(text.indexOf('"Rules"'));
+        expect(text.indexOf('"Rules"')).toBeGreaterThan(-1);
+      },
+    );
+
+    it.each([
+      ["none", () => ok({ items: [] })],
+      ["a failed read", () => failure(500)],
+      ["a read still going", () => new Promise(() => undefined)],
+    ])("hides the section with %s, and the rest of the screen stays", async (_name, messages) => {
+      serveMessages(makeClass(), messages);
+      await renderScreen();
+
+      expect(await screen.findByText("Bruno Lima")).toBeOnTheScreen();
+      expect(screen.queryByText(/Messages for this class/)).toBeNull();
+    });
+
+    it.each([
+      ["a finished class", { startsAt: "2026-10-10T19:00:00.000Z", endsAt: "2026-10-10T20:00:00.000Z" }],
+      ["a cancelled class", { cancelledAt: "2026-10-13T20:00:00.000Z" }],
+    ])("shows them on %s", async (_name, overrides) => {
+      serveMessages(makeClass(overrides));
+      await renderScreen();
+
+      expect(await screen.findByText("Messages for this class · 2")).toBeOnTheScreen();
+    });
+
+    it("opens the sheet of a row with no class card, reading no notification", async () => {
+      serveMessages(makeClass());
+      await renderScreen();
+
+      await userEvent.setup().press(await screen.findByText("Ponto de encontro"));
+
+      expect(await screen.findByText("Message from the school")).toBeOnTheScreen();
+      expect(screen.getAllByText("Barraca azul.").length).toBeGreaterThan(1);
+      expect(screen.queryByTestId("request-seat-class-card-chevron")).toBeNull();
+      expect(screen.queryByTestId("message-sheet-class-loading")).toBeNull();
+      expect(
+        fetchMock.mock.calls.filter(([url]) => String(url).includes("/notifications")),
+      ).toEqual([]);
+    });
+
+    it("shows the sender's details from the sheet", async () => {
+      const user = userEvent.setup();
+      serveMessages(makeClass());
+      await renderScreen();
+      await user.press(await screen.findByText("Ponto de encontro"));
+
+      await user.press(await screen.findByRole("button", { name: "Carla Dias" }));
+
+      expect(await screen.findByRole("button", { name: "Chat on WhatsApp" })).toBeOnTheScreen();
+    });
+
+    it("closes the sheet", async () => {
+      const user = userEvent.setup();
+      serveMessages(makeClass());
+      await renderScreen();
+      await user.press(await screen.findByText("Bem-vindos"));
+
+      await user.press(await screen.findByRole("button", { name: "OK, got it" }));
+
+      expect(screen.getByText("Messages for this class · 2")).toBeOnTheScreen();
+    });
   });
 });

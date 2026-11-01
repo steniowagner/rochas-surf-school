@@ -528,11 +528,24 @@ The sender, in every answer below (`null` by ER-05):
   > fails with its guard removed; deviations: the push handler part of not stacking the screen landed in T-11, as
   > noted there.
 
-- [ ] **T-13** — Create `src/modules/classes/components/class-messages/` (the section of D-15, with `bg-sun-tint` megaphone
+- [x] **T-13** — Create `src/modules/classes/components/class-messages/` (the section of D-15, with `bg-sun-tint` megaphone
   tiles in one grouped card) and `src/modules/classes/utils/class-message-time.ts` (D-14), and render them in
   `class-details.screen.tsx` with `MessageSheet` and no `onOpenClass`. Tests in `class-messages.component.test.tsx`,
   `class-message-time.test.ts` and `class-details.screen.test.tsx`.
   Covers: ER-14, ER-15 · Done when: `npx jest src/modules/classes` passes.
+  > ✅ 2026-11-01 00:05 — Created the "Mensagens desta aula" section (D-15) and `classMessageTime` (D-14), rendered
+  > between the people and the rules on class details, with MessageSheet and no `onOpenClass`; files:
+  > `apps/mobile/src/modules/classes/components/class-messages/index.ts`,
+  > `apps/mobile/src/modules/classes/components/class-messages/class-messages.component.tsx`,
+  > `apps/mobile/src/modules/classes/components/class-messages/class-messages.types.ts`,
+  > `apps/mobile/src/modules/classes/components/class-messages/class-messages.component.test.tsx`,
+  > `apps/mobile/src/modules/classes/utils/class-message-time.ts`,
+  > `apps/mobile/src/modules/classes/utils/class-message-time.test.ts`,
+  > `apps/mobile/src/modules/classes/screens/class-details.screen.tsx`,
+  > `apps/mobile/src/modules/classes/screens/class-details.screen.hook.ts`,
+  > `apps/mobile/src/modules/classes/screens/class-details.screen.test.tsx`; verified: `npx jest
+  > src/modules/classes` (95 suites, 1120 passed); deviations: `classMessageTime` reuses `weekdayAbbreviation`,
+  > because date-fns `EEE` gives "Quinta" in pt-BR.
 
 - [ ] **T-14** — Invalidate `["classes", "messages", classId]` for a received `class.message` in
   `use-notification-received.hook.ts` and after a sent one in `src/modules/notices/hooks/use-send-class-message.hook.ts`, with

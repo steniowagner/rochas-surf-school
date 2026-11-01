@@ -420,13 +420,21 @@ The sender, in every answer below (`null` by ER-05):
 
 ### Packages (`packages/design-tokens`, `packages/app-messages`)
 
-- [ ] **T-07** — Add the `messageTitle` type token to `packages/design-tokens/src/tokens.ts` (D-13) and regenerate
+- [x] **T-07** — Add the `messageTitle` type token to `packages/design-tokens/src/tokens.ts` (D-13) and regenerate
   `tokens.css`. Add to `packages/app-messages/src/{pt-BR,es-ES,en-US}.ts` the keys `notifications.messageSheet.{eyebrow,
   confirm,close,loadError}` and `classDetails.messages.title`, with pt-BR "Mensagem da escola", "Ok, entendi" and
   "Mensagens desta aula · {{count}}", es-ES "Mensaje de la escuela", "Ok, entendido" and "Mensajes de esta clase ·
   {{count}}", and en-US "Message from the school", "OK, got it" and "Messages for this class · {{count}}" (D-01).
   Covers: enabling · Done when: `npm test -w @rochas-surf-school/app-messages` and
   `npm run check-types -w @rochas-surf-school/design-tokens` pass.
+  > ✅ 2026-10-31 23:45 — Added the `messageTitle` type token (with `tokens.css` regenerated) and the
+  > `notifications.messageSheet` and `classDetails.messages` copy in the three locales; files:
+  > `packages/design-tokens/src/tokens.ts`, `packages/design-tokens/src/tokens.css`,
+  > `packages/app-messages/src/pt-BR.ts`, `packages/app-messages/src/es-ES.ts`,
+  > `packages/app-messages/src/en-US.ts`; verified: `npm test -w @rochas-surf-school/app-messages` (4 passed), `npm
+  > run check-types -w @rochas-surf-school/design-tokens` (no errors, CSS not stale); deviations: the spec gave no
+  > copy for `close` and `loadError`, so they follow the existing wording of each locale; `messageTitle` has line
+  > height 1.1 so wrapped lowercase text does not clip.
 
 ### Mobile (`apps/mobile`)
 

@@ -704,6 +704,9 @@ const messages = {
   },
   classDetails: {
     title: "Details",
+    messages: {
+      title: "Messages for this class · {{count}}",
+    },
     today: "Today",
     tomorrow: "Tomorrow",
     yesterday: "Yesterday",
@@ -1339,6 +1342,12 @@ const messages = {
     },
     now: "Now",
     unread: ", unread",
+    messageSheet: {
+      eyebrow: "Message from the school",
+      confirm: "OK, got it",
+      close: "Close",
+      loadError: "Couldn't open the message. Try again.",
+    },
   },
   archiveLocation: {
     title: "Remove location?",

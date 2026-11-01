@@ -18,6 +18,7 @@ import {
   localeNames,
   type AppLocale,
 } from "@/i18n/locales";
+import { getBottomPadding } from "@/utils/bottom-padding";
 
 import { AuthButton } from "../auth-button";
 import { AuthComponentProps } from "./auth.types";
@@ -33,9 +34,6 @@ const WORDMARK = [
 ];
 
 const TEAM_PHOTO = require("@/assets/images/team-hero.jpg");
-
-// The app icon, on the splash screen's background like on the home screen.
-const APP_ICON = require("@/assets/images/icon.png");
 
 // Google's multicolor "G": its colors are the brand's, so they don't come from the design tokens.
 const GOOGLE_LOGO = require("@/assets/images/google-logo.svg");
@@ -79,17 +77,9 @@ export function AuthComponent({
       />
 
       <View
-        className="absolute left-6 right-[18px] z-10 flex-row items-center justify-between"
+        className="absolute left-screen z-10"
         style={{ top: topInset }}
       >
-        <View className="h-11 w-11 overflow-hidden rounded-control bg-splash">
-          <Image
-            source={APP_ICON}
-            contentFit="cover"
-            style={{ width: "100%", height: "100%" }}
-          />
-        </View>
-
         <TouchableOpacity
           accessibilityRole="button"
           accessibilityLabel={`${t("language.button")}: ${localeNames[currentLocale]}`}
@@ -126,7 +116,7 @@ export function AuthComponent({
 
       <View
         className="absolute left-screen right-screen gap-2.5"
-        style={{ bottom: Math.max(insets.bottom, 30) }}
+        style={{ bottom: getBottomPadding(insets.bottom, 30) }}
       >
         {/* Sign in with Apple isn't built yet, so its button isn't shown (spec 017, D-11). */}
         <AuthButton

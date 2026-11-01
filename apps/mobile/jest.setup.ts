@@ -88,6 +88,7 @@ jest.mock("@expo/ui/community/datetime-picker", () => {
   const DateTimePicker = ({
     value,
     onValueChange,
+    onDismiss,
     style,
     testID,
   }: Record<string, unknown>) =>
@@ -95,6 +96,7 @@ jest.mock("@expo/ui/community/datetime-picker", () => {
       testID,
       value,
       onValueChange,
+      onDismiss,
       style,
     });
 

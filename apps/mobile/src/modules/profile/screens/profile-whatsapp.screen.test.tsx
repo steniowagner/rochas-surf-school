@@ -14,6 +14,7 @@ import {
 import { keyboardOffsetOf } from "@/navigation/stack-header/keyboard-offset.test-utils";
 import { useSession } from "@/providers/session";
 import { NetworkError } from "@/services/api";
+import { getKeyboardGapOffset } from "@/utils/bottom-padding";
 
 import {
   account,
@@ -97,7 +98,7 @@ describe("ProfileWhatsappScreen", () => {
   it("offsets the keyboard by the height of the header", async () => {
     const offset = await keyboardOffsetOf(() => open());
 
-    expect(offset).toBe(64);
+    expect(offset).toBe(64 + getKeyboardGapOffset(24));
   });
 
   it("starts at the top under the opaque header", async () => {
@@ -114,7 +115,7 @@ describe("ProfileWhatsappScreen", () => {
       return offset;
     });
 
-    expect(offset).toBe(0);
+    expect(offset).toBe(0 + getKeyboardGapOffset(24));
   });
 
   it("renders on Android, where the keyboard resizes the window", async () => {

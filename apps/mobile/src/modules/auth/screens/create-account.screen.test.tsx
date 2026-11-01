@@ -6,12 +6,14 @@ import {
   waitFor,
 } from "@testing-library/react-native";
 import { router } from "expo-router";
+import { openBrowserAsync } from "expo-web-browser";
 
 import { routes } from "@/constants/routes";
 import { AlertMessageProvider } from "@/providers/alert-message";
 
 import { CreateAccountScreen } from "./create-account.screen";
 
+jest.mock("expo-web-browser", () => ({ openBrowserAsync: jest.fn() }));
 jest.mock("expo-router", () => ({
   router: { back: jest.fn(), push: jest.fn() },
   useLocalSearchParams: jest.fn(() => ({})),
@@ -71,6 +73,25 @@ describe("CreateAccountScreen", () => {
           name: "Ana Silva",
         }),
       ),
+    );
+  });
+
+  it("opens the Terms of Use and the Privacy Policy", async () => {
+    process.env.EXPO_PUBLIC_WEB_URL = "http://localhost:3000";
+    jest.mocked(openBrowserAsync).mockClear();
+    const user = userEvent.setup();
+    await renderScreen();
+
+    await user.press(screen.getByRole("link", { name: "Terms of Use" }));
+    await user.press(screen.getByRole("link", { name: "Privacy Policy" }));
+
+    expect(openBrowserAsync).toHaveBeenNthCalledWith(
+      1,
+      "http://localhost:3000/en/terms-of-use",
+    );
+    expect(openBrowserAsync).toHaveBeenNthCalledWith(
+      2,
+      "http://localhost:3000/en/privacy-policy",
     );
   });
 });

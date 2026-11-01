@@ -1,18 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  Text,
-  View,
-} from "react-native";
+import { KeyboardAvoidingView, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Button } from "@/components/ui/button";
 import { TextInput } from "@/components/ui/text-input";
 import { useTheme } from "@/hooks/use-theme";
 import { useKeyboardOffset } from "@/navigation/stack-header";
+import { getBottomPadding, getKeyboardGapOffset } from "@/utils/bottom-padding";
 
 import { ProfileAvatar } from "../profile-avatar";
 
@@ -22,6 +17,7 @@ export function EditProfile() {
   const { t } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const bottomPadding = getBottomPadding(insets.bottom, 24);
   const keyboardOffset = useKeyboardOffset();
   const {
     currentName,
@@ -36,14 +32,16 @@ export function EditProfile() {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      keyboardVerticalOffset={keyboardOffset}
+      behavior="padding"
+      keyboardVerticalOffset={
+        keyboardOffset + getKeyboardGapOffset(bottomPadding)
+      }
       className="flex-1 bg-page"
     >
       <View
-        className="flex-1 px-screen"
+        className="flex-1 gap-3 px-screen"
         style={{
-          paddingBottom: Math.max(insets.bottom, 24),
+          paddingBottom: bottomPadding,
         }}
       >
         <ScrollView

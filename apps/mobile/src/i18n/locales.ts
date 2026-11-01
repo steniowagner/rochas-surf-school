@@ -28,7 +28,7 @@ export const localeAcronyms: Record<AppLocale, string> = {
 };
 
 export const localeFlags: Record<AppLocale, string> = {
-  "en-US": "🇺🇸",
+  "en-US": "🇬🇧",
   "es-ES": "🇪🇸",
   "pt-BR": "🇧🇷",
 };

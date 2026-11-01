@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
-import { Switch, Text, View } from "react-native";
+import { ScrollView, Switch, Text, View } from "react-native";
 
 import { PhoneNumberField } from "@/components/phone-number-field";
 import { Button } from "@/components/ui/button";
@@ -31,8 +31,12 @@ export function WhatsappNumberForm({
     });
 
   return (
-    <View className="flex-1">
-      <View className="mt-6 gap-6">
+    <View className="flex-1 gap-3">
+      <ScrollView
+        className="flex-1"
+        contentContainerClassName="gap-6 pb-6 pt-6"
+        keyboardShouldPersistTaps="handled"
+      >
         {header}
 
         <View className="gap-3.5 rounded-card border border-line bg-surface p-4">
@@ -76,9 +80,7 @@ export function WhatsappNumberForm({
             />
           </View>
         </View>
-      </View>
-
-      <View className="min-h-6 flex-1" />
+      </ScrollView>
 
       <Button disabled={!canSubmit} loading={isSaving} onPress={submit}>
         {submitLabel}

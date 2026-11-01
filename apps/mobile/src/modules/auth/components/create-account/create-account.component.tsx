@@ -3,7 +3,6 @@ import { useRef } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import {
   KeyboardAvoidingView,
-  Platform,
   Text,
   TextInput as NativeTextInput,
   View,
@@ -16,6 +15,7 @@ import { TextButton } from "@/components/ui/text-button";
 import { TextInput } from "@/components/ui/text-input";
 import { useTheme } from "@/hooks/use-theme";
 import { useHeaderInset, useKeyboardOffset } from "@/navigation/stack-header";
+import { getBottomPadding, getKeyboardGapOffset } from "@/utils/bottom-padding";
 
 import { useCreateAccount } from "./create-account.hook";
 import { CreateAccountProps } from "./create-account.types";
@@ -23,10 +23,13 @@ import { CreateAccountProps } from "./create-account.types";
 export function CreateAccount({
   initialEmail,
   onCodeRequested,
+  onTermsPress,
+  onPrivacyPress,
 }: CreateAccountProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const bottomPadding = getBottomPadding(insets.bottom, 24);
   const headerInset = useHeaderInset();
   const keyboardOffset = useKeyboardOffset();
   const emailInputRef = useRef<NativeTextInput>(null);
@@ -38,15 +41,17 @@ export function CreateAccount({
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      keyboardVerticalOffset={keyboardOffset}
+      behavior="padding"
+      keyboardVerticalOffset={
+        keyboardOffset + getKeyboardGapOffset(bottomPadding)
+      }
       className="flex-1 bg-page"
     >
       <View
         className="flex-1 px-screen"
         style={{
           paddingTop: headerInset,
-          paddingBottom: Math.max(insets.bottom, 24),
+          paddingBottom: bottomPadding,
         }}
       >
         <View className="mt-6 gap-4">
@@ -102,8 +107,8 @@ export function CreateAccount({
               i18nKey="auth.terms"
               t={t}
               components={{
-                terms: <TextButton />,
-                privacy: <TextButton />,
+                terms: <TextButton onPress={onTermsPress} />,
+                privacy: <TextButton onPress={onPrivacyPress} />,
               }}
             />
           </Text>

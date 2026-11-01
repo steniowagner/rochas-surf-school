@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { ScreenIntro } from "@/components/ui/screen-intro";
 import { useScrollToEndOnKeyboard } from "@/hooks/use-scroll-to-end-on-keyboard.hook";
 import { useTheme } from "@/hooks/use-theme";
+import { getBottomPadding } from "@/utils/bottom-padding";
 
 import { usePinnedFooter } from "../../hooks/use-pinned-footer.hook";
 
@@ -30,7 +31,7 @@ export function SchoolSettingsForm({
   const { t } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
-  const restingPaddingBottom = Math.max(insets.bottom, 24);
+  const restingPaddingBottom = getBottomPadding(insets.bottom, 24);
   const footerStyle = usePinnedFooter(restingPaddingBottom);
   const scrollRef = useScrollToEndOnKeyboard();
   const form = useSchoolSettingsForm({ settings });

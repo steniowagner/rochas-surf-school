@@ -17,6 +17,7 @@ import {
   useCollapsingTitleHeader,
   useHeaderInset,
 } from "@/navigation/stack-header";
+import { getBottomPadding } from "@/utils/bottom-padding";
 
 import { CancellationRulesSkeleton } from "../components/cancellation-rules-skeleton";
 import { CANCELLATION_RULE_TEXT_MAX } from "../cancellation-rules.constants";
@@ -63,7 +64,7 @@ export function CancellationRulesScreen() {
             scrollEventThrottle={16}
             contentContainerStyle={{
               paddingTop: CONTENT_PADDING_TOP,
-              paddingBottom: Math.max(insets.bottom, 24),
+              paddingBottom: getBottomPadding(insets.bottom, 24),
             }}
           >
             <ScreenIntro
@@ -145,7 +146,7 @@ export function CancellationRulesScreen() {
             className={`flex-1 bg-page px-screen ${screen.status === "loading" ? "" : "justify-center"}`}
             style={{
               paddingTop: headerInset + CONTENT_PADDING_TOP,
-              paddingBottom: Math.max(insets.bottom, 24),
+              paddingBottom: getBottomPadding(insets.bottom, 24),
             }}
           >
             {screen.status === "loading" ? <CancellationRulesSkeleton /> : null}

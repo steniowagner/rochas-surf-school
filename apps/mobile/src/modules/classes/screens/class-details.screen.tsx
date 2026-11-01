@@ -20,6 +20,7 @@ import { WithdrawRequestSheet } from "@/modules/enrolment/components/withdraw-re
 import { BANNER_CLASSES } from "@/modules/enrolment/utils/enrolment-status";
 import { PersonSheet } from "@/modules/people/components/person-sheet";
 import { useHeaderInset } from "@/navigation/stack-header";
+import { getBottomPadding } from "@/utils/bottom-padding";
 
 import { CancelClassSheet } from "../components/cancel-class-sheet";
 import { ClassDetailsSkeleton } from "../components/class-details-skeleton";
@@ -64,7 +65,7 @@ export function ClassDetailsScreen({
           className="flex-1 bg-page px-screen"
           style={{
             paddingTop: headerInset + 16,
-            paddingBottom: Math.max(insets.bottom, 24),
+            paddingBottom: getBottomPadding(insets.bottom, 24),
           }}
         >
           {screen.isLoading ? (
@@ -97,7 +98,7 @@ export function ClassDetailsScreen({
           contentInsetAdjustmentBehavior="automatic"
           contentContainerClassName="gap-6 pt-4 px-screen"
           contentContainerStyle={{
-            paddingBottom: Math.max(insets.bottom, 24),
+            paddingBottom: getBottomPadding(insets.bottom, 24),
           }}
         >
           {item ? (
@@ -369,7 +370,7 @@ export function ClassDetailsScreen({
       {screen.enrolment.cta || screen.enrolment.deadlineNote ? (
         <View
           className="gap-3 border-t border-line bg-page px-screen pt-3"
-          style={{ paddingBottom: Math.max(insets.bottom, 16) }}
+          style={{ paddingBottom: getBottomPadding(insets.bottom, 16) }}
         >
           {screen.enrolment.cta ? (
             <Button

@@ -1,5 +1,6 @@
 import {
   act,
+  fireEvent,
   render,
   screen,
   userEvent,
@@ -177,6 +178,38 @@ describe("DisciplineFilter", () => {
       top: 0,
       width: 320,
       height: 640,
+    });
+  });
+
+  it("keeps touches away from the view that measures the screen", async () => {
+    const { view } = renderFilter();
+    await view;
+
+    expect(screen.getByTestId("discipline-filter-metrics")).toHaveProp(
+      "pointerEvents",
+      "none",
+    );
+  });
+
+  it("lays the open filter out at the measured frame", async () => {
+    const { user, view } = renderFilter();
+    await view;
+    const frame = { x: 0, y: 100, width: 400, height: 700 };
+    const insets = { top: 0, right: 0, bottom: 34, left: 0 };
+
+    await fireEvent(
+      screen.getByTestId("discipline-filter-metrics").children[0] as never,
+      "insetsChange",
+      { nativeEvent: { frame, insets } },
+    );
+    await user.press(screen.getByRole("button", { name: "Filter by sport" }));
+
+    expect(screen.getByTestId("discipline-filter-layer")).toHaveStyle({
+      left: 0,
+      top: 100,
+      width: 400,
+      height: 700,
+      paddingBottom: 34,
     });
   });
 

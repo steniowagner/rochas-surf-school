@@ -13,6 +13,7 @@ import { Colors, radii, spacing } from "@/constants/theme";
 import { themeVariables } from "@/constants/theme-variables";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useTheme } from "@/hooks/use-theme";
+import { getBottomPadding } from "@/utils/bottom-padding";
 
 import { useBottomModal } from "./bottom-modal.hook";
 import { BottomModalProps } from "./bottom-modal.types";
@@ -89,7 +90,7 @@ export function BottomModal({
           // Just the home-indicator room (or the screen margin on phones without one).
           paddingBottom: Platform.select({
             ios: spacing.groupGap,
-            android: insets.bottom,
+            android: getBottomPadding(insets.bottom, spacing.groupGap),
           }),
         }}
       >

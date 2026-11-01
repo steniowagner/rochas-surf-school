@@ -16,6 +16,7 @@ import {
   useCollapsingTitleHeader,
   useHeaderInset,
 } from "@/navigation/stack-header";
+import { getBottomPadding } from "@/utils/bottom-padding";
 
 import { DeleteSchoolRuleSheet } from "../components/delete-school-rule-sheet";
 import { SchoolRuleEditableRow } from "../components/school-rule-editable-row";
@@ -68,7 +69,7 @@ export function ManageSchoolRulesScreen() {
           className="flex-1 bg-page px-screen"
           style={{
             paddingTop: headerInset + CONTENT_PADDING_TOP,
-            paddingBottom: Math.max(insets.bottom, 24),
+            paddingBottom: getBottomPadding(insets.bottom, 24),
           }}
         >
           {screen.status === "error" ? (
@@ -108,7 +109,7 @@ export function ManageSchoolRulesScreen() {
         scrollEventThrottle={16}
         contentContainerStyle={{
           paddingTop: CONTENT_PADDING_TOP,
-          paddingBottom: Math.max(insets.bottom, 24),
+          paddingBottom: getBottomPadding(insets.bottom, 24),
         }}
       >
         {screen.status === "ready" ? (

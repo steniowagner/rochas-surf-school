@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { TextArea } from "@/components/ui/text-area";
 import { StackHeaderTitle } from "@/navigation/stack-header";
+import { getBottomPadding } from "@/utils/bottom-padding";
 
 import { CapacityStepper } from "../components/capacity-stepper";
 import { DateRangeCalendar } from "../components/date-range-calendar";
@@ -166,7 +167,7 @@ export function NewClassScreen() {
       </ScrollView>
       <View
         className="gap-2 border-t border-line bg-page px-screen pt-3"
-        style={{ paddingBottom: Math.max(insets.bottom, 16) }}
+        style={{ paddingBottom: getBottomPadding(insets.bottom, 16) }}
       >
         {screen.classCount > 0 && !screen.tooMany ? (
           <Text className="ds-text-list-subtitle text-center text-ink-2">

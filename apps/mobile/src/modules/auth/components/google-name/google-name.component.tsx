@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
-import { KeyboardAvoidingView, Platform, View } from "react-native";
+import { KeyboardAvoidingView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { ScreenIntro } from "@/components/ui/screen-intro";
 import { TextInput } from "@/components/ui/text-input";
 import { useTheme } from "@/hooks/use-theme";
 import { useHeaderInset, useKeyboardOffset } from "@/navigation/stack-header";
+import { getBottomPadding, getKeyboardGapOffset } from "@/utils/bottom-padding";
 
 import { useGoogleName } from "./google-name.hook";
 import { GoogleNameProps } from "./google-name.types";
@@ -20,6 +21,7 @@ export function GoogleName({
   const { t } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const bottomPadding = getBottomPadding(insets.bottom, 24);
   const headerInset = useHeaderInset();
   const keyboardOffset = useKeyboardOffset();
   const { nameField, canSubmit, isSending, submit } = useGoogleName({
@@ -30,15 +32,17 @@ export function GoogleName({
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      keyboardVerticalOffset={keyboardOffset}
+      behavior="padding"
+      keyboardVerticalOffset={
+        keyboardOffset + getKeyboardGapOffset(bottomPadding)
+      }
       className="flex-1 bg-page"
     >
       <View
         className="flex-1 px-screen"
         style={{
           paddingTop: headerInset,
-          paddingBottom: Math.max(insets.bottom, 24),
+          paddingBottom: bottomPadding,
         }}
       >
         <View className="mt-6 gap-4">

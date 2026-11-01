@@ -6,6 +6,7 @@ import {
   userEvent,
   waitFor,
 } from "@testing-library/react-native";
+import { openBrowserAsync } from "expo-web-browser";
 import { Text } from "react-native";
 
 import { AlertMessageProvider } from "@/providers/alert-message";
@@ -13,6 +14,7 @@ import { SessionProvider, useSession } from "@/providers/session";
 
 import { AuthScreen } from "./auth.screen";
 
+jest.mock("expo-web-browser", () => ({ openBrowserAsync: jest.fn() }));
 jest.mock("expo-router", () => ({ router: { push: jest.fn() } }));
 jest.useFakeTimers();
 
@@ -97,5 +99,32 @@ describe("AuthScreen", () => {
     expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({
       idToken: "id-token",
     });
+  });
+
+  it("opens the Terms of Use and the Privacy Policy", async () => {
+    process.env.EXPO_PUBLIC_WEB_URL = "http://localhost:3000";
+    jest.mocked(openBrowserAsync).mockClear();
+    const user = userEvent.setup();
+    await render(
+      <QueryClientProvider client={new QueryClient()}>
+        <AlertMessageProvider>
+          <SessionProvider>
+            <AuthScreen />
+          </SessionProvider>
+        </AlertMessageProvider>
+      </QueryClientProvider>,
+    );
+
+    await user.press(screen.getByRole("link", { name: "Terms of Use" }));
+    await user.press(screen.getByRole("link", { name: "Privacy Policy" }));
+
+    expect(openBrowserAsync).toHaveBeenNthCalledWith(
+      1,
+      "http://localhost:3000/en/terms-of-use",
+    );
+    expect(openBrowserAsync).toHaveBeenNthCalledWith(
+      2,
+      "http://localhost:3000/en/privacy-policy",
+    );
   });
 });

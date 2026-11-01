@@ -2,6 +2,7 @@ import { View } from "react-native";
 import Animated from "react-native-reanimated";
 
 import { TabBarItem } from "@/components/tab-bar-item";
+import { getBottomPadding } from "@/utils/bottom-padding";
 
 import { INDICATOR_WIDTH } from "./tab-bar.constants";
 import { useTabBar } from "./tab-bar.hook";
@@ -22,7 +23,7 @@ export function TabBar({ state, navigation, icons, labels }: TabBarProps) {
       accessibilityRole="tablist"
       className="flex-row border-t border-line bg-surface pt-2"
       onLayout={handleLayout}
-      style={{ paddingBottom: Math.max(bottomInset, 8) }}
+      style={{ paddingBottom: getBottomPadding(bottomInset, 8) }}
     >
       <Animated.View
         className="absolute -top-px left-0 h-[3px] rounded-b-full bg-sun"

@@ -14,6 +14,7 @@ import {
   StackHeaderTitle,
   useCollapsingTitleHeader,
 } from "@/navigation/stack-header";
+import { getBottomPadding } from "@/utils/bottom-padding";
 
 import { ClassCard } from "../class-card";
 import { ClassCardSkeleton } from "../class-card-skeleton";
@@ -127,7 +128,7 @@ export function ClassHistory({
         contentContainerStyle={{
           paddingTop: CONTENT_PADDING_TOP,
           paddingBottom:
-            Math.max(insets.bottom, 24) + DISCIPLINE_FILTER_CLEARANCE,
+            getBottomPadding(insets.bottom, 24) + DISCIPLINE_FILTER_CLEARANCE,
         }}
         onScroll={showIntro ? header.scrollHandler : undefined}
         scrollEventThrottle={16}

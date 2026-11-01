@@ -1,7 +1,8 @@
 export interface TestAccount {
+  /** The account's part in the set. Only the admin starts with this role: the others start as pending students. */
   role: "admin" | "instructor" | "student";
   email: string;
-  /** The account's name as the app stores it (Portuguese, never translated). */
+  /** The account's name as the app stores it (never translated). */
   name: string;
 }
 
@@ -12,27 +13,27 @@ export interface TestAccountSet {
   accounts: readonly [TestAccount, TestAccount, TestAccount];
 }
 
-/** The number in each set's names, spelled in Portuguese: "Admin Teste Um" is set 01's admin. */
+/** The number in each set's names, spelled because `PersonNameRule` allows letters only: "Admin User One" is set 01's admin. */
 const SET_NAMES = [
-  "Um",
-  "Dois",
-  "Três",
-  "Quatro",
-  "Cinco",
-  "Seis",
-  "Sete",
-  "Oito",
-  "Nove",
-  "Dez",
-  "Onze",
-  "Doze",
+  "One",
+  "Two",
+  "Three",
+  "Four",
+  "Five",
+  "Six",
+  "Seven",
+  "Eight",
+  "Nine",
+  "Ten",
+  "Eleven",
+  "Twelve",
 ] as const;
 
-const EMAIL_DOMAIN = "rochas-surf-school.test";
+const EMAIL_DOMAIN = "test.com";
 
 /**
  * The 12 test sets of spec 076 (D-21): per set an admin, an instructor and a student review account. It holds
- * no sign-in code: the codes are never committed (D-22), the backend's `npm run test-accounts` draws them.
+ * no sign-in code: the code is never committed (D-22), the backend's `npm run test-accounts` is given it.
  */
 export const testAccountSets: readonly TestAccountSet[] = SET_NAMES.map(
   (number, index) => {
@@ -42,18 +43,18 @@ export const testAccountSets: readonly TestAccountSet[] = SET_NAMES.map(
       accounts: [
         {
           role: "admin",
-          email: `teste${set}.admin@${EMAIL_DOMAIN}`,
-          name: `Admin Teste ${number}`,
+          email: `admin${set}@${EMAIL_DOMAIN}`,
+          name: `Admin User ${number}`,
         },
         {
           role: "instructor",
-          email: `teste${set}.instrutor@${EMAIL_DOMAIN}`,
-          name: `Instrutor Teste ${number}`,
+          email: `instructor${set}@${EMAIL_DOMAIN}`,
+          name: `Instructor User ${number}`,
         },
         {
           role: "student",
-          email: `teste${set}.aluno@${EMAIL_DOMAIN}`,
-          name: `Aluno Teste ${number}`,
+          email: `student${set}@${EMAIL_DOMAIN}`,
+          name: `Student User ${number}`,
         },
       ],
     };

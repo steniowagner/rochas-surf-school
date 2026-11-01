@@ -130,6 +130,38 @@ describe('reviewAccountsSeed', () => {
     );
   });
 
+  it('creates a pending account as pending', async () => {
+    const { prisma, users } = fakePrisma();
+
+    await reviewAccountsSeed(prisma, {
+      REVIEW_ACCOUNTS: JSON.stringify([{ ...ACCOUNTS[0], status: 'pending' }]),
+    });
+
+    expect([...users.values()]).toEqual([
+      expect.objectContaining({
+        email: 'review.student@example.com',
+        role: 'student',
+        status: 'pending',
+      }),
+    ]);
+  });
+
+  it('leaves an existing pending entry as testers left it', async () => {
+    const { prisma, users } = fakePrisma();
+    const env = {
+      REVIEW_ACCOUNTS: JSON.stringify([{ ...ACCOUNTS[0], status: 'pending' }]),
+    };
+    await reviewAccountsSeed(prisma, env);
+    const email = 'review.student@example.com';
+    users.set(email, { ...users.get(email)!, role: 'instructor', status: 'approved' });
+
+    await reviewAccountsSeed(prisma, env);
+
+    expect(users.get(email)).toEqual(
+      expect.objectContaining({ role: 'instructor', status: 'approved' }),
+    );
+  });
+
   it('creates nothing and succeeds when REVIEW_ACCOUNTS is unset', async () => {
     const { prisma, raw } = fakePrisma();
 

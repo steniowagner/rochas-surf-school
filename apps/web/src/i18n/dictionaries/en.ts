@@ -835,7 +835,7 @@ export const en = {
     testAccounts: {
       metaTitle: "Test accounts",
       title: "Test accounts",
-      intro: "Each test set has one account per role. Use the set the school sent you: sign in with \"Continue with email\" → \"I have an account\", the account's email address and the code the school gave you. The codes are never on this page.",
+      intro: "Each test set has one account per role. Use the set the school sent you: sign in with \"Continue with email\" → \"I have an account\", the account's email address and the code the school gave you. The codes are never on this page. Only the admin account starts approved. The instructor and student accounts start as students waiting for approval: sign in as your set's admin to approve them, then change the instructor account's role to instructor.",
       roles: { admin: "Admin", instructor: "Instructor", student: "Student" },
       copyEmail: "Copy email",
       copied: "Copied",

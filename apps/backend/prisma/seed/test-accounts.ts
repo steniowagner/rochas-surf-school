@@ -1,5 +1,3 @@
-import { randomInt } from 'node:crypto';
-
 import { testAccountSets } from '@rochas-surf-school/shared';
 
 import type { ReviewAccount } from '../../src/modules/auth/auth.config.js';
@@ -11,23 +9,22 @@ export interface FormattedTestAccounts {
   table: string;
 }
 
-const randomSixDigitCode = (): string => randomInt(0, 1_000_000).toString().padStart(6, '0');
-
 /**
- * Builds the review accounts of the 12 test sets (`testAccountSets`, spec 076 D-21), in set order, each with its
- * own random 6-digit code. The codes are never committed (D-22): they exist only in this output.
+ * Builds the review accounts of the 12 test sets (`testAccountSets`, spec 076 D-21), in set order, all with the given
+ * 6-digit code. Only the admins start approved: the others start as pending students, whatever the set calls them. The
+ * code is never committed (D-22): it exists only in this output.
  */
-export function buildTestAccounts(randomCode: () => string = randomSixDigitCode): ReviewAccount[] {
-  const usedCodes = new Set<string>();
-  const nextCode = (): string => {
-    let code = randomCode();
-    while (usedCodes.has(code)) code = randomCode();
-    usedCodes.add(code);
-    return code;
-  };
+export function buildTestAccounts(code: string | undefined): ReviewAccount[] {
+  if (code === undefined || !/^\d{6}$/.test(code)) {
+    throw new Error('The test accounts need a 6-digit code');
+  }
 
   return testAccountSets.flatMap(({ accounts }) =>
-    accounts.map(({ email, role, name }) => ({ email, code: nextCode(), role, name })),
+    accounts.map(({ email, role, name }) =>
+      role === 'admin'
+        ? { email, code, role, status: 'approved', name }
+        : { email, code, role: 'student', status: 'pending', name },
+    ),
   );
 }
 
@@ -35,7 +32,7 @@ export function buildTestAccounts(randomCode: () => string = randomSixDigitCode)
 export function formatTestAccounts(accounts: ReviewAccount[]): FormattedTestAccounts {
   const env = `REVIEW_ACCOUNTS='${JSON.stringify(accounts)}'`;
   const rows = accounts.map((account) => {
-    const set = account.email.slice('teste'.length, 'teste'.length + 2);
+    const set = account.email.split('@')[0].slice(-2);
     return `| ${set} | ${account.role} | ${account.email} | ${account.code} |`;
   });
   const table = ['| Set | Role | Email | Code |', '| --- | --- | --- | --- |', ...rows].join('\n');

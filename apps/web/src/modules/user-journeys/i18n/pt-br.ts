@@ -6,7 +6,7 @@ export const ptBr = {
     auth: {
       title: "Acesso",
       description: "Tudo o que uma pessoa passa antes de chegar ao seu início: escolher o idioma, entrar com o Google ou com um código enviado por e-mail, criar uma conta, esperar a aprovação da escola, informar um número de WhatsApp, aceitar as regras da escola e as telas de uma conta encerrada (excluída, recusada ou removida).",
-      account: "Os casos de cadastro precisam de um e-mail ou de uma conta Google sua que nunca tenha sido usada no app (as contas do seu conjunto de teste já estão aprovadas). Os outros casos podem usar a conta de aluno do seu conjunto de teste. Alguns casos precisam que a escola aprove, recuse, remova ou restaure uma conta: peça quando o caso disser.",
+      account: "Os casos de cadastro precisam de um e-mail ou de uma conta Google sua que nunca tenha sido usada no app (as contas do seu conjunto de teste já existem). Os outros casos podem usar a conta de aluno do seu conjunto de teste. Alguns casos precisam que a escola aprove, recuse, remova ou restaure uma conta: peça quando o caso disser.",
       groups: {
         signIn: "Entrada",
         email: "E-mail",
@@ -17,7 +17,7 @@ export const ptBr = {
     student: {
       title: "App do aluno",
       description: "Tudo o que um aluno aprovado faz: ver as aulas da escola, pedir uma vaga, entrar numa lista de espera, anular ou cancelar, acompanhar suas reservas e seu histórico, encontrar pessoas, cuidar do perfil e ler os avisos. Um aviso que só não chega como push não é uma falha: a versão de teste ainda não consegue enviar pushes, então confira a tela \"Avisos\" (o sino).",
-      account: "A conta de aluno do seu conjunto de teste. A primeira entrada pede um número de WhatsApp e as regras da escola (veja o fluxo de acesso). Muitos casos precisam de aulas que a escola prepara ou de uma ação de um admin: fale com a escola antes de testá-los. Todo aviso também aparece na tela \"Avisos\" (o sino na \"Agenda\"); confira lá quando nenhum push chegar.",
+      account: "A conta de aluno do seu conjunto de teste, depois que o admin do seu conjunto aprová-la. A primeira entrada pede um número de WhatsApp e as regras da escola (veja o fluxo de acesso). Muitos casos precisam de aulas que a escola prepara ou de uma ação de um admin: fale com a escola antes de testá-los. Todo aviso também aparece na tela \"Avisos\" (o sino na \"Agenda\"); confira lá quando nenhum push chegar.",
       groups: {
         schedule: "Agenda",
         requestSeat: "Pedir uma vaga",
@@ -30,7 +30,7 @@ export const ptBr = {
     instructor: {
       title: "App do instrutor",
       description: "Tudo o que um instrutor aprovado faz: ver o início e as aulas da escola, acompanhar as aulas que dá e que já deu, ver quem está em cada aula, conferir a ocupação semanal, encontrar pessoas, cuidar do perfil e ler os avisos. Instrutores só consultam: a escola faz toda inscrição e mudança de horário. Um aviso que só não chega como push não é uma falha: a versão de teste ainda não consegue enviar pushes, então confira a tela \"Avisos\" (o sino).",
-      account: "A conta de instrutor do seu conjunto de teste. Peça à escola (ou ao admin do seu conjunto) para colocar você em algumas aulas: uma em andamento ou mais tarde hoje, outras nos próximos dias e uma que já terminou. Todo aviso também aparece na tela \"Avisos\" (o sino no \"Início\"); confira lá quando nenhum push chegar.",
+      account: "A conta de instrutor do seu conjunto de teste, depois que o admin do seu conjunto aprová-la e mudar o papel dela para instrutor. Peça à escola (ou ao admin do seu conjunto) para colocar você em algumas aulas: uma em andamento ou mais tarde hoje, outras nos próximos dias e uma que já terminou. Todo aviso também aparece na tela \"Avisos\" (o sino no \"Início\"); confira lá quando nenhum push chegar.",
       groups: {
         home: "Início",
         classes: "Aulas",
@@ -43,7 +43,7 @@ export const ptBr = {
     admin: {
       title: "App do admin",
       description: "Tudo o que um admin aprovado faz para gerir a escola: decidir cadastros, reativações e pedidos de vaga, criar, editar, cancelar e excluir aulas, gerir locais, inscrever alunos e alunos experimentais, enviar avisos e mensagens de aula, mudar papéis, remover e restaurar contas, definir as configurações da escola, as regras de cancelamento e as regras da escola, e dar aulas quando também é instrutor. Um aviso que só não chega como push não é uma falha: a versão de teste ainda não consegue enviar pushes, então confira a tela \"Avisos\" (o sino).",
-      account: "A conta de admin do seu conjunto de teste. Muitos casos precisam de uma segunda pessoa — um aluno ou um instrutor — em outro celular: use as contas de aluno e de instrutor do seu conjunto, ou teste com outra pessoa que esteja testando. Todo aviso também aparece na tela \"Avisos\" (o sino no \"Início\"); confira lá quando nenhum push chegar.",
+      account: "A conta de admin do seu conjunto de teste. Muitos casos precisam de uma segunda pessoa — um aluno ou um instrutor — em outro celular: use as contas de aluno e de instrutor do seu conjunto (elas começam aguardando a sua aprovação), ou teste com outra pessoa que esteja testando. Todo aviso também aparece na tela \"Avisos\" (o sino no \"Início\"); confira lá quando nenhum push chegar.",
       groups: {
         home: "Início",
         accounts: "Contas",

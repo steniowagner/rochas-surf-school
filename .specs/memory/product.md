@@ -119,9 +119,9 @@ Listed in the order people meet them.
   pre-approved account per role for App Store and Google Play reviewers, each with a fixed code that works only
   for its own email; no email is sent to them, and the waiting time and the lock apply to them too. A deployment
   may have more than one per role: the **test sets** (spec 076) are 12 sets of an admin, an instructor and a student
-  (`testeNN.admin` / `.instrutor` / `.aluno` `@rochas-surf-school.test`, `NN` 01–12), given to test users. Their codes
-  are generated when the test server is set up and are never part of the repository; the school hands each tester
-  their set privately. Their emails and names (never the codes) are listed on the user journeys' test accounts page
+  (`adminNN` / `instructorNN` / `studentNN` `@test.com`, `NN` 01–12), given to test users. Only the admins start
+  approved; the others start as pending students. They share one code, chosen when the test server is set up and never
+  part of the repository; the school hands each tester their set privately. Their emails and names (never the codes) are listed on the user journeys' test accounts page
   (spec 077).
 - **Reactivation request** (`reactivation-request`): a deleted user's request, sent from the "Account deleted"
   screen during the 30 days, to get the account back. One per deletion: `requested` → `approved` | `denied` by
@@ -1394,17 +1394,20 @@ the exact design frames (every design entry now has its own anchor). The tester 
 send to the school; "Clear results" starts the flow over after a confirmation. Progress is kept per flow in that
 browser only, shared by the three languages. Notifications are judged by the Notifications screen, which works whether or
 not a push arrives. The pages aren't linked from the site and aren't indexed by search engines. The
-backend's `test-accounts` command prints the 12 test sets' review accounts with fresh codes for the test server.
+backend's `test-accounts` command prints the 12 test sets' review accounts with one sign-in code for the test server;
+only the admins start approved, and everyone else starts as a pending student.
 
 **Test accounts page** (spec `077-test-accounts-page`) — `/{lang}/user-journeys/test-accounts` lists the 12 test
 sets, one untitled card per set in set order (since spec 078; the set number is in each email), each with its admin's, instructor's and student's role (translated),
-name (as the app stores it, e.g. "Admin Teste Um", never translated) and email address, never a sign-in code: the
+name (as the app stores it, e.g. "Admin User One", never translated) and email address, never a sign-in code: the
 codes still reach each tester only from the school. Each email has a "Copy email" button ("Copied" for 2 s; "Couldn't
 copy the email. Try again." when the browser refuses). The page is linked from the user journeys index (a "Test
 accounts" row) and from each flow page's "Account to use" card ("See the test accounts"), and, like the other user
 journey pages, from nowhere else on the site and not indexed. Since spec 078 each flow page shows "All flows"
 before "See the designs". The page and the backend's `test-accounts` command read
-the same list of sets, so the emails and names a tester reads are always the accounts the server creates.
+the same list of sets, so the emails and names a tester reads are always the accounts the server creates. The page's
+intro and the flows' "Account to use" cards tell testers that only the admin starts approved, so the set's admin
+approves the other two accounts and changes the instructor account's role.
 
 **Staging server** (spec `079-staging-backend-infra`) — the school's API now runs all day on a test server at
 `https://api-staging.rochassurfschool.com`, so the app can be tested on real phones outside the developer's machine.

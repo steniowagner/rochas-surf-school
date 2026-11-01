@@ -571,9 +571,9 @@ fulfilled by the backend with [Notifications](notifications.md), to delete the n
   (`DirectoryPageParams.teachers`, `people.teaches.invalid`) and `isInstructor` on every item. In the app, the
   "Também é instrutor" box on the "Promover a admin" confirmation and on an admin's sheet.
 - `076-user-journeys-pages` — review accounts may be more than one per role: the backend's `npm run test-accounts`
-  prints a `REVIEW_ACCOUNTS` value for 12 test sets (`testeNN.admin` / `.instrutor` / `.aluno`
-  `@rochas-surf-school.test`) with fresh random codes, set only in the test server's environment. No change to the
-  module's code.
+  prints a `REVIEW_ACCOUNTS` value for 12 test sets (`adminNN` / `instructorNN` / `studentNN` `@test.com`) with one
+  given code, set only in the test server's environment; only the admins start approved. No change to the module's
+  code.
 - `083-apple-sign-in` — Apple sign-in (`POST /auth/apple`, `SignInWithApple`): by Apple identity, else linked by email,
   else a new pending student; an unverified address refused before any lookup, and an unknown identity with no email
   refused; relay addresses are ordinary emails; a new account needs a name that fits the rules. The `AppleIdTokenProvider`

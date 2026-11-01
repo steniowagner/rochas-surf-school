@@ -485,15 +485,15 @@ test.describe("test accounts page", () => {
   test("copy an email on the test accounts page", async ({ page, context }) => {
     await context.grantPermissions(["clipboard-read", "clipboard-write"]);
     await page.goto("/en/user-journeys/test-accounts");
-    const student = page.getByRole("button", { name: "Copy email teste05.aluno@rochas-surf-school.test" });
-    const admin = page.getByRole("button", { name: "Copy email teste05.admin@rochas-surf-school.test" });
+    const student = page.getByRole("button", { name: "Copy email student05@test.com" });
+    const admin = page.getByRole("button", { name: "Copy email admin05@test.com" });
 
     expect((await student.boundingBox())!.height).toBeGreaterThanOrEqual(44);
     await student.click();
 
-    const copied = page.getByRole("button", { name: "Copied teste05.aluno@rochas-surf-school.test" });
+    const copied = page.getByRole("button", { name: "Copied student05@test.com" });
     await expect(copied).toBeVisible();
-    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe("teste05.aluno@rochas-surf-school.test");
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe("student05@test.com");
     await expect(admin).toBeVisible();
     await expect(page.getByRole("button", { name: /^Copied / })).toHaveCount(1);
     await expect(page.locator("main").getByRole("alert")).toHaveCount(0);

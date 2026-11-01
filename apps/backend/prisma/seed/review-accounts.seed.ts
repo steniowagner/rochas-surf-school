@@ -4,8 +4,9 @@ import { parseReviewAccounts } from '../../src/modules/auth/auth.config.js';
 import type { PrismaClient } from '../../src/generated/prisma/client.js';
 
 /**
- * Upserts the App Store / Google Play review accounts from `REVIEW_ACCOUNTS` (D-15): one approved user per
- * entry, with that name and role, and an `email` identity. Running it again changes nothing.
+ * Upserts the App Store / Google Play review accounts from `REVIEW_ACCOUNTS` (D-15): one user per entry, with that
+ * name, role and status, and an `email` identity. Running it again changes nothing. The deploy runs it, so an existing
+ * `pending` entry is left alone: testers approve those accounts and change their roles.
  */
 export async function reviewAccountsSeed(
   prisma: PrismaClient,
@@ -19,9 +20,12 @@ export async function reviewAccountsSeed(
         email: account.email,
         name: account.name,
         role: account.role,
-        status: 'approved',
+        status: account.status,
       },
-      update: { name: account.name, role: account.role, status: 'approved' },
+      update:
+        account.status === 'approved'
+          ? { name: account.name, role: account.role, status: account.status }
+          : {},
     });
     await prisma.identity.upsert({
       where: {

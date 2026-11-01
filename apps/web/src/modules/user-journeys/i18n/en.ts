@@ -6,7 +6,7 @@ export const en = {
     auth: {
       title: "Auth",
       description: "Everything a person goes through before reaching their home: choosing a language, signing in with Google or with a code sent by email, creating an account, waiting for the school's approval, giving a WhatsApp number, accepting the school rules, and the screens of a closed account (deleted, denied or removed).",
-      account: "The sign-up rows need an email address or a Google account of your own that has never been used in the app (your test set's accounts are already approved). The other rows can use the student account of your test set. Some rows need the school to approve, deny, remove or restore an account: ask for it when the row says so.",
+      account: "The sign-up rows need an email address or a Google account of your own that has never been used in the app (your test set's accounts already exist). The other rows can use the student account of your test set. Some rows need the school to approve, deny, remove or restore an account: ask for it when the row says so.",
       groups: {
         signIn: "Sign-in",
         email: "Email",
@@ -17,7 +17,7 @@ export const en = {
     student: {
       title: "Student app",
       description: "Everything an approved student does: browse the school's classes, ask for a seat, join a waiting list, withdraw or cancel, follow their bookings and history, find people, manage the profile and read notifications. A notification that only fails to arrive as a push isn't a failure: the test build can't deliver pushes yet, so check the Notifications screen (the bell).",
-      account: "The student account of your test set. The first sign-in asks for a WhatsApp number and the school rules (see the auth flow). Many rows need classes the school prepares or an admin's action: ask the school before testing them. Every notification also shows on the Notifications screen (the bell on \"Schedule\"); check there when no push arrives.",
+      account: "The student account of your test set, once your set's admin has approved it. The first sign-in asks for a WhatsApp number and the school rules (see the auth flow). Many rows need classes the school prepares or an admin's action: ask the school before testing them. Every notification also shows on the Notifications screen (the bell on \"Schedule\"); check there when no push arrives.",
       groups: {
         schedule: "Schedule",
         requestSeat: "Request a seat",
@@ -30,7 +30,7 @@ export const en = {
     instructor: {
       title: "Instructor app",
       description: "Everything an approved instructor does: see the home and the school's classes, follow the classes they teach and have taught, see who is in each class, check the weekly occupancy, find people, manage the profile and read notifications. Instructors only read: the school makes every enrolment and schedule change. A notification that only fails to arrive as a push isn't a failure: the test build can't deliver pushes yet, so check the Notifications screen (the bell).",
-      account: "The instructor account of your test set. Ask the school (or your set's admin) to assign you to a few classes: one under way or later today, others in the coming days, and one that has finished. Every notification also shows on the Notifications screen (the bell on \"Home\"); check there when no push arrives.",
+      account: "The instructor account of your test set, once your set's admin has approved it and changed its role to instructor. Ask the school (or your set's admin) to assign you to a few classes: one under way or later today, others in the coming days, and one that has finished. Every notification also shows on the Notifications screen (the bell on \"Home\"); check there when no push arrives.",
       groups: {
         home: "Home",
         classes: "Classes",
@@ -43,7 +43,7 @@ export const en = {
     admin: {
       title: "Admin app",
       description: "Everything an approved admin does to run the school: decide registrations, reactivations and class requests, create, edit, cancel and delete classes, manage locations, enrol students and trial guests, send notices and class messages, change roles, remove and restore accounts, set the school's settings, cancellation rules and school rules, and teach when they also are an instructor. A notification that only fails to arrive as a push isn't a failure: the test build can't deliver pushes yet, so check the Notifications screen (the bell).",
-      account: "The admin account of your test set. Many rows need a second person — a student or an instructor — on another phone: use your set's student and instructor accounts, or test with another tester. Every notification also shows on the Notifications screen (the bell on \"Home\"); check there when no push arrives.",
+      account: "The admin account of your test set. Many rows need a second person — a student or an instructor — on another phone: use your set's student and instructor accounts (they start waiting for your approval), or test with another tester. Every notification also shows on the Notifications screen (the bell on \"Home\"); check there when no push arrives.",
       groups: {
         home: "Home",
         accounts: "Accounts",

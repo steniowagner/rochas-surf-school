@@ -98,11 +98,18 @@ describe('AuthConfig', () => {
     const auth = config({ REVIEW_ACCOUNTS: JSON.stringify(ACCOUNTS) });
 
     expect(auth.reviewAccounts).toEqual([
-      { email: 'review.admin@example.com', code: '246810', role: 'admin', name: 'Review Admin' },
+      {
+        email: 'review.admin@example.com',
+        code: '246810',
+        role: 'admin',
+        status: 'approved',
+        name: 'Review Admin',
+      },
       {
         email: 'review.student@example.com',
         code: '135791',
         role: 'student',
+        status: 'approved',
         name: 'Review Student',
       },
     ]);
@@ -152,6 +159,16 @@ describe('parseReviewAccounts', () => {
 
   it('rejects an unknown role', () => {
     expect(parse([{ ...entry, role: 'owner' }])).toThrow('REVIEW_ACCOUNTS[0] has an unknown role');
+  });
+
+  it('keeps a pending status', () => {
+    expect(parse([{ ...entry, status: 'pending' }])()[0].status).toBe('pending');
+  });
+
+  it('rejects an unknown status', () => {
+    expect(parse([{ ...entry, status: 'denied' }])).toThrow(
+      'REVIEW_ACCOUNTS[0] has an unknown status',
+    );
   });
 
   it('rejects a missing name', () => {

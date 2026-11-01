@@ -835,7 +835,7 @@ export const ptBr = {
     testAccounts: {
       metaTitle: "Contas de teste",
       title: "Contas de teste",
-      intro: "Cada conjunto de teste tem uma conta por papel. Use o conjunto que a escola enviou para você: entre com \"Continuar com e-mail\" → \"Já tenho conta\", o e-mail da conta e o código que a escola passou. Os códigos nunca aparecem nesta página.",
+      intro: "Cada conjunto de teste tem uma conta por papel. Use o conjunto que a escola enviou para você: entre com \"Continuar com e-mail\" → \"Já tenho conta\", o e-mail da conta e o código que a escola passou. Os códigos nunca aparecem nesta página. Só a conta de admin começa aprovada. As contas de instrutor e de aluno começam como alunos aguardando aprovação: entre como admin do seu conjunto para aprová-las e depois mude o papel da conta de instrutor para instrutor.",
       roles: { admin: "Admin", instructor: "Instrutor", student: "Aluno" },
       copyEmail: "Copiar e-mail",
       copied: "Copiado",

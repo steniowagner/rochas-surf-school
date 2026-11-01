@@ -189,7 +189,7 @@ describe('NotificationsClassChangeNotifier', () => {
   });
 
   describe('classMessage', () => {
-    const sent = { ...event, title: 'Ponto de encontro', message: 'Barraca azul.' };
+    const sent = { ...event, senderId: OTHER_ID, title: 'Ponto de encontro', message: 'Barraca azul.' };
     const storedOf = (createMany: { mock: { calls: unknown[][] } }) =>
       (createMany.mock.calls[0]![0] as { userId: string; type: string; params: unknown }[]).map((notification) => ({
         userId: notification.userId,
@@ -206,6 +206,7 @@ describe('NotificationsClassChangeNotifier', () => {
         classId: CLASS_ID,
         discipline: 'surf',
         startsAt: '2026-10-18T11:00:00.000Z',
+        senderId: OTHER_ID,
         title: 'Ponto de encontro',
         message: 'Barraca azul.',
       };

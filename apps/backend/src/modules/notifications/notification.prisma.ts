@@ -7,7 +7,7 @@ import {
   NotificationType,
 } from '@rochas-surf-school/notifications';
 import { PrismaService } from '../../db/prisma.service.js';
-import type { Prisma } from '../../generated/prisma/client.js';
+import type { Notification as NotificationRecord, Prisma } from '../../generated/prisma/client.js';
 
 @Injectable()
 export class PrismaNotificationRepository implements NotificationRepository {
@@ -67,20 +67,13 @@ export class PrismaNotificationRepository implements NotificationRepository {
       this.prisma.notification.count({ where: { userId } }),
     ]);
 
-    return {
-      items: records.map(
-        (record) =>
-          new Notification({
-            id: record.id,
-            userId: record.userId,
-            type: record.type as NotificationType,
-            params: record.params as NotificationParams,
-            createdAt: record.createdAt,
-            readAt: record.readAt,
-          }),
-      ),
-      total,
-    };
+    return { items: records.map((record) => this.toDomain(record)), total };
+  }
+
+  async findById(userId: string, id: string): Promise<Notification | null> {
+    const record = await this.prisma.notification.findFirst({ where: { id, userId } });
+
+    return record ? this.toDomain(record) : null;
   }
 
   async countUnread(userId: string): Promise<number> {
@@ -102,6 +95,17 @@ export class PrismaNotificationRepository implements NotificationRepository {
     await this.prisma.notification.updateMany({
       where: { userId, readAt: null },
       data: { readAt: at },
+    });
+  }
+
+  private toDomain(record: NotificationRecord): Notification {
+    return new Notification({
+      id: record.id,
+      userId: record.userId,
+      type: record.type as NotificationType,
+      params: record.params as NotificationParams,
+      createdAt: record.createdAt,
+      readAt: record.readAt,
     });
   }
 }

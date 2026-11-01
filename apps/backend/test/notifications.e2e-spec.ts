@@ -665,6 +665,7 @@ describe('Notifications (e2e)', () => {
           body: 'Your seat in the Surf class on 10/20 at 08:00 is confirmed.',
           createdAt: own[24].createdAt.toISOString(),
           read: false,
+          adminMessage: null,
         });
       });
 
@@ -745,6 +746,194 @@ describe('Notifications (e2e)', () => {
       expect((await unreadCount(ana.accessToken).expect(200)).body).toEqual({ count: 3 });
       expect((await unreadCount(nobody.accessToken).expect(200)).body).toEqual({ count: 0 });
       expect((await unreadCount(undefined).expect(401)).body.errors).toEqual(['auth.token.invalid']);
+    });
+
+    describe('admin messages', () => {
+      const NUMBER = '+5585999999999';
+      const one = (token: string | undefined, id: string, query = '') =>
+        as(token, http().get(`/notifications/${id}${query}`));
+      const broadcastParams = (senderId?: string) => ({
+        title: 'Sem aula',
+        message: 'Mar <b>grande</b> 🌊',
+        ...(senderId ? { senderId } : {}),
+      });
+      const classMessageParams = (senderId?: string) => ({
+        classId: randomUUID(),
+        discipline: 'surf',
+        startsAt: STARTS_AT,
+        ...broadcastParams(senderId),
+      });
+      const setPerson = (id: string, data: object) => prisma.user.update({ where: { id }, data });
+
+      describe('sender', () => {
+        it('stores senderId and no name, photo or number when a notice is sent', async () => {
+          const admin = await account('admin');
+          const ana = await account();
+          await setPerson(admin.id, { whatsappNumber: NUMBER });
+
+          await as(admin.accessToken, http().post('/notifications/broadcast'))
+            .send({ audience: 'students', title: 'Sem aula', message: 'Mar grande' })
+            .expect(204);
+
+          const [row] = await prisma.notification.findMany({ where: { userId: ana.id, type: 'broadcast' } });
+          expect(row!.params).toEqual({ title: 'Sem aula', message: 'Mar grande', senderId: admin.id });
+          expect(JSON.stringify(row!.params)).not.toContain(NUMBER);
+          // The audience is every approved student, the database's own ones included.
+          await prisma.notification.deleteMany({
+            where: { type: 'broadcast', params: { path: ['senderId'], equals: admin.id } },
+          });
+        });
+
+        it("answers the account's current name, photo and role, in the list and in one", async () => {
+          const admin = await account('admin');
+          const ana = await account();
+          const row = await stored(ana.id, 0, { type: 'broadcast', params: broadcastParams(admin.id) });
+          await setPerson(admin.id, { name: 'Ana Maria', photoUrl: 'https://photos.test/new.jpg' });
+          const sender = {
+            id: admin.id,
+            name: 'Ana Maria',
+            photoUrl: 'https://photos.test/new.jpg',
+            role: 'admin',
+            whatsappNumber: null,
+          };
+
+          const listed = await list(ana.accessToken).expect(200);
+          const read = await one(ana.accessToken, row.id).expect(200);
+
+          expect(listed.body.items[0].adminMessage.sender).toEqual(sender);
+          expect(read.body.adminMessage.sender).toEqual(sender);
+        });
+      });
+
+      describe('whatsapp', () => {
+        async function numberSeenBy(role: Role, person: object) {
+          const admin = await account('admin');
+          const reader = await account(role);
+          await setPerson(admin.id, { whatsappNumber: NUMBER, ...person });
+          await stored(reader.id, 0, { type: 'broadcast', params: broadcastParams(admin.id) });
+
+          const { body } = await list(reader.accessToken).expect(200);
+
+          return body.items[0].adminMessage.sender.whatsappNumber;
+        }
+
+        it('shows a shared number to everyone', async () => {
+          expect(await numberSeenBy('student', { whatsappVisible: true })).toBe(NUMBER);
+        });
+
+        it('shows an unshared number only to an admin', async () => {
+          expect(await numberSeenBy('instructor', {})).toBeNull();
+          expect(await numberSeenBy('admin', {})).toBe(NUMBER);
+        });
+
+        it('answers null to everyone for a sender with no number', async () => {
+          expect(await numberSeenBy('admin', { whatsappNumber: null })).toBeNull();
+        });
+
+        it("answers null to everyone for a sender who isn't approved any more", async () => {
+          expect(await numberSeenBy('admin', { whatsappVisible: true, status: 'deleted' })).toBeNull();
+        });
+      });
+
+      describe('erased sender', () => {
+        it('answers sender null, with the title and the text', async () => {
+          const admin = await account('admin');
+          const ana = await account();
+          const row = await stored(ana.id, 0, { type: 'broadcast', params: broadcastParams(admin.id) });
+          await setPerson(admin.id, { status: 'erased', name: null, erasedAt: BASE });
+
+          const { body } = await one(ana.accessToken, row.id).expect(200);
+
+          expect(body.adminMessage).toEqual({ title: 'Sem aula', text: 'Mar <b>grande</b> 🌊', sender: null });
+        });
+
+        it('answers sender null for a notification stored without a senderId and for an unknown one', async () => {
+          const ana = await account();
+          const old = await stored(ana.id, 0, { type: 'broadcast', params: broadcastParams() });
+          const unknown = await stored(ana.id, 1, { type: 'broadcast', params: broadcastParams(randomUUID()) });
+
+          expect((await one(ana.accessToken, old.id).expect(200)).body.adminMessage.sender).toBeNull();
+          expect((await one(ana.accessToken, unknown.id).expect(200)).body.adminMessage.sender).toBeNull();
+        });
+      });
+
+      describe('one notification', () => {
+        it('answers the item in the same shape as the list, without marking it read', async () => {
+          const admin = await account('admin');
+          const ana = await account();
+          const row = await stored(ana.id, 0, { type: 'class.message', params: classMessageParams(admin.id) });
+
+          const read = await one(ana.accessToken, row.id, '?locale=pt-BR').expect(200);
+          const listed = await list(ana.accessToken, '?locale=pt-BR').expect(200);
+
+          expect(read.body).toEqual(listed.body.items[0]);
+          expect(read.body.read).toBe(false);
+          expect((await prisma.notification.findUniqueOrThrow({ where: { id: row.id } })).readAt).toBeNull();
+        });
+
+        it("answers 404 for a malformed id, an unknown one and someone else's", async () => {
+          const ana = await account();
+          const bia = await account();
+          const others = await stored(bia.id, 0);
+
+          for (const id of ['not-a-uuid', randomUUID(), others.id]) {
+            const { body } = await one(ana.accessToken, id).expect(404);
+
+            expect(JSON.stringify(body)).toContain('notification.notFound');
+          }
+        });
+
+        it('answers 422 for an invalid locale and 401 without a token', async () => {
+          const ana = await account();
+          const row = await stored(ana.id, 0);
+
+          const { body } = await one(ana.accessToken, row.id, '?locale=fr').expect(422);
+
+          expect(JSON.stringify(body)).toContain('notifications.locale.invalid');
+          await one(undefined, row.id).expect(401);
+        });
+
+        it('leaves unread-count answering the count', async () => {
+          const ana = await account();
+          await stored(ana.id, 0);
+
+          expect((await unreadCount(ana.accessToken).expect(200)).body).toEqual({ count: 1 });
+        });
+
+        it('reads for an account of any status', async () => {
+          const pending = await account('student', 'pending');
+          const row = await stored(pending.id, 0);
+
+          await one(pending.accessToken, row.id).expect(200);
+        });
+      });
+
+      describe('admin message', () => {
+        it("answers a broadcast's and a class message's text as written, without the class line", async () => {
+          const admin = await account('admin');
+          const ana = await account();
+          await stored(ana.id, 0, { type: 'broadcast', params: broadcastParams(admin.id) });
+          await stored(ana.id, 1, { type: 'class.message', params: classMessageParams(admin.id) });
+
+          const { body } = await list(ana.accessToken, '?locale=pt-BR').expect(200);
+
+          for (const item of body.items) {
+            expect(item.adminMessage).toMatchObject({ title: 'Sem aula', text: 'Mar <b>grande</b> 🌊' });
+          }
+          expect(body.items[0].type).toBe('class.message');
+          expect(body.items[0].body).not.toBe('Mar <b>grande</b> 🌊');
+          expect(body.items[0].body).toContain('Mar <b>grande</b> 🌊');
+        });
+
+        it('answers null for every other type', async () => {
+          const ana = await account();
+          await stored(ana.id, 0);
+
+          const { body } = await list(ana.accessToken).expect(200);
+
+          expect(body.items[0].adminMessage).toBeNull();
+        });
+      });
     });
 
     describe('marks one read', () => {

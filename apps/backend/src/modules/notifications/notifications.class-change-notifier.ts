@@ -98,6 +98,7 @@ export class NotificationsClassChangeNotifier implements ClassChangeNotifier {
     classId,
     discipline,
     startsAt,
+    senderId,
     title,
     message,
   }: ClassMessageSent): Promise<void> {
@@ -108,7 +109,7 @@ export class NotificationsClassChangeNotifier implements ClassChangeNotifier {
       await this.notify.execute({
         userIds: recipientIds,
         type: 'class.message',
-        params: { classId, discipline, startsAt: startsAt.toISOString(), title, message },
+        params: { classId, discipline, startsAt: startsAt.toISOString(), senderId, title, message },
       });
     } catch (error) {
       this.logger.error(

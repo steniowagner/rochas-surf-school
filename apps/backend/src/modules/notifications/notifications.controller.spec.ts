@@ -8,6 +8,7 @@ import { IS_PUBLIC_KEY } from '../../shared/decorators/public.decorator.js';
 import type { AuthenticatedUser } from '../../shared/types/current-user.type.js';
 import { Notification } from '@rochas-surf-school/notifications';
 import { ExpoPushProvider } from './expo.push.js';
+import { PrismaMessageSenderReader } from './message-sender-reader.prisma.js';
 import { PrismaNotificationRepository } from './notification.prisma.js';
 import { NotificationsController } from './notifications.controller.js';
 import { PrismaPushTicketRepository } from './push-ticket.prisma.js';
@@ -34,6 +35,7 @@ function setup() {
   const repository = { upsert: vi.fn(), deleteForUser: vi.fn(), findByUserIds: vi.fn() };
   const notifications = {
     findPage: vi.fn(),
+    findById: vi.fn(),
     countUnread: vi.fn(),
     markRead: vi.fn(),
     markAllRead: vi.fn(),
@@ -42,6 +44,7 @@ function setup() {
   const tickets = { createMany: vi.fn() };
   const pushProvider = { send: vi.fn() };
   const recipients = { findApprovedAdminIds: vi.fn(), findApprovedUserIdsByAudience: vi.fn() };
+  const senders = { findSenders: vi.fn().mockResolvedValue(new Map()) };
   const controller = new NotificationsController(
     repository as unknown as PrismaPushTokenRepository,
     { now: () => NOW } as SystemClockProvider,
@@ -49,8 +52,9 @@ function setup() {
     tickets as unknown as PrismaPushTicketRepository,
     pushProvider as unknown as ExpoPushProvider,
     recipients as unknown as PrismaRecipientsProvider,
+    senders as unknown as PrismaMessageSenderReader,
   );
-  return { controller, repository, notifications, tickets, pushProvider, recipients };
+  return { controller, repository, notifications, tickets, pushProvider, recipients, senders };
 }
 
 describe('NotificationsController', () => {
@@ -146,7 +150,8 @@ describe('NotificationsController', () => {
   });
 
   describe('GET notifications', () => {
-    const USER_ID = userOf('approved').id;
+    const USER = userOf('approved');
+    const USER_ID = USER.id;
     const CLASS_ID = '9e1b7a30-4c52-4d86-b0a3-6f2d8c5e1a47';
 
     it('is a protected GET on the controller root answering 200', () => {
@@ -175,7 +180,7 @@ describe('NotificationsController', () => {
       });
       notifications.findPage.mockResolvedValue({ items: [edited, deleted], total: 22 });
 
-      const result = await controller.list(USER_ID, '2', '2', 'en');
+      const result = await controller.list(USER, '2', '2', 'en');
 
       expect(notifications.findPage).toHaveBeenCalledWith(USER_ID, 2, 2);
       expect(result).toEqual({
@@ -188,6 +193,7 @@ describe('NotificationsController', () => {
             body: 'Your Surf class on 10/20 at 08:00 was changed.',
             createdAt: NOW.toISOString(),
             read: true,
+            adminMessage: null,
           },
           {
             id: deleted.id,
@@ -197,6 +203,7 @@ describe('NotificationsController', () => {
             body: 'Your Surf class on 10/20 at 08:00 was deleted.',
             createdAt: NOW.toISOString(),
             read: false,
+            adminMessage: null,
           },
         ],
         page: 2,
@@ -212,7 +219,7 @@ describe('NotificationsController', () => {
         total: 1,
       });
 
-      const result = await controller.list(USER_ID);
+      const result = await controller.list(USER);
 
       expect(notifications.findPage).toHaveBeenCalledWith(USER_ID, 1, 20);
       expect(result.items[0]).toMatchObject({ title: 'Conta aprovada', classId: null });
@@ -221,7 +228,7 @@ describe('NotificationsController', () => {
     it('answers 422 with every invalid query key', async () => {
       const { controller, notifications } = setup();
 
-      await expect(controller.list(USER_ID, '0', '51', 'fr')).rejects.toMatchObject({
+      await expect(controller.list(USER, '0', '51', 'fr')).rejects.toMatchObject({
         statusCode: 422,
         errors: [
           expect.objectContaining({ message: 'notifications.page.invalid' }),
@@ -230,6 +237,117 @@ describe('NotificationsController', () => {
         ],
       });
       expect(notifications.findPage).not.toHaveBeenCalled();
+    });
+
+    it("answers an admin message's text apart from its body, with the sender", async () => {
+      const { controller, notifications, senders } = setup();
+      const SENDER_ID = '3c4d5e6f-7a8b-4c9d-8e0f-1a2b3c4d5e6f';
+      notifications.findPage.mockResolvedValue({
+        items: [
+          new Notification({
+            userId: USER_ID,
+            type: 'class.message',
+            params: {
+              classId: CLASS_ID,
+              discipline: 'surf',
+              startsAt: '2026-10-20T11:00:00.000Z',
+              senderId: SENDER_ID,
+              title: 'Aviso',
+              message: 'Tragam protetor.',
+            },
+          }),
+        ],
+        total: 1,
+      });
+      senders.findSenders.mockResolvedValue(
+        new Map([
+          [
+            SENDER_ID,
+            {
+              id: SENDER_ID,
+              name: 'Ana',
+              photoUrl: null,
+              role: 'admin',
+              status: 'approved',
+              whatsappNumber: '+5585999999999',
+              whatsappVisible: false,
+            },
+          ],
+        ]),
+      );
+
+      const student = await controller.list(USER);
+      const admin = await controller.list({ ...USER, role: 'admin' });
+      const closedAdmin = await controller.list({ ...USER, role: 'admin', status: 'deleted' });
+
+      expect(student.items[0]!.body).toContain('Tragam protetor.');
+      expect(student.items[0]!.body).not.toBe('Tragam protetor.');
+      expect(student.items[0]!.adminMessage).toEqual({
+        title: 'Aviso',
+        text: 'Tragam protetor.',
+        sender: { id: SENDER_ID, name: 'Ana', photoUrl: null, role: 'admin', whatsappNumber: null },
+      });
+      expect(admin.items[0]!.adminMessage?.sender?.whatsappNumber).toBe('+5585999999999');
+      expect(closedAdmin.items[0]!.adminMessage?.sender?.whatsappNumber).toBeNull();
+    });
+  });
+
+  describe('GET notifications/:id', () => {
+    const USER = userOf('approved');
+    const ID = '9e1b7a30-4c52-4d86-b0a3-6f2d8c5e1a47';
+
+    it('is a protected GET on :id answering 200', () => {
+      const handler = handlerOf('one');
+
+      expect(Reflect.getMetadata(PATH_METADATA, handler)).toBe(':id');
+      expect(Reflect.getMetadata(METHOD_METADATA, handler)).toBe(RequestMethod.GET);
+      expect(Reflect.getMetadata(HTTP_CODE_METADATA, handler)).toBe(HttpStatus.OK);
+      expect(Reflect.getMetadata(IS_PUBLIC_KEY, handler)).toBeUndefined();
+    });
+
+    it('is declared after unread-count, which it would otherwise take', () => {
+      const names = Object.getOwnPropertyNames(NotificationsController.prototype);
+
+      expect(names.indexOf('one')).toBeGreaterThan(names.indexOf('countUnread'));
+    });
+
+    it('answers the item in the shape of the list, in the requested language', async () => {
+      const { controller, notifications } = setup();
+      notifications.findById.mockResolvedValue(
+        new Notification({
+          id: ID,
+          userId: USER.id,
+          type: 'broadcast',
+          params: { title: 'Aviso', message: 'Oi' },
+          createdAt: NOW,
+        }),
+      );
+
+      await expect(controller.one(USER, ID, 'en')).resolves.toEqual({
+        id: ID,
+        type: 'broadcast',
+        classId: null,
+        title: 'Aviso',
+        body: 'Oi',
+        createdAt: NOW.toISOString(),
+        read: false,
+        adminMessage: { title: 'Aviso', text: 'Oi', sender: null },
+      });
+      expect(notifications.findById).toHaveBeenCalledWith(USER.id, ID);
+    });
+
+    it('answers 404 for a notification the caller does not have and 422 for an invalid locale', async () => {
+      const { controller, notifications } = setup();
+      notifications.findById.mockResolvedValue(null);
+
+      await expect(controller.one(USER, ID)).rejects.toMatchObject({
+        statusCode: 404,
+        message: 'notification.notFound',
+      });
+      await expect(controller.one(USER, ID, 'fr')).rejects.toMatchObject({
+        statusCode: 422,
+        errors: [expect.objectContaining({ message: 'notifications.locale.invalid' })],
+      });
     });
   });
 
@@ -375,7 +493,7 @@ describe('NotificationsController', () => {
 
       const [stored] = notifications.createMany.mock.calls[0]![0];
       expect(stored).toMatchObject({ userId: recipient, type: 'broadcast' });
-      expect(stored.params).toEqual({ title: 'Hi', message: 'All' });
+      expect(stored.params).toEqual({ title: 'Hi', message: 'All', senderId: admin.id });
       expect(pushProvider.send).toHaveBeenCalledWith([
         expect.objectContaining({ token: 'ExponentPushToken[x]', locale: 'en', type: 'broadcast' }),
       ]);

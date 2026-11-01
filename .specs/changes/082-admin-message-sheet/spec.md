@@ -393,7 +393,7 @@ The sender, in every answer below (`null` by ER-05):
   > verified: `npm run test:e2e -- test/class-messages.e2e-spec.ts` from `apps/backend` (18 passed), `npx vitest run
   > src/modules/classes/classes.controller.spec.ts` (54 passed); deviations: none.
 
-- [ ] **T-06** — In `src/modules/notifications/`: add `message-sender-reader.prisma.ts` (leaving erased accounts out), pass
+- [x] **T-06** — In `src/modules/notifications/`: add `message-sender-reader.prisma.ts` (leaving erased accounts out), pass
   `senderId` in `notifications.class-change-notifier.ts`, add `adminMessage` to `GET /notifications`, and add
   `GET /notifications/:id` after `unread-count`, with its requests in `notifications.integration.http`, specs for the
   adapters and the "sender", "whatsapp", "erased sender", "one notification" and "admin message" tests in
@@ -401,6 +401,22 @@ The sender, in every answer below (`null` by ER-05):
   [`backend-nest-controller`](../../../.claude/skills/backend-nest-controller).
   Covers: ER-03, ER-04, ER-05, ER-06, ER-07, ER-08 · Done when: `npx vitest run src/modules/notifications` and
   `npm run test:e2e -- test/notifications.e2e-spec.ts` pass from `apps/backend`.
+  > ✅ 2026-10-31 23:45 — Added PrismaMessageSenderReader (erased accounts left out), `senderId` in the class.message
+  > params, `findById` on the Prisma repository, `adminMessage` on `GET /notifications` and `GET /notifications/:id`
+  > after `unread-count`; files: `apps/backend/src/modules/notifications/message-sender-reader.prisma.ts`,
+  > `apps/backend/src/modules/notifications/message-sender-reader.prisma.spec.ts`,
+  > `apps/backend/src/modules/notifications/notification.prisma.ts`,
+  > `apps/backend/src/modules/notifications/notification.prisma.spec.ts`,
+  > `apps/backend/src/modules/notifications/notifications.class-change-notifier.ts`,
+  > `apps/backend/src/modules/notifications/notifications.class-change-notifier.spec.ts`,
+  > `apps/backend/src/modules/notifications/notifications.controller.ts`,
+  > `apps/backend/src/modules/notifications/notifications.controller.spec.ts`,
+  > `apps/backend/src/modules/notifications/notifications.module.ts`,
+  > `apps/backend/src/modules/notifications/notifications.integration.http`,
+  > `apps/backend/test/notifications.e2e-spec.ts`; verified: `npx vitest run src/modules/notifications` (23 files,
+  > 263 passed), `npm run test:e2e -- test/notifications.e2e-spec.ts` (66 passed), `npx tsc --noEmit -p .` clean,
+  > both from `apps/backend`; deviations: `viewerIsAdmin` is true only for an approved admin, because these routes
+  > answer accounts of any status.
 
 ### Packages (`packages/design-tokens`, `packages/app-messages`)
 

@@ -1,4 +1,3 @@
-import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -9,6 +8,7 @@ import { WeeklyOccupancyEntryRow } from "@/modules/classes/components/weekly-occ
 import { usePendingRequests } from "@/modules/enrolment/hooks/use-pending-requests.hook";
 import { useRemovedAccounts } from "@/modules/people/hooks/use-removed-accounts.hook";
 import { SchoolRulesEntryRow } from "@/modules/school-rules/components/school-rules-entry-row";
+import { pushScreen } from "@/navigation/push-screen";
 import { useHeaderInset } from "@/navigation/stack-header";
 import { getBottomPadding } from "@/utils/bottom-padding";
 
@@ -16,18 +16,18 @@ import { AdminToolRow } from "../components/admin-tool-row";
 import { useReactivationRequests } from "../hooks/use-reactivation-requests.hook";
 import { useRegistrations } from "../hooks/use-registrations.hook";
 
-const openRegistrations = () => router.push(routes.admin.registrations);
-const openReactivations = () => router.push(routes.admin.reactivations);
-const openClassRequests = () => router.push(routes.admin.classRequests);
-const openEnrolStudent = () => router.push(routes.admin.enrolStudent);
-const openRemovedAccounts = () => router.push(routes.admin.removedAccounts);
-const openMyClasses = () => router.push(routes.admin.myClasses);
-const openNewClass = () => router.push(routes.admin.newClass());
-const openWeeklyOccupancy = () => router.push(routes.admin.weeklyOccupancy);
-const openSchoolSettings = () => router.push(routes.admin.schoolSettings);
-const openCancellationRules = () => router.push(routes.admin.cancellationRules);
-const openSendNotice = () => router.push(routes.admin.sendNotice());
-const openSchoolRules = () => router.push(routes.admin.manageSchoolRules);
+const openRegistrations = () => pushScreen(routes.admin.registrations);
+const openReactivations = () => pushScreen(routes.admin.reactivations);
+const openClassRequests = () => pushScreen(routes.admin.classRequests);
+const openEnrolStudent = () => pushScreen(routes.admin.enrolStudent);
+const openRemovedAccounts = () => pushScreen(routes.admin.removedAccounts);
+const openMyClasses = () => pushScreen(routes.admin.myClasses);
+const openNewClass = () => pushScreen(routes.admin.newClass());
+const openWeeklyOccupancy = () => pushScreen(routes.admin.weeklyOccupancy);
+const openSchoolSettings = () => pushScreen(routes.admin.schoolSettings);
+const openCancellationRules = () => pushScreen(routes.admin.cancellationRules);
+const openSendNotice = () => pushScreen(routes.admin.sendNotice());
+const openSchoolRules = () => pushScreen(routes.admin.manageSchoolRules);
 
 export function AdminScreen() {
   const { t } = useTranslation();

@@ -1,4 +1,3 @@
-import { router } from "expo-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useColorScheme } from "react-native";
@@ -6,6 +5,7 @@ import { useColorScheme } from "react-native";
 import { routes } from "@/constants/routes";
 import { localeNames, type AppLocale } from "@/i18n/locales";
 import { usePushPreference } from "@/modules/notifications/hooks/use-push-preference.hook";
+import { pushScreen } from "@/navigation/push-screen";
 import { useSession } from "@/providers/session";
 import { useThemePreference } from "@/services/preferences/theme-preference";
 
@@ -41,9 +41,9 @@ export const useProfile = () => {
     languageLabel: localeNames[i18n.language as AppLocale],
     isPushEnabled: push.enabled,
     setPushEnabled: (enabled: boolean) => void push.setEnabled(enabled),
-    openEditProfile: () => router.push(roleRoutes.editProfile),
-    openWhatsapp: () => router.push(roleRoutes.whatsapp),
-    openSchoolRules: () => router.push(roleRoutes.schoolRules),
+    openEditProfile: () => pushScreen(roleRoutes.editProfile),
+    openWhatsapp: () => pushScreen(roleRoutes.whatsapp),
+    openSchoolRules: () => pushScreen(roleRoutes.schoolRules),
     // Without the web address the rows that open the web pages are hidden.
     openPrivacyPolicy: privacyPolicyUrl
       ? () => void openUrl(privacyPolicyUrl)

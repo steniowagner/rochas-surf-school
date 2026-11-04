@@ -1,12 +1,11 @@
-import { router } from "expo-router";
-
 import { routes } from "@/constants/routes";
+import { pushScreen } from "@/navigation/push-screen";
 
 import { EmailChoice } from "../components/email-choice";
 import { useLegalPages } from "../hooks/use-legal-pages.hook";
 
-const openSignIn = () => router.push(routes.auth.emailSignIn);
-const openCreateAccount = () => router.push(routes.auth.createAccount());
+const openSignIn = () => pushScreen(routes.auth.emailSignIn);
+const openCreateAccount = () => pushScreen(routes.auth.createAccount());
 
 export function EmailChoiceScreen() {
   const legalPages = useLegalPages();

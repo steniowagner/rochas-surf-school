@@ -3,12 +3,13 @@ import { router } from "expo-router";
 import { useEffect, useRef } from "react";
 
 import { routes } from "@/constants/routes";
+import { pushScreen } from "@/navigation/push-screen";
 import { isOnboardingCompleted, resolveFlow } from "@/navigation/resolve-flow";
 import { useSession } from "@/providers/session";
 import { apiPost } from "@/services/api";
 import { getSession } from "@/services/session/session.store";
 
-import { isAdminMessageType, notificationTarget } from "../utils/notification-target";
+import { notificationTarget } from "../utils/notification-target";
 import { refreshAccount } from "../utils/refresh-account";
 
 const handle = async (response: Notifications.NotificationResponse) => {
@@ -41,15 +42,9 @@ const handle = async (response: Notifications.NotificationResponse) => {
   const notificationId = typeof data?.notificationId === "string" ? data.notificationId : null;
   const target = notificationTarget(data?.type, classId, flow, notificationId);
 
-  // Avisos shows the message in its own place: a tap while it is open must not stack a second one.
-  if (target !== null && isAdminMessageType(data?.type)) {
-    router.push(target, { dangerouslySingular: true });
-
-    return;
-  }
-
+  // A singular push (spec 087): a tap while its screen (Avisos, say) is open doesn't stack a second one.
   if (target !== null) {
-    router.push(target);
+    pushScreen(target);
 
     return;
   }

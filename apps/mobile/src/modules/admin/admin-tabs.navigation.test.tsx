@@ -1,5 +1,10 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { act, screen, userEvent } from "@testing-library/react-native";
+import {
+  act,
+  fireEvent,
+  screen,
+  userEvent,
+} from "@testing-library/react-native";
 import { router, Stack } from "expo-router";
 import { renderRouter } from "expo-router/testing-library";
 
@@ -22,6 +27,7 @@ import {
 } from "@/components/role-tabs/role-tabs.test-utils";
 import { routes } from "@/constants/routes";
 import i18n from "@/i18n";
+import { pushScreen } from "@/navigation/push-screen";
 import { AlertMessageProvider } from "@/providers/alert-message";
 import { SessionProvider } from "@/providers/session";
 import { hydrateSession } from "@/services/session/session.store";
@@ -287,7 +293,7 @@ describe("admin tabs", () => {
   it("/admin/people shows the people directory in its own tab", async () => {
     const app = await open();
 
-    await act(async () => router.push(routes.admin.people));
+    await act(async () => pushScreen(routes.admin.people));
 
     expect(app.getPathname()).toBe("/admin/people");
     expect(selectedTabLabel()).toBe("People");
@@ -299,5 +305,47 @@ describe("admin tabs", () => {
     await open();
 
     expect(tabLabels()).toEqual(["Inicio", "Clases", "Personas", "Perfil"]);
+  });
+});
+
+describe("double tap", () => {
+  it("opens Join the school once when its row is pressed twice, and one back returns to Panel", async () => {
+    const app = await open();
+    const row = screen.getByText("Join the school");
+
+    await fireEvent.press(row);
+    await fireEvent.press(row);
+    expect(app.getPathname()).toBe("/admin/registrations");
+
+    await act(async () => router.back());
+    expect(app.getPathname()).toBe("/admin");
+    expect(selectedTabLabel()).toBe("Home");
+  });
+
+  it("opens a class once when its row is pressed twice, and one back returns to Classes", async () => {
+    const app = await open();
+    await act(async () => router.navigate(routes.admin.classes));
+    const row = await screen.findByText("Praia do Futuro");
+
+    await fireEvent.press(row);
+    await fireEvent.press(row);
+    expect(app.getPathname()).toBe("/admin/class/c-1");
+
+    await act(async () => router.back());
+    expect(app.getPathname()).toBe("/admin/classes");
+    expect(selectedTabLabel()).toBe("Classes");
+  });
+
+  it("still opens the details of a different class above the first", async () => {
+    const app = await open();
+    await act(async () => router.navigate(routes.admin.classes));
+    await fireEvent.press(await screen.findByText("Praia do Futuro"));
+    expect(app.getPathname()).toBe("/admin/class/c-1");
+
+    await act(async () => pushScreen(routes.admin.classDetail("c-2")));
+    expect(app.getPathname()).toBe("/admin/class/c-2");
+
+    await act(async () => router.back());
+    expect(app.getPathname()).toBe("/admin/class/c-1");
   });
 });

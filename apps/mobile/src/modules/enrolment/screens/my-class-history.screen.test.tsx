@@ -208,7 +208,7 @@ describe("MyClassHistoryScreen", () => {
 
     await user.press(await screen.findByRole("button", { name: "Surf, 08:00 – 09:00" }));
 
-    expect(router.push).toHaveBeenCalledWith(routes.student.classDetail("c-06"));
+    expect(router.push).toHaveBeenCalledWith(routes.student.classDetail("c-06"), { dangerouslySingular: true });
   });
 
   it("loads the month the arrows move to", async () => {

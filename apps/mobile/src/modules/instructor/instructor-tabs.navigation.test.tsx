@@ -19,6 +19,7 @@ import {
 } from "@/components/role-tabs/role-tabs.test-utils";
 import { routes } from "@/constants/routes";
 import i18n from "@/i18n";
+import { pushScreen } from "@/navigation/push-screen";
 import { AlertMessageProvider } from "@/providers/alert-message";
 import { SessionProvider } from "@/providers/session";
 import { hydrateSession } from "@/services/session/session.store";
@@ -185,7 +186,7 @@ describe("instructor tabs", () => {
   it("/instructor/people shows the people directory", async () => {
     const app = await open();
 
-    await act(async () => router.push(routes.instructor.people));
+    await act(async () => pushScreen(routes.instructor.people));
 
     expect(app.getPathname()).toBe("/instructor/people");
     expect(selectedTabLabel()).toBe("People");

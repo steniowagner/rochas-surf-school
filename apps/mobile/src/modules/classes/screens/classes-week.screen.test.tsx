@@ -306,7 +306,9 @@ describe("ClassesWeekScreen", () => {
 
     await user.press(await screen.findByText("16:00 – 17:00"));
 
-    expect(router.push).toHaveBeenCalledWith(openClass("c-3"));
+    expect(router.push).toHaveBeenCalledWith(openClass("c-3"), {
+      dangerouslySingular: true,
+    });
   });
 
   it("updates a card's state as the clock passes its start", async () => {
@@ -670,12 +672,14 @@ describe("ClassesWeekScreen admin entry points", () => {
     await user.press(screen.getByRole("button", { name: "New class" }));
     expect(router.push).toHaveBeenLastCalledWith(
       routes.admin.newClass({ date: "2026-10-14" }),
+      { dangerouslySingular: true },
     );
 
     await user.press(screen.getByTestId("calendar-day-2026-10-17"));
     await user.press(screen.getByRole("button", { name: "Create class" }));
     expect(router.push).toHaveBeenLastCalledWith(
       routes.admin.newClass({ date: "2026-10-17" }),
+      { dangerouslySingular: true },
     );
   });
 

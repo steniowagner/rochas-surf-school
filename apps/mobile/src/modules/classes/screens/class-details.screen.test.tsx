@@ -657,7 +657,7 @@ describe("ClassDetailsScreen", () => {
 
       await user.press(screen.getByRole("button", { name: /No instructor/ }));
 
-      expect(router.push).toHaveBeenCalledWith(routes.admin.editClass("c-1"));
+      expect(router.push).toHaveBeenCalledWith(routes.admin.editClass("c-1"), { dangerouslySingular: true });
     });
 
     it("shows a student or an instructor no banner, only No instructor assigned", async () => {
@@ -782,7 +782,7 @@ describe("ClassDetailsScreen", () => {
         screen.getByRole("button", { name: /No cancellation deadline/ }),
       );
 
-      expect(router.push).toHaveBeenCalledWith(routes.admin.cancellationRules);
+      expect(router.push).toHaveBeenCalledWith(routes.admin.cancellationRules, { dangerouslySingular: true });
     });
 
     it("names skate for a skate class", async () => {
@@ -1074,7 +1074,7 @@ describe("ClassDetailsScreen", () => {
 
       await user.press(screen.getByRole("button", { name: "Edit class" }));
 
-      expect(router.push).toHaveBeenCalledWith(routes.admin.editClass("c-1"));
+      expect(router.push).toHaveBeenCalledWith(routes.admin.editClass("c-1"), { dangerouslySingular: true });
       expect(screen.queryByRole("button", { name: "Cancel class" })).toBeNull();
     });
 
@@ -1184,7 +1184,7 @@ describe("ClassDetailsScreen", () => {
 
       await user.press(screen.getByRole("button", { name: "Send message" }));
 
-      expect(router.push).toHaveBeenCalledWith(routes.admin.sendNotice({ classId: "c-1" }));
+      expect(router.push).toHaveBeenCalledWith(routes.admin.sendNotice({ classId: "c-1" }), { dangerouslySingular: true });
     });
 
     it("shows on a class that has started", async () => {
@@ -1387,7 +1387,7 @@ describe("ClassDetailsScreen", () => {
         await screen.findByRole("button", { name: "School rules" }),
       );
 
-      expect(router.push).toHaveBeenCalledWith(routes.student.schoolRules);
+      expect(router.push).toHaveBeenCalledWith(routes.student.schoolRules, { dangerouslySingular: true });
     });
 
     it.each([
@@ -1406,7 +1406,7 @@ describe("ClassDetailsScreen", () => {
           await screen.findByRole("button", { name: "School rules" }),
         );
 
-        expect(router.push).toHaveBeenCalledWith(route);
+        expect(router.push).toHaveBeenCalledWith(route, { dangerouslySingular: true });
       },
     );
 

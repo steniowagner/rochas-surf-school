@@ -1,10 +1,11 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { router, useFocusEffect } from "expo-router";
+import { useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import type { VisibleRange } from "@/components/week-month-calendar/week-month-calendar.types";
 import { routes } from "@/constants/routes";
+import { pushScreen } from "@/navigation/push-screen";
 import { SessionExpiredError } from "@/services/api";
 import {
   addDays,
@@ -97,8 +98,8 @@ export const useClassesWeekScreen = ({
     );
   // Only offered on today or later, so Nova aula opens with the selected day picked.
   const createClass = () =>
-    router.push(routes.admin.newClass({ date: selectedDate }));
-  const openClass = (id: string) => router.push(classRoute(id));
+    pushScreen(routes.admin.newClass({ date: selectedDate }));
+  const openClass = (id: string) => pushScreen(classRoute(id));
   // A week with no data goes back to pending when it is fetched again after an error: while "Try again" runs, the
   // error stays on screen with the spinner in its button, instead of the loading state.
   const isRetrying = query.isPending && query.errorUpdateCount > 0;

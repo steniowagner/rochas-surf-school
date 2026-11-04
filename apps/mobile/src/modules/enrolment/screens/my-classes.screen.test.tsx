@@ -258,8 +258,8 @@ describe("MyClassesScreen", () => {
     await user.press(cardOf("16:00 – 17:00"));
     await user.press(screen.getByRole("button", { name: "History" }));
 
-    expect(router.push).toHaveBeenNthCalledWith(1, routes.student.classDetail("c-3"));
-    expect(router.push).toHaveBeenNthCalledWith(2, routes.student.myHistory);
+    expect(router.push).toHaveBeenNthCalledWith(1, routes.student.classDetail("c-3"), { dangerouslySingular: true });
+    expect(router.push).toHaveBeenNthCalledWith(2, routes.student.myHistory, { dangerouslySingular: true });
   });
 
   it("shows the skeleton as one loading state, then the error with a retry that loads again", async () => {

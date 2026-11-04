@@ -347,6 +347,7 @@ describe("ConfirmCode", () => {
         expect(router.dismissTo).toHaveBeenCalledWith(routes.auth.emailChoice);
         expect(router.push).toHaveBeenCalledWith(
           routes.auth.createAccount({ email: EMAIL }),
+          { dangerouslySingular: true },
         );
         expect(onVerified).not.toHaveBeenCalled();
       },

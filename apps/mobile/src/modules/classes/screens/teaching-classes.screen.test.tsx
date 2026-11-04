@@ -213,10 +213,12 @@ describe("TeachingClassesScreen", () => {
     expect(router.push).toHaveBeenNthCalledWith(
       1,
       routes.admin.classDetail("l"),
+      { dangerouslySingular: true },
     );
     expect(router.push).toHaveBeenNthCalledWith(
       2,
       routes.admin.classDetail("b"),
+      { dangerouslySingular: true },
     );
   });
 
@@ -228,6 +230,7 @@ describe("TeachingClassesScreen", () => {
 
     expect(router.push).toHaveBeenCalledWith(
       routes.instructor.classDetail("l"),
+      { dangerouslySingular: true },
     );
   });
 
@@ -240,7 +243,9 @@ describe("TeachingClassesScreen", () => {
 
       await user.press(screen.getByRole("button", { name: "Past classes" }));
 
-      expect(router.push).toHaveBeenCalledWith(routes[role].myHistory);
+      expect(router.push).toHaveBeenCalledWith(routes[role].myHistory, {
+        dangerouslySingular: true,
+      });
     },
   );
 

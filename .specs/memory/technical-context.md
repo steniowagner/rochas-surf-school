@@ -94,22 +94,22 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     session and a string `data.notificationId` it first sends `POST /notifications/<id>/read`, not awaited, failures
     ignored (spec 055); refreshes the account with `refreshAccount()`, then routes to
     `notificationTarget(type, classId, flow, notificationId)` (`src/modules/notifications/utils/notification-target.ts`, an href or
-    `null`, shared with the notifications screen since spec 055): `router.push(routes.<role>.notificationMessage(id), { dangerouslySingular: true })`
-    for a `broadcast` / `class.message` push in the `student`, `instructor` or `admin` flow (spec 082; singular, so an open
-    "Avisos" takes the new message instead of stacking a second one), `router.push(routes.admin.registrations)` for a
-    `registration.pending` push when the account resolves to the `admin` flow, `router.push(routes.instructor.classes)`
-    / `router.push(routes.admin.classes)` for a `class.assigned`, `class.deleted` or `location.changed` push when it
-    resolves to the `instructor` / `admin` flow (specs 030, 034, 037), `router.push(routes.instructor.classDetail(classId))` / `router.push(routes.admin.classDetail(classId))`
+    `null`, shared with the notifications screen since spec 055): `pushScreen(routes.<role>.notificationMessage(id))`
+    for a `broadcast` / `class.message` push in the `student`, `instructor` or `admin` flow (spec 082; like every push, singular (spec 087), so an open
+    "Avisos" takes the new message instead of stacking a second one), `pushScreen(routes.admin.registrations)` for a
+    `registration.pending` push when the account resolves to the `admin` flow, `pushScreen(routes.instructor.classes)`
+    / `pushScreen(routes.admin.classes)` for a `class.assigned`, `class.deleted` or `location.changed` push when it
+    resolves to the `instructor` / `admin` flow (specs 030, 034, 037), `pushScreen(routes.instructor.classDetail(classId))` / `pushScreen(routes.admin.classDetail(classId))`
     for a `class.edited` / `class.unassigned` / `class.cancelled` / `class.reminder` push with a
-    string `data.classId` (specs 032, 033, 054), `router.push(routes.admin.classDetail(classId))` for a `class.noInstructor` push with a string
-    `data.classId` when it resolves to the `admin` flow (spec 035), `router.push(routes.student.classDetail(classId))`
+    string `data.classId` (specs 032, 033, 054), `pushScreen(routes.admin.classDetail(classId))` for a `class.noInstructor` push with a string
+    `data.classId` when it resolves to the `admin` flow (spec 035), `pushScreen(routes.student.classDetail(classId))`
     for an `enrolment.expired` / `enrolment.approved` / `enrolment.denied` / `enrolment.enrolled` /
     `enrolment.takenOut` / `class.cancelled` / `class.edited` / `class.reminder` push in the
     `student` flow (specs 041, 042, 044, 047, 054),
-    `router.push(routes.student.home)` for a `location.changed` push in the `student` flow (spec 047), `router.push(routes.instructor.classDetail(classId))` for an `enrolment.requested` push in
-    the `instructor` flow and `router.push(routes.admin.classRequests)` for one in the `admin` flow, with or without a
-    class id (spec 042), `router.push(routes.instructor.classDetail(classId))` /
-    `router.push(routes.admin.classDetail(classId))` for an `enrolment.cancelled` push with a string `data.classId`
+    `pushScreen(routes.student.home)` for a `location.changed` push in the `student` flow (spec 047), `pushScreen(routes.instructor.classDetail(classId))` for an `enrolment.requested` push in
+    the `instructor` flow and `pushScreen(routes.admin.classRequests)` for one in the `admin` flow, with or without a
+    class id (spec 042), `pushScreen(routes.instructor.classDetail(classId))` /
+    `pushScreen(routes.admin.classDetail(classId))` for an `enrolment.cancelled` push with a string `data.classId`
     in the `instructor` / `admin` flow (spec 043), else (`null`)
     `router.replace(routes.home)` (`"/"`), so `resolveFlow` alone decides access) and
     `useNotificationReceived` (a push with the app open: every push invalidates `["notifications", "list"]` and
@@ -721,7 +721,11 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   when the route takes params, optional ones included: `routes.auth.createAccount()` or
   `routes.auth.createAccount({ email })`, `routes.admin.newClass()` / `routes.admin.newClass({ date })`, or
   `routes.admin.sendNotice()` / `routes.admin.sendNotice({ classId })`). `router` and `Redirect` calls and their tests use it, never string literals,
-  so a moved route changes in one place. Each role's folder (`src/app/(private)/<role>/`) has a `Stack` whose
+  so a moved route changes in one place. Screens open with `pushScreen(routes.…)` (`src/navigation/push-screen.ts`, spec 087),
+  never a direct `router.push`: it pushes with `{ dangerouslySingular: true }`, so a route with the same path params
+  already in the role's stack is brought to the top instead of pushed again — a second tap during the slide-in opens
+  nothing new (pushes that differ only in query params share one id). An ESLint `no-restricted-syntax` rule in
+  `apps/mobile/eslint.config.js` rejects `router.push(` everywhere but that file, tests included. Each role's folder (`src/app/(private)/<role>/`) has a `Stack` whose
   `(tabs)` group holds the tab bar (`(tabs)/_layout.tsx` renders `RoleTabs`, one route file per tab; the first tab
   is the role's `index`, so `/student`, `/instructor` and `/admin` stay the flows' entry routes); inner screens
   (`/admin/registrations`, `/admin/class-requests` — `routes.admin.classRequests`, spec 042 —, `/admin/people`, `/admin/new-class`, `/admin/edit-class/[id]` —

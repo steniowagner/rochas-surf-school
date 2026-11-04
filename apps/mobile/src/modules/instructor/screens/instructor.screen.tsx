@@ -1,4 +1,3 @@
-import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -7,13 +6,13 @@ import { routes } from "@/constants/routes";
 import { TeachingClassesEntryRow } from "@/modules/classes/components/teaching-classes-entry-row";
 import { WeeklyOccupancyEntryRow } from "@/modules/classes/components/weekly-occupancy-entry-row";
 import { SchoolRulesEntryRow } from "@/modules/school-rules/components/school-rules-entry-row";
+import { pushScreen } from "@/navigation/push-screen";
 import { useHeaderInset } from "@/navigation/stack-header";
 import { getBottomPadding } from "@/utils/bottom-padding";
 
-const openMyClasses = () => router.push(routes.instructor.myClasses);
-const openWeeklyOccupancy = () =>
-  router.push(routes.instructor.weeklyOccupancy);
-const openSchoolRules = () => router.push(routes.instructor.schoolRules);
+const openMyClasses = () => pushScreen(routes.instructor.myClasses);
+const openWeeklyOccupancy = () => pushScreen(routes.instructor.weeklyOccupancy);
+const openSchoolRules = () => pushScreen(routes.instructor.schoolRules);
 
 export function InstructorScreen() {
   const { t } = useTranslation();

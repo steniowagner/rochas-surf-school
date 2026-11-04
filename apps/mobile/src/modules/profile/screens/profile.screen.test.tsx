@@ -167,9 +167,15 @@ describe("ProfileScreen", () => {
     await user.press(screen.getByRole("button", { name: "WhatsApp" }));
     await user.press(screen.getByRole("button", { name: "School rules" }));
 
-    expect(router.push).toHaveBeenNthCalledWith(1, paths.editProfile);
-    expect(router.push).toHaveBeenNthCalledWith(2, paths.whatsapp);
-    expect(router.push).toHaveBeenNthCalledWith(3, paths.schoolRules);
+    expect(router.push).toHaveBeenNthCalledWith(1, paths.editProfile, {
+      dangerouslySingular: true,
+    });
+    expect(router.push).toHaveBeenNthCalledWith(2, paths.whatsapp, {
+      dangerouslySingular: true,
+    });
+    expect(router.push).toHaveBeenNthCalledWith(3, paths.schoolRules, {
+      dangerouslySingular: true,
+    });
   });
 
   it.each(["student", "instructor", "admin"] as const)(

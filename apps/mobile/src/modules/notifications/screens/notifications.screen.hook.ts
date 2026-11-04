@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 
 import { routes } from "@/constants/routes";
 import { useNow } from "@/modules/classes/hooks/use-now.hook";
+import { pushScreen } from "@/navigation/push-screen";
 import { isOnboardingCompleted, resolveFlow } from "@/navigation/resolve-flow";
 import { useAlertMessage } from "@/providers/alert-message";
 import { useSession } from "@/providers/session";
@@ -141,7 +142,7 @@ export const useNotificationsScreen = (): UseNotificationsScreenResult => {
     const target = notificationTarget(notification.type, notification.classId, flow);
 
     if (target !== null) {
-      router.push(target);
+      pushScreen(target);
 
       return;
     }
@@ -167,7 +168,7 @@ export const useNotificationsScreen = (): UseNotificationsScreenResult => {
     const target = classDetailTarget(classId, flow);
 
     if (target !== null) {
-      router.push(target);
+      pushScreen(target);
     }
   };
 

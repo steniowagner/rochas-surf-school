@@ -1,8 +1,8 @@
-import { router } from "expo-router";
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { routes } from "@/constants/routes";
+import { pushScreen } from "@/navigation/push-screen";
 import { useAlertMessage } from "@/providers/alert-message";
 import { ApiError } from "@/services/api";
 import { requestAppleCredential } from "@/services/apple-sign-in";
@@ -65,7 +65,7 @@ export const useAppleSignIn = ({ onSignedIn }: UseAppleSignInProps) => {
       onSignedIn(await signIn.mutateAsync({ idToken, name: appleName }));
     } catch (error) {
       if (idToken && isNameError(error)) {
-        router.push(
+        pushScreen(
           routes.auth.providerName({
             provider: "apple",
             idToken,

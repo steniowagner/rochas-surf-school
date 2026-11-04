@@ -1,6 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import { router } from "expo-router";
 import { useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { Platform, Text, TouchableOpacity, View } from "react-native";
@@ -18,6 +17,7 @@ import {
   localeNames,
   type AppLocale,
 } from "@/i18n/locales";
+import { pushScreen } from "@/navigation/push-screen";
 import { getBottomPadding } from "@/utils/bottom-padding";
 
 import { AuthButton } from "../auth-button";
@@ -142,7 +142,7 @@ export function AuthComponent({
         <AuthButton
           variant="primary"
           label={t("auth.continueWithEmail")}
-          onPress={() => router.push(routes.auth.emailChoice)}
+          onPress={() => pushScreen(routes.auth.emailChoice)}
           icon={
             <Ionicons name="mail-outline" size={20} color={palette.onColor} />
           }

@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { TextInput } from "react-native";
 
 import { routes } from "@/constants/routes";
+import { pushScreen } from "@/navigation/push-screen";
 import { useAlertMessage } from "@/providers/alert-message";
 
 import { useRequestSignInCode } from "../../hooks/use-request-sign-in-code.hook";
@@ -32,7 +33,7 @@ const goBackToStart = (hasName: boolean) => {
 // The address has no account: Create account opens over Choose, with the email filled in.
 const openCreateAccount = (email: string) => {
   router.dismissTo(routes.auth.emailChoice);
-  router.push(routes.auth.createAccount({ email }));
+  pushScreen(routes.auth.createAccount({ email }));
 };
 
 export const useConfirmCode = ({

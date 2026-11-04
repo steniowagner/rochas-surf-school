@@ -72,6 +72,7 @@ describe("CreateAccountScreen", () => {
           email: "ana.silva@gmail.com",
           name: "Ana Silva",
         }),
+        { dangerouslySingular: true },
       ),
     );
   });

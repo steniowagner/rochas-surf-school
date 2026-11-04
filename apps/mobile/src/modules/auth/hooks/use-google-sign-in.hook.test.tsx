@@ -158,6 +158,7 @@ describe("useGoogleSignIn", () => {
         idToken: "id-token",
         name: "Maria",
       }),
+      { dangerouslySingular: true },
     );
     expect(onSignedIn).not.toHaveBeenCalled();
     expect(show).not.toHaveBeenCalled();
@@ -177,6 +178,7 @@ describe("useGoogleSignIn", () => {
         idToken: "id-token",
         name: undefined,
       }),
+      { dangerouslySingular: true },
     );
   });
 

@@ -17,7 +17,9 @@ describe("AuthComponent email sign-in", () => {
 
     await user.press(screen.getByText("Continue with email"));
 
-    expect(router.push).toHaveBeenCalledWith(routes.auth.emailChoice);
+    expect(router.push).toHaveBeenCalledWith(routes.auth.emailChoice, {
+      dangerouslySingular: true,
+    });
   });
 });
 

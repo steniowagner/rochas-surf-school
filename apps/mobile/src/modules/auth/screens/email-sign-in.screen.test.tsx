@@ -58,6 +58,7 @@ describe("EmailSignInScreen", () => {
     await waitFor(() =>
       expect(router.push).toHaveBeenCalledWith(
         routes.auth.confirmCode({ email: "ana.silva@gmail.com" }),
+        { dangerouslySingular: true },
       ),
     );
   });

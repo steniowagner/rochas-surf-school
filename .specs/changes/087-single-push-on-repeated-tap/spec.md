@@ -105,9 +105,24 @@ already in the stack, and a lint rule keeps new code on it.
   > option is removed); files: `apps/mobile/src/navigation/push-screen.ts`,
   > `apps/mobile/src/navigation/push-screen.test.ts`; verified: `npx jest src/navigation/push-screen.test.ts`
   > (1 passed), `npx eslint` on both files clean; deviations: none
-- [ ] **T-02** — Replace `router.push` with `pushScreen` in the auth module's seven files listed in Context, and
+- [x] **T-02** — Replace `router.push` with `pushScreen` in the auth module's seven files listed in Context, and
   update their tests' `router.push` assertions to the new arguments.
   Covers: ER-01 · Done when: `npx jest src/modules/auth` passes and no `router.push` is left in `src/modules/auth`.
+  > ✅ 2026-11-04 18:21 — the seven auth files call `pushScreen(…)` with the same `routes.auth.…` hrefs; the
+  > `router` import is dropped where nothing else uses it (kept in `confirm-code.hook.ts` and
+  > `email-sign-in.screen.tsx` for `back` / `dismissTo` / `replace`); the eight `router.push` assertions now
+  > expect `(href, { dangerouslySingular: true })`; files: `apps/mobile/src/modules/auth/screens/create-account.screen.tsx`,
+  > `apps/mobile/src/modules/auth/screens/email-choice.screen.tsx`, `apps/mobile/src/modules/auth/screens/email-sign-in.screen.tsx`,
+  > `apps/mobile/src/modules/auth/components/confirm-code/confirm-code.hook.ts`,
+  > `apps/mobile/src/modules/auth/components/auth/auth.component.tsx`, `apps/mobile/src/modules/auth/hooks/use-apple-sign-in.hook.ts`,
+  > `apps/mobile/src/modules/auth/hooks/use-google-sign-in.hook.ts`, `apps/mobile/src/modules/auth/screens/create-account.screen.test.tsx`,
+  > `apps/mobile/src/modules/auth/screens/email-sign-in.screen.test.tsx`,
+  > `apps/mobile/src/modules/auth/components/confirm-code/confirm-code.component.test.tsx`,
+  > `apps/mobile/src/modules/auth/components/auth/auth.component.test.tsx`,
+  > `apps/mobile/src/modules/auth/hooks/use-google-sign-in.hook.test.tsx`,
+  > `apps/mobile/src/modules/auth/hooks/use-apple-sign-in.hook.test.tsx`; verified: `npx jest src/modules/auth` (28 suites,
+  > 317 passed; 10 failed before the assertions were updated), `grep -rn "router.push" src/modules/auth` outside tests
+  > finds nothing, `npx eslint src/modules/auth` clean, changed lines 100% covered (`--coverage`); deviations: none
 - [ ] **T-03** — Replace `router.push` with `pushScreen` in the classes and enrolment files listed in Context, and
   update their tests.
   Covers: ER-01 · Done when: `npx jest src/modules/classes src/modules/enrolment` passes and no `router.push` is

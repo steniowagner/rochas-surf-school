@@ -188,6 +188,7 @@ describe("useAppleSignIn", () => {
         idToken: "id-token",
         name: "Maria",
       }),
+      { dangerouslySingular: true },
     );
     expect(onSignedIn).not.toHaveBeenCalled();
     expect(show).not.toHaveBeenCalled();
@@ -207,6 +208,7 @@ describe("useAppleSignIn", () => {
         idToken: "id-token",
         name: undefined,
       }),
+      { dangerouslySingular: true },
     );
   });
 

@@ -1,9 +1,9 @@
-import { router } from "expo-router";
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Platform } from "react-native";
 
 import { routes } from "@/constants/routes";
+import { pushScreen } from "@/navigation/push-screen";
 import { useAlertMessage } from "@/providers/alert-message";
 import { ApiError } from "@/services/api";
 import { GoogleSignin } from "@/services/google-sign-in";
@@ -65,7 +65,7 @@ export const useGoogleSignIn = ({ onSignedIn }: UseGoogleSignInProps) => {
       onSignedIn(await signIn.mutateAsync({ idToken }));
     } catch (error) {
       if (idToken && isNameError(error)) {
-        router.push(
+        pushScreen(
           routes.auth.providerName({
             provider: "google",
             idToken,

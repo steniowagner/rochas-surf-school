@@ -204,7 +204,7 @@ Each block has the keys `title`, `description`, `confirm` and `cancel`.
   > `apps/mobile/src/components/decision/confirm-sheet/confirm-sheet.component.test.tsx`; verified: `npx jest
   > src/components/decision/confirm-sheet` (5 passed, the component 100% covered); deviations: none.
 
-- [ ] **T-03** — "Join the school": in `src/modules/admin/hooks/use-registrations-screen.hook.ts` (and its
+- [x] **T-03** — "Join the school": in `src/modules/admin/hooks/use-registrations-screen.hook.ts` (and its
   `.types.ts`) add `approving` (the registration whose sheet is open), `openApprove`, `closeApprove` and
   `confirmApprove` — `confirmApprove` runs `decide(…, "approve", …)` and the sheet closes as D-04 says; the card's
   `onApprove` opens the sheet; render `ConfirmSheet` with `registrations.approveSheet` in
@@ -213,6 +213,20 @@ Each block has the keys `title`, `description`, `confirm` and `cancel`.
   ("confirmation sheet", "cancel", "confirm").
   Covers: ER-01, ER-02, ER-03 · Done when: `npx jest src/modules/admin/hooks/use-registrations-screen.hook.test.tsx
   src/modules/admin/screens/registrations.screen.test.tsx` passes (from `apps/mobile`).
+  > ✅ 2026-11-04 12:23 — "Approve" on "Join the school" now opens `ConfirmSheet` (`registrations.approveSheet`,
+  > `success`, Feather `check`); the hook gained `approving`, `openApprove` (ignored while that card is in flight),
+  > `closeApprove` and `confirmApprove` in place of `approve`, and a decision closes both sheets of its card on
+  > success and on "already decided" (`closeSheetsOf`, was `closeDenyOf`), keeping the approve sheet open on other
+  > failures; files: `apps/mobile/src/modules/admin/hooks/use-registrations-screen.hook.ts`,
+  > `apps/mobile/src/modules/admin/hooks/use-registrations-screen.types.ts`,
+  > `apps/mobile/src/modules/admin/screens/registrations.screen.tsx`,
+  > `apps/mobile/src/modules/admin/hooks/use-registrations-screen.hook.test.tsx`,
+  > `apps/mobile/src/modules/admin/screens/registrations.screen.test.tsx`; verified: `npx jest
+  > src/modules/admin/hooks/use-registrations-screen.hook.test.tsx
+  > src/modules/admin/screens/registrations.screen.test.tsx` (38 passed; hook and screen 100% covered; `-t
+  > "confirmation sheet"` selects 14, `-t "cancel"` 3, `-t "confirm"` 17), `tsc --noEmit` and `eslint` clean;
+  > deviations: the hook no longer returns `approve` (only the sheet sends an approval), so the existing approve
+  > tests now go through the sheet.
 
 - [ ] **T-04** — "Reactivate accounts": the same change in `src/modules/admin/hooks/use-reactivations-screen.hook.ts`
   (and `.types.ts`) and `src/modules/admin/screens/reactivations.screen.tsx`, with `reactivations.approveSheet`;

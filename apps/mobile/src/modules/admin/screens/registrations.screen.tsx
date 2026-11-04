@@ -1,10 +1,11 @@
-import { Ionicons } from "@expo/vector-icons";
+import { Feather, Ionicons } from "@expo/vector-icons";
 import { Stack } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { RefreshControl, View } from "react-native";
 import Animated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { ConfirmSheet } from "@/components/decision/confirm-sheet";
 import { DecisionCard } from "@/components/decision/decision-card";
 import { DenySheet } from "@/components/decision/deny-sheet";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -42,13 +43,16 @@ export function RegistrationsScreen() {
     isRefreshing,
     sending,
     denying,
+    approving,
     selected,
     isSheetVisible,
     openRegistration,
     closeSheet,
     retry,
     refresh,
-    approve,
+    openApprove,
+    closeApprove,
+    confirmApprove,
     openDeny,
     closeDeny,
     confirmDeny,
@@ -102,11 +106,13 @@ export function RegistrationsScreen() {
               <DecisionCard
                 title={item.name}
                 details={[item.email]}
-                avatar={<PersonAvatar name={item.name} photoUrl={item.photoUrl} />}
+                avatar={
+                  <PersonAvatar name={item.name} photoUrl={item.photoUrl} />
+                }
                 onPress={() => openRegistration(item)}
                 approveLabel={t("registrations.approve")}
                 denyLabel={t("registrations.deny")}
-                onApprove={() => approve(item)}
+                onApprove={() => openApprove(item)}
                 onDeny={() => openDeny(item)}
                 disabled={item.id in sending}
                 loading={
@@ -156,6 +162,20 @@ export function RegistrationsScreen() {
           </View>
         </>
       )}
+      <ConfirmSheet
+        visible={approving !== null}
+        title={t("registrations.approveSheet.title")}
+        description={t("registrations.approveSheet.description", {
+          name: approving?.name ?? "",
+        })}
+        confirmLabel={t("registrations.approveSheet.confirm")}
+        confirmIcon={<Feather name="check" size={16} color={theme.onColor} />}
+        confirmVariant="success"
+        cancelLabel={t("registrations.approveSheet.cancel")}
+        loading={approving !== null && approving.id in sending}
+        onConfirm={confirmApprove}
+        onClose={closeApprove}
+      />
       <DenySheet
         visible={denying !== null}
         title={t("registrations.denySheet.title")}

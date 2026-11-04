@@ -177,9 +177,23 @@ already in the stack, and a lint rule keeps new code on it.
 
 ### Verification
 
-- [ ] **T-06** — Run every command in the Verification Plan from the repo root; all pass. Record the output
+- [x] **T-06** — Run every command in the Verification Plan from the repo root; all pass. Record the output
   summary as evidence. Covers: all · Done when: every command exits 0 (the ER-02 stdin check exits 1 as
   expected) and the simulator journey in ER-01 is recorded.
+  > ✅ 2026-11-04 18:35 — ran the Verification Plan from the repo root; files: none (verification only);
+  > verified: `node .specs/scripts/run-related-tests.mjs 087` → 57 suites, 1429 passed, RELATED TESTS PASSED;
+  > `node .specs/scripts/check-coverage.mjs 087` → COVERAGE OK, every changed line covered in 24 files;
+  > `npx jest src/navigation/push-screen.test.ts` → 1 passed; `npx jest src/modules/admin/admin-tabs.navigation.test.tsx
+  > -t "double tap"` → 3 passed; the ER-02 stdin `eslint` command → exit 1, "Use pushScreen from
+  > @/navigation/push-screen so a repeated tap doesn't open the screen twice"; `npx turbo run lint check-types build
+  > --filter=@rochas-surf-school/mobile` → 14 successful (mobile has no `build` script); `node .specs/scripts/run-e2e.mjs
+  > 087` → E2E PASSED, no suite applies to `apps/mobile`. Simulator (iPhone 18 Pro, iOS 27, app relaunched on this
+  > branch's bundle, signed in as an admin, pt-BR): two taps on "Entrar na escola" both landed while the home was still
+  > showing → one "Entrar na escola" screen opened, one header back showed the home; on Aulas (Thu 5 Nov) two taps on the
+  > 16:00 surf class card both landed on the list → one class detail opened, one header back showed Aulas;
+  > deviations: the local, git-ignored `apps/mobile/.env` pointed `EXPO_PUBLIC_API_URL` at the Mac's old LAN IP
+  > (`192.168.18.8`, unreachable), so lists stayed on their skeletons; it now points at the current one
+  > (`192.168.18.237`); nothing committed
 
 ## Verification Plan
 

@@ -2,10 +2,11 @@
 id: "085"
 slug: admin-accept-confirmation
 title: Confirm the accept actions of the admin tools
-status: in-review
+status: accepted
 created: 2026-11-04
 started: 2026-11-04
 base_commit: 6c4bf5c7268944c8cb92526b2428c6be1004aaf4
+reviewed_commit: a6a942279b057d6b4c6c81eb26aa3ba224a74b89
 fronts: [app-messages, mobile, web, designs]
 depends_on: []
 ---
@@ -464,3 +465,57 @@ Each block has the keys `title`, `description`, `confirm` and `cancel`.
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-11-04 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ — `npx turbo run lint check-types build` for app-messages, mobile and web (17 tasks
+  successful)
+- related tests ✅ — `run-related-tests.mjs 085`: RELATED TESTS PASSED (mobile 239, web 230, app-messages 4)
+- coverage of the changed lines ✅ — `check-coverage.mjs 085`: COVERAGE OK, 13 files measured, every changed line,
+  branch and function covered; no coverage-ignore comment in the diff
+- e2e ✅ — `run-e2e.mjs 085`: E2E PASSED (web Playwright, 78 passed; backend not affected)
+- designs ✅ — `pack.mjs --check` (5 files match their sources); `node --test .docs/designs/scripts/*.test.mjs` (7
+  passed); `AD-06-10`, `AD-07-16`–`AD-07-18` and the four sheet titles in `admin-app.html`'s sources, in light and dark
+- mobile, followed in the iOS simulator (iPhone 18 Pro, pt-BR, local backend) — "Entrar na escola" and "Contas
+  removidas", see ER-01–ER-03
+
+**Expected Results**
+
+- ER-01 ✅ — `-t "confirmation sheet"` 21 passed. Simulator: "Aprovar" on the second card opened "Aprovar entrada?"
+  naming that card's person (Review Tester), success button with the check and "Cancelar"; nothing sent (user still
+  `pending`); "Recusar" still opened "Recusar entrada?" with the reason field. "Restaurar" opened "Restaurar conta?"
+  naming the person, primary button with the refresh icon (D-05)
+- ER-02 ✅ — `-t "cancel"` 10 passed (Cancel and backdrop on the four screens, reopening, Deny after cancelling;
+  `ConfirmSheet` calls `onClose` and not `onConfirm`). Simulator: "Cancelar" and the backdrop closed the sheets, the
+  card stayed and the database didn't change
+- ER-03 ✅ — `-t "confirm"` 59 passed: success, a second tap while sending, the stale answers of each tool (sheet
+  closes, list refreshes) and other failures (alert, sheet stays open, button enabled again). Simulator: confirming
+  approved Review Tester (card left, 3 → 2 waiting) and restored the removed account (row left, empty state)
+- ER-04 ✅ — the four `vitest` paths 62 passed (sheet over the list, first mock person, Copy texts, ids at the end of
+  sections 06 and 07, translated titles); pack check and e2e as above
+- ER-05 ✅ — `vitest run src/modules/user-journeys` 77 passed: the four rows' `designIds`, the steps and expected text
+  quoting each language's app labels and sheet titles; the e2e suite keeps the 33 admin rows
+
+**Findings**
+
+None.
+
+**Notes**
+
+- Not seen in the simulator by this review: "Reactivate accounts" and "Class enrolments" (no local data; same code
+  path as the approval, covered by their screen tests and seen in T-11's run), and the "network off" step of the
+  Verification Plan — neither this review nor T-11 turned the network off; the screen tests cover the network
+  failure on all four tools.
+- `ConfirmSheet` holds a single `useState` in `confirm-sheet.hook.ts`; `.claude/rules/react.md` keeps a single state
+  in the component, but the hook also holds the "keep the description while closing" logic, so either reading
+  holds.
+- `## Memory Impact` could also say that `ConfirmSheet` keeps the description it was open with while it slides
+  away (T-02's fix), for `spec-finish`.
+- The removed-accounts screen test file keeps a Jest worker alive after its run (pre-existing, noted in T-06); the
+  related run passes with Jest's "worker failed to exit gracefully" warning.
+- `git status` showed the untracked `.specs/changes/081-staging-follow-ups/` and `084-apple-token-revocation/`:
+  other specs' drafts, not part of this one.
+- Test data added to the local database by this review: the account `review085-removed@example.com` (now restored),
+  and Review Tester was approved.

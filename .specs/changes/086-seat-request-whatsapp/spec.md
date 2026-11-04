@@ -3,7 +3,7 @@ id: "086"
 slug: seat-request-whatsapp
 title: Show the student's WhatsApp number on seat requests
 template: quick
-status: changes-requested
+status: in-progress
 created: 2026-11-04
 started: 2026-11-04
 base_commit: dcc32bec5ce43ed68df49ad5dcb97e7fd058e539
@@ -201,11 +201,16 @@ number, so the sheet always says "Número não compartilhado".
 
 **Findings**
 
-- [ ] **F-01** (convention) — `apps/backend/src/modules/enrolment/enrolment.integration.http` line 154 still documents
+- [x] **F-01** (convention) — `apps/backend/src/modules/enrolment/enrolment.integration.http` line 154 still documents
   `GET /enrolments/pending` as answering `student: { id, name, photoUrl }`, which ER-01 changed to
   `{ id, name, photoUrl, whatsappNumber }`. Reproduce: `grep -n "student: { id, name, photoUrl }"
   apps/backend/src/modules/enrolment/enrolment.integration.http`. Expected: the request's comment names
   `whatsappNumber` (the stored E.164 number, shared or not, or `null`).
+  > ✅ 2026-11-04 18:30 — the `GET /enrolments/pending` request's comment now documents
+  > `student: { id, name, photoUrl, whatsappNumber }` and says `whatsappNumber` is the student's stored E.164 number,
+  > shared or not, or `null`. files: `apps/backend/src/modules/enrolment/enrolment.integration.http`; verified: the
+  > reviewer's `grep -n "student: { id, name, photoUrl }" apps/backend/src/modules/enrolment/enrolment.integration.http`
+  > finds nothing (exit 1); deviations: none
 
 **Notes**
 

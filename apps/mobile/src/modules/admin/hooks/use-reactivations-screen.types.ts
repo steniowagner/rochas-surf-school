@@ -14,6 +14,8 @@ export type UseReactivationsScreenResult = {
   sending: Record<string, ReactivationAction>;
   /** The request whose deny sheet is open. */
   denying: ReactivationRequest | null;
+  /** The request whose reactivate confirmation sheet is open. */
+  approving: ReactivationRequest | null;
   /** The request whose detail sheet is open (or sliding away). */
   selected: ReactivationRequest | null;
   isSheetVisible: boolean;
@@ -21,7 +23,10 @@ export type UseReactivationsScreenResult = {
   closeSheet: () => void;
   retry: () => void;
   refresh: () => void;
-  approve: (request: ReactivationRequest) => void;
+  /** Opens the reactivate confirmation sheet; nothing is sent until it is confirmed. */
+  openApprove: (request: ReactivationRequest) => void;
+  closeApprove: () => void;
+  confirmApprove: () => void;
   openDeny: (request: ReactivationRequest) => void;
   closeDeny: () => void;
   confirmDeny: (reason: string) => void;

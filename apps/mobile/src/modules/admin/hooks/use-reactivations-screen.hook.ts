@@ -29,6 +29,7 @@ export const useReactivationsScreen = (): UseReactivationsScreenResult => {
     {},
   );
   const [denying, setDenying] = useState<ReactivationRequest | null>(null);
+  const [approving, setApproving] = useState<ReactivationRequest | null>(null);
   // Kept while the detail sheet slides away, so its content doesn't vanish before it is gone.
   const [selected, setSelected] = useState<ReactivationRequest | null>(null);
   const [isSheetVisible, setIsSheetVisible] = useState(false);
@@ -36,9 +37,11 @@ export const useReactivationsScreen = (): UseReactivationsScreenResult => {
   // A second tap in the same frame must not send twice, before `sending` has re-rendered.
   const inFlight = useRef(new Set<string>());
 
-  // A decision only closes the sheet that belongs to it: another card's sheet, and its reason, stay.
-  const closeDenyOf = (request: ReactivationRequest) =>
+  // A decision only closes the sheets that belong to it: another card's sheet, and its reason, stay.
+  const closeSheetsOf = (request: ReactivationRequest) => {
     setDenying((current) => (current?.id === request.id ? null : current));
+    setApproving((current) => (current?.id === request.id ? null : current));
+  };
 
   const decide = async (
     request: ReactivationRequest,
@@ -54,7 +57,7 @@ export const useReactivationsScreen = (): UseReactivationsScreenResult => {
 
     try {
       await send();
-      closeDenyOf(request);
+      closeSheetsOf(request);
     } catch (error) {
       const key = getReactivationErrorKey(error);
 
@@ -63,7 +66,7 @@ export const useReactivationsScreen = (): UseReactivationsScreenResult => {
       }
 
       if (isReactivationAlreadyDecided(error)) {
-        closeDenyOf(request);
+        closeSheetsOf(request);
       }
     } finally {
       inFlight.current.delete(request.id);
@@ -75,8 +78,20 @@ export const useReactivationsScreen = (): UseReactivationsScreenResult => {
     }
   };
 
-  const approve = (request: ReactivationRequest) =>
-    decide(request, "approve", () => approveMutation.mutateAsync(request.id));
+  // A card being sent can't open its confirmation sheet; opening one sends nothing.
+  const openApprove = (request: ReactivationRequest) => {
+    if (!inFlight.current.has(request.id)) {
+      setApproving(request);
+    }
+  };
+
+  const confirmApprove = () => {
+    if (approving) {
+      decide(approving, "approve", () =>
+        approveMutation.mutateAsync(approving.id),
+      );
+    }
+  };
 
   const confirmDeny = (reason: string) => {
     if (denying) {
@@ -109,6 +124,7 @@ export const useReactivationsScreen = (): UseReactivationsScreenResult => {
     isRefreshing,
     sending,
     denying,
+    approving,
     selected,
     isSheetVisible,
     openRequest: (request: ReactivationRequest) => {
@@ -118,7 +134,9 @@ export const useReactivationsScreen = (): UseReactivationsScreenResult => {
     closeSheet: () => setIsSheetVisible(false),
     retry: () => query.refetch(),
     refresh,
-    approve,
+    openApprove,
+    closeApprove: () => setApproving(null),
+    confirmApprove,
     openDeny: setDenying,
     closeDeny: () => setDenying(null),
     confirmDeny,

@@ -228,12 +228,24 @@ Each block has the keys `title`, `description`, `confirm` and `cancel`.
   > deviations: the hook no longer returns `approve` (only the sheet sends an approval), so the existing approve
   > tests now go through the sheet.
 
-- [ ] **T-04** — "Reactivate accounts": the same change in `src/modules/admin/hooks/use-reactivations-screen.hook.ts`
+- [x] **T-04** — "Reactivate accounts": the same change in `src/modules/admin/hooks/use-reactivations-screen.hook.ts`
   (and `.types.ts`) and `src/modules/admin/screens/reactivations.screen.tsx`, with `reactivations.approveSheet`;
   update `use-reactivations-screen.hook.test.tsx` and `reactivations.screen.test.tsx` for ER-01–ER-03, with the
   test names of T-03.
   Covers: ER-01, ER-02, ER-03 · Done when: `npx jest src/modules/admin/hooks/use-reactivations-screen.hook.test.tsx
   src/modules/admin/screens/reactivations.screen.test.tsx` passes.
+  > ✅ 2026-11-04 12:25 — "Reactivate" on "Reactivate accounts" now opens `ConfirmSheet`
+  > (`reactivations.approveSheet`, `success`, Feather `check`), with the same hook change as T-03 (`approving`,
+  > `openApprove`, `closeApprove`, `confirmApprove` in place of `approve`; `closeSheetsOf` on success and on
+  > `isReactivationAlreadyDecided`); files: `apps/mobile/src/modules/admin/hooks/use-reactivations-screen.hook.ts`,
+  > `apps/mobile/src/modules/admin/hooks/use-reactivations-screen.types.ts`,
+  > `apps/mobile/src/modules/admin/screens/reactivations.screen.tsx`,
+  > `apps/mobile/src/modules/admin/hooks/use-reactivations-screen.hook.test.tsx`,
+  > `apps/mobile/src/modules/admin/screens/reactivations.screen.test.tsx`; verified: `npx jest
+  > src/modules/admin/hooks/use-reactivations-screen.hook.test.tsx
+  > src/modules/admin/screens/reactivations.screen.test.tsx` (32 passed; hook and screen 100% covered; `-t
+  > "confirmation sheet"` 14, `-t "cancel"` 3, `-t "confirm"` 17), `tsc --noEmit` and `eslint src/modules/admin`
+  > clean; deviations: as T-03, the hook no longer returns `approve`.
 
 - [ ] **T-05** — "Class enrolments": the same change in
   `src/modules/enrolment/hooks/use-class-requests-screen.hook.ts` (and `.types.ts`) and

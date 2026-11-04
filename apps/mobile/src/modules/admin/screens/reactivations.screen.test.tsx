@@ -147,6 +147,33 @@ const cardOf = (name: string) => {
   return node;
 };
 
+// The confirmation sheet is the closest ancestor of its title that holds its "Cancel" button.
+const sheetOf = (title: string) => {
+  let node = screen.getByText(title);
+
+  while (
+    node.parent &&
+    within(node).queryAllByRole("button", { name: "Cancel" }).length === 0
+  ) {
+    node = node.parent;
+  }
+
+  return within(node);
+};
+
+/** Taps a card's "Reactivate", then the confirmation sheet's "Reactivate". */
+async function reactivateAndConfirm(
+  user: ReturnType<typeof userEvent.setup>,
+  name: string,
+) {
+  await user.press(
+    within(cardOf(name)).getByRole("button", { name: "Reactivate" }),
+  );
+  await user.press(
+    sheetOf("Reactivate account?").getByRole("button", { name: "Reactivate" }),
+  );
+}
+
 beforeEach(() => {
   jest.useFakeTimers({
     now: NOW,
@@ -281,8 +308,80 @@ describe("ReactivationsScreen list", () => {
   });
 });
 
-describe("ReactivationsScreen approve", () => {
-  it("sends the approval, disables that card meanwhile, then removes the card and lowers the count", async () => {
+describe("ReactivationsScreen reactivate confirmation sheet", () => {
+  it("opens the confirmation sheet naming the card's person, sending nothing", async () => {
+    const user = userEvent.setup();
+    serve([DAVI, CARLA]);
+    await renderScreen();
+    await screen.findByText("Carla Dias");
+
+    await user.press(
+      within(cardOf("Carla Dias")).getByRole("button", { name: "Reactivate" }),
+    );
+
+    const sheet = sheetOf("Reactivate account?");
+    expect(
+      sheet.getByText(
+        "Carla Dias's account comes back with its history and role, but not the cancelled seats. The person gets a push notification.",
+      ),
+    ).toBeOnTheScreen();
+    expect(sheet.getByRole("button", { name: "Reactivate" })).toBeOnTheScreen();
+    expect(sheet.getByRole("button", { name: "Cancel" })).toBeOnTheScreen();
+    expect(screen.queryByText("Deny reactivation?")).toBeNull();
+    expect(posts()).toHaveLength(0);
+  });
+
+  it("opens the reason sheet on Deny, not the confirmation sheet", async () => {
+    const user = userEvent.setup();
+    serve([CARLA]);
+    await renderScreen();
+    await screen.findByText("Carla Dias");
+
+    await user.press(screen.getByRole("button", { name: "Deny" }));
+
+    expect(screen.getByText("Deny reactivation?")).toBeOnTheScreen();
+    expect(screen.queryByText("Reactivate account?")).toBeNull();
+  });
+
+  it("closes with cancel, sending nothing, keeps the card and opens again", async () => {
+    const user = userEvent.setup();
+    serve([CARLA]);
+    await renderScreen();
+    await screen.findByText("Carla Dias");
+
+    await user.press(screen.getByRole("button", { name: "Reactivate" }));
+    await user.press(screen.getByRole("button", { name: "Cancel" }));
+
+    expect(screen.queryByText("Reactivate account?")).toBeNull();
+    expect(posts()).toHaveLength(0);
+    expect(screen.getByText("Carla Dias")).toBeOnTheScreen();
+
+    await user.press(screen.getByRole("button", { name: "Reactivate" }));
+    expect(screen.getByText("Reactivate account?")).toBeOnTheScreen();
+  });
+
+  it("closes with the backdrop (cancel), sending nothing, and Deny still works", async () => {
+    const user = userEvent.setup();
+    serve([CARLA]);
+    await renderScreen();
+    await screen.findByText("Carla Dias");
+
+    await user.press(screen.getByRole("button", { name: "Reactivate" }));
+    await user.press(screen.getByLabelText("backdrop"));
+
+    expect(screen.queryByText("Reactivate account?")).toBeNull();
+    expect(posts()).toHaveLength(0);
+
+    await user.press(screen.getByRole("button", { name: "Deny" }));
+    await user.press(screen.getByRole("button", { name: "Deny and notify" }));
+
+    await waitFor(() => expect(posts()).toHaveLength(1));
+    expect(posts()[0][0]).toBe(
+      "http://api.test/reactivation-requests/carla-id/deny",
+    );
+  });
+
+  it("confirm sends the approval once, spins and disables the card meanwhile, then closes the sheet and removes the card", async () => {
     const user = userEvent.setup();
     let release!: () => void;
     const gate = new Promise<void>((resolve) => {
@@ -300,10 +399,11 @@ describe("ReactivationsScreen approve", () => {
     await renderScreen();
     await screen.findByText("Carla Dias");
 
-    await user.press(
-      within(cardOf("Carla Dias")).getByRole("button", { name: "Reactivate" }),
-    );
-    // A second press in the same card is ignored while it sends.
+    await reactivateAndConfirm(user, "Carla Dias");
+    // The sheet stays open with its button spinning; a second tap, or one on the card's Deny, sends nothing more.
+    const sheet = sheetOf("Reactivate account?");
+    expect(sheet.queryByText("Reactivate")).toBeNull();
+    await user.press(sheet.getByRole("button", { name: "Reactivate" }));
     await user.press(
       within(cardOf("Carla Dias")).getByRole("button", { name: "Deny" }),
     );
@@ -327,11 +427,12 @@ describe("ReactivationsScreen approve", () => {
     );
     expect(state.items).toEqual([DAVI]);
     expect(posts()).toHaveLength(1);
+    expect(screen.queryByText("Reactivate account?")).toBeNull();
     expect(screen.queryByText("Carla Dias")).toBeNull();
     expect(mockShow).not.toHaveBeenCalled();
   });
 
-  it("shows the no-connection toast and keeps the card usable when offline", async () => {
+  it("confirm offline shows the no-connection toast and keeps the sheet open, its button enabled", async () => {
     const user = userEvent.setup();
     serve([CARLA], {
       "POST /reactivation-requests/carla-id/approve": () => {
@@ -341,7 +442,7 @@ describe("ReactivationsScreen approve", () => {
     await renderScreen();
     await screen.findByText("Carla Dias");
 
-    await user.press(screen.getByRole("button", { name: "Reactivate" }));
+    await reactivateAndConfirm(user, "Carla Dias");
 
     await waitFor(() =>
       expect(mockShow).toHaveBeenCalledWith(
@@ -349,13 +450,19 @@ describe("ReactivationsScreen approve", () => {
       ),
     );
     expect(screen.getByText("Carla Dias")).toBeOnTheScreen();
+    const confirm = sheetOf("Reactivate account?").getByRole("button", {
+      name: "Reactivate",
+    });
+    await waitFor(() =>
+      expect(confirm.props.accessibilityState.disabled).toBe(false),
+    );
     expect(
-      screen.getByRole("button", { name: "Reactivate" }).props
-        .accessibilityState.disabled,
+      within(cardOf("Carla Dias")).getByRole("button", { name: "Reactivate" })
+        .props.accessibilityState.disabled,
     ).toBe(false);
   });
 
-  it("shows the generic toast and keeps the card on any other error", async () => {
+  it("confirm with any other error shows the generic toast and keeps the card and the sheet", async () => {
     const user = userEvent.setup();
     serve([CARLA], {
       "POST /reactivation-requests/carla-id/approve": answer(500, {
@@ -365,7 +472,7 @@ describe("ReactivationsScreen approve", () => {
     await renderScreen();
     await screen.findByText("Carla Dias");
 
-    await user.press(screen.getByRole("button", { name: "Reactivate" }));
+    await reactivateAndConfirm(user, "Carla Dias");
 
     await waitFor(() =>
       expect(mockShow).toHaveBeenCalledWith(
@@ -373,6 +480,7 @@ describe("ReactivationsScreen approve", () => {
       ),
     );
     expect(screen.getByText("Carla Dias")).toBeOnTheScreen();
+    expect(screen.getByText("Reactivate account?")).toBeOnTheScreen();
   });
 });
 
@@ -473,7 +581,7 @@ describe("ReactivationsScreen deny", () => {
 });
 
 describe("ReactivationsScreen already decided", () => {
-  it("toasts, reloads the list and removes the card on approve", async () => {
+  it("confirm toasts, closes the sheet, reloads the list and removes the card on approve", async () => {
     const user = userEvent.setup();
     const state = serve([CARLA, DAVI], {
       "POST /reactivation-requests/carla-id/approve": answer(409, {
@@ -484,15 +592,14 @@ describe("ReactivationsScreen already decided", () => {
     await screen.findByText("Carla Dias");
     state.items = [DAVI];
 
-    await user.press(
-      within(cardOf("Carla Dias")).getByRole("button", { name: "Reactivate" }),
-    );
+    await reactivateAndConfirm(user, "Carla Dias");
 
     await waitFor(() =>
       expect(mockShow).toHaveBeenCalledWith(
         "This request was already decided.",
       ),
     );
+    expect(screen.queryByText("Reactivate account?")).toBeNull();
     await waitFor(() => expect(screen.queryByText("Carla Dias")).toBeNull());
     expect(screen.getByText("Davi Reis")).toBeOnTheScreen();
   });
@@ -552,7 +659,7 @@ describe("ReactivationsScreen detail sheet", () => {
     await user.press(screen.getByRole("button", { name: "Back" }));
     await user.press(screen.getByRole("button", { name: "Reactivate" }));
 
-    await waitFor(() => expect(posts()).toHaveLength(1));
+    expect(screen.getByText("Reactivate account?")).toBeOnTheScreen();
     expect(screen.queryByText("Student")).toBeNull();
   });
 });

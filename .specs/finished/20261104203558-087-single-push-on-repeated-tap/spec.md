@@ -3,13 +3,14 @@ id: "087"
 slug: single-push-on-repeated-tap
 title: Open a screen once when its item is tapped repeatedly
 template: quick
-status: accepted
+status: finished
 created: 2026-11-04
 started: 2026-11-04
 base_commit: e2b50a4ef102666c74cf88cd4a035a90575568b7
 reviewed_commit: de99050289c326c457ecd14966798e604ad45d80
 fronts: [mobile]
 depends_on: []
+finished: 2026-11-04
 ---
 
 # 087 — Open a screen once when its item is tapped repeatedly

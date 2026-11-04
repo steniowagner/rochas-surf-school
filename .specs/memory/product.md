@@ -1465,7 +1465,12 @@ opens the chat in WhatsApp, as on the People screen; the same holds for a pendin
 screen. A student without a number shows "Número não compartilhado.". Admins see every number, shared or not, so the
 pending requests the backend sends them now carry each student's stored number.
 
-Active specs: `081-staging-follow-ups`, `084-apple-token-revocation` and `087-single-push-on-repeated-tap`, planned.
+**A screen opens once, however fast it is tapped** (spec `087-single-push-on-repeated-tap`) — tapping a menu item,
+list row or header button again before its screen finishes opening no longer opens a second copy of it, so one back
+always returns to where the person was; a screen already open further down the stack is brought back to the top
+instead of opened again. Two different items tapped very fast still both open.
+
+Active specs: `081-staging-follow-ups` and `084-apple-token-revocation`, planned.
 
 ## Out of scope (future evolution, recorded in the specs)
 

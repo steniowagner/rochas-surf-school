@@ -174,11 +174,17 @@ Each block has the keys `title`, `description`, `confirm` and `cancel`.
 
 ### App messages (`packages/app-messages`)
 
-- [ ] **T-01** — Add `registrations.approveSheet`, `reactivations.approveSheet`, `classRequests.approveSheet` and
+- [x] **T-01** — Add `registrations.approveSheet`, `reactivations.approveSheet`, `classRequests.approveSheet` and
   `removedAccounts.restoreSheet` (`title`, `description`, `confirm`, `cancel`) with the texts of the Copy table to
   `src/en-US.ts`, `src/pt-BR.ts` and `src/es-ES.ts`, then build the package.
   Covers: enabling · Done when: `npm run build -w @rochas-surf-school/app-messages` and
   `npx turbo run check-types --filter=@rochas-surf-school/app-messages` exit 0.
+  > ✅ 2026-11-04 12:18 — added `approveSheet` to `reactivations`, `registrations` and `classRequests` and
+  > `restoreSheet` to `removedAccounts` (`title`, `description`, `confirm`, `cancel`, the Copy table texts) in the
+  > three locales; files: `packages/app-messages/src/en-US.ts`, `packages/app-messages/src/pt-BR.ts`,
+  > `packages/app-messages/src/es-ES.ts`; verified: `npm run build -w @rochas-surf-school/app-messages` (tsc, exit
+  > 0), `npx turbo run check-types --filter=@rochas-surf-school/app-messages` (1 successful); deviations: none
+  > (`dist/` is gitignored, rebuilt locally).
 
 ### Mobile (`apps/mobile`)
 

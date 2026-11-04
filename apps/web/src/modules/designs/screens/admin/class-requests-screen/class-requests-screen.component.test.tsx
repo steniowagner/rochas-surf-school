@@ -69,4 +69,15 @@ describe("ClassRequestsScreen", () => {
     expect(screen.getByRole("heading", { name: "Não foi possível carregar os pedidos" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Tentar de novo" })).toBeInTheDocument();
   });
+
+  it("AD-06-10: the enrol confirmation sheet over the list, naming the first student", () => {
+    render(<ClassRequestsScreen locale="es" state="approveSheet" />);
+
+    expect(screen.getByTestId("phone-frame")).not.toHaveAttribute("data-tall");
+    const sheet = within(screen.getByRole("dialog"));
+    expect(sheet.getByRole("heading", { name: "¿Inscribir en esta clase?" })).toBeInTheDocument();
+    expect(sheet.getByText("Gabriel Moura ocupa una plaza en esta clase y recibe una notificación.")).toBeInTheDocument();
+    expect(sheet.getByRole("button", { name: "Inscribir" })).toHaveClass("bg-ok");
+    expect(sheet.getByRole("button", { name: "Cancelar" })).toBeInTheDocument();
+  });
 });

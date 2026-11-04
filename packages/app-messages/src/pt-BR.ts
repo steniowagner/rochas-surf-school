@@ -237,6 +237,13 @@ const messages: Messages = {
       placeholder: "Escreva uma mensagem para a pessoa.",
       confirm: "Recusar e avisar",
     },
+    approveSheet: {
+      title: "Reativar conta?",
+      description:
+        "A conta de {{name}} volta com o histórico e o papel, mas sem as vagas canceladas. A pessoa recebe uma notificação push.",
+      confirm: "Reativar",
+      cancel: "Cancelar",
+    },
   },
   registrations: {
     title: "Entrar na escola",
@@ -264,6 +271,13 @@ const messages: Messages = {
       confirm: "Recusar e avisar",
       back: "Voltar",
     },
+    approveSheet: {
+      title: "Aprovar entrada?",
+      description:
+        "{{name}} entra na escola e já pode reservar aulas. A pessoa recebe uma notificação push.",
+      confirm: "Aprovar",
+      cancel: "Cancelar",
+    },
   },
   removedAccounts: {
     title: "Contas removidas",
@@ -279,6 +293,13 @@ const messages: Messages = {
     loadError: {
       title: "Não foi possível carregar as contas removidas",
       description: "Verifique sua conexão e tente de novo.",
+    },
+    restoreSheet: {
+      title: "Restaurar conta?",
+      description:
+        "{{name}} volta com os mesmos dados e o mesmo papel, e recebe uma notificação push.",
+      confirm: "Restaurar",
+      cancel: "Cancelar",
     },
   },
   classRequests: {
@@ -335,6 +356,13 @@ const messages: Messages = {
       notPending: "Este pedido já foi decidido.",
       started: "A aula já começou.",
       full: "A turma ficou cheia.",
+    },
+    approveSheet: {
+      title: "Inscrever nesta aula?",
+      description:
+        "{{name}} fica com uma vaga nesta aula e recebe uma notificação.",
+      confirm: "Inscrever",
+      cancel: "Cancelar",
     },
   },
   enrolStudent: {

@@ -236,6 +236,13 @@ const messages = {
       placeholder: "Write a message to the person.",
       confirm: "Deny and notify",
     },
+    approveSheet: {
+      title: "Reactivate account?",
+      description:
+        "{{name}}'s account comes back with its history and role, but not the cancelled seats. The person gets a push notification.",
+      confirm: "Reactivate",
+      cancel: "Cancel",
+    },
   },
   registrations: {
     title: "Join the school",
@@ -263,6 +270,13 @@ const messages = {
       confirm: "Deny and notify",
       back: "Back",
     },
+    approveSheet: {
+      title: "Approve entry?",
+      description:
+        "{{name}} joins the school and can book classes. The person gets a push notification.",
+      confirm: "Approve",
+      cancel: "Cancel",
+    },
   },
   removedAccounts: {
     title: "Removed accounts",
@@ -278,6 +292,13 @@ const messages = {
     loadError: {
       title: "Couldn't load the removed accounts",
       description: "Check your connection and try again.",
+    },
+    restoreSheet: {
+      title: "Restore account?",
+      description:
+        "{{name}} comes back with the same details and role, and gets a push notification.",
+      confirm: "Restore",
+      cancel: "Cancel",
     },
   },
   classRequests: {
@@ -334,6 +355,13 @@ const messages = {
       notPending: "This request was already decided.",
       started: "The class already started.",
       full: "The class is now full.",
+    },
+    approveSheet: {
+      title: "Enrol in this class?",
+      description:
+        "{{name}} takes a seat in this class and gets a notification.",
+      confirm: "Enrol",
+      cancel: "Cancel",
     },
   },
   enrolStudent: {

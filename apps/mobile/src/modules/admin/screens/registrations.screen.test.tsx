@@ -141,6 +141,33 @@ const cardOf = (name: string) => {
   return node;
 };
 
+// The confirmation sheet is the closest ancestor of its title that holds its "Cancel" button.
+const sheetOf = (title: string) => {
+  let node = screen.getByText(title);
+
+  while (
+    node.parent &&
+    within(node).queryAllByRole("button", { name: "Cancel" }).length === 0
+  ) {
+    node = node.parent;
+  }
+
+  return within(node);
+};
+
+/** Taps a card's "Approve", then the confirmation sheet's "Approve". */
+async function approveAndConfirm(
+  user: ReturnType<typeof userEvent.setup>,
+  name: string,
+) {
+  await user.press(
+    within(cardOf(name)).getByRole("button", { name: "Approve" }),
+  );
+  await user.press(
+    sheetOf("Approve entry?").getByRole("button", { name: "Approve" }),
+  );
+}
+
 beforeEach(() => {
   jest.useFakeTimers({
     now: NOW,
@@ -295,8 +322,78 @@ describe("RegistrationsScreen list", () => {
   });
 });
 
-describe("RegistrationsScreen approve", () => {
-  it("sends the approval, disables that card meanwhile, then removes the card and lowers the count", async () => {
+describe("RegistrationsScreen approve confirmation sheet", () => {
+  it("opens the confirmation sheet naming the card's person, sending nothing", async () => {
+    const user = userEvent.setup();
+    serve([BRUNO, ANA]);
+    await renderScreen();
+    await screen.findByText("Ana Souza");
+
+    await user.press(
+      within(cardOf("Ana Souza")).getByRole("button", { name: "Approve" }),
+    );
+
+    const sheet = sheetOf("Approve entry?");
+    expect(
+      sheet.getByText(
+        "Ana Souza joins the school and can book classes. The person gets a push notification.",
+      ),
+    ).toBeOnTheScreen();
+    expect(sheet.getByRole("button", { name: "Approve" })).toBeOnTheScreen();
+    expect(sheet.getByRole("button", { name: "Cancel" })).toBeOnTheScreen();
+    expect(screen.queryByText("Deny entry?")).toBeNull();
+    expect(posts()).toHaveLength(0);
+  });
+
+  it("opens the reason sheet on Deny, not the confirmation sheet", async () => {
+    const user = userEvent.setup();
+    serve([ANA]);
+    await renderScreen();
+    await screen.findByText("Ana Souza");
+
+    await user.press(screen.getByRole("button", { name: "Deny" }));
+
+    expect(screen.getByText("Deny entry?")).toBeOnTheScreen();
+    expect(screen.queryByText("Approve entry?")).toBeNull();
+  });
+
+  it("closes with cancel, sending nothing, keeps the card and opens again", async () => {
+    const user = userEvent.setup();
+    serve([ANA]);
+    await renderScreen();
+    await screen.findByText("Ana Souza");
+
+    await user.press(screen.getByRole("button", { name: "Approve" }));
+    await user.press(screen.getByRole("button", { name: "Cancel" }));
+
+    expect(screen.queryByText("Approve entry?")).toBeNull();
+    expect(posts()).toHaveLength(0);
+    expect(screen.getByText("Ana Souza")).toBeOnTheScreen();
+
+    await user.press(screen.getByRole("button", { name: "Approve" }));
+    expect(screen.getByText("Approve entry?")).toBeOnTheScreen();
+  });
+
+  it("closes with the backdrop (cancel), sending nothing, and Deny still works", async () => {
+    const user = userEvent.setup();
+    serve([ANA]);
+    await renderScreen();
+    await screen.findByText("Ana Souza");
+
+    await user.press(screen.getByRole("button", { name: "Approve" }));
+    await user.press(screen.getByLabelText("backdrop"));
+
+    expect(screen.queryByText("Approve entry?")).toBeNull();
+    expect(posts()).toHaveLength(0);
+
+    await user.press(screen.getByRole("button", { name: "Deny" }));
+    await user.press(screen.getByRole("button", { name: "Deny and notify" }));
+
+    await waitFor(() => expect(posts()).toHaveLength(1));
+    expect(posts()[0][0]).toBe("http://api.test/registrations/ana-id/deny");
+  });
+
+  it("confirm sends the approval once, spins and disables the card meanwhile, then closes the sheet and removes the card", async () => {
     const user = userEvent.setup();
     let release!: () => void;
     const gate = new Promise<void>((resolve) => {
@@ -314,12 +411,14 @@ describe("RegistrationsScreen approve", () => {
     await renderScreen();
     await screen.findByText("Ana Souza");
 
-    await user.press(
-      within(cardOf("Ana Souza")).getByRole("button", { name: "Approve" }),
-    );
+    await approveAndConfirm(user, "Ana Souza");
 
     await waitFor(() => expect(posts()).toHaveLength(1));
     expect(posts()[0][0]).toBe("http://api.test/registrations/ana-id/approve");
+    // The sheet stays open with its button spinning; a second tap sends nothing more.
+    const sheet = sheetOf("Approve entry?");
+    expect(sheet.queryByText("Approve")).toBeNull();
+    await user.press(sheet.getByRole("button", { name: "Approve" }));
     // The card is sending: its buttons ignore taps, the other card stays usable.
     const ana = within(cardOf("Ana Souza"));
     expect(ana.queryByText("Approve")).toBeNull();
@@ -343,12 +442,13 @@ describe("RegistrationsScreen approve", () => {
     );
     expect(state.items).toEqual([BRUNO]);
     expect(posts()).toHaveLength(1);
+    expect(screen.queryByText("Approve entry?")).toBeNull();
     expect(screen.queryByText("Ana Souza")).toBeNull();
     expect(screen.queryByText("Approved")).toBeNull();
     expect(mockShow).not.toHaveBeenCalled();
   });
 
-  it("shows the no-connection toast and keeps the card usable when offline", async () => {
+  it("confirm offline shows the no-connection toast and keeps the sheet open, its button enabled", async () => {
     const user = userEvent.setup();
     serve([ANA], {
       "POST /registrations/ana-id/approve": () => {
@@ -358,7 +458,7 @@ describe("RegistrationsScreen approve", () => {
     await renderScreen();
     await screen.findByText("Ana Souza");
 
-    await user.press(screen.getByRole("button", { name: "Approve" }));
+    await approveAndConfirm(user, "Ana Souza");
 
     await waitFor(() =>
       expect(mockShow).toHaveBeenCalledWith(
@@ -366,13 +466,19 @@ describe("RegistrationsScreen approve", () => {
       ),
     );
     expect(screen.getByText("Ana Souza")).toBeOnTheScreen();
+    const confirm = sheetOf("Approve entry?").getByRole("button", {
+      name: "Approve",
+    });
+    await waitFor(() =>
+      expect(confirm.props.accessibilityState.disabled).toBe(false),
+    );
     expect(
-      screen.getByRole("button", { name: "Approve" }).props.accessibilityState
-        .disabled,
+      within(cardOf("Ana Souza")).getByRole("button", { name: "Approve" }).props
+        .accessibilityState.disabled,
     ).toBe(false);
   });
 
-  it("shows the generic toast and keeps the card on any other error", async () => {
+  it("confirm with any other error shows the generic toast and keeps the card and the sheet", async () => {
     const user = userEvent.setup();
     serve([ANA], {
       "POST /registrations/ana-id/approve": answer(500, {
@@ -382,7 +488,7 @@ describe("RegistrationsScreen approve", () => {
     await renderScreen();
     await screen.findByText("Ana Souza");
 
-    await user.press(screen.getByRole("button", { name: "Approve" }));
+    await approveAndConfirm(user, "Ana Souza");
 
     await waitFor(() =>
       expect(mockShow).toHaveBeenCalledWith(
@@ -390,6 +496,7 @@ describe("RegistrationsScreen approve", () => {
       ),
     );
     expect(screen.getByText("Ana Souza")).toBeOnTheScreen();
+    expect(screen.getByText("Approve entry?")).toBeOnTheScreen();
   });
 });
 
@@ -412,9 +519,7 @@ describe("RegistrationsScreen deny", () => {
     await renderScreen();
     await screen.findByText("Ana Souza");
 
-    await user.press(
-      within(cardOf("Ana Souza")).getByRole("button", { name: "Approve" }),
-    );
+    await approveAndConfirm(user, "Ana Souza");
     await user.press(
       within(cardOf("Bruno Lima")).getByRole("button", { name: "Deny" }),
     );
@@ -561,7 +666,7 @@ describe("RegistrationsScreen deny", () => {
 });
 
 describe("RegistrationsScreen already decided", () => {
-  it("toasts, refetches the list and removes the card on approve", async () => {
+  it("confirm toasts, closes the sheet, refetches the list and removes the card on approve", async () => {
     const user = userEvent.setup();
     const state = serve([ANA, BRUNO], {
       "POST /registrations/ana-id/approve": answer(409, {
@@ -572,15 +677,14 @@ describe("RegistrationsScreen already decided", () => {
     await screen.findByText("Ana Souza");
     state.items = [BRUNO];
 
-    await user.press(
-      within(cardOf("Ana Souza")).getByRole("button", { name: "Approve" }),
-    );
+    await approveAndConfirm(user, "Ana Souza");
 
     await waitFor(() =>
       expect(mockShow).toHaveBeenCalledWith(
         "This registration was already decided.",
       ),
     );
+    expect(screen.queryByText("Approve entry?")).toBeNull();
     await waitFor(() => expect(screen.queryByText("Ana Souza")).toBeNull());
     expect(screen.getByText("Bruno Lima")).toBeOnTheScreen();
   });
@@ -641,7 +745,7 @@ describe("RegistrationsScreen detail sheet", () => {
     await user.press(screen.getByRole("button", { name: "Back" }));
     await user.press(screen.getByRole("button", { name: "Approve" }));
 
-    await waitFor(() => expect(posts()).toHaveLength(1));
+    expect(screen.getByText("Approve entry?")).toBeOnTheScreen();
     expect(screen.queryByText("Student")).toBeNull();
   });
 });

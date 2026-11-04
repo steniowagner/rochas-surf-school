@@ -74,6 +74,15 @@ describe("userJourneyFlows", () => {
     expect(crossPage).toEqual(["AU-17:ST-05-07"]);
   });
 
+  it("links the accept confirmation sheets from AD-02, AD-04, AD-05 and AD-17 (spec 085)", () => {
+    const designIdsOf = (id: string) => flowRows("admin").find((row) => row.id === id)?.designIds;
+
+    expect(designIdsOf("AD-02")).toEqual(["AD-07-01", "AD-07-03", "AD-07-16"]);
+    expect(designIdsOf("AD-04")).toEqual(["AD-07-07", "AD-07-08", "AD-07-17"]);
+    expect(designIdsOf("AD-05")).toEqual(["AD-09-06", "AD-07-12", "AD-07-18"]);
+    expect(designIdsOf("AD-17")).toEqual(["AD-06-01", "AD-06-05", "AD-06-10"]);
+  });
+
   it("leaves AU-15 without a design", () => {
     expect(flowRows("auth").find((row) => row.id === "AU-15")?.designIds).toEqual([]);
   });

@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { RemovedAccountsScreen } from "./removed-accounts-screen.component";
@@ -32,5 +32,17 @@ describe("RemovedAccountsScreen", () => {
 
     render(<RemovedAccountsScreen locale="pt-br" state="error" />);
     expect(screen.getByRole("heading", { name: "Não foi possível carregar as contas removidas" })).toBeInTheDocument();
+  });
+
+  it("AD-07-18: the restore confirmation sheet over the list, naming the first account", () => {
+    render(<RemovedAccountsScreen locale="pt-br" state="restoreSheet" />);
+
+    expect(screen.getByTestId("phone-frame")).not.toHaveAttribute("data-tall");
+    const sheet = within(screen.getByRole("dialog"));
+    expect(sheet.getByRole("heading", { name: "Restaurar conta?" })).toBeInTheDocument();
+    expect(sheet.getByText("Sérgio Matos volta com os mesmos dados e o mesmo papel, e recebe uma notificação push.")).toBeInTheDocument();
+    expect(sheet.getByRole("button", { name: "Restaurar" })).toHaveClass("bg-sun");
+    expect(sheet.getByRole("button", { name: "Cancelar" })).toBeInTheDocument();
+    expect(screen.getByText("Sérgio Matos", { selector: ":not([role=dialog] *)" })).toBeInTheDocument();
   });
 });

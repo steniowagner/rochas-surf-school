@@ -436,8 +436,8 @@ The source documents use some words loosely; in specs and code use the concept n
 - **Comment** — the optional text of a rating, or an instructor comment; "delete any comment" covers both.
 - **Admin tools** — "Join the school" (registrations), "Class enrolments" (enrolments), "Reactivate accounts"
   (reactivation requests): each shows a card per pending item with Deny and Approve (a decided card just leaves
-  the list), and a sheet for the denial reason; on "Join the school" and "Reactivate accounts" a tap on the card
-  opens the person's sheet.
+  the list), a sheet that confirms the approval, naming the person, before it is sent (spec 085), and a sheet for
+  the denial reason; on "Join the school" and "Reactivate accounts" a tap on the card opens the person's sheet.
 
 ## Current state
 
@@ -593,7 +593,8 @@ app.
 onboarding opens the admin home, "School tools", with one tool so far: "Join the school", which shows how many
 registrations are waiting. The tool lists a card per pending account, oldest first, with initials, name and email,
 and Deny and Approve (spec 039 changed its look and removed the request time).
-Approve acts at once; Deny opens a sheet with an optional reason of up to 500 characters, shown to the person on
+Approve opens "Approve entry?", naming the person, and is sent only when the admin confirms (spec 085); Cancel, a
+swipe or the backdrop closes it sending nothing. Deny opens a sheet with an optional reason of up to 500 characters, shown to the person on
 the Denied screen exactly as written (trimmed; a blank reason counts as none). A decided card leaves the list
 (spec 039 removed the "Decided just now" list). Every decision is final: a registration already decided, by another admin or at the same
 moment, is refused, and the app says "This registration was already decided." and reloads the list. Only an
@@ -906,8 +907,8 @@ home shows the row "Inscrições em aulas" with "N pedidos" under "Ferramentas",
 header reads "Inscrições em aulas" with "N pedidos · M aulas", and each class with pending requests (not started, not
 cancelled, by start) gets a card: a day block (weekday, day, month), "Surf · Iniciante", the time range, the location,
 "Máx. N alunos", "X vagas livres" or "Esgotado" (red) and an occupancy bar; then one card per request with the
-student's avatar, name and "Pediu às 09:12 · 19 out", "Recusar" and "Inscrever". "Inscrever" approves at once
-("<nome> inscrito · aluno avisado"); "Recusar" opens "Recusar inscrição?" with an optional reason, and "Recusar e
+student's avatar, name and "Pediu às 09:12 · 19 out", "Recusar" and "Inscrever". "Inscrever" opens "Inscrever
+nesta aula?", naming the student, and approves only once confirmed (spec 085) ("<nome> inscrito · aluno avisado"); "Recusar" opens "Recusar inscrição?" with an optional reason, and "Recusar e
 avisar" denies ("<nome> recusado · aluno avisado"); a decided card leaves. A full class shows "Lista de espera · por
 ordem de pedido", the position ("1º", "2º"…) before each name, "Inscrever" disabled and the note "Inscrever fica
 bloqueado enquanto a turma estiver cheia. Aumente a lotação ou espere abrir uma vaga."; with nothing left it shows
@@ -1219,7 +1220,7 @@ built like "Entrar na escola": an intro ("N esperando resposta", what reactivati
 the header, a card per request, oldest request first, with the name, the email and "Excluída em 12 de out. de 2026 ·
 8 aulas", and "Recusar" and "Reativar"; a loading skeleton, an error with "Tentar novamente", "Nenhum pedido" and
 pull-to-refresh. Tapping a card opens the person's sheet with the name, the role and the email (no WhatsApp number).
-"Reativar" brings the account back with its role and history (not the seats, requests or class assignments cancelled
+"Reativar" opens "Reativar conta?", naming the person, and once confirmed (spec 085) brings the account back with its role and history (not the seats, requests or class assignments cancelled
 at deletion); "Recusar" opens "Recusar reativação?" with an optional reason, and "Recusar e avisar" keeps the account
 deleted. A decided card leaves the list; a request already decided by another admin is refused, and the app says
 "Este pedido já foi decidido." and reloads the list. The person is told by a push — "Conta reativada" / "Você já pode
@@ -1257,8 +1258,9 @@ the other admins). The last approved admin can't be removed — two admins remov
 both win — and a person no longer approved, no connection or any other failure shows a toast and keeps the
 confirmation. At the end of the full, unfiltered list (no search, no role filter, last page loaded) an admin sees
 "Contas removidas · restauráveis durante 30 dias": one row per account removed less than 30 days ago, most recent
-first — dimmed initials, name, "Aluno · removida em 2 out · até 1 nov" (Fortaleza time) — with "Restaurar", which acts
-at once with no confirmation and no success toast: the row leaves and the person is back in the list, approved with
+first — dimmed initials, name, "Aluno · removida em 2 out · até 1 nov" (Fortaleza time) — with "Restaurar", which opens
+"Restaurar conta?", naming the person, and restores only once confirmed (spec 085, which replaced acting at once),
+with no success toast: the row leaves and the person is back in the list, approved with
 their role, name, number, accepted rules and history, but not the seats, requests or classes they gave up. A restore
 someone else already made or one past the 30 days toasts "Esta conta já não está removida." or "O prazo para
 restaurar esta conta acabou." and reloads the section. The person gets "Acesso removido" ("Um admin removeu seu acesso
@@ -1444,6 +1446,17 @@ every other failure shows one short message in the app's language. A real sign-u
 real address were proven on a TestFlight build against staging. The auth flow design shows the Apple button and the
 auth user journeys have 21 cases. **The App Store still needs token revocation**: an account deleted or erased keeps its
 Apple authorization until spec `084-apple-token-revocation` is built, which doesn't block TestFlight.
+
+**Admins confirm their accept decisions** (spec `085-admin-accept-confirmation`) — "Aprovar" in "Entrar na escola",
+"Reativar" in "Reativar contas", "Inscrever" in "Inscrições em aulas" and "Restaurar" in "Contas removidas" no longer
+send the decision at once: each opens a bottom sheet worded for its tool ("Aprovar entrada?", "Reativar conta?",
+"Inscrever nesta aula?", "Restaurar conta?") that names the person, says what the decision does and that the person is
+notified, with the confirm button and "Cancelar". Nothing is sent until the admin confirms; Cancel, a swipe or the
+backdrop sends nothing. While it sends, the sheet stays open with its button spinning; it closes on success and when
+the item was already decided or the list was stale (showing the tool's message), and stays open after any other
+failure. "Recusar" keeps its reason sheet with no extra step, and a full class's "Inscrever" stays disabled. The admin
+app design and the admin user journeys AD-02, AD-04, AD-05 and AD-17 show the new step. All copy is in pt-BR, es-ES and
+en-US.
 
 Active specs: `081-staging-follow-ups` and `084-apple-token-revocation`, planned.
 

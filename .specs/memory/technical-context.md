@@ -324,7 +324,7 @@ are in [CLAUDE.md](../../CLAUDE.md); this file records the decisions behind them
     settings, cancellation rules, manage school rules); the location form's map is `location-map`, drawn with tokens
     only (no tiles, no request), so the generated `.html` stays stable; `utils/audience.ts` mirrors the app's
     `joinAudience`; `data/admin-app.ts` (the admin tab bar, dates, the people directory, the range calendar and time
-    chips) and `data/admin-app-ids.ts` (the 112 ids `AD-<section>-<entry>` and each entry's other messages), with the
+    chips) and `data/admin-app-ids.ts` (the 116 ids `AD-<section>-<entry>` and each entry's other messages), with the
     admin's mock data in `data/fortaleza.ts`; `i18n/admin-app-note.ts`; one `admin-app-<section>` component per
     section and `pages/admin-app/`. The admin's notification texts (the types an admin who also teaches receives) are
     copied from `push-messages.ts` into the dictionaries like the others'. The app's own glyphs
@@ -674,7 +674,16 @@ them to HTTP, the database, the providers and the screens. Dependencies point in
   `approveDisabled` (the Approve alone, spec 042) and `loading: "approve" | "deny"`) and `DenySheet` (`BottomModal` + an `inBottomSheet` `TextArea` with a
   `placeholder` and `label` — its accessibility label, also drawn above the field with `showLabel` (spec 044) —, a `danger` confirm with a Feather `x-circle` and a
   `subtle` back button (`backLabel`) that closes like a swipe; clears its text when it closes) — with generic props and no registration fields, so "Reactivate accounts", "Class enrolments" and the take-out
-  sheet (spec 044) plug in their own data and copy. A week or a month to pick a day from is the shared `WeekMonthCalendar`
+  sheet (spec 044) plug in their own data and copy — and `ConfirmSheet` (spec 085: `BottomModal`, a
+  `ds-text-sheet-title` title, a `ds-text-body text-ink-2` description, the confirm `Button` with `confirmIcon`,
+  `confirmVariant` (default primary) and `loading`, then a `ghost` cancel; props `visible`, `title`, `description`,
+  `confirmLabel`, `confirmIcon`, `confirmVariant`, `cancelLabel`, `loading`, `onConfirm`, `onClose`; its hook keeps the
+  description it was open with while it slides away, since the screen lets go of the item as it closes). Every
+  accept action opens a `ConfirmSheet` before it is sent: the screen hooks hold `approving` / `openApprove` /
+  `closeApprove` / `confirmApprove` ("Removed accounts": `restoreCandidate` / `openRestore` / `closeRestore` /
+  `confirmRestore`); opening is ignored while that card (or, on "Removed accounts", any restore) is in flight; a
+  decision closes both sheets of its card (`closeSheetsOf`) on success and on the errors that reload the list, and
+  leaves them open on any other failure. A week or a month to pick a day from is the shared `WeekMonthCalendar`
   (`src/components/week-month-calendar`, spec 031), drawn with `CalendarWeekRow` and `CalendarMonthGrid` in sibling
   folders; none of them imports from `src/modules/`. It is controlled for the selection and owns only the view
   (`"week"` | `"month"`, starting on the week; the pill in the header is the only switch). Props: `selectedDate`
@@ -1869,7 +1878,7 @@ import cycle.
   `src/app/(private)/admin/class-requests.tsx`, `routes.admin.classRequests`) with its logic in
   `hooks/use-class-requests-screen.hook.ts` (the admin module's pattern): `usePendingRequests()` (`GET
   /enrolments/pending`, key `PENDING_REQUESTS_QUERY_KEY` = `["enrolments", "pending"]`), `useApproveRequest()` /
-  `useDenyRequest()` (no retry; invalidate the pending list and `["classes"]`), approve at once, one `DenySheet`
+  `useDenyRequest()` (no retry; invalidate the pending list and `["classes"]`), approve after a `ConfirmSheet` (spec 085), one `DenySheet`
   ("Recusar inscrição?"), a ref guarding a double press, the toasts, and `shouldReloadRequests` (`enrolment.notPending`,
   `class.started`, `enrolment.class.full`) refetching the list; `getDecideRequestErrorKey` maps errors to
   `classRequests.errors.*`. `ClassRequestsGroup` (`components/class-requests-group/`) draws a class: the day block

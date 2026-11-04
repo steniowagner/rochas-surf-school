@@ -33,4 +33,16 @@ describe("ReactivationsScreen", () => {
     render(<ReactivationsScreen locale="pt-br" state="error" />);
     expect(screen.getByRole("heading", { name: "Não foi possível carregar os pedidos" })).toBeInTheDocument();
   });
+
+  it("AD-07-17: the reactivate confirmation sheet over the list, naming the first request", () => {
+    render(<ReactivationsScreen locale="pt-br" state="approveSheet" />);
+
+    const sheet = within(screen.getByRole("dialog"));
+    expect(sheet.getByRole("heading", { name: "Reativar conta?" })).toBeInTheDocument();
+    expect(
+      sheet.getByText("A conta de Fernanda Rocha volta com o histórico e o papel, mas sem as vagas canceladas. A pessoa recebe uma notificação push."),
+    ).toBeInTheDocument();
+    expect(sheet.getByRole("button", { name: "Reativar" })).toHaveClass("bg-ok");
+    expect(sheet.getByRole("button", { name: "Cancelar" })).toBeInTheDocument();
+  });
 });

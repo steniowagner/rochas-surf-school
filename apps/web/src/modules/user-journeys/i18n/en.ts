@@ -456,8 +456,8 @@ export const en = {
     "AD-02": {
       title: "Approve a registration",
       beforeYouStart: "Someone just created an account (another tester, or AU-04 on another phone).",
-      steps: "Open the notification. On \"Join the school\", tap the person's card, then \"Approve\".",
-      expected: "You get \"New registration\" with the person's name. The tool lists a card per account waiting, oldest first; tapping the card shows the person's details. \"Approve\" removes the card at once, and the person is told.",
+      steps: "Open the notification. On \"Join the school\", tap the person's card, then \"Approve\", and \"Approve\" again in the sheet \"Approve entry?\".",
+      expected: "You get \"New registration\" with the person's name. The tool lists a card per account waiting, oldest first; tapping the card shows the person's details. \"Approve\" opens a sheet that names the person, and \"Cancel\" closes it sending nothing. Once you confirm, the card leaves the list and the person is told.",
     },
     "AD-03": {
       title: "Deny a registration with a reason",
@@ -468,14 +468,14 @@ export const en = {
     "AD-04": {
       title: "Decide a reactivation request",
       beforeYouStart: "A deleted account asked to come back (AU-17 on another phone).",
-      steps: "Open the notification. On \"Reactivate accounts\", tap \"Reactivate\" on one request; deny another with a reason.",
-      expected: "You get \"Reactivation request\". Each card shows the name, email and when the account was deleted. Reactivating or denying removes the card, and the person is told.",
+      steps: "Open the notification. On \"Reactivate accounts\", tap \"Reactivate\" on one request and confirm in the sheet \"Reactivate account?\"; deny another with a reason.",
+      expected: "You get \"Reactivation request\". Each card shows the name, email and when the account was deleted. \"Reactivate\" opens a sheet that names the person; once you confirm, the card leaves the list. Denying removes the card too, and the person is told either way.",
     },
     "AD-05": {
       title: "Remove and restore an account",
       beforeYouStart: "Another approved person.",
-      steps: "On \"People\", tap the person, then \"Remove from the platform\" and confirm. Open \"Removed accounts\" and tap \"Restore\".",
-      expected: "The confirmation says what the person loses. After it the person leaves the list and loses access. \"Removed accounts\" lists them with the date until they can be restored; \"Restore\" brings them back to the list at once, with their role.",
+      steps: "On \"People\", tap the person, then \"Remove from the platform\" and confirm. Open \"Removed accounts\", tap \"Restore\" and confirm in the sheet \"Restore account?\".",
+      expected: "The confirmation says what the person loses. After it the person leaves the list and loses access. \"Removed accounts\" lists them with the date until they can be restored; \"Restore\" opens a sheet that names the person, and once you confirm, the card leaves \"Removed accounts\" and the person is back on the list, with their role.",
     },
     "AD-06": {
       title: "Browse the classes",
@@ -546,8 +546,8 @@ export const en = {
     "AD-17": {
       title: "Approve a class request",
       beforeYouStart: "A student requested a seat (ST-06 on another phone).",
-      steps: "Open the notification. On \"Class enrolments\", tap \"Enrol\" on the request.",
-      expected: "You get \"New seat request\". The tool lists each class with pending requests and its free seats; each request shows the student and when they asked. \"Enrol\" removes the request with a confirmation message, and the student gets \"Request approved\".",
+      steps: "Open the notification. On \"Class enrolments\", tap \"Enrol\" on the request and confirm in the sheet \"Enrol in this class?\".",
+      expected: "You get \"New seat request\". The tool lists each class with pending requests and its free seats; each request shows the student and when they asked. \"Enrol\" opens a sheet that names the student; once you confirm, the request leaves the list with a confirmation message, and the student gets \"Request approved\".",
     },
     "AD-18": {
       title: "Deny a class request",

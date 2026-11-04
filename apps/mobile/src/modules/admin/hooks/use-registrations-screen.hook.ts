@@ -29,6 +29,7 @@ export const useRegistrationsScreen = (): UseRegistrationsScreenResult => {
     {},
   );
   const [denying, setDenying] = useState<Registration | null>(null);
+  const [approving, setApproving] = useState<Registration | null>(null);
   // Kept while the detail sheet slides away, so its content doesn't vanish before it is gone.
   const [selected, setSelected] = useState<Registration | null>(null);
   const [isSheetVisible, setIsSheetVisible] = useState(false);
@@ -36,9 +37,13 @@ export const useRegistrationsScreen = (): UseRegistrationsScreenResult => {
   // A second tap in the same frame must not send twice, before `sending` has re-rendered.
   const inFlight = useRef(new Set<string>());
 
-  // A decision only closes the sheet that belongs to it: another card's sheet, and its reason, stay.
-  const closeDenyOf = (registration: Registration) =>
+  // A decision only closes the sheets that belong to it: another card's sheet, and its reason, stay.
+  const closeSheetsOf = (registration: Registration) => {
     setDenying((current) => (current?.id === registration.id ? null : current));
+    setApproving((current) =>
+      current?.id === registration.id ? null : current,
+    );
+  };
 
   const decide = async (
     registration: Registration,
@@ -54,7 +59,7 @@ export const useRegistrationsScreen = (): UseRegistrationsScreenResult => {
 
     try {
       await send();
-      closeDenyOf(registration);
+      closeSheetsOf(registration);
     } catch (error) {
       const key = getRegistrationErrorKey(error);
 
@@ -63,7 +68,7 @@ export const useRegistrationsScreen = (): UseRegistrationsScreenResult => {
       }
 
       if (isAlreadyDecided(error)) {
-        closeDenyOf(registration);
+        closeSheetsOf(registration);
       }
     } finally {
       inFlight.current.delete(registration.id);
@@ -75,10 +80,20 @@ export const useRegistrationsScreen = (): UseRegistrationsScreenResult => {
     }
   };
 
-  const approve = (registration: Registration) =>
-    decide(registration, "approve", () =>
-      approveMutation.mutateAsync(registration.id),
-    );
+  // A card being sent can't open its confirmation sheet; opening one sends nothing.
+  const openApprove = (registration: Registration) => {
+    if (!inFlight.current.has(registration.id)) {
+      setApproving(registration);
+    }
+  };
+
+  const confirmApprove = () => {
+    if (approving) {
+      decide(approving, "approve", () =>
+        approveMutation.mutateAsync(approving.id),
+      );
+    }
+  };
 
   const confirmDeny = (reason: string) => {
     if (denying) {
@@ -111,6 +126,7 @@ export const useRegistrationsScreen = (): UseRegistrationsScreenResult => {
     isRefreshing,
     sending,
     denying,
+    approving,
     selected,
     isSheetVisible,
     openRegistration: (registration: Registration) => {
@@ -120,7 +136,9 @@ export const useRegistrationsScreen = (): UseRegistrationsScreenResult => {
     closeSheet: () => setIsSheetVisible(false),
     retry: () => query.refetch(),
     refresh,
-    approve,
+    openApprove,
+    closeApprove: () => setApproving(null),
+    confirmApprove,
     openDeny: setDenying,
     closeDeny: () => setDenying(null),
     confirmDeny,

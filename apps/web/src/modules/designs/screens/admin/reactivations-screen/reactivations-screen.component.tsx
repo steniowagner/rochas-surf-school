@@ -1,4 +1,5 @@
 import { AppIcon } from "@/modules/designs/components/app-icon";
+import { ConfirmSheet } from "@/modules/designs/components/confirm-sheet";
 import { DecisionCard } from "@/modules/designs/components/decision-card";
 import { DenySheet } from "@/modules/designs/components/deny-sheet";
 import { EmptyState } from "@/modules/designs/components/empty-state";
@@ -21,8 +22,8 @@ const DENY_REASON_MAX_LENGTH = 500;
 export function ReactivationsScreen({ locale, state }: ReactivationsScreenProps) {
   const t = (key: string, params?: Record<string, string | number>) => appT(locale, key, params);
   const dates = adminDates(locale);
-  const listed = state === "ready" || state === "denySheet";
-  const overPhone = state === "denySheet";
+  const listed = state === "ready" || state === "denySheet" || state === "approveSheet";
+  const overPhone = state === "denySheet" || state === "approveSheet";
   const [first] = reactivationRequests;
 
   return (
@@ -75,6 +76,16 @@ export function ReactivationsScreen({ locale, state }: ReactivationsScreenProps)
             backLabel={t("registrations.denySheet.back")}
             confirmLabel={t("reactivations.denySheet.confirm")}
             maxLength={DENY_REASON_MAX_LENGTH}
+          />
+        ) : null}
+        {state === "approveSheet" && first ? (
+          <ConfirmSheet
+            title={t("reactivations.approveSheet.title")}
+            description={t("reactivations.approveSheet.description", { name: first.name })}
+            confirmLabel={t("reactivations.approveSheet.confirm")}
+            confirmIcon={<AppIcon name="Feather:check" size={16} />}
+            confirmVariant="success"
+            cancelLabel={t("reactivations.approveSheet.cancel")}
           />
         ) : null}
       </div>

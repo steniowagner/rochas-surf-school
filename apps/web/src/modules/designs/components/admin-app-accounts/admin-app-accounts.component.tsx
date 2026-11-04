@@ -25,6 +25,9 @@ export function AdminAppAccounts({ locale, text }: AdminAppAccountsProps) {
     { id: "AD-07-13", screen: <RemovedAccountsScreen locale={locale} state="empty" /> },
     { id: "AD-07-14", screen: <RemovedAccountsScreen locale={locale} state="loading" /> },
     { id: "AD-07-15", screen: <RemovedAccountsScreen locale={locale} state="error" /> },
+    { id: "AD-07-16", screen: <RegistrationsScreen locale={locale} state="approveSheet" /> },
+    { id: "AD-07-17", screen: <ReactivationsScreen locale={locale} state="approveSheet" /> },
+    { id: "AD-07-18", screen: <RemovedAccountsScreen locale={locale} state="restoreSheet" /> },
   ] as const;
 
   return (

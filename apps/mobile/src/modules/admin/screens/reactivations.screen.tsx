@@ -1,10 +1,11 @@
-import { Ionicons } from "@expo/vector-icons";
+import { Feather, Ionicons } from "@expo/vector-icons";
 import { Stack } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { RefreshControl, View } from "react-native";
 import Animated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { ConfirmSheet } from "@/components/decision/confirm-sheet";
 import { DecisionCard } from "@/components/decision/decision-card";
 import { DenySheet } from "@/components/decision/deny-sheet";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -44,13 +45,16 @@ export function ReactivationsScreen() {
     isRefreshing,
     sending,
     denying,
+    approving,
     selected,
     isSheetVisible,
     openRequest,
     closeSheet,
     retry,
     refresh,
-    approve,
+    openApprove,
+    closeApprove,
+    confirmApprove,
     openDeny,
     closeDeny,
     confirmDeny,
@@ -110,11 +114,13 @@ export function ReactivationsScreen() {
                     count: item.classesTaken,
                   }),
                 ]}
-                avatar={<PersonAvatar name={item.name} photoUrl={item.photoUrl} />}
+                avatar={
+                  <PersonAvatar name={item.name} photoUrl={item.photoUrl} />
+                }
                 onPress={() => openRequest(item)}
                 approveLabel={t("reactivations.approve")}
                 denyLabel={t("reactivations.deny")}
-                onApprove={() => approve(item)}
+                onApprove={() => openApprove(item)}
                 onDeny={() => openDeny(item)}
                 disabled={item.id in sending}
                 loading={
@@ -164,6 +170,20 @@ export function ReactivationsScreen() {
           </View>
         </>
       )}
+      <ConfirmSheet
+        visible={approving !== null}
+        title={t("reactivations.approveSheet.title")}
+        description={t("reactivations.approveSheet.description", {
+          name: approving?.name ?? "",
+        })}
+        confirmLabel={t("reactivations.approveSheet.confirm")}
+        confirmIcon={<Feather name="check" size={16} color={theme.onColor} />}
+        confirmVariant="success"
+        cancelLabel={t("reactivations.approveSheet.cancel")}
+        loading={approving !== null && approving.id in sending}
+        onConfirm={confirmApprove}
+        onClose={closeApprove}
+      />
       <DenySheet
         visible={denying !== null}
         title={t("reactivations.denySheet.title")}

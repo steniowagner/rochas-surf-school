@@ -525,6 +525,8 @@ describe("AdminScreen", () => {
     await user.press(screen.getByRole("button", { name: /Join the school/ }));
     await screen.findByText("Person a");
     await user.press(screen.getAllByRole("button", { name: "Approve" })[0]);
+    // The card's "Approve" opens the confirmation sheet, drawn after the list; its "Approve" sends the decision.
+    await user.press(screen.getAllByRole("button", { name: "Approve" }).at(-1)!);
     await waitFor(() => expect(screen.queryByText("Person a")).toBeNull());
     await act(async () => router.back());
 

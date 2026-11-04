@@ -14,6 +14,8 @@ export type UseRegistrationsScreenResult = {
   sending: Record<string, RegistrationAction>;
   /** The registration whose deny sheet is open. */
   denying: Registration | null;
+  /** The registration whose approve confirmation sheet is open. */
+  approving: Registration | null;
   /** The registration whose detail sheet is open (or sliding away). */
   selected: Registration | null;
   isSheetVisible: boolean;
@@ -21,7 +23,10 @@ export type UseRegistrationsScreenResult = {
   closeSheet: () => void;
   retry: () => void;
   refresh: () => void;
-  approve: (registration: Registration) => void;
+  /** Opens the approve confirmation sheet; nothing is sent until it is confirmed. */
+  openApprove: (registration: Registration) => void;
+  closeApprove: () => void;
+  confirmApprove: () => void;
   openDeny: (registration: Registration) => void;
   closeDeny: () => void;
   confirmDeny: (reason: string) => void;

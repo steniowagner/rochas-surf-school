@@ -456,8 +456,8 @@ export const es = {
     "AD-02": {
       title: "Aprobar un registro",
       beforeYouStart: "Alguien acaba de crear una cuenta (otra persona que prueba, o AU-04 en otro teléfono).",
-      steps: "Abre el aviso. En \"Unirse a la escuela\", toca la tarjeta de la persona y luego \"Aprobar\".",
-      expected: "Recibes \"Nueva inscripción\" con el nombre de la persona. La herramienta enumera una tarjeta por cuenta en espera, de la más antigua a la más reciente; tocar la tarjeta muestra los datos de la persona. \"Aprobar\" quita la tarjeta al instante, y la persona recibe el aviso.",
+      steps: "Abre el aviso. En \"Unirse a la escuela\", toca la tarjeta de la persona, luego \"Aprobar\" y de nuevo \"Aprobar\" en el sheet \"¿Aprobar la entrada?\".",
+      expected: "Recibes \"Nueva inscripción\" con el nombre de la persona. La herramienta enumera una tarjeta por cuenta en espera, de la más antigua a la más reciente; tocar la tarjeta muestra los datos de la persona. \"Aprobar\" abre un sheet con el nombre de la persona, y \"Cancelar\" lo cierra sin enviar nada. Después de confirmar, la tarjeta sale de la lista y la persona recibe el aviso.",
     },
     "AD-03": {
       title: "Rechazar un registro con un motivo",
@@ -468,14 +468,14 @@ export const es = {
     "AD-04": {
       title: "Decidir una solicitud de reactivación",
       beforeYouStart: "Una cuenta eliminada pidió volver (AU-17 en otro teléfono).",
-      steps: "Abre el aviso. En \"Reactivar cuentas\", toca \"Reactivar\" en una solicitud; rechaza otra con un motivo.",
-      expected: "Recibes \"Solicitud de reactivación\". Cada tarjeta muestra el nombre, el email y cuándo se eliminó la cuenta. Reactivar o rechazar quita la tarjeta, y la persona recibe el aviso.",
+      steps: "Abre el aviso. En \"Reactivar cuentas\", toca \"Reactivar\" en una solicitud y confirma en el sheet \"¿Reactivar la cuenta?\"; rechaza otra con un motivo.",
+      expected: "Recibes \"Solicitud de reactivación\". Cada tarjeta muestra el nombre, el email y cuándo se eliminó la cuenta. \"Reactivar\" abre un sheet con el nombre de la persona; después de confirmar, la tarjeta sale de la lista. Rechazar también quita la tarjeta, y la persona recibe el aviso en los dos casos.",
     },
     "AD-05": {
       title: "Quitar y restaurar una cuenta",
       beforeYouStart: "Otra persona aprobada.",
-      steps: "En \"Personas\", toca a la persona, luego \"Quitar de la plataforma\" y confirma. Abre \"Cuentas quitadas\" y toca \"Restaurar\".",
-      expected: "La confirmación dice lo que pierde la persona. Después, la persona sale de la lista y pierde el acceso. \"Cuentas quitadas\" las enumera con la fecha hasta la que se pueden restaurar; \"Restaurar\" las devuelve a la lista al instante, con su rol.",
+      steps: "En \"Personas\", toca a la persona, luego \"Quitar de la plataforma\" y confirma. Abre \"Cuentas quitadas\", toca \"Restaurar\" y confirma en el sheet \"¿Restaurar la cuenta?\".",
+      expected: "La confirmación dice lo que pierde la persona. Después, la persona sale de la lista y pierde el acceso. \"Cuentas quitadas\" las enumera con la fecha hasta la que se pueden restaurar; \"Restaurar\" abre un sheet con el nombre de la persona y, después de confirmar, la tarjeta sale de \"Cuentas quitadas\" y la persona vuelve a la lista, con su rol.",
     },
     "AD-06": {
       title: "Ver las clases",
@@ -546,8 +546,8 @@ export const es = {
     "AD-17": {
       title: "Aprobar una solicitud de plaza",
       beforeYouStart: "Un alumno pidió una plaza (ST-06 en otro teléfono).",
-      steps: "Abre el aviso. En \"Inscripciones en clases\", toca \"Inscribir\" en la solicitud.",
-      expected: "Recibes \"Nueva solicitud de plaza\". La herramienta enumera cada clase con solicitudes pendientes y sus plazas libres; cada solicitud muestra al alumno y cuándo la pidió. \"Inscribir\" quita la solicitud con un mensaje de confirmación, y el alumno recibe \"Solicitud aprobada\".",
+      steps: "Abre el aviso. En \"Inscripciones en clases\", toca \"Inscribir\" en la solicitud y confirma en el sheet \"¿Inscribir en esta clase?\".",
+      expected: "Recibes \"Nueva solicitud de plaza\". La herramienta enumera cada clase con solicitudes pendientes y sus plazas libres; cada solicitud muestra al alumno y cuándo la pidió. \"Inscribir\" abre un sheet con el nombre del alumno; después de confirmar, la solicitud sale de la lista con un mensaje de confirmación, y el alumno recibe \"Solicitud aprobada\".",
     },
     "AD-18": {
       title: "Rechazar una solicitud de plaza",

@@ -193,10 +193,10 @@ export const userJourneyFlows = {
       {
         key: "accounts",
         rows: [
-          { id: "AD-02", designIds: ["AD-07-01", "AD-07-03"] },
+          { id: "AD-02", designIds: ["AD-07-01", "AD-07-03", "AD-07-16"] },
           { id: "AD-03", designIds: ["AD-07-02"] },
-          { id: "AD-04", designIds: ["AD-07-07", "AD-07-08"] },
-          { id: "AD-05", designIds: ["AD-09-06", "AD-07-12"] },
+          { id: "AD-04", designIds: ["AD-07-07", "AD-07-08", "AD-07-17"] },
+          { id: "AD-05", designIds: ["AD-09-06", "AD-07-12", "AD-07-18"] },
         ],
       },
       {
@@ -223,7 +223,7 @@ export const userJourneyFlows = {
       {
         key: "enrolments",
         rows: [
-          { id: "AD-17", designIds: ["AD-06-01", "AD-06-05"] },
+          { id: "AD-17", designIds: ["AD-06-01", "AD-06-05", "AD-06-10"] },
           { id: "AD-18", designIds: ["AD-06-04"] },
           { id: "AD-19", designIds: ["AD-06-02"] },
           { id: "AD-20", designIds: ["AD-08-01", "AD-08-02", "AD-08-06", "AD-08-09"] },

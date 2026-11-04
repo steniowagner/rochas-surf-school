@@ -1,4 +1,5 @@
 import { AppIcon } from "@/modules/designs/components/app-icon";
+import { ConfirmSheet } from "@/modules/designs/components/confirm-sheet";
 import { EmptyState } from "@/modules/designs/components/empty-state";
 import { ErrorState } from "@/modules/designs/components/error-state";
 import { PhoneFrame } from "@/modules/designs/components/phone-frame";
@@ -16,13 +17,16 @@ import type { RemovedAccountsScreenProps } from "./removed-accounts-screen.types
 export function RemovedAccountsScreen({ locale, state }: RemovedAccountsScreenProps) {
   const t = (key: string, params?: Record<string, string | number>) => appT(locale, key, params);
   const dates = adminDates(locale);
+  const listed = state === "ready" || state === "restoreSheet";
+  const overPhone = state === "restoreSheet";
+  const [first] = removedAccounts;
 
   return (
     <PhoneFrame tall={state === "ready"}>
-      <div className="flex flex-1 flex-col bg-page">
-        <StackHeader title={state === "ready" ? "" : t("removedAccounts.title")} />
-        {state === "ready" ? (
-          <div className="flex flex-col gap-3 px-5 pb-8 pt-2">
+      <div className={`flex flex-1 flex-col bg-page${overPhone ? " min-h-0" : ""}`}>
+        <StackHeader title={listed ? "" : t("removedAccounts.title")} />
+        {listed ? (
+          <div className={`flex flex-col gap-3 px-5 pb-8 pt-2${overPhone ? " min-h-0 flex-1 overflow-hidden" : ""}`}>
             <div className="mb-1">
               <ScreenIntro
                 icon={<AppIcon name="MaterialCommunityIcons:account-off-outline" size={28} className="text-grape" />}
@@ -50,6 +54,15 @@ export function RemovedAccountsScreen({ locale, state }: RemovedAccountsScreenPr
             ) : null}
           </div>
         )}
+        {state === "restoreSheet" && first ? (
+          <ConfirmSheet
+            title={t("removedAccounts.restoreSheet.title")}
+            description={t("removedAccounts.restoreSheet.description", { name: first.name })}
+            confirmLabel={t("removedAccounts.restoreSheet.confirm")}
+            confirmIcon={<AppIcon name="Ionicons:refresh-outline" size={16} />}
+            cancelLabel={t("removedAccounts.restoreSheet.cancel")}
+          />
+        ) : null}
       </div>
     </PhoneFrame>
   );

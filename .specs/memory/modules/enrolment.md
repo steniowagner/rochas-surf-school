@@ -219,7 +219,8 @@ waiting list), and see their status on the details and on the Agenda's cards —
 cancels from the details' "Cancelar inscrição" (a sheet with the deadline) and then reads "Você cancelou a
 inscrição", the chip "Você cancelou" and "Pedir novamente"; past the deadline, or without one, the footer tells
 them to contact the school, with the school's WhatsApp. Admins decide in the
-"Inscrições em aulas" tool, reached from a row on their home with the number of requests. They enrol a student
+"Inscrições em aulas" tool, reached from a row on their home with the number of requests; "Inscrever" asks first in
+"Inscrever nesta aula?", naming the student, and approves only once confirmed (spec 085). They enrol a student
 directly in the "Inscrever aluno" tool (a row on their home, in two steps since spec 060: "Quem" — search a
 student — then "Aula" — pick a day and one of its upcoming classes, optionally narrowed by sport), and take one out with "Retirar" on a student in the list of an upcoming class's details (a sheet with an
 optional reason). A taken-out student reads "Você foi retirado da aula" with the reason, the chip "Retirado" and
@@ -301,3 +302,6 @@ pedir.".
 - `082-admin-message-sheet` — no change to the module's rules or API: the app's class header of "Inscrições em aulas"
   moves to `ClassDayHeader`, which the Notifications module's message sheet shares without the year. Both have since
   moved to `RequestSeatClassCard` (`embedded`), the card of the "Pedir para entrar" sheet, and `ClassDayHeader` is gone.
+- `085-admin-accept-confirmation` — no change to the module's rules or API: in the app, "Inscrever" on "Inscrições
+  em aulas" opens "Inscrever nesta aula?" naming the student and approves only once confirmed; a full class's
+  "Inscrever" stays disabled and "Recusar" keeps its reason sheet.

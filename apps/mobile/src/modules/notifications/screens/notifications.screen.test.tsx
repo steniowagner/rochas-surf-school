@@ -302,7 +302,7 @@ describe("NotificationsScreen", () => {
 
       expect(dots()).toHaveLength(0);
       expect(posts()).toEqual(["/notifications/n-1/read"]);
-      expect(router.push).toHaveBeenCalledWith(routes.student.classDetail("c-1"));
+      expect(router.push).toHaveBeenCalledWith(routes.student.classDetail("c-1"), { dangerouslySingular: true });
       await act(async () => answerRead(noContent()));
     });
 
@@ -319,7 +319,7 @@ describe("NotificationsScreen", () => {
 
       await user.press(screen.getByRole("button", { name: /New registration/ }));
 
-      expect(router.push).toHaveBeenCalledWith(routes.admin.registrations);
+      expect(router.push).toHaveBeenCalledWith(routes.admin.registrations, { dangerouslySingular: true });
     });
 
     it.each([
@@ -448,7 +448,7 @@ describe("NotificationsScreen", () => {
           await userEvent.setup().press(await screen.findByText("Praia do Futuro"));
 
           expect(sheet()).toBeNull();
-          expect(router.push).toHaveBeenCalledWith(target);
+          expect(router.push).toHaveBeenCalledWith(target, { dangerouslySingular: true });
         });
 
         it("opens no class for a session already gone (signing out)", async () => {
@@ -705,7 +705,7 @@ describe("NotificationsScreen", () => {
       await userEvent.setup().press(screen.getByRole("button", { name: /Row/ }));
 
       expect(screen.queryByText("Message from the school")).toBeNull();
-      expect(router.push).toHaveBeenCalledWith(routes.student.classDetail("c-1"));
+      expect(router.push).toHaveBeenCalledWith(routes.student.classDetail("c-1"), { dangerouslySingular: true });
     });
 
     describe("a role.changed row", () => {
@@ -825,7 +825,7 @@ describe("NotificationsScreen", () => {
       await user.press(screen.getByRole("button", { name: /Seen/ }));
 
       expect(posts()).toEqual([]);
-      expect(router.push).toHaveBeenCalledWith(routes.student.classDetail("c-1"));
+      expect(router.push).toHaveBeenCalledWith(routes.student.classDetail("c-1"), { dangerouslySingular: true });
     });
 
     it("shows nothing when the mark fails, and navigates anyway", async () => {
@@ -841,7 +841,7 @@ describe("NotificationsScreen", () => {
       await user.press(screen.getByRole("button", { name: /Request approved/ }));
 
       await waitFor(() => expect(posts()).toEqual(["/notifications/n-1/read"]));
-      expect(router.push).toHaveBeenCalledWith(routes.student.classDetail("c-1"));
+      expect(router.push).toHaveBeenCalledWith(routes.student.classDetail("c-1"), { dangerouslySingular: true });
       expect(mockShow).not.toHaveBeenCalled();
     });
   });

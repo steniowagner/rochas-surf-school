@@ -128,7 +128,7 @@ describe("UserHeader", () => {
 
     await user.press(await bell(/Notifications/));
 
-    expect(router.push).toHaveBeenCalledWith(route);
+    expect(router.push).toHaveBeenCalledWith(route, { dangerouslySingular: true });
   });
 
   it("opens nothing once the session is gone (signing out)", async () => {

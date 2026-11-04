@@ -343,7 +343,7 @@ describe("useNotificationResponse", () => {
     await tap(response("location.changed"));
 
     await waitFor(() => expect(app.getPathname()).toBe(routes.student.home));
-    expect(push).toHaveBeenCalledWith(routes.student.home);
+    expect(push).toHaveBeenCalledWith(routes.student.home, { dangerouslySingular: true });
     expect(meCalls()).toHaveLength(1);
     push.mockRestore();
   });

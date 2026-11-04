@@ -1,10 +1,11 @@
-import { Href, router, useFocusEffect } from "expo-router";
+import { Href, useFocusEffect } from "expo-router";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
 import { routes } from "@/constants/routes";
 import { useNow } from "@/modules/classes/hooks/use-now.hook";
 import { useUnreadNotificationsCount } from "@/modules/notifications/hooks/use-unread-notifications-count.hook";
+import { pushScreen } from "@/navigation/push-screen";
 import { useSession } from "@/providers/session";
 import { getGreetingPeriod } from "@/utils/greeting-period";
 
@@ -35,7 +36,7 @@ export const useUserHeader = () => {
     const route = user ? NOTIFICATIONS_ROUTES[user.role] : undefined;
 
     if (route) {
-      router.push(route);
+      pushScreen(route);
     }
   };
 

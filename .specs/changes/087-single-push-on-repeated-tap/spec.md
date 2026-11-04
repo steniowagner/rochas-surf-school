@@ -136,7 +136,7 @@ already in the stack, and a lint rule keeps new code on it.
   > `use-class-requests-screen.hook.ts` pushed through `useRouter().push`, so its `useRouter` call is removed and
   > `class-requests.screen.test.tsx` mocks `router.push` instead of `useRouter`; prettier was run only on files that
   > were already prettier-clean, so unrelated lines are not reformatted
-- [ ] **T-04** — Replace `router.push` with `pushScreen` in `components/user-header`, `modules/admin`,
+- [x] **T-04** — Replace `router.push` with `pushScreen` in `components/user-header`, `modules/admin`,
   `modules/instructor`, `modules/notifications` (the hook's Avisos branch keeps one-screen behavior through
   `pushScreen`) and `modules/profile`, and update their tests.
   Add "double tap" tests to `src/modules/admin/admin-tabs.navigation.test.tsx` (`renderRouter`): pressing the
@@ -145,6 +145,20 @@ already in the stack, and a lint rule keeps new code on it.
   Covers: ER-01 · Done when: `npx jest src/components src/modules/admin src/modules/instructor src/modules/notifications src/modules/profile`
   passes (the `-t "double tap"` tests included) and `grep -rn "router.push" src --include='*.ts' --include='*.tsx'`
   finds only `push-screen.ts` and tests.
+  > ✅ 2026-11-04 18:28 — the user header's bell, the admin and instructor homes, the notifications screen, the
+  > notification-response hook and the profile hooks call `pushScreen(…)` with the same hrefs; in the hook the Avisos
+  > branch (`router.push(target, { dangerouslySingular: true })`) and the plain branch now both are `pushScreen(target)`,
+  > so they are one branch and `isAdminMessageType` is no longer imported there (Avisos still opens once: "shows the new
+  > message on an open Avisos, without a second one under it" passes); the tests' `router.push` assertions expect the
+  > singular option; three "double tap" tests in `admin-tabs.navigation.test.tsx` (`renderRouter`): Join the school
+  > pressed twice → one back shows Panel; the same class row pressed twice → one back shows Classes; `pushScreen` of a
+  > different class adds a screen (back returns to the first class); files: `apps/mobile/src/components/user-header/user-header.component.test.tsx`, `apps/mobile/src/components/user-header/user-header.hook.ts`, `apps/mobile/src/modules/admin/admin-tabs.navigation.test.tsx`, `apps/mobile/src/modules/admin/screens/admin.screen.tsx`, `apps/mobile/src/modules/instructor/screens/instructor.screen.tsx`, `apps/mobile/src/modules/notifications/hooks/use-notification-response.hook.test.tsx`, `apps/mobile/src/modules/notifications/hooks/use-notification-response.hook.ts`, `apps/mobile/src/modules/notifications/screens/notifications.screen.hook.ts`, `apps/mobile/src/modules/notifications/screens/notifications.screen.test.tsx`, `apps/mobile/src/modules/profile/components/delete-account-sheet/delete-account-sheet.component.test.tsx`, `apps/mobile/src/modules/profile/components/delete-account-sheet/delete-account-sheet.hook.ts`, `apps/mobile/src/modules/profile/components/profile/profile.hook.ts`, `apps/mobile/src/modules/profile/screens/profile.screen.test.tsx`; verified:
+  > `npx jest src/components src/modules/admin src/modules/instructor src/modules/notifications src/modules/profile`
+  > (75 suites, 983 passed; 16 failed before the assertions were updated); `-t "double tap"` 3 passed, and with
+  > `pushScreen` temporarily reduced to `router.push(href)` the two double-press tests fail (`Received:
+  > "/admin/registrations"`, `"/admin/class/c-1"`); `grep -rn "router.push" src` outside tests finds only
+  > `src/navigation/push-screen.ts`; `npx eslint` clean, `npx tsc --noEmit` clean, the changed lines 100% covered;
+  > deviations: the hook's two push branches merged into one (both would have been `pushScreen(target)`)
 - [ ] **T-05** — Add a `no-restricted-syntax` rule to `apps/mobile/eslint.config.js` for
   `CallExpression[callee.object.name='router'][callee.property.name='push']`, message
   "Use pushScreen from @/navigation/push-screen so a repeated tap doesn't open the screen twice.", with

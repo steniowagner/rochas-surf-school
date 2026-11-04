@@ -1,7 +1,7 @@
-import { router } from "expo-router";
 import { useState } from "react";
 
 import { routes } from "@/constants/routes";
+import { pushScreen } from "@/navigation/push-screen";
 import { useSession } from "@/providers/session";
 
 import { useAdminsCount } from "../../hooks/use-admins-count.hook";
@@ -40,7 +40,7 @@ export const useDeleteAccountSheet = ({
 
   const goToPeople = () => {
     close();
-    router.push(routes.admin.people);
+    pushScreen(routes.admin.people);
   };
 
   return {

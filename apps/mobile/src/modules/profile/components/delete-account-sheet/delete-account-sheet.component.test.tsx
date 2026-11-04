@@ -83,7 +83,7 @@ describe("DeleteAccountSheet", () => {
     await user.press(screen.getByRole("button", { name: "Go to People" }));
 
     expect(onClose).toHaveBeenCalledTimes(1);
-    expect(router.push).toHaveBeenCalledWith(routes.admin.people);
+    expect(router.push).toHaveBeenCalledWith(routes.admin.people, { dangerouslySingular: true });
   });
 
   it("shows the normal confirmation to an admin when another admin remains", async () => {

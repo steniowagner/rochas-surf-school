@@ -185,6 +185,7 @@ Every new account SHALL have a name before it waits for approval. The system SHA
 
 _Implemented in spec 019-admin-registration-decisions._
 _Implemented in spec 039-join-school-design._
+_Implemented in spec 085-admin-accept-confirmation._
 
 Admins SHALL approve or deny each pending registration. When denying, the admin SHALL be able to write a reason, which is sent to the person. A decision SHALL be final in the app.
 
@@ -296,6 +297,8 @@ A deleted account SHALL be able to send one reactivation request, from the app. 
 
 _Implemented in spec 064-admin-reactivation-decisions._
 
+_Implemented in spec 085-admin-accept-confirmation._
+
 The system SHALL notify admins of each reactivation request. Admins SHALL approve or deny it, seeing the person's name, email address, deletion date and number of classes taken. The person SHALL be notified of the decision.
 
 - _Admin reviews a request:_ When a reactivation request arrives, then admins are notified, and the request shows the person's name, email address, deletion date and number of classes taken.
@@ -322,6 +325,8 @@ Admins SHALL be able to remove a user. Removing SHALL close the account and canc
 _Implemented in spec 066-admin-account-removal._
 
 _Implemented in spec 067-closed-account-erasure._
+
+_Implemented in spec 085-admin-accept-confirmation._
 
 Admins SHALL be able to restore a removed account within 30 days of its removal, bringing back what an approved reactivation brings back. When the 30 days end, the system SHALL erase the account as it erases deleted accounts.
 
@@ -975,6 +980,8 @@ A pending request SHALL NOT hold a seat. A class's seats taken SHALL count its a
 #### Approving a request
 
 _Implemented in spec 042-enrolment-decisions._
+
+_Implemented in spec 085-admin-accept-confirmation._
 
 Admins SHALL be able to approve a pending request only while the class has a free seat and hasn't started. The student SHALL be notified.
 

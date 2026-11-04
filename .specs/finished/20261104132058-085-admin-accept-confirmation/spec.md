@@ -2,13 +2,14 @@
 id: "085"
 slug: admin-accept-confirmation
 title: Confirm the accept actions of the admin tools
-status: accepted
+status: finished
 created: 2026-11-04
 started: 2026-11-04
 base_commit: 6c4bf5c7268944c8cb92526b2428c6be1004aaf4
 reviewed_commit: a6a942279b057d6b4c6c81eb26aa3ba224a74b89
 fronts: [app-messages, mobile, web, designs]
 depends_on: []
+finished: 2026-11-04
 ---
 
 # 085 — Confirm the accept actions of the admin tools

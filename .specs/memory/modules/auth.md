@@ -367,7 +367,10 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
   shows how many registrations are waiting (no count while loading or after an error). The tool shows a card per
   registration, oldest first — initials, name and email — with Deny and Approve, under "N waiting for approval",
   the title and a description, and pull-to-refresh. Tapping a card's upper part opens the person's sheet (initials,
-  name, "Student" and their email; no WhatsApp, which a registration doesn't have yet). Approve acts at once; Deny
+  name, "Student" and their email; no WhatsApp, which a registration doesn't have yet). Approve opens "Approve
+  entry?" naming the person (spec 085), and the approval is sent only when the admin confirms; Cancel, a swipe or the
+  backdrop sends nothing; while it sends the sheet stays open with its button spinning, and it closes on success and on
+  "already decided", staying open after any other failure. Deny
   opens "Deny entry?" with an optional reason (counter up to 500), "Deny and notify" and "Back"; closing the sheet
   ("Back", a swipe or the backdrop) sends nothing and empties the reason, and the sheet rises above the keyboard
   while the reason is typed. While a card's decision is sent, its two buttons are disabled; other cards stay
@@ -379,7 +382,9 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
   error); it reads the same query as the tool. The tool is built like "Join the school": "N waiting for an answer",
   the title and a description, a card per request — initials, name, email and "Deleted <date> · N classes" (the
   date in the app language, Fortaleza time) — with "Deny" and "Reactivate", a skeleton, an error with retry, "No
-  requests" and pull-to-refresh. Tapping a card opens the person's sheet (name, role, email; no WhatsApp). Deny
+  requests" and pull-to-refresh. Tapping a card opens the person's sheet (name, role, email; no WhatsApp).
+  "Reactivate" opens "Reactivate account?" naming the person and is sent only once confirmed (spec 085), like
+  Approve on "Join the school". Deny
   opens "Deny reactivation?" with an optional reason (up to 500) and "Deny and notify". A decided card leaves the
   list; an already decided request toasts "This request was already decided." and reloads the list; other failures
   use the registrations' toasts and keep the card. A `reactivation.requested` push reloads the requests, and
@@ -420,8 +425,10 @@ A person's account, as [Product](../product.md) describes the **User** (`user`).
   last page has loaded (also under an empty directory), with "Contas removidas · restauráveis durante 30 dias" when
   `GET /people/removed` answered at least one account; hidden while it loads or after it fails, and never asked by
   other viewers. Each row: the initials dimmed, the name, "{role} · removida em {date} · até {date + 30 days}" (day
-  and short month in the app language, Fortaleza time) and an outlined "Restaurar" that acts at once: its own button
-  loads and ignores presses while the others stay usable; on success the row leaves and the people reload, with no
+  and short month in the app language, Fortaleza time) and an outlined "Restaurar" that opens "Restaurar conta?" naming the
+  person (spec 085); the restore is sent only once confirmed, the sheet's button and the row's button load and ignore
+  presses while the other rows wait, and the sheet closes on success and on the stale answers below, staying open after
+  any other failure; on success the row leaves and the people reload, with no
   toast. `user.status.notRemoved` and `removal.window.ended` toast "Esta conta já não está removida." / "O prazo para
   restaurar esta conta acabou." and reload the section; other failures use the generic toasts and keep the row.
   Pull-to-refresh reloads it with the people.
@@ -579,3 +586,6 @@ fulfilled by the backend with [Notifications](notifications.md), to delete the n
   refused; relay addresses are ordinary emails; a new account needs a name that fits the rules. The `AppleIdTokenProvider`
   contract, and `ProviderAccountResolver`, now shared with `SignInWithGoogle`. The app's "Continue with Apple" on iOS, and
   "Your name" serving both providers.
+- `085-admin-accept-confirmation` — no change to the module's rules or API: in the app, "Approve" on "Join the
+  school", "Reactivate" on "Reactivate accounts" and "Restaurar" on "Contas removidas" open a confirmation sheet
+  naming the person (`ConfirmSheet`) and send the decision only once confirmed; Deny keeps its reason sheet.

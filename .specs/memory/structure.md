@@ -618,7 +618,8 @@ src/
                                 # (management screen, spec 056), the People row and the "Ocupação semanal" row
                                 # (spec 061)
     screens/registrations.screen.tsx  # "Join the school": count, title and description in the list header,
-                                # DecisionCards (pull-to-refresh, loading, empty, error + retry), one DenySheet,
+                                # DecisionCards (pull-to-refresh, loading, empty, error + retry), one ConfirmSheet
+                                # (spec 085), one DenySheet,
                                 # the People PersonSheet (with the email) for a pressed card
     registrations.types.ts      # Registration, RegistrationsResponse, RegistrationDecision (mirror the API)
     hooks/                      # use-registrations (query ["registrations"]), use-approve-registration,
@@ -834,7 +835,7 @@ src/
                                 # sheets, deadline note, sends and errors); use-pending-requests (GET
                                 # /enrolments/pending, ["enrolments", "pending"]), use-approve-request /
                                 # use-deny-request (no retry; invalidate the pending list and ["classes"]),
-                                # use-class-requests-screen (the tool's logic: approve, deny sheet, toasts, reloads);
+                                # use-class-requests-screen (the tool's logic: approve sheet, deny sheet, toasts, reloads);
                                 # use-enrol-student (POST /classes/:id/enrolments/direct), use-take-student-out
                                 # (POST /enrolments/:id/take-out) — no retry; invalidate the pending list and
                                 # ["classes"] —, use-take-out (the details' take-out: target, toasts, reloads; spec 044);
@@ -994,7 +995,9 @@ src/
                                 # (StepTabs: the steps of a flow as tabs with a status badge; spec 060)
   components/decision/          # the admin tools' shared pieces: decision-card (DecisionCard: avatar, optional
                                 # pressable upper row, Deny / Approve, approveDisabled), deny-sheet (DenySheet: optional reason in a
-                                # bottom sheet, confirm and back; `showLabel` draws the label above the field)
+                                # bottom sheet, confirm and back; `showLabel` draws the label above the field),
+                                # confirm-sheet (ConfirmSheet: title, description, confirm and cancel; the sheet every
+                                # accept action opens before it is sent, spec 085)
   utils/                        # app-wide helpers: format-created-at.ts ("now", relative up to 7 days, then the
                                 # date), get-initials.ts, countries.ts (country options with localized names and
                                 # dial codes, filter, default BR), brazilian-phone.ts (toBrazilianDigits,

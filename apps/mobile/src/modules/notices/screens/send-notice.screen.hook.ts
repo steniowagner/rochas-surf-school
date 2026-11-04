@@ -150,7 +150,7 @@ export const useSendNoticeScreen = (): UseSendNoticeScreenResult => {
                 name: request.student.name,
                 photoUrl: request.student.photoUrl,
                 role: "student" as const,
-                whatsappNumber: null,
+                whatsappNumber: request.student.whatsappNumber,
               },
             })),
           ],

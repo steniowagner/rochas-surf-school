@@ -177,6 +177,59 @@ describe("useSendNoticeScreen", () => {
       expect(result.current.selectedPerson).toEqual(person);
     });
 
+    it("gives the pending recipients' sheet the student's WhatsApp number, null without one", async () => {
+      const request = (
+        id: string,
+        name: string,
+        whatsappNumber: string | null,
+      ) => ({
+        id,
+        requestedAt: "2026-10-26T10:00:00.000Z",
+        student: { id: `s-${id}`, name, photoUrl: null, whatsappNumber },
+      });
+      fetchMock.mockImplementation(async (url: string) =>
+        ok(
+          url.includes("/enrolments/pending")
+            ? {
+                total: 2,
+                classes: [
+                  {
+                    id: "c-1",
+                    requests: [
+                      request("r-1", "Caio Dias", "+5585999997777"),
+                      request("r-2", "Dani Melo", null),
+                    ],
+                  },
+                ],
+              }
+            : { ...CLASS, pendingRequests: 2 },
+        ),
+      );
+      const { result } = await renderHook(() => useSendNoticeScreen(), {
+        wrapper: createQueryWrapper(createQueryClient()),
+      });
+      await waitFor(() => expect(result.current.count).toBe(3));
+
+      const pending = result.current.classView!.people.filter(
+        (person) => person.role === "pending",
+      );
+
+      expect(pending.map((person) => person.sheetPerson)).toEqual([
+        {
+          name: "Caio Dias",
+          photoUrl: null,
+          role: "student",
+          whatsappNumber: "+5585999997777",
+        },
+        {
+          name: "Dani Melo",
+          photoUrl: null,
+          role: "student",
+          whatsappNumber: null,
+        },
+      ]);
+    });
+
     it("sends once to the class even when confirmed twice in the same frame", async () => {
       const { result } = await renderHook(() => useSendNoticeScreen(), {
         wrapper: createQueryWrapper(createQueryClient()),

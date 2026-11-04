@@ -133,10 +133,20 @@ number, so the sheet always says "Número não compartilhado".
   > `apps/mobile/src/modules/enrolment/hooks/use-class-requests-screen.hook.test.tsx`; verified: `npx jest
   > src/modules/enrolment` (apps/mobile, 30 suites, 317 passed), `npx tsc --noEmit` and `npx eslint` on the files
   > (clean); deviations: none
-- [ ] **T-03** — In `src/modules/notices/screens/send-notice.screen.hook.ts`, use `request.student.whatsappNumber`
+- [x] **T-03** — In `src/modules/notices/screens/send-notice.screen.hook.ts`, use `request.student.whatsappNumber`
   for the pending recipients' `sheetPerson`; add tests to `send-notice.screen.hook.test.tsx` and/or
   `send-notice.screen.test.tsx` for a pending recipient with a number and one without.
   Covers: ER-03 · Done when: `npx jest src/modules/notices` passes.
+  > ✅ 2026-11-04 18:00 — the pending recipients' `sheetPerson` takes `request.student.whatsappNumber`; the instructors'
+  > and seated students' entries are untouched. New hook test: two pending requests (one with `+5585999997777`, one
+  > without) give `sheetPerson.whatsappNumber` `"+5585999997777"` and `null`. Screen fixtures give Caio a number and
+  > Dani none; new screen tests: tapping Caio shows "+55 85 99999 7777" and "Chat on WhatsApp", tapping Dani shows
+  > "Number not shared." with no WhatsApp button. The two with-number tests failed before the hook change. files:
+  > `apps/mobile/src/modules/notices/screens/send-notice.screen.hook.ts`,
+  > `apps/mobile/src/modules/notices/screens/send-notice.screen.hook.test.tsx`,
+  > `apps/mobile/src/modules/notices/screens/send-notice.screen.test.tsx`; verified: `npx jest src/modules/notices`
+  > (apps/mobile, 8 suites, 63 passed), `npx tsc --noEmit` and `npx eslint src/modules/notices/screens/` (clean);
+  > deviations: none
 
 ### Verification
 

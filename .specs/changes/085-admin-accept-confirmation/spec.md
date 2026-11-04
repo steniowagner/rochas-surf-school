@@ -392,6 +392,15 @@ Each block has the keys `title`, `description`, `confirm` and `cancel`.
 - [ ] **T-11** — Run every command in the Verification Plan from the repo root; all pass. Follow the user journey in
   the iOS simulator. Record the output summary as evidence. Covers: all · Done when: every command exits 0 and the
   journey matches.
+  > ⛔ 2026-11-04 13:20 — every command passed: `node .specs/scripts/run-related-tests.mjs 085` (RELATED TESTS PASSED:
+  > mobile, web, app-messages; the first run caught `admin.screen.test.tsx`, fixed under T-03),
+  > `node .specs/scripts/check-coverage.mjs 085` (COVERAGE OK, 12 files), `node .specs/scripts/run-e2e.mjs 085` (E2E
+  > PASSED, web 78 passed; backend not affected), `npx turbo run lint check-types build` for app-messages, mobile and
+  > web (17 successful), `node .docs/designs/scripts/pack.mjs --check` (5 files match). Not done: the user journey in
+  > the iOS simulator. The booted iPhone 18 Pro runs the user's own session, signed in as a non-admin (Esrom), and
+  > following the journey needs signing it out and in as an admin (`admin01@test.com`) with a pending registration,
+  > reactivation request, class request and removed account in the local database. Unblocks with the user's go-ahead
+  > to do that, or the user following the Verification Plan's journey themselves.
 
 ## Verification Plan
 

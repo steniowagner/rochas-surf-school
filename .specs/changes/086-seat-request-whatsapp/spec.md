@@ -3,7 +3,7 @@ id: "086"
 slug: seat-request-whatsapp
 title: Show the student's WhatsApp number on seat requests
 template: quick
-status: in-review
+status: changes-requested
 created: 2026-11-04
 started: 2026-11-04
 base_commit: dcc32bec5ce43ed68df49ad5dcb97e7fd058e539
@@ -176,3 +176,44 @@ number, so the sheet always says "Número não compartilhado".
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-11-04 — changes-requested
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (modules/enrolment, apps/backend, apps/mobile — 29 tasks)
+- related tests ✅ (apps/backend, apps/mobile, modules/enrolment 293 passed)
+- coverage of the changed lines ✅ `COVERAGE OK` — 3 measured files at 100%; `enrolment.types.ts` and
+  `enrolment.repository.ts` have no runtime code; no coverage-ignore comments in the diff
+- e2e: backend ✅ 31 files, 866 passed (`enrolment-decisions` included)
+
+**Expected Results**
+
+- ER-01 ✅ — `npx jest test/enrolment/usecase/list-pending-requests.usecase.test.ts` (modules/enrolment, 6 passed);
+  the e2e "lists pending" tests assert the exact `student` objects for a hidden number (`whatsappVisible: false`), a
+  shared one and none (`null`), the class's `capacity`/`seatsTaken` and order, and the 403 `user.role.notAdmin` test
+  still passes.
+- ER-02 ✅ — `class-requests.screen.test.tsx`: tapping Ana shows "+55 85 99999 8888" and "Chat on WhatsApp" opens
+  `https://wa.me/5585999998888`; Bruno (`null`) shows "Number not shared." and no WhatsApp button.
+- ER-03 ✅ — `send-notice.screen.hook.test.tsx` checks both pending recipients' `sheetPerson`; the screen tests show
+  Caio's formatted number and Dani's "Number not shared."; the instructors' and seated students' entries are
+  untouched in the diff.
+
+**Findings**
+
+- [ ] **F-01** (convention) — `apps/backend/src/modules/enrolment/enrolment.integration.http` line 154 still documents
+  `GET /enrolments/pending` as answering `student: { id, name, photoUrl }`, which ER-01 changed to
+  `{ id, name, photoUrl, whatsappNumber }`. Reproduce: `grep -n "student: { id, name, photoUrl }"
+  apps/backend/src/modules/enrolment/enrolment.integration.http`. Expected: the request's comment names
+  `whatsappNumber` (the stored E.164 number, shared or not, or `null`).
+
+**Notes**
+
+- ER-01's `Verify by` says `npx vitest run …` for `modules/enrolment`, but that workspace runs Jest (`npm test` →
+  `jest --coverage`); the executor recorded the deviation. Worth correcting the command through
+  `/spec-plan --amend 086` or when finishing.
+- T-01 also reflowed unrelated lines of `list-pending-requests.usecase.test.ts` (formatter wrapping). Harmless.
+- `## Memory Impact` matches what was built. D-01 and D-02 hold: no `whatsappVisible` check on the admin-only list,
+  and `PersonSheet` is unchanged.
+- The ERs were verified through their component tests, which render the real `PersonSheet`; not exercised in the
+  simulator.

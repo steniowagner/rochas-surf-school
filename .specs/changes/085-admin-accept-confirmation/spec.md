@@ -299,10 +299,19 @@ Each block has the keys `title`, `description`, `confirm` and `cancel`.
 
 ### Web (`apps/web`)
 
-- [ ] **T-07** — Create the mock `ConfirmSheet` in `src/modules/designs/components/confirm-sheet/` (like
+- [x] **T-07** — Create the mock `ConfirmSheet` in `src/modules/designs/components/confirm-sheet/` (like
   `sign-out-sheet/`: `BottomModal`, title, description, the confirm `Button` with its `AppIcon`, a `ghost` cancel),
   taking its texts, icon and variant as props, with `confirm-sheet.component.test.tsx`.
   Covers: ER-04 · Done when: `npx vitest run src/modules/designs/components/confirm-sheet` passes (from `apps/web`).
+  > ✅ 2026-11-04 12:40 — created the mock `ConfirmSheet` (like `sign-out-sheet/`: `BottomModal`, title, description,
+  > the confirm `Button` with `confirmIcon`, `confirmVariant` (default primary) and an optional `loading`, then a
+  > `ghost` cancel), with the same prop names as the mobile one; files:
+  > `apps/web/src/modules/designs/components/confirm-sheet/confirm-sheet.component.tsx`,
+  > `apps/web/src/modules/designs/components/confirm-sheet/confirm-sheet.types.ts`,
+  > `apps/web/src/modules/designs/components/confirm-sheet/index.ts`,
+  > `apps/web/src/modules/designs/components/confirm-sheet/confirm-sheet.component.test.tsx`; verified: `npx vitest
+  > run src/modules/designs/components/confirm-sheet` (2 passed), `eslint` clean; deviations: the icon is a
+  > `ReactNode` (`confirmIcon`), as on mobile, rather than an icon name.
 
 - [ ] **T-08** — Add the state `approveSheet` to the `registrations-screen`, `reactivations-screen` and
   `class-requests-screen` mocks and `restoreSheet` to `removed-accounts-screen` (in `src/modules/designs/screens/admin/`,

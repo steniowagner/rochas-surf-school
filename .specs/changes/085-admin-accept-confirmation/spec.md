@@ -368,11 +368,20 @@ Each block has the keys `title`, `description`, `confirm` and `cancel`.
 
 ### Designs (`.docs/designs`)
 
-- [ ] **T-10** — Regenerate `.docs/designs/admin-app.html` and its sources: build the web
+- [x] **T-10** — Regenerate `.docs/designs/admin-app.html` and its sources: build the web
   (`npx turbo run build --filter=@rochas-surf-school/web`), run `next start -p 3100` in `apps/web`, then
   `node .docs/designs/scripts/build-design.mjs admin-app`. Commit the regenerated sources and `.html`.
   Covers: ER-04 · Done when: `node .docs/designs/scripts/pack.mjs --check` exits 0 and the `.html` contains the four
   new entries.
+  > ✅ 2026-11-04 12:46 — built the web (`npx turbo run build --filter=@rochas-surf-school/web`, 4 successful), ran
+  > `next start -p 3100` in `apps/web`, then `node .docs/designs/scripts/build-design.mjs admin-app` (rewrote the
+  > sources) and `node .docs/designs/scripts/pack.mjs admin-app`; files:
+  > `.docs/designs/src/admin-app/template.html`, `.docs/designs/admin-app.html`; verified: `node
+  > .docs/designs/scripts/pack.mjs --check` (exit 0, "5 design file(s) match their sources"), the `.html` holds
+  > `AD-06-10`, `AD-07-16`, `AD-07-17` and `AD-07-18` and the template the four sheet titles ("Aprovar entrada?",
+  > "Reativar conta?", "Inscrever nesta aula?", "Restaurar conta?"), `node --test .docs/designs/scripts/*.test.mjs`
+  > (7 passed); deviations: `build-design.mjs` reported the `.html` stale after writing the sources, so `pack.mjs
+  > admin-app` was run as `CLAUDE.md` describes.
 
 ### Verification
 

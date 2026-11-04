@@ -113,7 +113,8 @@ export class PrismaEnrolmentRepository implements EnrolmentRepository {
           select: {
             id: true,
             requestedAt: true,
-            student: { select: { id: true, name: true, photoUrl: true } },
+            // The stored number, shared or not: only admins read this list (spec 086).
+            student: { select: { id: true, name: true, photoUrl: true, whatsappNumber: true } },
           },
         },
       },

@@ -87,7 +87,7 @@ number, so the sheet always says "Número não compartilhado".
 
 ### Backend (`modules/enrolment`, `apps/backend`)
 
-- [ ] **T-01** — Add `whatsappNumber: string | null` to `PendingRequest.student` in
+- [x] **T-01** — Add `whatsappNumber: string | null` to `PendingRequest.student` in
   `modules/enrolment/src/enrolment/provider/enrolment.repository.ts`; update the fixtures of
   `modules/enrolment/test/enrolment/usecase/list-pending-requests.usecase.test.ts` (and any other test building a
   `PendingRequestsClass`) and assert the number is returned as stored, `null` included. In
@@ -98,6 +98,21 @@ number, so the sheet always says "Número não compartilhado".
   Covers: ER-01 · Done when: the use case test and the "lists pending" e2e tests pass, and
   `npx turbo run check-types --filter=@rochas-surf-school/enrolment --filter=@rochas-surf-school/backend` has no
   errors.
+  > ✅ 2026-11-04 17:40 — `PendingRequest.student` gains `whatsappNumber: string | null`; `findPendingByClass` selects
+  > the student's `whatsappNumber` (the column is nullable, so a missing number already comes back as `null`); the use
+  > case passes it through unchanged (D-01). New use case test for a number and `null`; the e2e "lists pending" test
+  > expects `whatsappNumber: null`, and a new e2e test seeds a hidden number (`whatsappVisible: false`), a shared one and
+  > none (the `account` helper takes optional WhatsApp fields) and checks the exact `student` objects and the class's
+  > `capacity`/`seatsTaken`; watched it fail (2 failed) with the Prisma select reverted. files:
+  > `modules/enrolment/src/enrolment/provider/enrolment.repository.ts`,
+  > `modules/enrolment/test/enrolment/usecase/list-pending-requests.usecase.test.ts`,
+  > `modules/enrolment/test/mock/fake-enrolment.repository.test.ts`,
+  > `apps/backend/src/modules/enrolment/enrolment.prisma.ts`, `apps/backend/test/enrolment-decisions.e2e-spec.ts`;
+  > verified: `npx jest test/enrolment/usecase/list-pending-requests.usecase.test.ts` (modules/enrolment, 6 passed),
+  > `npm run test:e2e -- enrolment-decisions -t "lists pending"` (apps/backend, 4 passed), `npx turbo run check-types
+  > --filter=@rochas-surf-school/enrolment --filter=@rochas-surf-school/backend` (8 successful); deviations: the module's
+  > runner is Jest, not Vitest as ER-01's `Verify by` says (`npx vitest run` fails with `describe is not defined`), so
+  > its test runs with `npx jest`.
 
 ### Mobile (`apps/mobile`)
 

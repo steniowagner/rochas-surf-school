@@ -247,7 +247,7 @@ Each block has the keys `title`, `description`, `confirm` and `cancel`.
   > "confirmation sheet"` 14, `-t "cancel"` 3, `-t "confirm"` 17), `tsc --noEmit` and `eslint src/modules/admin`
   > clean; deviations: as T-03, the hook no longer returns `approve`.
 
-- [ ] **T-05** — "Class enrolments": the same change in
+- [x] **T-05** — "Class enrolments": the same change in
   `src/modules/enrolment/hooks/use-class-requests-screen.hook.ts` (and `.types.ts`) and
   `src/modules/enrolment/screens/class-requests.screen.tsx` (the `ClassRequestsGroup` `onApprove` now opens the
   sheet; `approveDisabled` stays), with `classRequests.approveSheet`; the success alert stays. Update
@@ -255,6 +255,20 @@ Each block has the keys `title`, `description`, `confirm` and `cancel`.
   names of T-03, including the full class that opens nothing.
   Covers: ER-01, ER-02, ER-03 · Done when: `npx jest src/modules/enrolment/hooks/use-class-requests-screen.hook.test.tsx
   src/modules/enrolment/screens/class-requests.screen.test.tsx` passes.
+  > ✅ 2026-11-04 12:28 — "Enrol" on "Class enrolments" now opens `ConfirmSheet` (`classRequests.approveSheet` with
+  > the student name, `success`, Feather `check`); the hook gained `approving`, `openApprove`, `closeApprove`,
+  > `confirmApprove` in place of `approve`, `closeSheetsOf` closes both sheets on success and on
+  > `shouldReloadRequests`; the success alert and `approveDisabled` stay (a full class opens nothing); files:
+  > `apps/mobile/src/modules/enrolment/hooks/use-class-requests-screen.hook.ts`,
+  > `apps/mobile/src/modules/enrolment/screens/class-requests.screen.tsx`,
+  > `apps/mobile/src/modules/enrolment/hooks/use-class-requests-screen.hook.test.tsx`,
+  > `apps/mobile/src/modules/enrolment/screens/class-requests.screen.test.tsx`; verified: `npx jest
+  > src/modules/enrolment/hooks/use-class-requests-screen.hook.test.tsx
+  > src/modules/enrolment/screens/class-requests.screen.test.tsx` (31 passed; screen 100%, every changed hook line
+  > covered — the one uncovered line, `closeStudent`, predates the spec; `-t "confirmation sheet"` 10, `-t "cancel"`
+  > 3, `-t "confirm"` 18), `tsc --noEmit` and `eslint src/modules/enrolment` clean; deviations:
+  > `use-class-requests-screen.types.ts` is unchanged, since it only holds the status type and the hook return type
+  > is inferred.
 
 - [ ] **T-06** — "Removed accounts": in `src/modules/people/hooks/use-removed-accounts-screen.hook.ts` (and
   `.types.ts`) add `restoreCandidate`, `openRestore`, `closeRestore` and `confirmRestore`; `restore` runs from the

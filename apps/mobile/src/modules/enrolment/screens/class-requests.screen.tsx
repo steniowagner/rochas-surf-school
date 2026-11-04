@@ -1,10 +1,11 @@
-import { Ionicons } from "@expo/vector-icons";
+import { Feather, Ionicons } from "@expo/vector-icons";
 import { Stack } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { RefreshControl, View } from "react-native";
 import Animated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { ConfirmSheet } from "@/components/decision/confirm-sheet";
 import { DenySheet } from "@/components/decision/deny-sheet";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
@@ -44,9 +45,12 @@ export function ClassRequestsScreen() {
     isRefreshing,
     sending,
     denying,
+    approving,
     retry,
     refresh,
-    approve,
+    openApprove,
+    closeApprove,
+    confirmApprove,
     openDeny,
     closeDeny,
     confirmDeny,
@@ -117,7 +121,7 @@ export function ClassRequestsScreen() {
               <ClassRequestsGroup
                 item={item}
                 sending={sending}
-                onApprove={approve}
+                onApprove={openApprove}
                 onDeny={openDeny}
                 onOpenClass={openClass}
                 onOpenStudent={openStudent}
@@ -166,6 +170,20 @@ export function ClassRequestsScreen() {
         </>
       )}
       <DisciplineFilter value={discipline} onChange={selectDiscipline} />
+      <ConfirmSheet
+        visible={approving !== null}
+        title={t("classRequests.approveSheet.title")}
+        description={t("classRequests.approveSheet.description", {
+          name: approving?.student.name ?? "",
+        })}
+        confirmLabel={t("classRequests.approveSheet.confirm")}
+        confirmIcon={<Feather name="check" size={16} color={theme.onColor} />}
+        confirmVariant="success"
+        cancelLabel={t("classRequests.approveSheet.cancel")}
+        loading={approving !== null && approving.id in sending}
+        onConfirm={confirmApprove}
+        onClose={closeApprove}
+      />
       <DenySheet
         visible={denying !== null}
         title={t("classRequests.denySheet.title")}

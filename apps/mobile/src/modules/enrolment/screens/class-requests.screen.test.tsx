@@ -126,6 +126,23 @@ const cardOf = (name: string | RegExp) => {
   return node;
 };
 
+// The confirmation sheet is the closest ancestor of its title that holds its "Cancel" button.
+const sheetOf = (title: string) => {
+  let node = screen.getByText(title);
+
+  while (node.parent && within(node).queryAllByRole("button", { name: "Cancel" }).length === 0) {
+    node = node.parent;
+  }
+
+  return within(node);
+};
+
+/** Taps a card's "Enrol", then the confirmation sheet's "Enrol". */
+async function enrolAndConfirm(user: ReturnType<typeof userEvent.setup>, name: string) {
+  await user.press(within(cardOf(name)).getByRole("button", { name: "Enrol" }));
+  await user.press(sheetOf("Enrol in this class?").getByRole("button", { name: "Enrol" }));
+}
+
 beforeEach(() => {
   hydrateSession({
     user: { id: "admin-1", role: "admin", status: "approved" } as never,
@@ -212,7 +229,7 @@ describe("ClassRequestsScreen list", () => {
     expect(screen.getByText("Ana Souza")).toBeOnTheScreen();
   });
 
-  it("shows the waiting order and blocks Enrol on a full class, still allowing Deny", async () => {
+  it("shows the waiting order and blocks Enrol on a full class (no confirmation sheet), still allowing Deny", async () => {
     const user = userEvent.setup();
     serve([surfClass({ capacity: 3, seatsTaken: 3 })]);
     await renderScreen();
@@ -229,6 +246,8 @@ describe("ClassRequestsScreen list", () => {
     expect(enrol.props.accessibilityState.disabled).toBe(true);
     await user.press(enrol);
     expect(posts()).toHaveLength(0);
+    // A full class's Enrol opens no confirmation sheet either.
+    expect(screen.queryByText("Enrol in this class?")).toBeNull();
 
     await user.press(within(cardOf("#1 Ana Souza")).getByRole("button", { name: "Deny" }));
     expect(screen.getByText("Deny enrolment?")).toBeOnTheScreen();
@@ -282,16 +301,103 @@ describe("ClassRequestsScreen list", () => {
 });
 
 describe("ClassRequestsScreen decisions", () => {
-  it("enrols at once, shows the toast and takes the card off", async () => {
+  it("opens the confirmation sheet naming the card's student, sending nothing", async () => {
+    const user = userEvent.setup();
+    serve([surfClass()]);
+    await renderScreen();
+    await screen.findByText("Bruno Lima");
+
+    await user.press(within(cardOf("Bruno Lima")).getByRole("button", { name: "Enrol" }));
+
+    const sheet = sheetOf("Enrol in this class?");
+    expect(sheet.getByText("Bruno Lima takes a seat in this class and gets a notification.")).toBeOnTheScreen();
+    expect(sheet.getByRole("button", { name: "Enrol" })).toBeOnTheScreen();
+    expect(sheet.getByRole("button", { name: "Cancel" })).toBeOnTheScreen();
+    expect(screen.queryByText("Deny enrolment?")).toBeNull();
+    expect(posts()).toHaveLength(0);
+  });
+
+  it("opens the reason sheet on Deny, not the confirmation sheet", async () => {
+    const user = userEvent.setup();
+    serve([surfClass()]);
+    await renderScreen();
+    await screen.findByText("Ana Souza");
+
+    await user.press(within(cardOf("Ana Souza")).getByRole("button", { name: "Deny" }));
+
+    expect(screen.getByText("Deny enrolment?")).toBeOnTheScreen();
+    expect(screen.queryByText("Enrol in this class?")).toBeNull();
+  });
+
+  it("closes the confirmation sheet with cancel, sending nothing, keeps the card and opens again", async () => {
     const user = userEvent.setup();
     serve([surfClass()]);
     await renderScreen();
     await screen.findByText("Ana Souza");
 
     await user.press(within(cardOf("Ana Souza")).getByRole("button", { name: "Enrol" }));
+    await user.press(screen.getByRole("button", { name: "Cancel" }));
+
+    expect(screen.queryByText("Enrol in this class?")).toBeNull();
+    expect(posts()).toHaveLength(0);
+    expect(screen.getByText("Ana Souza")).toBeOnTheScreen();
+
+    await user.press(within(cardOf("Ana Souza")).getByRole("button", { name: "Enrol" }));
+    expect(screen.getByText("Enrol in this class?")).toBeOnTheScreen();
+  });
+
+  it("closes the confirmation sheet with the backdrop (cancel), sending nothing, and Deny still works", async () => {
+    const user = userEvent.setup();
+    serve([surfClass()]);
+    await renderScreen();
+    await screen.findByText("Ana Souza");
+
+    await user.press(within(cardOf("Ana Souza")).getByRole("button", { name: "Enrol" }));
+    await user.press(screen.getByLabelText("backdrop"));
+
+    expect(screen.queryByText("Enrol in this class?")).toBeNull();
+    expect(posts()).toHaveLength(0);
+
+    await user.press(within(cardOf("Ana Souza")).getByRole("button", { name: "Deny" }));
+    await user.press(screen.getByRole("button", { name: "Deny and notify" }));
+
+    await waitFor(() => expect(posts()).toHaveLength(1));
+    expect(posts()[0]![0]).toBe("http://api.test/enrolments/r-ana/deny");
+  });
+
+  it("confirm enrols once with the button spinning, then closes the sheet, shows the toast and takes the card off", async () => {
+    const user = userEvent.setup();
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    serve([surfClass()]);
+    const original = fetchMock.getMockImplementation()!;
+    fetchMock.mockImplementation(async (url: string, init: RequestInit) => {
+      if (init.method === "POST") {
+        await gate;
+      }
+
+      return original(url, init);
+    });
+    await renderScreen();
+    await screen.findByText("Ana Souza");
+
+    await enrolAndConfirm(user, "Ana Souza");
+
+    await waitFor(() => expect(posts()).toHaveLength(1));
+    const sheet = sheetOf("Enrol in this class?");
+    expect(sheet.queryByText("Enrol")).toBeNull();
+    await user.press(sheet.getByRole("button", { name: "Enrol" }));
+
+    await act(async () => {
+      release();
+    });
 
     await waitFor(() => expect(mockShow).toHaveBeenCalledWith("Ana Souza enrolled · student notified", { tone: "success" }));
+    expect(posts()).toHaveLength(1);
     expect(posts()[0]![0]).toBe("http://api.test/enrolments/r-ana/approve");
+    expect(screen.queryByText("Enrol in this class?")).toBeNull();
     await waitFor(() => expect(screen.queryByText("Ana Souza")).toBeNull());
     expect(screen.getByText("1 request · 1 class")).toBeOnTheScreen();
   });
@@ -332,7 +438,7 @@ describe("ClassRequestsScreen decisions", () => {
     ["enrolment.notPending", 409, "This request was already decided."],
     ["class.started", 409, "The class already started."],
     ["enrolment.class.full", 409, "The class is now full."],
-  ])("shows the %s toast and reloads the list", async (key, status, message) => {
+  ])("confirm shows the %s toast, closes the sheet and reloads the list", async (key, status, message) => {
     const user = userEvent.setup();
     const state = serve([surfClass()], {
       "POST /enrolments/r-ana/approve": () => respond(status, { errors: [key] }),
@@ -341,9 +447,10 @@ describe("ClassRequestsScreen decisions", () => {
     await screen.findByText("Ana Souza");
     state.classes[0]!.requests = [BRUNO];
 
-    await user.press(within(cardOf("Ana Souza")).getByRole("button", { name: "Enrol" }));
+    await enrolAndConfirm(user, "Ana Souza");
 
     await waitFor(() => expect(mockShow).toHaveBeenCalledWith(message));
+    expect(screen.queryByText("Enrol in this class?")).toBeNull();
     await waitFor(() => expect(screen.queryByText("Ana Souza")).toBeNull());
     expect(screen.getByText("Bruno Lima")).toBeOnTheScreen();
   });
@@ -365,7 +472,7 @@ describe("ClassRequestsScreen decisions", () => {
     expect(screen.queryByText("Ana Souza")).toBeNull();
   });
 
-  it("shows the generic toast and keeps the card on another error", async () => {
+  it("confirm shows the generic toast and keeps the card and the sheet on another error", async () => {
     const user = userEvent.setup();
     serve([surfClass()], {
       "POST /enrolments/r-ana/approve": () => respond(500, { errors: ["INTERNAL_SERVER_ERROR"] }),
@@ -373,10 +480,14 @@ describe("ClassRequestsScreen decisions", () => {
     await renderScreen();
     await screen.findByText("Ana Souza");
 
-    await user.press(within(cardOf("Ana Souza")).getByRole("button", { name: "Enrol" }));
+    await enrolAndConfirm(user, "Ana Souza");
 
     await waitFor(() => expect(mockShow).toHaveBeenCalledWith("Something went wrong. Please try again."));
     expect(screen.getByText("Ana Souza")).toBeOnTheScreen();
+    expect(screen.getByText("Enrol in this class?")).toBeOnTheScreen();
+    expect(
+      sheetOf("Enrol in this class?").getByRole("button", { name: "Enrol" }).props.accessibilityState.disabled,
+    ).toBe(false);
     expect(
       within(cardOf("Ana Souza")).getByRole("button", { name: "Enrol" }).props.accessibilityState.disabled,
     ).toBe(false);

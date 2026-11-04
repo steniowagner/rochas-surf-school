@@ -28,6 +28,7 @@ export const useClassRequestsScreen = () => {
 
   const [sending, setSending] = useState<Record<string, RequestAction>>({});
   const [denying, setDenying] = useState<PendingRequest | null>(null);
+  const [approving, setApproving] = useState<PendingRequest | null>(null);
   // Kept after the sheet closes, so its content stays while it slides away.
   const [student, setStudent] = useState<PendingRequest | null>(null);
   const [studentVisible, setStudentVisible] = useState(false);
@@ -36,9 +37,11 @@ export const useClassRequestsScreen = () => {
   // A second tap in the same frame must not send twice, before `sending` has re-rendered.
   const inFlight = useRef(new Set<string>());
 
-  // A decision only closes the sheet that belongs to it: another card's sheet, and its reason, stay.
-  const closeDenyOf = (request: PendingRequest) =>
+  // A decision only closes the sheets that belong to it: another card's sheet, and its reason, stay.
+  const closeSheetsOf = (request: PendingRequest) => {
     setDenying((current) => (current?.id === request.id ? null : current));
+    setApproving((current) => (current?.id === request.id ? null : current));
+  };
 
   const decide = async (
     request: PendingRequest,
@@ -55,7 +58,7 @@ export const useClassRequestsScreen = () => {
 
     try {
       await send();
-      closeDenyOf(request);
+      closeSheetsOf(request);
       alertMessage.show(t(doneKey, { name: request.student.name }), { tone: "success" });
     } catch (error) {
       const key = getDecideRequestErrorKey(error);
@@ -65,7 +68,7 @@ export const useClassRequestsScreen = () => {
       }
 
       if (shouldReloadRequests(error)) {
-        closeDenyOf(request);
+        closeSheetsOf(request);
         void query.refetch();
       }
     } finally {
@@ -78,13 +81,23 @@ export const useClassRequestsScreen = () => {
     }
   };
 
-  const approve = (request: PendingRequest) =>
-    decide(
-      request,
-      "approve",
-      () => approveMutation.mutateAsync(request.id),
-      "classRequests.approved",
-    );
+  // A card being sent can't open its confirmation sheet; opening one sends nothing.
+  const openApprove = (request: PendingRequest) => {
+    if (!inFlight.current.has(request.id)) {
+      setApproving(request);
+    }
+  };
+
+  const confirmApprove = () => {
+    if (approving) {
+      void decide(
+        approving,
+        "approve",
+        () => approveMutation.mutateAsync(approving.id),
+        "classRequests.approved",
+      );
+    }
+  };
 
   const confirmDeny = (reason: string) => {
     if (denying) {
@@ -127,9 +140,12 @@ export const useClassRequestsScreen = () => {
     isRefreshing,
     sending,
     denying,
+    approving,
     retry: () => query.refetch(),
     refresh,
-    approve,
+    openApprove,
+    closeApprove: () => setApproving(null),
+    confirmApprove,
     openDeny: setDenying,
     closeDeny: () => setDenying(null),
     confirmDeny,

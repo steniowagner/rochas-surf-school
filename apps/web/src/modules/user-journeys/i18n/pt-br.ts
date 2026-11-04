@@ -456,8 +456,8 @@ export const ptBr = {
     "AD-02": {
       title: "Aprovar um cadastro",
       beforeYouStart: "Alguém acabou de criar uma conta (outra pessoa testando, ou AU-04 em outro celular).",
-      steps: "Abra o aviso. Em \"Entrar na escola\", toque no cartão da pessoa e depois em \"Aprovar\".",
-      expected: "Você recebe \"Nova inscrição\" com o nome da pessoa. A ferramenta lista um cartão por conta esperando, da mais antiga para a mais recente; tocar no cartão mostra os dados da pessoa. \"Aprovar\" tira o cartão na hora, e a pessoa é avisada.",
+      steps: "Abra o aviso. Em \"Entrar na escola\", toque no cartão da pessoa, depois em \"Aprovar\" e de novo em \"Aprovar\" no sheet \"Aprovar entrada?\".",
+      expected: "Você recebe \"Nova inscrição\" com o nome da pessoa. A ferramenta lista um cartão por conta esperando, da mais antiga para a mais recente; tocar no cartão mostra os dados da pessoa. \"Aprovar\" abre um sheet com o nome da pessoa, e \"Cancelar\" o fecha sem enviar nada. Depois de confirmar, o cartão sai da lista e a pessoa é avisada.",
     },
     "AD-03": {
       title: "Recusar um cadastro com um motivo",
@@ -468,14 +468,14 @@ export const ptBr = {
     "AD-04": {
       title: "Decidir um pedido de reativação",
       beforeYouStart: "Uma conta excluída pediu para voltar (AU-17 em outro celular).",
-      steps: "Abra o aviso. Em \"Reativar contas\", toque em \"Reativar\" num pedido; recuse outro com um motivo.",
-      expected: "Você recebe \"Pedido de reativação\". Cada cartão mostra o nome, o e-mail e quando a conta foi excluída. Reativar ou recusar tira o cartão, e a pessoa é avisada.",
+      steps: "Abra o aviso. Em \"Reativar contas\", toque em \"Reativar\" num pedido e confirme no sheet \"Reativar conta?\"; recuse outro com um motivo.",
+      expected: "Você recebe \"Pedido de reativação\". Cada cartão mostra o nome, o e-mail e quando a conta foi excluída. \"Reativar\" abre um sheet com o nome da pessoa; depois de confirmar, o cartão sai da lista. Recusar também tira o cartão, e a pessoa é avisada nos dois casos.",
     },
     "AD-05": {
       title: "Remover e restaurar uma conta",
       beforeYouStart: "Outra pessoa aprovada.",
-      steps: "Em \"Pessoas\", toque na pessoa, depois em \"Remover da plataforma\" e confirme. Abra \"Contas removidas\" e toque em \"Restaurar\".",
-      expected: "A confirmação diz o que a pessoa perde. Depois dela, a pessoa sai da lista e perde o acesso. \"Contas removidas\" lista as contas com a data até quando podem ser restauradas; \"Restaurar\" as traz de volta à lista na hora, com o papel delas.",
+      steps: "Em \"Pessoas\", toque na pessoa, depois em \"Remover da plataforma\" e confirme. Abra \"Contas removidas\", toque em \"Restaurar\" e confirme no sheet \"Restaurar conta?\".",
+      expected: "A confirmação diz o que a pessoa perde. Depois dela, a pessoa sai da lista e perde o acesso. \"Contas removidas\" lista as contas com a data até quando podem ser restauradas; \"Restaurar\" abre um sheet com o nome da pessoa e, depois de confirmar, o cartão sai de \"Contas removidas\" e a pessoa volta à lista, com o papel dela.",
     },
     "AD-06": {
       title: "Ver as aulas",
@@ -546,8 +546,8 @@ export const ptBr = {
     "AD-17": {
       title: "Aprovar um pedido de vaga",
       beforeYouStart: "Um aluno pediu uma vaga (ST-06 em outro celular).",
-      steps: "Abra o aviso. Em \"Inscrições em aulas\", toque em \"Inscrever\" no pedido.",
-      expected: "Você recebe \"Novo pedido de vaga\". A ferramenta lista cada aula com pedidos pendentes e as vagas livres dela; cada pedido mostra o aluno e quando ele pediu. \"Inscrever\" tira o pedido com uma mensagem de confirmação, e o aluno recebe \"Pedido aprovado\".",
+      steps: "Abra o aviso. Em \"Inscrições em aulas\", toque em \"Inscrever\" no pedido e confirme no sheet \"Inscrever nesta aula?\".",
+      expected: "Você recebe \"Novo pedido de vaga\". A ferramenta lista cada aula com pedidos pendentes e as vagas livres dela; cada pedido mostra o aluno e quando ele pediu. \"Inscrever\" abre um sheet com o nome do aluno; depois de confirmar, o pedido sai da lista com uma mensagem de confirmação, e o aluno recebe \"Pedido aprovado\".",
     },
     "AD-18": {
       title: "Recusar um pedido de vaga",

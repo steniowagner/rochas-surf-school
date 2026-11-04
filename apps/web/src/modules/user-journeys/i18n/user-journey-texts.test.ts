@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 
+import type { Locale } from "@/i18n/locales";
+import { appT } from "@/modules/designs/i18n/app-t";
+
 import { flowRows, userJourneyFlowSlugs, userJourneyFlows } from "../data/user-journey-flows";
 import { en } from "./en";
 import { es } from "./es";
@@ -59,5 +62,31 @@ describe.each(Object.entries(translations))("user journey texts (%s)", (_locale,
         expect(texts.rows[row.id].title, row.id).not.toBe(en.rows[row.id].title);
       }
     }
+  });
+});
+
+// Each accept decision is confirmed in a sheet first (spec 085): the row quotes the app's button and sheet title.
+const acceptRows = [
+  { id: "AD-02", button: "registrations.approve", sheet: "registrations.approveSheet" },
+  { id: "AD-04", button: "reactivations.approve", sheet: "reactivations.approveSheet" },
+  { id: "AD-05", button: "people.removed.restore", sheet: "removedAccounts.restoreSheet" },
+  { id: "AD-17", button: "classRequests.approve", sheet: "classRequests.approveSheet" },
+] as const;
+
+const leavesAfterConfirming: Record<Locale, RegExp> = {
+  en: /once you confirm/i,
+  "pt-br": /depois de confirmar/i,
+  es: /después de confirmar/i,
+};
+
+describe.each(Object.entries(textsByLocale) as [Locale, UserJourneyTexts][])("accept confirmation rows (%s)", (locale, texts) => {
+  it.each(acceptRows)("$id tells the tester to confirm in the sheet, which names the person", ({ id, button, sheet }) => {
+    const row = texts.rows[id];
+
+    expect(row.steps).toContain(`"${appT(locale, button)}"`);
+    expect(row.steps).toContain(`"${appT(locale, `${sheet}.title`)}"`);
+    expect(row.expected).toContain(`"${appT(locale, button)}"`);
+    expect(row.expected).toMatch(/sheet/);
+    expect(row.expected).toMatch(leavesAfterConfirming[locale]);
   });
 });

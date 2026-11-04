@@ -348,11 +348,23 @@ Each block has the keys `title`, `description`, `confirm` and `cancel`.
   > src/modules/designs` (226 files, 733 tests passed), `npx turbo run check-types --filter=@rochas-surf-school/web`
   > (4 successful), `eslint` clean; deviations: the admin app page test now expects 116 entries (was 112).
 
-- [ ] **T-09** — Update the admin rows AD-02, AD-04, AD-05 and AD-17 as D-08 says: `designIds` in
+- [x] **T-09** — Update the admin rows AD-02, AD-04, AD-05 and AD-17 as D-08 says: `designIds` in
   `src/modules/user-journeys/data/user-journey-flows.ts` (adding `AD-07-16`, `AD-07-17`, `AD-07-18` and `AD-06-10`)
   and `steps` / `expected` in `src/modules/user-journeys/i18n/{en,pt-br,es}.ts`, quoting each language's app labels;
   extend `user-journey-flows.test.ts` and `user-journey-texts.test.ts` for those rows.
   Covers: ER-05 · Done when: `npx vitest run src/modules/user-journeys` passes.
+  > ✅ 2026-11-04 12:45 — rows AD-02, AD-04, AD-05 and AD-17 now link `AD-07-16`, `AD-07-17`, `AD-07-18` and
+  > `AD-06-10`; their `steps` tell the tester to confirm in the sheet (quoting the app's button and sheet title in
+  > each language) and their `expected` says the sheet names the person and the card leaves after confirming (AD-05
+  > no longer says "at once"); no other row changed, the admin flow keeps 33 rows; files:
+  > `apps/web/src/modules/user-journeys/data/user-journey-flows.ts`,
+  > `apps/web/src/modules/user-journeys/i18n/en.ts`, `apps/web/src/modules/user-journeys/i18n/pt-br.ts`,
+  > `apps/web/src/modules/user-journeys/i18n/es.ts`,
+  > `apps/web/src/modules/user-journeys/data/user-journey-flows.test.ts`,
+  > `apps/web/src/modules/user-journeys/i18n/user-journey-texts.test.ts`; verified: `npx vitest run
+  > src/modules/user-journeys` (11 files, 77 tests passed; the new text test failed first on a case mismatch, then
+  > passed), `eslint` and `tsc --noEmit` clean; deviations: the text test reads the labels and sheet titles from the
+  > app messages (`appT`) rather than repeating them.
 
 ### Designs (`.docs/designs`)
 

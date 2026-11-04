@@ -3,10 +3,11 @@ id: "087"
 slug: single-push-on-repeated-tap
 title: Open a screen once when its item is tapped repeatedly
 template: quick
-status: in-review
+status: accepted
 created: 2026-11-04
 started: 2026-11-04
 base_commit: e2b50a4ef102666c74cf88cd4a035a90575568b7
+reviewed_commit: de99050289c326c457ecd14966798e604ad45d80
 fronts: [mobile]
 depends_on: []
 ---
@@ -218,3 +219,43 @@ already in the stack, and a lint rule keeps new code on it.
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-11-04 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`npx turbo run lint check-types build --filter=@rochas-surf-school/mobile`, 14 successful;
+  mobile has no `build` script)
+- related tests ✅ 57 suites, 1429 passed (apps/mobile)
+- coverage of the changed lines ✅ COVERAGE OK, 24 files; no coverage-ignore comments in the diff
+- e2e ✅ E2E PASSED — no suite applies to `apps/mobile`
+- test quality ✅ with `pushScreen` temporarily reduced to `router.push(href)` (restored, not committed), the two
+  "double tap" tests and both Avisos "without a second one under it" tests fail (`Received: "/admin/registrations"`,
+  `"/admin/class/c-1"`, `"/student/notifications"`), so they catch the bug
+- iOS simulator (iPhone 18 Pro, iOS 27, Metro serving this checkout at `de990502`, admin, pt-BR) ✅
+
+**Expected Results**
+
+- ER-01 ✅ — `push-screen.test.ts` 1 passed (one call with the href and `{ dangerouslySingular: true }`);
+  `admin-tabs.navigation.test.tsx -t "double tap"` 3 passed (Join the school ×2 → one back shows Home; the same class
+  row ×2 → one back shows Classes; a different class adds a screen); the Avisos singular test from spec 055 passes;
+  every call site pushes the same `routes.…` href as before (diff read). Simulator: two taps on "Entrar na escola"
+  both landed while the home was still showing → one Entrar na escola screen, one back showed the home; on Aulas
+  (Thu 5 Nov) two taps on the 16:00 surf card both landed on the list → one class detail, one back showed Aulas.
+- ER-02 ✅ — the stdin `router.push("/")` check exits 1 with "Use pushScreen from @/navigation/push-screen so a
+  repeated tap doesn't open the screen twice"; `router.replace` / `router.back` exit 0; the same code under
+  `src/navigation/push-screen.ts` exits 0; the mobile workspace lints clean. `grep router.push` in `src` outside
+  tests finds only `push-screen.ts`.
+
+**Findings**
+
+None.
+
+**Notes**
+
+- The rule's selector (D-04) matches only an identifier named `router`; a `useRouter().push(…)` or a renamed import
+  would get past it. No such call is left in `src` (the one in `use-class-requests-screen.hook.ts` was removed), but
+  extending the selector to `useRouter` would close the gap if it ever matters.
+- `isAdminMessageType` is no longer imported by the notification-response hook; it is still used inside
+  `notification-target.ts`, so its export could become module-private in a later cleanup.
+- Memory Impact matches what was built (Mobile routes convention and the notification-response list).

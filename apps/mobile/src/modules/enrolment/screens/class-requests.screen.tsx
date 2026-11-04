@@ -200,13 +200,13 @@ export function ClassRequestsScreen() {
         onClose={closeDeny}
       />
       <PersonSheet
-        // The pending requests don't carry the WhatsApp number, and only students ask for a seat.
+        // Admins see every student's number, shared or not, and only students ask for a seat.
         person={
           student && {
             name: student.student.name,
             photoUrl: student.student.photoUrl,
             role: "student",
-            whatsappNumber: null,
+            whatsappNumber: student.student.whatsappNumber,
           }
         }
         visible={studentVisible}

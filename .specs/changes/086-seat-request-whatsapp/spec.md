@@ -116,12 +116,23 @@ number, so the sheet always says "Número não compartilhado".
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-02** — Add `whatsappNumber: string | null` to `PendingRequest.student` in
+- [x] **T-02** — Add `whatsappNumber: string | null` to `PendingRequest.student` in
   `src/modules/enrolment/enrolment.types.ts` (and to the test fixtures that build one); in
   `src/modules/enrolment/screens/class-requests.screen.tsx`, pass `student.student.whatsappNumber` to `PersonSheet`
   and update the comment there. Add tests to `class-requests.screen.test.tsx` for a student with a number (the
   formatted number shows and pressing the row calls `Linking.openURL` with the `wa.me` link) and one without.
   Covers: ER-02 · Done when: `npx jest src/modules/enrolment` passes.
+  > ✅ 2026-11-04 17:50 — `PendingRequest.student` gains `whatsappNumber: string | null`; "Inscrições em aulas" passes
+  > `student.student.whatsappNumber` to `PersonSheet`, and the comment there now says admins see every number. Fixtures
+  > updated (Ana has `+5585999998888`, Bruno none). New screen tests: tapping Ana shows "+55 85 99999 8888" and pressing
+  > "Chat on WhatsApp" calls `Linking.openURL("https://wa.me/5585999998888")`; tapping Bruno shows "Number not shared."
+  > with no WhatsApp button. Watched the first fail before the screen change. files:
+  > `apps/mobile/src/modules/enrolment/enrolment.types.ts`,
+  > `apps/mobile/src/modules/enrolment/screens/class-requests.screen.tsx`,
+  > `apps/mobile/src/modules/enrolment/screens/class-requests.screen.test.tsx`,
+  > `apps/mobile/src/modules/enrolment/hooks/use-class-requests-screen.hook.test.tsx`; verified: `npx jest
+  > src/modules/enrolment` (apps/mobile, 30 suites, 317 passed), `npx tsc --noEmit` and `npx eslint` on the files
+  > (clean); deviations: none
 - [ ] **T-03** — In `src/modules/notices/screens/send-notice.screen.hook.ts`, use `request.student.whatsappNumber`
   for the pending recipients' `sheetPerson`; add tests to `send-notice.screen.hook.test.tsx` and/or
   `send-notice.screen.test.tsx` for a pending recipient with a number and one without.

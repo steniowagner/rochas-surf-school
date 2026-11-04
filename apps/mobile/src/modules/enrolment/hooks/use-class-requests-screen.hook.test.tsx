@@ -25,7 +25,7 @@ jest.mock("./use-approve-request.hook", () => ({
 const REQUEST = {
   id: "r-1",
   requestedAt: "2026-10-19T12:12:00.000Z",
-  student: { id: "s-1", name: "Ana Souza", photoUrl: null },
+  student: { id: "s-1", name: "Ana Souza", photoUrl: null, whatsappNumber: null },
 };
 
 beforeEach(() => {

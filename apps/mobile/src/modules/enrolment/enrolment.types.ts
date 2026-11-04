@@ -34,7 +34,13 @@ export type RequestSeatRequest = {
 export type PendingRequest = {
   id: string;
   requestedAt: string;
-  student: { id: string; name: string; photoUrl: string | null };
+  /** `whatsappNumber` is the stored E.164 number, shared or not: only admins read this list. */
+  student: {
+    id: string;
+    name: string;
+    photoUrl: string | null;
+    whatsappNumber: string | null;
+  };
 };
 
 /** An upcoming class with pending requests, the requests in the order they were asked. */

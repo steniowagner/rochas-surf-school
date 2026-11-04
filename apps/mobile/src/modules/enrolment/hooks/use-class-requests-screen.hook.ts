@@ -1,9 +1,9 @@
-import { useRouter } from "expo-router";
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { routes } from "@/constants/routes";
 import type { DisciplineFilterValue } from "@/modules/classes/classes.types";
+import { pushScreen } from "@/navigation/push-screen";
 import { useAlertMessage } from "@/providers/alert-message";
 
 import type { RequestAction } from "../components/class-requests-group/class-requests-group.types";
@@ -20,7 +20,6 @@ import { usePendingRequests } from "./use-pending-requests.hook";
 
 export const useClassRequestsScreen = () => {
   const { t } = useTranslation();
-  const router = useRouter();
   const alertMessage = useAlertMessage();
   const query = usePendingRequests();
   const approveMutation = useApproveRequest();
@@ -156,7 +155,7 @@ export const useClassRequestsScreen = () => {
       setStudentVisible(true);
     },
     openClass: (item: PendingRequestsClass) =>
-      router.push(routes.admin.classDetail(item.id)),
+      pushScreen(routes.admin.classDetail(item.id)),
     closeStudent: () => setStudentVisible(false),
   };
 };

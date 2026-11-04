@@ -11,6 +11,7 @@ import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { routes } from "@/constants/routes";
+import { pushScreen } from "@/navigation/push-screen";
 import { useAlertMessage } from "@/providers/alert-message";
 import { ApiError, SessionExpiredError } from "@/services/api";
 
@@ -359,9 +360,9 @@ export const useEditClassScreen = () => {
     setLocationId: (locationId: string) => change({ locationId }),
     managingLocations: management.managing,
     toggleManagingLocations: management.toggleManaging,
-    openNewLocation: () => router.push(routes.admin.locationForm()),
+    openNewLocation: () => pushScreen(routes.admin.locationForm()),
     openLocationEdit: (edited: ClassLocation) =>
-      router.push(routes.admin.locationForm(edited.id)),
+      pushScreen(routes.admin.locationForm(edited.id)),
     changeCapacity,
     setNotes: (notes: string) => change({ notes }),
     notesMaxLength: CLASS_NOTES_MAX,

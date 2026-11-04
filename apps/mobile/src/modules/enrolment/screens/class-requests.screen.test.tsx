@@ -11,8 +11,7 @@ const mockShow = jest.fn();
 const mockPush = jest.fn();
 
 jest.mock("expo-router", () => ({
-  router: { back: jest.fn() },
-  useRouter: () => ({ push: mockPush }),
+  router: { back: jest.fn(), push: (...args: unknown[]) => mockPush(...args) },
   // Renders the screen's header title so the tests can see it.
   Stack: {
     Screen: ({ options }: any) => options.unstable_headerLeftItems?.({})[0].element ?? options.headerTitle(),
@@ -236,7 +235,10 @@ describe("ClassRequestsScreen list", () => {
     await screen.findByText("Ana Souza");
     await user.press(screen.getByRole("button", { name: /^Surf, 08:00/ }));
 
-    expect(mockPush).toHaveBeenCalledWith({ pathname: "/admin/class/[id]", params: { id: surfClass().id } });
+    expect(mockPush).toHaveBeenCalledWith(
+      { pathname: "/admin/class/[id]", params: { id: surfClass().id } },
+      { dangerouslySingular: true },
+    );
   });
 
   it("filters the classes by sport and says when the sport has no requests", async () => {

@@ -256,8 +256,7 @@ describe("TeachingClassHistoryScreen", () => {
       );
 
       expect(router.push).toHaveBeenCalledWith(
-        routes[role].classDetail("c-06"),
-      );
+        routes[role].classDetail("c-06"), { dangerouslySingular: true });
     },
   );
 

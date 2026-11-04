@@ -1,4 +1,4 @@
-import { router, useFocusEffect } from "expo-router";
+import { useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 
 import { routes } from "@/constants/routes";
@@ -7,6 +7,7 @@ import type {
   DisciplineFilterValue,
 } from "@/modules/classes/classes.types";
 import { useNow } from "@/modules/classes/hooks/use-now.hook";
+import { pushScreen } from "@/navigation/push-screen";
 import { SessionExpiredError } from "@/services/api";
 
 import type { MyClassesFilter } from "../enrolment.types";
@@ -76,7 +77,7 @@ export const useMyClassesScreen = (): UseMyClassesScreenResult => {
     isRefreshing,
     refresh,
     retry: () => void refetch(),
-    openClass: (id) => router.push(routes.student.classDetail(id)),
-    openHistory: () => router.push(routes.student.myHistory),
+    openClass: (id) => pushScreen(routes.student.classDetail(id)),
+    openHistory: () => pushScreen(routes.student.myHistory),
   };
 };

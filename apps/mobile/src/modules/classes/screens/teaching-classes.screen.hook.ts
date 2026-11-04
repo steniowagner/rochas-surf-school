@@ -1,8 +1,9 @@
-import { router, useFocusEffect } from "expo-router";
+import { useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { routes } from "@/constants/routes";
+import { pushScreen } from "@/navigation/push-screen";
 import { SessionExpiredError } from "@/services/api";
 import { getDateLocale } from "@/utils/calendar-dates";
 
@@ -117,7 +118,7 @@ export const useTeachingClassesScreen = ({
     refresh,
     retry: () => void refetch(),
     selectDiscipline: setDiscipline,
-    openClass: (id) => router.push(routes[role].classDetail(id)),
-    openHistory: () => router.push(routes[role].myHistory),
+    openClass: (id) => pushScreen(routes[role].classDetail(id)),
+    openHistory: () => pushScreen(routes[role].myHistory),
   };
 };

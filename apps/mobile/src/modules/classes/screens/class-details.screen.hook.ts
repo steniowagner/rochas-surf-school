@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next";
 
 import { routes } from "@/constants/routes";
 import { useSchoolSettings } from "@/hooks/use-school-settings.hook";
+import { pushScreen } from "@/navigation/push-screen";
 import { useAlertMessage } from "@/providers/alert-message";
 import { useSession } from "@/providers/session";
 import { ApiError, SessionExpiredError } from "@/services/api";
@@ -278,7 +279,7 @@ export const useClassDetailsScreen = ({
       item !== undefined &&
       state !== null &&
       isWithoutDeadline(item.cancellationDeadline, state),
-    openCancellationRules: () => router.push(routes.admin.cancellationRules),
+    openCancellationRules: () => pushScreen(routes.admin.cancellationRules),
     // Admins only: a student of a class that hasn't started (and isn't cancelled) can be taken out of it.
     canTakeOut: canEdit && state === "not-started",
     takeOut,
@@ -331,7 +332,7 @@ export const useClassDetailsScreen = ({
     closeRules: () => setRulesVisible(false),
     // Everyone reads the school rules in their own flow.
     openSchoolRules: () =>
-      router.push(
+      pushScreen(
         routes[(user?.role ?? "student") as ClassDetailsRole].schoolRules,
       ),
     selectedPerson,
@@ -361,9 +362,9 @@ export const useClassDetailsScreen = ({
     toolsVisible,
     openTools: () => setToolsVisible(true),
     closeTools: () => setToolsVisible(false),
-    edit: () => router.push(routes.admin.editClass(id)),
+    edit: () => pushScreen(routes.admin.editClass(id)),
     // The message to this class: the Send notice screen in its class mode (spec 069).
-    notify: () => router.push(routes.admin.sendNotice({ classId: id })),
+    notify: () => pushScreen(routes.admin.sendNotice({ classId: id })),
     cancelVisible,
     openCancel: () => setCancelVisible(true),
     closeCancel: () => setCancelVisible(false),

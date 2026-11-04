@@ -718,7 +718,7 @@ describe("NewClassScreen", () => {
       expect(router.push).toHaveBeenCalledWith({
         pathname: "/admin/location-form",
         params: {},
-      });
+      }, { dangerouslySingular: true });
     });
 
     it("selects the location the location screen created", async () => {
@@ -798,7 +798,7 @@ describe("NewClassScreen", () => {
       expect(router.push).toHaveBeenCalledWith({
         pathname: "/admin/location-form",
         params: { id: "l-1" },
-      });
+      }, { dangerouslySingular: true });
 
       await user.press(screen.getByRole("button", { name: "Done" }));
 

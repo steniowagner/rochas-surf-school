@@ -123,10 +123,19 @@ already in the stack, and a lint rule keeps new code on it.
   > `apps/mobile/src/modules/auth/hooks/use-apple-sign-in.hook.test.tsx`; verified: `npx jest src/modules/auth` (28 suites,
   > 317 passed; 10 failed before the assertions were updated), `grep -rn "router.push" src/modules/auth` outside tests
   > finds nothing, `npx eslint src/modules/auth` clean, changed lines 100% covered (`--coverage`); deviations: none
-- [ ] **T-03** — Replace `router.push` with `pushScreen` in the classes and enrolment files listed in Context, and
+- [x] **T-03** — Replace `router.push` with `pushScreen` in the classes and enrolment files listed in Context, and
   update their tests.
   Covers: ER-01 · Done when: `npx jest src/modules/classes src/modules/enrolment` passes and no `router.push` is
   left in either module.
+  > ✅ 2026-11-04 18:25 — the classes and enrolment hooks call `pushScreen(…)` with the same `routes.…` hrefs
+  > (`router` / `useRouter` imports dropped where nothing else uses them); the tests' `router.push` assertions now
+  > expect the `{ dangerouslySingular: true }` second argument; files: `apps/mobile/src/modules/classes/components/class-history/class-history.hook.ts`, `apps/mobile/src/modules/classes/screens/class-details.screen.hook.ts`, `apps/mobile/src/modules/classes/screens/class-details.screen.test.tsx`, `apps/mobile/src/modules/classes/screens/classes-week.screen.hook.ts`, `apps/mobile/src/modules/classes/screens/classes-week.screen.test.tsx`, `apps/mobile/src/modules/classes/screens/edit-class.screen.hook.ts`, `apps/mobile/src/modules/classes/screens/edit-class.screen.test.tsx`, `apps/mobile/src/modules/classes/screens/new-class.screen.hook.ts`, `apps/mobile/src/modules/classes/screens/new-class.screen.test.tsx`, `apps/mobile/src/modules/classes/screens/teaching-class-history.screen.test.tsx`, `apps/mobile/src/modules/classes/screens/teaching-classes.screen.hook.ts`, `apps/mobile/src/modules/classes/screens/teaching-classes.screen.test.tsx`, `apps/mobile/src/modules/classes/screens/weekly-occupancy.screen.hook.ts`, `apps/mobile/src/modules/classes/screens/weekly-occupancy.screen.test.tsx`, `apps/mobile/src/modules/enrolment/hooks/use-class-requests-screen.hook.ts`, `apps/mobile/src/modules/enrolment/screens/class-requests.screen.test.tsx`, `apps/mobile/src/modules/enrolment/screens/my-class-history.screen.test.tsx`, `apps/mobile/src/modules/enrolment/screens/my-classes.screen.hook.ts`, `apps/mobile/src/modules/enrolment/screens/my-classes.screen.test.tsx`; verified:
+  > `npx jest src/modules/classes src/modules/enrolment` (1443 passed; 24 failed before the assertions were updated),
+  > `grep -rn "router.push"` in both modules outside tests finds nothing, `npx eslint` on both modules clean,
+  > `npx tsc --noEmit` clean, the changed lines 100% covered (`--coverage`); deviations:
+  > `use-class-requests-screen.hook.ts` pushed through `useRouter().push`, so its `useRouter` call is removed and
+  > `class-requests.screen.test.tsx` mocks `router.push` instead of `useRouter`; prettier was run only on files that
+  > were already prettier-clean, so unrelated lines are not reformatted
 - [ ] **T-04** — Replace `router.push` with `pushScreen` in `components/user-header`, `modules/admin`,
   `modules/instructor`, `modules/notifications` (the hook's Avisos branch keeps one-screen behavior through
   `pushScreen`) and `modules/profile`, and update their tests.

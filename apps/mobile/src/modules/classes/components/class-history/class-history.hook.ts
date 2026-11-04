@@ -1,8 +1,8 @@
-import { router } from "expo-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import type { CalendarPeriod } from "@/components/week-month-calendar/week-month-calendar.types";
+import { pushScreen } from "@/navigation/push-screen";
 import { SessionExpiredError } from "@/services/api";
 import {
   addDays,
@@ -110,6 +110,6 @@ export const useClassHistory = ({
       ),
     refresh,
     retry: () => void query.refetch(),
-    openClass: (id) => router.push(classRoute(id)),
+    openClass: (id) => pushScreen(classRoute(id)),
   };
 };

@@ -1,9 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import { router, useFocusEffect } from "expo-router";
+import { useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { routes } from "@/constants/routes";
+import { pushScreen } from "@/navigation/push-screen";
 import { SessionExpiredError } from "@/services/api";
 import { getDateLocale, mondayOf, weekCaption } from "@/utils/calendar-dates";
 
@@ -103,6 +104,6 @@ export const useWeeklyOccupancyScreen = ({
     closeCalendar: () => setIsCalendarOpen(false),
     selectWeekOf,
     selectClass: setTappedId,
-    openClass: (id) => router.push(routes[role].classDetail(id)),
+    openClass: (id) => pushScreen(routes[role].classDetail(id)),
   };
 };

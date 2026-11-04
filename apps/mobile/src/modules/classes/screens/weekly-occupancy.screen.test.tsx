@@ -320,7 +320,9 @@ describe("WeeklyOccupancyScreen", () => {
 
       await user.press(cardOf("08:00 – 10:00")!);
 
-      expect(router.push).toHaveBeenCalledWith(routes.admin.classDetail("C"));
+      expect(router.push).toHaveBeenCalledWith(routes.admin.classDetail("C"), {
+        dangerouslySingular: true,
+      });
     });
 
     it("selects a cancelled class and shows its cancelled card", async () => {

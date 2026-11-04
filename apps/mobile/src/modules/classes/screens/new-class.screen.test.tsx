@@ -246,9 +246,7 @@ describe("NewClassScreen", () => {
       async (date) => {
         await openWith(date);
 
-        expect(screen.getAllByText("pick at least 1").length).toBeGreaterThan(
-          0,
-        );
+        expect(screen.getByText(/^Still missing: days, /)).toBeOnTheScreen();
         expect(screen.queryByText("1 day")).not.toBeOnTheScreen();
       },
     );
@@ -281,10 +279,13 @@ describe("NewClassScreen", () => {
     expect(screen.getByRole("tab", { name: "Surf" })).toBeSelected();
     expect(screen.getByRole("tab", { name: "Beginner" })).toBeSelected();
     expect(screen.getByText("label only")).toBeTruthy();
-    expect(screen.getAllByText("pick at least 1")).toHaveLength(2);
-    expect(screen.getByText("pick a location")).toBeTruthy();
-    expect(screen.getByText("at least 1")).toBeTruthy();
+    // Days, times, location and instructors are required; notes say they are optional.
+    expect(screen.getAllByText("required")).toHaveLength(4);
+    expect(screen.getByText("optional")).toBeTruthy();
     expect(submitButton()).toBeDisabled();
+    expect(
+      screen.getByText("Still missing: days, times, location, instructor."),
+    ).toBeTruthy();
     expect(screen.getByRole("button", { name: "Create class" })).toBeTruthy();
   });
 
@@ -451,7 +452,7 @@ describe("NewClassScreen", () => {
 
       expect(submitButton()).toBeDisabled();
       expect(screen.getByText("Tap a day to start")).toBeTruthy();
-      expect(screen.getByText("pick at least 1", { exact: true })).toBeTruthy();
+      expect(screen.getByText("Still missing: days.")).toBeTruthy();
     });
 
     it("clears the range and turns the button off", async () => {
@@ -464,7 +465,7 @@ describe("NewClassScreen", () => {
 
       expect(submitButton()).toBeDisabled();
       expect(screen.queryByText(/ × /)).toBeNull();
-      expect(screen.getByText("pick at least 1", { exact: true })).toBeTruthy();
+      expect(screen.getByText("Still missing: days.")).toBeTruthy();
     });
 
     it.each([
@@ -501,6 +502,60 @@ describe("NewClassScreen", () => {
       expect(
         screen.getByText("2 days × 2 times · pick a location"),
       ).toBeTruthy();
+      // Only the location is left: its section and the footer say so.
+      expect(screen.getAllByText("required")).toHaveLength(1);
+      expect(screen.getByText("Still missing: location.")).toBeTruthy();
+    });
+
+    it("says nothing is missing once every required section is filled", async () => {
+      const user = userEvent.setup();
+      await renderScreen();
+
+      await fillValidBatch(user);
+
+      expect(submitButton()).toBeEnabled();
+      expect(screen.queryByText("required")).toBeNull();
+      expect(screen.queryByText(/^Still missing:/)).toBeNull();
+    });
+
+    it("names only the times when every time is unselected", async () => {
+      const user = userEvent.setup();
+      await renderScreen();
+      await fillValidBatch(user);
+
+      await user.press(screen.getByRole("button", { name: MORNING }));
+      await user.press(screen.getByRole("button", { name: AFTERNOON }));
+
+      expect(submitButton()).toBeDisabled();
+      expect(screen.getAllByText("required")).toHaveLength(1);
+      expect(screen.getByText("Still missing: times.")).toBeTruthy();
+    });
+
+    it("names only the instructor when every instructor is unticked", async () => {
+      const user = userEvent.setup();
+      await renderScreen();
+      await fillValidBatch(user);
+
+      await user.press(screen.getByRole("checkbox", { name: "Ana Souza" }));
+
+      expect(submitButton()).toBeDisabled();
+      expect(screen.getAllByText("required")).toHaveLength(1);
+      expect(screen.getByText("Still missing: instructor.")).toBeTruthy();
+    });
+
+    it("says what is missing next to the limit when a batch is too big and incomplete", async () => {
+      const user = userEvent.setup();
+      await renderScreen();
+      await fillValidBatch(user, { singleDay: true, withoutLocation: true });
+      for (let month = 0; month < 4; month += 1) {
+        await user.press(screen.getByRole("button", { name: "Next month" }));
+      }
+
+      await user.press(day("2027-02-20"));
+
+      expect(screen.getByText("At most 200 classes at a time.")).toBeTruthy();
+      expect(screen.getByText("Still missing: location.")).toBeTruthy();
+      expect(submitButton()).toBeDisabled();
     });
 
     it("disables the button above 200 classes and says so", async () => {
@@ -693,7 +748,7 @@ describe("NewClassScreen", () => {
       expect(
         screen.getByRole("radio", { name: "Praia do Futuro" }),
       ).not.toBeChecked();
-      expect(screen.queryByText("pick a location")).toBeNull();
+      expect(screen.queryByText(/^Still missing:.*location/)).toBeNull();
     });
 
     it("stops listening to the location screen once it is gone", async () => {
@@ -771,7 +826,7 @@ describe("NewClassScreen", () => {
           screen.queryByRole("radio", { name: "Praia do Futuro" }),
         ).toBeNull(),
       );
-      expect(screen.getByText("pick a location")).toBeTruthy();
+      expect(screen.getByText(/^Still missing:.*location/)).toBeTruthy();
       expect(submitButton()).toBeDisabled();
     });
 
@@ -830,7 +885,7 @@ describe("NewClassScreen", () => {
       expect(
         screen.getByRole("checkbox", { name: "Bruno Lima" }),
       ).toBeChecked();
-      expect(screen.queryByText("at least 1")).toBeNull();
+      expect(screen.queryByText(/^Still missing:.*instructor/)).toBeNull();
 
       await user.press(screen.getByRole("checkbox", { name: "Bruno Lima" }));
       expect(
@@ -840,10 +895,8 @@ describe("NewClassScreen", () => {
 
     it("shows the load error and retries", async () => {
       serve({
-        "GET /people?page=1&perPage=50&role=instructor,admin&teaches=true": failure(
-          500,
-          "x",
-        ),
+        "GET /people?page=1&perPage=50&role=instructor,admin&teaches=true":
+          failure(500, "x"),
       });
       const user = userEvent.setup();
       await renderScreen();
@@ -896,7 +949,9 @@ describe("NewClassScreen", () => {
       );
 
       await waitFor(() => expect(router.back).toHaveBeenCalledTimes(1));
-      expect(mockShow).toHaveBeenCalledWith("4 classes created", { tone: "success" });
+      expect(mockShow).toHaveBeenCalledWith("4 classes created", {
+        tone: "success",
+      });
       const call = fetchMock.mock.calls.find(([url]) =>
         String(url).endsWith("/classes/batch"),
       );
@@ -936,7 +991,9 @@ describe("NewClassScreen", () => {
       await user.press(screen.getByRole("button", { name: "Create class" }));
 
       await waitFor(() =>
-        expect(mockShow).toHaveBeenCalledWith("Class created", { tone: "success" }),
+        expect(mockShow).toHaveBeenCalledWith("Class created", {
+          tone: "success",
+        }),
       );
       const call = fetchMock.mock.calls.find(([url]) =>
         String(url).endsWith("/classes/batch"),
@@ -1016,7 +1073,8 @@ describe("NewClassScreen", () => {
       const user = userEvent.setup();
       await renderScreen();
       await fillValidBatch(user);
-      const teachersPath = "/people?page=1&perPage=50&role=instructor,admin&teaches=true";
+      const teachersPath =
+        "/people?page=1&perPage=50&role=instructor,admin&teaches=true";
       const before = requestedPaths().filter(
         (path) => path === teachersPath,
       ).length;

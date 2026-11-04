@@ -499,7 +499,7 @@ describe("EditClassScreen", () => {
     await user.press(screen.getByRole("checkbox", { name: "Ana Souza" }));
     await user.press(screen.getByRole("checkbox", { name: "Carla Dias" }));
 
-    expect(screen.getByText("at least 1")).toBeOnTheScreen();
+    expect(screen.getByText("required")).toBeOnTheScreen();
     expect(saveButton()).toBeDisabled();
   });
 

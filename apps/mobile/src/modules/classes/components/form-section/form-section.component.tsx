@@ -20,21 +20,24 @@ export function FormSection({
         >
           {label}
         </Text>
-        {hint ? (
-          <Text className="ds-text-list-subtitle shrink text-ink-2">
-            {hint}
-          </Text>
-        ) : null}
-        {action ? (
-          <TouchableOpacity
-            accessibilityRole="button"
-            activeOpacity={BUTTON_ACTIVE_OPACITY}
-            onPress={action.onPress}
-            className="min-h-11 justify-center"
-          >
-            <Text className="ds-text-chip text-grape">{action.label}</Text>
-          </TouchableOpacity>
-        ) : null}
+        {/* The hint and the action share the right end, so a hint never floats between the label and the action. */}
+        <View className="shrink flex-row items-baseline gap-3">
+          {hint ? (
+            <Text className="ds-text-list-subtitle shrink text-ink-2">
+              {hint}
+            </Text>
+          ) : null}
+          {action ? (
+            <TouchableOpacity
+              accessibilityRole="button"
+              activeOpacity={BUTTON_ACTIVE_OPACITY}
+              onPress={action.onPress}
+              className="min-h-11 justify-center"
+            >
+              <Text className="ds-text-chip text-grape">{action.label}</Text>
+            </TouchableOpacity>
+          ) : null}
+        </View>
       </View>
       {children}
     </View>

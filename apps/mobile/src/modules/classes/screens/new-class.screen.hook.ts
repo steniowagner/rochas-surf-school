@@ -118,6 +118,24 @@ export const useNewClassScreen = () => {
     location !== undefined &&
     instructorIds.length > 0;
 
+  // The required sections still empty, in the form's order: each says "required", and the footer names them all.
+  const missing = {
+    days: dates.length === 0,
+    timeRanges: selectedRanges.length === 0,
+    location: location === undefined,
+    instructors: instructorIds.length === 0,
+  };
+  const missingNames = [
+    missing.days ? t("newClass.missing.days") : null,
+    missing.timeRanges ? t("newClass.missing.timeRanges") : null,
+    missing.location ? t("newClass.missing.location") : null,
+    missing.instructors ? t("newClass.missing.instructors") : null,
+  ].filter((name) => name !== null);
+  const missingLine =
+    missingNames.length > 0
+      ? t("newClass.missing.line", { fields: missingNames.join(", ") })
+      : null;
+
   const toggleTimeRange = (item: TimeRange) =>
     setSelectedRanges((current) =>
       includesRange(current, item)
@@ -272,6 +290,8 @@ export const useNewClassScreen = () => {
     classCount,
     maxClasses: CLASS_BATCH_MAX,
     tooMany,
+    missing,
+    missingLine,
     canSubmit,
     loading: createClasses.isPending,
     submit,

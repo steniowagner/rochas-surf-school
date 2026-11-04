@@ -195,9 +195,7 @@ export function EditClassScreen() {
         <FormSection
           label={t("newClass.instructors.label")}
           hint={
-            form.instructorIds.length === 0
-              ? t("newClass.instructors.pickOne")
-              : undefined
+            form.instructorIds.length === 0 ? t("newClass.required") : undefined
           }
         >
           <InstructorPicker

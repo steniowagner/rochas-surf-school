@@ -150,8 +150,15 @@ number, so the sheet always says "Número não compartilhado".
 
 ### Verification
 
-- [ ] **T-04** — Run every command in the Verification Plan from the repo root; all pass. Record the output
+- [x] **T-04** — Run every command in the Verification Plan from the repo root; all pass. Record the output
   summary as evidence. Covers: all · Done when: every command exits 0.
+  > ✅ 2026-11-04 18:10 — ran the whole Verification Plan from the repo root: `node .specs/scripts/run-related-tests.mjs
+  > 086` → RELATED TESTS PASSED (backend 206, mobile 738, modules 293 passed); `node .specs/scripts/check-coverage.mjs
+  > 086` → COVERAGE OK (3 measured files at 100% of their changed lines; the two type files have no runtime code);
+  > `node .specs/scripts/run-e2e.mjs 086` → E2E PASSED (31 files, 866 tests, `enrolment-decisions` included);
+  > `npx turbo run lint check-types build --filter=@rochas-surf-school/enrolment --filter=@rochas-surf-school/backend
+  > --filter=@rochas-surf-school/mobile` → 29 successful. files: `.specs/changes/086-seat-request-whatsapp/spec.md`;
+  > deviations: none
 
 ## Verification Plan
 

@@ -1224,6 +1224,16 @@ const messages = {
     submit_one: "Create class",
     submit_other: "Create {{count}} classes",
     tooMany: "At most {{max}} classes at a time.",
+    /** On a required section while it is still empty, as "optional" is on Notes. */
+    required: "required",
+    /** Under a disabled button: what is still empty, in the form's order, joined with ", ". */
+    missing: {
+      line: "Still missing: {{fields}}.",
+      days: "days",
+      timeRanges: "times",
+      location: "location",
+      instructors: "instructor",
+    },
     created_one: "Class created",
     created_other: "{{count}} classes created",
     errors: {

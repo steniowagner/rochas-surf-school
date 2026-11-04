@@ -70,9 +70,9 @@ export function NewClassScreen() {
         <FormSection
           label={t("newClass.days.label")}
           hint={
-            screen.dayCount > 0
-              ? t("newClass.days.count", { count: screen.dayCount })
-              : t("newClass.days.pickOne")
+            screen.missing.days
+              ? t("newClass.required")
+              : t("newClass.days.count", { count: screen.dayCount })
           }
         >
           <DateRangeCalendar
@@ -85,11 +85,7 @@ export function NewClassScreen() {
         </FormSection>
         <FormSection
           label={t("newClass.timeRanges.label")}
-          hint={
-            screen.selectedRanges.length === 0
-              ? t("newClass.timeRanges.pickOne")
-              : undefined
-          }
+          hint={screen.missing.timeRanges ? t("newClass.required") : undefined}
         >
           <TimeRangePicker
             suggestions={screen.suggestions}
@@ -102,11 +98,7 @@ export function NewClassScreen() {
         </FormSection>
         <FormSection
           label={t("newClass.location.label")}
-          hint={
-            screen.location === undefined
-              ? t("newClass.location.pickOne")
-              : undefined
-          }
+          hint={screen.missing.location ? t("newClass.required") : undefined}
           action={
             screen.canManageLocations
               ? {
@@ -149,11 +141,7 @@ export function NewClassScreen() {
         </FormSection>
         <FormSection
           label={t("newClass.instructors.label")}
-          hint={
-            screen.instructorIds.length === 0
-              ? t("newClass.instructors.pickOne")
-              : undefined
-          }
+          hint={screen.missing.instructors ? t("newClass.required") : undefined}
         >
           <InstructorPicker
             teachers={screen.teachers}
@@ -183,6 +171,11 @@ export function NewClassScreen() {
         {screen.tooMany ? (
           <Text className="ds-text-list-subtitle text-center text-bad">
             {t("newClass.tooMany", { max: screen.maxClasses })}
+          </Text>
+        ) : null}
+        {screen.missingLine !== null ? (
+          <Text className="ds-text-list-subtitle text-center text-bad">
+            {screen.missingLine}
           </Text>
         ) : null}
         <Button

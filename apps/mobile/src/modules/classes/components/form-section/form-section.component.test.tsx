@@ -31,4 +31,24 @@ describe("FormSection", () => {
 
     expect(onPress).toHaveBeenCalledTimes(1);
   });
+
+  it("keeps the hint and the action together at the right end of the label's row", async () => {
+    await render(
+      <FormSection
+        label="Location"
+        hint="required"
+        action={{ label: "Manage", onPress: jest.fn() }}
+      >
+        <Text>content</Text>
+      </FormSection>,
+    );
+
+    const hint = screen.getByText("required");
+    const action = screen.getByRole("button", { name: "Manage" });
+    // Siblings in one group, so the row spreads the label and that group, not the hint on its own.
+    expect(action.parent).toBe(hint.parent);
+    expect(screen.getByRole("header", { name: "Location" }).parent).not.toBe(
+      hint.parent,
+    );
+  });
 });

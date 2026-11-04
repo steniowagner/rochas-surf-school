@@ -1221,6 +1221,14 @@ const messages: Messages = {
     submit_one: "Criar aula",
     submit_other: "Criar {{count}} aulas",
     tooMany: "Máximo de {{max}} aulas por vez.",
+    required: "obrigatório",
+    missing: {
+      line: "Ainda falta escolher: {{fields}}.",
+      days: "dias",
+      timeRanges: "horário",
+      location: "local",
+      instructors: "instrutor",
+    },
     created_one: "Aula criada",
     created_other: "{{count}} aulas criadas",
     errors: {

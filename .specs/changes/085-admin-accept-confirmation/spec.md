@@ -188,13 +188,21 @@ Each block has the keys `title`, `description`, `confirm` and `cancel`.
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-02** — Create `ConfirmSheet` in `src/components/decision/confirm-sheet/`
+- [x] **T-02** — Create `ConfirmSheet` in `src/components/decision/confirm-sheet/`
   (`confirm-sheet.component.tsx`, `confirm-sheet.types.ts`, `index.ts`, per `.claude/rules/react.md`) as D-01
   describes, with `confirm-sheet.component.test.tsx`: it shows title, description and both buttons; confirm calls
   `onConfirm`; "Cancel" calls `onClose` and not `onConfirm`; `loading` shows the button's loading state and ignores
   presses. Load the `vercel-react-native-skills` and `vercel-react-best-practices` skills first.
   Covers: ER-01, ER-02, ER-03 · Done when: `npx jest src/components/decision/confirm-sheet` passes (from
   `apps/mobile`).
+  > ✅ 2026-11-04 12:19 — created `ConfirmSheet` (D-01: `BottomModal`, `ds-text-sheet-title` title, `ds-text-body
+  > text-ink-2` description, the confirm `Button` with `confirmIcon`, `confirmVariant` (default primary) and
+  > `loading`, then a `ghost` cancel); no hook, since it holds no state or logic; files:
+  > `apps/mobile/src/components/decision/confirm-sheet/confirm-sheet.component.tsx`,
+  > `apps/mobile/src/components/decision/confirm-sheet/confirm-sheet.types.ts`,
+  > `apps/mobile/src/components/decision/confirm-sheet/index.ts`,
+  > `apps/mobile/src/components/decision/confirm-sheet/confirm-sheet.component.test.tsx`; verified: `npx jest
+  > src/components/decision/confirm-sheet` (5 passed, the component 100% covered); deviations: none.
 
 - [ ] **T-03** — "Join the school": in `src/modules/admin/hooks/use-registrations-screen.hook.ts` (and its
   `.types.ts`) add `approving` (the registration whose sheet is open), `openApprove`, `closeApprove` and

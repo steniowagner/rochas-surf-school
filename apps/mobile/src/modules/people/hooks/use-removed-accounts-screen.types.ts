@@ -14,7 +14,12 @@ export type UseRemovedAccountsScreenResult = {
   closeSheet: () => void;
   /** The account being restored; the other buttons wait until it is done. */
   restoringId: string | null;
-  restore: (account: RemovedAccount) => Promise<void>;
+  /** The account whose restore confirmation sheet is open. */
+  restoreCandidate: RemovedAccount | null;
+  /** Opens the restore confirmation sheet; nothing is sent until it is confirmed. */
+  openRestore: (account: RemovedAccount) => void;
+  closeRestore: () => void;
+  confirmRestore: () => void;
   retry: () => void;
   refresh: () => Promise<void>;
 };

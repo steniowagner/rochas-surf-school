@@ -1,10 +1,11 @@
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Stack } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { RefreshControl, View } from "react-native";
 import Animated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { ConfirmSheet } from "@/components/decision/confirm-sheet";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { ScreenIntro } from "@/components/ui/screen-intro";
@@ -42,7 +43,10 @@ export function RemovedAccountsScreen() {
     openAccount,
     closeSheet,
     restoringId,
-    restore,
+    restoreCandidate,
+    openRestore,
+    closeRestore,
+    confirmRestore,
     retry,
     refresh,
   } = useRemovedAccountsScreen();
@@ -51,96 +55,119 @@ export function RemovedAccountsScreen() {
     contentTop: CONTENT_PADDING_TOP,
   });
 
-  return status === "ready" ? (
+  return (
     <>
-      <Stack.Screen options={header.headerOptions} />
-      <Animated.FlatList
-        testID="removed-accounts-list"
-        className="flex-1 bg-page"
-        contentInsetAdjustmentBehavior="automatic"
-        data={accounts}
-        keyExtractor={(item) => item.id}
-        contentContainerClassName="gap-3 px-screen"
-        contentContainerStyle={{
-          paddingTop: CONTENT_PADDING_TOP,
-          paddingBottom: getBottomPadding(insets.bottom, 24),
-        }}
-        onScroll={header.scrollHandler}
-        scrollEventThrottle={16}
-        refreshControl={
-          <RefreshControl refreshing={isRefreshing} onRefresh={refresh} />
-        }
-        ListHeaderComponent={
-          <View className="mb-1">
-            <ScreenIntro
-              icon={
-                <MaterialCommunityIcons
-                  name="account-off-outline"
-                  size={28}
-                  color={theme.grape}
+      {status === "ready" ? (
+        <>
+          <Stack.Screen options={header.headerOptions} />
+          <Animated.FlatList
+            testID="removed-accounts-list"
+            className="flex-1 bg-page"
+            contentInsetAdjustmentBehavior="automatic"
+            data={accounts}
+            keyExtractor={(item) => item.id}
+            contentContainerClassName="gap-3 px-screen"
+            contentContainerStyle={{
+              paddingTop: CONTENT_PADDING_TOP,
+              paddingBottom: getBottomPadding(insets.bottom, 24),
+            }}
+            onScroll={header.scrollHandler}
+            scrollEventThrottle={16}
+            refreshControl={
+              <RefreshControl refreshing={isRefreshing} onRefresh={refresh} />
+            }
+            ListHeaderComponent={
+              <View className="mb-1">
+                <ScreenIntro
+                  icon={
+                    <MaterialCommunityIcons
+                      name="account-off-outline"
+                      size={28}
+                      color={theme.grape}
+                    />
+                  }
+                  eyebrow={t("removedAccounts.count", {
+                    count: accounts.length,
+                  })}
+                  title={t("removedAccounts.title")}
+                  description={t("removedAccounts.description")}
+                  onTitleLayout={header.onTitleBottomChange}
                 />
-              }
-              eyebrow={t("removedAccounts.count", { count: accounts.length })}
-              title={t("removedAccounts.title")}
-              description={t("removedAccounts.description")}
-              onTitleLayout={header.onTitleBottomChange}
-            />
-          </View>
-        }
-        renderItem={({ item }) => (
-          <RemovedAccountRow
-            account={item}
-            onPress={openAccount}
-            onRestore={restore}
-            isRestoring={restoringId === item.id}
-            disabled={restoringId !== null && restoringId !== item.id}
+              </View>
+            }
+            renderItem={({ item }) => (
+              <RemovedAccountRow
+                account={item}
+                onPress={openAccount}
+                onRestore={openRestore}
+                isRestoring={restoringId === item.id}
+                disabled={restoringId !== null && restoringId !== item.id}
+              />
+            )}
           />
-        )}
-      />
-      {header.backdrop}
-      <PersonSheet
-        person={selected}
-        visible={isSheetVisible}
-        onClose={closeSheet}
-      />
-    </>
-  ) : (
-    <>
-      <Stack.Screen
-        options={{
-          headerTitle: () => (
-            <StackHeaderTitle title={t("removedAccounts.title")} />
-          ),
-        }}
-      />
-      <View
-        className={`flex-1 bg-page px-screen ${status === "loading" ? "" : "justify-center"}`}
-        style={{
-          paddingTop: headerInset + CONTENT_PADDING_TOP,
-          paddingBottom: getBottomPadding(insets.bottom, 24),
-        }}
-      >
-        {status === "loading" ? <RemovedAccountsSkeleton /> : null}
-        {status === "error" ? (
-          <View className="flex-row">
-            <ErrorState
-              title={t("removedAccounts.loadError.title")}
-              description={t("removedAccounts.loadError.description")}
-              onRetry={retry}
-              retrying={isRetrying}
-            />
+          {header.backdrop}
+          <PersonSheet
+            person={selected}
+            visible={isSheetVisible}
+            onClose={closeSheet}
+          />
+        </>
+      ) : (
+        <>
+          <Stack.Screen
+            options={{
+              headerTitle: () => (
+                <StackHeaderTitle title={t("removedAccounts.title")} />
+              ),
+            }}
+          />
+          <View
+            className={`flex-1 bg-page px-screen ${status === "loading" ? "" : "justify-center"}`}
+            style={{
+              paddingTop: headerInset + CONTENT_PADDING_TOP,
+              paddingBottom: getBottomPadding(insets.bottom, 24),
+            }}
+          >
+            {status === "loading" ? <RemovedAccountsSkeleton /> : null}
+            {status === "error" ? (
+              <View className="flex-row">
+                <ErrorState
+                  title={t("removedAccounts.loadError.title")}
+                  description={t("removedAccounts.loadError.description")}
+                  onRetry={retry}
+                  retrying={isRetrying}
+                />
+              </View>
+            ) : null}
+            {status === "empty" ? (
+              <View className="flex-row">
+                <EmptyState
+                  icon="refresh-circle-outline"
+                  title={t("removedAccounts.empty.title")}
+                  description={t("removedAccounts.empty.description")}
+                />
+              </View>
+            ) : null}
           </View>
-        ) : null}
-        {status === "empty" ? (
-          <View className="flex-row">
-            <EmptyState
-              icon="refresh-circle-outline"
-              title={t("removedAccounts.empty.title")}
-              description={t("removedAccounts.empty.description")}
-            />
-          </View>
-        ) : null}
-      </View>
+        </>
+      )}
+      <ConfirmSheet
+        visible={restoreCandidate !== null}
+        title={t("removedAccounts.restoreSheet.title")}
+        description={t("removedAccounts.restoreSheet.description", {
+          name: restoreCandidate?.name ?? "",
+        })}
+        confirmLabel={t("removedAccounts.restoreSheet.confirm")}
+        confirmIcon={
+          <Ionicons name="refresh-outline" size={16} color={theme.onColor} />
+        }
+        cancelLabel={t("removedAccounts.restoreSheet.cancel")}
+        loading={
+          restoreCandidate !== null && restoringId === restoreCandidate.id
+        }
+        onConfirm={confirmRestore}
+        onClose={closeRestore}
+      />
     </>
   );
 }

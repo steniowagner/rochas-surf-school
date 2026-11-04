@@ -270,7 +270,7 @@ Each block has the keys `title`, `description`, `confirm` and `cancel`.
   > `use-class-requests-screen.types.ts` is unchanged, since it only holds the status type and the hook return type
   > is inferred.
 
-- [ ] **T-06** — "Removed accounts": in `src/modules/people/hooks/use-removed-accounts-screen.hook.ts` (and
+- [x] **T-06** — "Removed accounts": in `src/modules/people/hooks/use-removed-accounts-screen.hook.ts` (and
   `.types.ts`) add `restoreCandidate`, `openRestore`, `closeRestore` and `confirmRestore`; `restore` runs from the
   sheet and the sheet closes as D-04 says; replace the "with no confirmation" comment. The row's `onRestore` opens
   the sheet; render `ConfirmSheet` with `removedAccounts.restoreSheet` in
@@ -278,6 +278,24 @@ Each block has the keys `title`, `description`, `confirm` and `cancel`.
   ER-01–ER-03, with the test names of T-03.
   Covers: ER-01, ER-02, ER-03 · Done when: `npx jest src/modules/people/screens/removed-accounts.screen.test.tsx`
   passes.
+  > ✅ 2026-11-04 12:39 — a row's "Restore" on "Removed accounts" now opens `ConfirmSheet`
+  > (`removedAccounts.restoreSheet`, default primary variant, Ionicons `refresh-outline`); the hook gained
+  > `restoreCandidate`, `openRestore` (ignored while a restore runs), `closeRestore` and `confirmRestore` in place
+  > of `restore`, which now runs from the sheet and clears the candidate on success and on `isStaleRestoreError`;
+  > the "with no confirmation" comment was replaced; the sheet is rendered outside the ready/other ternary, so it
+  > stays mounted when the last account leaves the list; files:
+  > `apps/mobile/src/modules/people/hooks/use-removed-accounts-screen.hook.ts`,
+  > `apps/mobile/src/modules/people/hooks/use-removed-accounts-screen.types.ts`,
+  > `apps/mobile/src/modules/people/screens/removed-accounts.screen.tsx`,
+  > `apps/mobile/src/modules/people/screens/removed-accounts.screen.test.tsx`,
+  > `apps/mobile/src/modules/people/hooks/use-removed-accounts-screen.hook.test.tsx` (new); verified: `npx jest
+  > src/modules/people/screens/removed-accounts.screen.test.tsx
+  > src/modules/people/hooks/use-removed-accounts-screen.hook.test.tsx` (18 passed; screen 100%, every changed hook
+  > line covered — the one uncovered branch, the session-expired load status, predates the spec; `-t "confirmation
+  > sheet"` 4, `-t "cancel"` 1, `-t "confirm"` 10), `tsc --noEmit` and `eslint src/modules/people` clean;
+  > deviations: added `use-removed-accounts-screen.hook.test.tsx` (not named by the task) to cover the
+  > double-confirm and open-while-restoring guards; the screen test file already kept Jest from exiting after its
+  > run before this spec (it passes; `--forceExit` ends it), noted as a follow-up.
 
 ### Web (`apps/web`)
 

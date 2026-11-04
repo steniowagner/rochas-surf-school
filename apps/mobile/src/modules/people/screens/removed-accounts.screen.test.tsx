@@ -30,17 +30,36 @@ jest.mock("@/providers/alert-message", () => ({
   useAlertMessage: () => ({ show: mockShow }),
 }));
 
-// The global sheet mock always renders its content; this one renders it only while visible.
+// The global sheet mock always renders its content; this one renders it only while visible, with a backdrop.
 jest.mock("@/components/ui/bottom-modal", () => {
   /* eslint-disable @typescript-eslint/no-require-imports */
-  const { View } = require("react-native");
+  const { Pressable, View } = require("react-native");
   /* eslint-enable @typescript-eslint/no-require-imports */
 
   return {
-    BottomModal: ({ visible, children }: any) =>
-      visible ? <View>{children}</View> : null,
+    BottomModal: ({ visible, onClose, children }: any) =>
+      visible ? (
+        <View>
+          <Pressable accessibilityLabel="backdrop" onPress={onClose} />
+          {children}
+        </View>
+      ) : null,
   };
 });
+
+// The confirmation sheet is the closest ancestor of its title that holds its "Cancel" button.
+const restoreSheet = () => {
+  let node = screen.getByText("Restore account?");
+
+  while (
+    node.parent &&
+    within(node).queryAllByRole("button", { name: "Cancel" }).length === 0
+  ) {
+    node = node.parent;
+  }
+
+  return within(node);
+};
 
 jest.mock("@/services/api", () => {
   const actual = jest.requireActual("@/services/api");
@@ -250,7 +269,41 @@ describe("RemovedAccountsScreen", () => {
       );
     };
 
-    it("restores at once: one request, the row leaves, no toast", async () => {
+    /** Taps a row's "Restore", then the confirmation sheet's "Restore". */
+    const restoreAndConfirm = async (
+      user: ReturnType<typeof userEvent.setup>,
+      name: string,
+    ) => {
+      await user.press(
+        await screen.findByRole("button", { name: `Restore ${name}` }),
+      );
+      await user.press(restoreSheet().getByRole("button", { name: "Restore" }));
+    };
+
+    it("opens the confirmation sheet naming the row's person, sending nothing", async () => {
+      setupSignedInAdmin();
+      serveWithRestore(() => ok({ id: "r-2", status: "approved" }));
+      const user = userEvent.setup();
+      await renderScreen();
+
+      await user.press(
+        await screen.findByRole("button", { name: "Restore Caio Lima" }),
+      );
+
+      const sheet = restoreSheet();
+      expect(
+        sheet.getByText(
+          "Caio Lima comes back with the same details and role, and gets a push notification.",
+        ),
+      ).toBeOnTheScreen();
+      expect(sheet.getByRole("button", { name: "Restore" })).toBeOnTheScreen();
+      expect(sheet.getByRole("button", { name: "Cancel" })).toBeOnTheScreen();
+      expect(
+        requestedPaths().filter((path) => path.endsWith("/restore")),
+      ).toHaveLength(0);
+    });
+
+    it("closes the confirmation sheet with cancel or the backdrop, sending nothing and keeping the row", async () => {
       setupSignedInAdmin();
       serveWithRestore(() => ok({ id: "r-1", status: "approved" }));
       const user = userEvent.setup();
@@ -259,10 +312,35 @@ describe("RemovedAccountsScreen", () => {
       await user.press(
         await screen.findByRole("button", { name: "Restore Bia Souza" }),
       );
+      await user.press(screen.getByRole("button", { name: "Cancel" }));
+
+      expect(screen.queryByText("Restore account?")).not.toBeOnTheScreen();
+
+      await user.press(
+        screen.getByRole("button", { name: "Restore Bia Souza" }),
+      );
+      expect(screen.getByText("Restore account?")).toBeOnTheScreen();
+      await user.press(screen.getByLabelText("backdrop"));
+
+      expect(screen.queryByText("Restore account?")).not.toBeOnTheScreen();
+      expect(screen.getByText("Bia Souza")).toBeOnTheScreen();
+      expect(
+        requestedPaths().filter((path) => path.endsWith("/restore")),
+      ).toHaveLength(0);
+    });
+
+    it("confirm restores once: one request, the sheet closes, the row leaves, no toast", async () => {
+      setupSignedInAdmin();
+      serveWithRestore(() => ok({ id: "r-1", status: "approved" }));
+      const user = userEvent.setup();
+      await renderScreen();
+
+      await restoreAndConfirm(user, "Bia Souza");
 
       await waitFor(() =>
         expect(screen.queryByText("Bia Souza")).not.toBeOnTheScreen(),
       );
+      expect(screen.queryByText("Restore account?")).not.toBeOnTheScreen();
       expect(screen.getByText("Caio Lima")).toBeOnTheScreen();
       expect(
         requestedPaths().filter((path) => path === "/people/r-1/restore"),
@@ -270,7 +348,7 @@ describe("RemovedAccountsScreen", () => {
       expect(mockShow).not.toHaveBeenCalled();
     });
 
-    it("shows the spinner in the pressed button and disables the other buttons until it is done", async () => {
+    it("confirm spins in the sheet and the row, disables the other rows and opens no other sheet until it is done", async () => {
       setupSignedInAdmin();
       let answer!: (value: unknown) => void;
       serveWithRestore((id) =>
@@ -285,23 +363,30 @@ describe("RemovedAccountsScreen", () => {
       });
       const second = screen.getByRole("button", { name: "Restore Caio Lima" });
 
-      await user.press(first);
-      await user.press(first);
+      await restoreAndConfirm(user, "Bia Souza");
+      await user.press(restoreSheet().getByRole("button", { name: "Restore" }));
 
       await waitFor(() =>
         expect(
           screen.getByRole("button", { name: "Restore Caio Lima" }),
         ).toBeDisabled(),
       );
-      // The label gives way to the spinner in the pressed button; the other button keeps its label.
+      // The labels give way to the spinners in the row and the sheet; the other row keeps its label.
       expect(within(first).queryByText("Restore")).not.toBeOnTheScreen();
+      expect(restoreSheet().queryByText("Restore")).not.toBeOnTheScreen();
       expect(within(second).getByText("Restore")).toBeOnTheScreen();
       await user.press(second);
-      answer(ok({ id: "r-1", status: "approved" }));
+      expect(
+        restoreSheet().getByText(/^Bia Souza comes back/),
+      ).toBeOnTheScreen();
+      await act(async () => {
+        answer(ok({ id: "r-1", status: "approved" }));
+      });
 
       await waitFor(() =>
         expect(screen.queryByText("Bia Souza")).not.toBeOnTheScreen(),
       );
+      expect(screen.queryByText("Restore account?")).not.toBeOnTheScreen();
       expect(
         screen.getByRole("button", { name: "Restore Caio Lima" }),
       ).toBeEnabled();
@@ -317,7 +402,7 @@ describe("RemovedAccountsScreen", () => {
       ["user.status.notRemoved", "This account is no longer removed."],
       ["removal.window.ended", "The time to restore this account has ended."],
     ])(
-      "toasts a 409 %s and reloads the removed accounts",
+      "confirm toasts a 409 %s, closes the sheet and reloads the removed accounts",
       async (key, message) => {
         setupSignedInAdmin();
         serveWithRestore(() => ({
@@ -332,11 +417,10 @@ describe("RemovedAccountsScreen", () => {
           (path) => path === "/people/removed",
         ).length;
 
-        await user.press(
-          screen.getByRole("button", { name: "Restore Bia Souza" }),
-        );
+        await restoreAndConfirm(user, "Bia Souza");
 
         expect(mockShow).toHaveBeenCalledWith(message);
+        expect(screen.queryByText("Restore account?")).not.toBeOnTheScreen();
         await waitFor(() =>
           expect(
             requestedPaths().filter((path) => path === "/people/removed")
@@ -346,7 +430,7 @@ describe("RemovedAccountsScreen", () => {
       },
     );
 
-    it("toasts the generic error on a network failure and keeps the row", async () => {
+    it("confirm toasts the error on a network failure and keeps the row and the sheet", async () => {
       setupSignedInAdmin();
       serveWithRestore(() => {
         throw new api.NetworkError();
@@ -354,14 +438,15 @@ describe("RemovedAccountsScreen", () => {
       const user = userEvent.setup();
       await renderScreen();
 
-      await user.press(
-        await screen.findByRole("button", { name: "Restore Bia Souza" }),
-      );
+      await restoreAndConfirm(user, "Bia Souza");
 
       expect(mockShow).toHaveBeenCalledWith(
         "No connection. Check your internet and try again.",
       );
       expect(screen.getByText("Bia Souza")).toBeOnTheScreen();
+      expect(
+        restoreSheet().getByRole("button", { name: "Restore" }),
+      ).toBeEnabled();
     });
 
     it("shows no toast when the session expired", async () => {
@@ -373,9 +458,7 @@ describe("RemovedAccountsScreen", () => {
       const user = userEvent.setup();
       await renderScreen();
 
-      await user.press(
-        await screen.findByRole("button", { name: "Restore Bia Souza" }),
-      );
+      await restoreAndConfirm(user, "Bia Souza");
 
       expect(mockShow).not.toHaveBeenCalled();
       expect(screen.getByText("Bia Souza")).toBeOnTheScreen();

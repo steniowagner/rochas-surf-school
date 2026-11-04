@@ -28,6 +28,8 @@ export const useRemovedAccountsScreen = (): UseRemovedAccountsScreenResult => {
   const query = useRemovedAccounts();
   const restoreAccount = useRestoreAccount();
   const [restoringId, setRestoringId] = useState<string | null>(null);
+  const [restoreCandidate, setRestoreCandidate] =
+    useState<RemovedAccount | null>(null);
   // A second tap in the same frame must not send twice, before `restoringId` has re-rendered.
   const isRestoringNow = useRef(false);
   // Kept while the sheet slides away, so its content doesn't vanish before it is gone.
@@ -36,7 +38,8 @@ export const useRemovedAccountsScreen = (): UseRemovedAccountsScreenResult => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const accounts = query.data?.items ?? [];
 
-  // Acts at once, with no confirmation and no success toast; one restore at a time, so the other buttons wait.
+  // Runs once the confirmation sheet is confirmed, with no success toast; one restore at a time, so the other buttons
+  // wait. The sheet stays open while it sends and closes when it is done or the list was stale.
   const restore = async (account: RemovedAccount) => {
     if (isRestoringNow.current) {
       return;
@@ -47,6 +50,7 @@ export const useRemovedAccountsScreen = (): UseRemovedAccountsScreenResult => {
 
     try {
       await restoreAccount.mutateAsync(account.id);
+      setRestoreCandidate(null);
     } catch (error) {
       const key = getRestoreErrorKey(error);
 
@@ -56,11 +60,25 @@ export const useRemovedAccountsScreen = (): UseRemovedAccountsScreenResult => {
 
       // Someone else restored it, or its time ran out: show the truth.
       if (isStaleRestoreError(error)) {
+        setRestoreCandidate(null);
         queryClient.invalidateQueries({ queryKey: REMOVED_ACCOUNTS_QUERY_KEY });
       }
     } finally {
       isRestoringNow.current = false;
       setRestoringId(null);
+    }
+  };
+
+  // No row can open the confirmation sheet while a restore runs; opening one sends nothing.
+  const openRestore = (account: RemovedAccount) => {
+    if (!isRestoringNow.current) {
+      setRestoreCandidate(account);
+    }
+  };
+
+  const confirmRestore = () => {
+    if (restoreCandidate) {
+      void restore(restoreCandidate);
     }
   };
 
@@ -90,7 +108,10 @@ export const useRemovedAccountsScreen = (): UseRemovedAccountsScreenResult => {
     },
     closeSheet: () => setIsSheetVisible(false),
     restoringId,
-    restore,
+    restoreCandidate,
+    openRestore,
+    closeRestore: () => setRestoreCandidate(null),
+    confirmRestore,
     retry: () => {
       query.refetch();
     },

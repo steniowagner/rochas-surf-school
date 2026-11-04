@@ -96,10 +96,15 @@ already in the stack, and a lint rule keeps new code on it.
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-01** — Add `src/navigation/push-screen.ts` exporting `pushScreen(href: Href)`, which calls
+- [x] **T-01** — Add `src/navigation/push-screen.ts` exporting `pushScreen(href: Href)`, which calls
   `router.push(href, { dangerouslySingular: true })`, with `push-screen.test.ts` (mocks `expo-router`, checks the
   call). Skills: `vercel-react-native-skills`.
   Covers: ER-01 · Done when: `npx jest src/navigation/push-screen.test.ts` passes.
+  > ✅ 2026-11-04 18:19 — added `pushScreen(href)`, which calls `router.push(href, { dangerouslySingular: true })`,
+  > and its test (mocks `expo-router`; checks one call with the href and the singular option; it fails when the
+  > option is removed); files: `apps/mobile/src/navigation/push-screen.ts`,
+  > `apps/mobile/src/navigation/push-screen.test.ts`; verified: `npx jest src/navigation/push-screen.test.ts`
+  > (1 passed), `npx eslint` on both files clean; deviations: none
 - [ ] **T-02** — Replace `router.push` with `pushScreen` in the auth module's seven files listed in Context, and
   update their tests' `router.push` assertions to the new arguments.
   Covers: ER-01 · Done when: `npx jest src/modules/auth` passes and no `router.push` is left in `src/modules/auth`.

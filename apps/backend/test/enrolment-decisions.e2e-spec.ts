@@ -105,7 +105,12 @@ describe('Enrolment decisions (e2e)', () => {
   const as = (token: string | undefined, req: request.Test) =>
     token === undefined ? req : req.set('Authorization', `Bearer ${token}`);
 
-  async function account(role: Role = 'student', status: Status = 'approved', name?: string): Promise<Account> {
+  async function account(
+    role: Role = 'student',
+    status: Status = 'approved',
+    name?: string,
+    whatsapp: { whatsappNumber?: string; whatsappVisible?: boolean } = {},
+  ): Promise<Account> {
     const user = await prisma.user.create({
       data: {
         id: randomUUID(),
@@ -113,6 +118,7 @@ describe('Enrolment decisions (e2e)', () => {
         email: `u.${randomUUID().slice(0, 8)}@${DOMAIN}`,
         role,
         status,
+        ...whatsapp,
       },
     });
     return { id: user.id, accessToken: tokens.signAccessToken({ id: user.id, email: user.email! }).token };
@@ -203,12 +209,34 @@ describe('Enrolment decisions (e2e)', () => {
         seatsTaken: 1,
         location: { name: locationName },
         requests: [
-          { id: anaRequest, requestedAt: '2026-10-13T12:00:00.000Z', student: { id: ana.id, name: 'Ana', photoUrl: null } },
-          { id: biaRequest, requestedAt: '2026-10-13T12:05:00.000Z', student: { id: bia.id, name: 'Bia', photoUrl: null } },
+          { id: anaRequest, requestedAt: '2026-10-13T12:00:00.000Z', student: { id: ana.id, name: 'Ana', photoUrl: null, whatsappNumber: null } },
+          { id: biaRequest, requestedAt: '2026-10-13T12:05:00.000Z', student: { id: bia.id, name: 'Bia', photoUrl: null, whatsappNumber: null } },
         ],
       });
       expect(ours[1]).toMatchObject({ id: later, seatsTaken: 0, requests: [{ student: { id: ana.id } }] });
       expect(response.body.total).toBeGreaterThanOrEqual(3);
+    });
+
+    it("answers each student's stored WhatsApp number, shared or not, and null without one", async () => {
+      const admin = await account('admin');
+      const hidden = await account('student', 'approved', 'Hidden', { whatsappNumber: '+5585999990001', whatsappVisible: false });
+      const shared = await account('student', 'approved', 'Shared', { whatsappNumber: '+5585999990002', whatsappVisible: true });
+      const none = await account('student', 'approved', 'None');
+      const classId = await makeClass(admin.id);
+      const hiddenRequest = await seedEnrolment(classId, hidden.id, 'pending', new Date('2026-10-13T12:00:00.000Z'));
+      const sharedRequest = await seedEnrolment(classId, shared.id, 'pending', new Date('2026-10-13T12:01:00.000Z'));
+      const noneRequest = await seedEnrolment(classId, none.id, 'pending', new Date('2026-10-13T12:02:00.000Z'));
+
+      const response = await listPending(admin.accessToken);
+
+      expect(response.status).toBe(200);
+      const ours = (response.body.classes as { id: string; requests: unknown[] }[]).find((item) => item.id === classId);
+      expect(ours).toMatchObject({ capacity: 8, seatsTaken: 0 });
+      expect(ours?.requests).toEqual([
+        { id: hiddenRequest, requestedAt: '2026-10-13T12:00:00.000Z', student: { id: hidden.id, name: 'Hidden', photoUrl: null, whatsappNumber: '+5585999990001' } },
+        { id: sharedRequest, requestedAt: '2026-10-13T12:01:00.000Z', student: { id: shared.id, name: 'Shared', photoUrl: null, whatsappNumber: '+5585999990002' } },
+        { id: noneRequest, requestedAt: '2026-10-13T12:02:00.000Z', student: { id: none.id, name: 'None', photoUrl: null, whatsappNumber: null } },
+      ]);
     });
 
     it('leaves out classes that started, are cancelled or have no pending request', async () => {

@@ -51,8 +51,8 @@ told nothing, and their name and number are erased 30 days after the class.
   the student's card and details show.
 - **Pending requests by class** (not stored): what admins decide from — the classes that haven't started, aren't
   cancelled and have pending requests, by start (then id), each with its capacity, seats taken, location and its
-  requests in the order asked (by when requested, then id), with each student's id, name and photo; the total
-  counts the requests.
+  requests in the order asked (by when requested, then id), with each student's id, name, photo and WhatsApp number
+  (the stored one, shared or not, or none: only admins read it, spec 086); the total counts the requests.
 
 ## Relevant business rules
 
@@ -305,3 +305,7 @@ pedir.".
 - `085-admin-accept-confirmation` — no change to the module's rules or API: in the app, "Inscrever" on "Inscrições
   em aulas" opens "Inscrever nesta aula?" naming the student and approves only once confirmed; a full class's
   "Inscrever" stays disabled and "Recusar" keeps its reason sheet.
+- `086-seat-request-whatsapp` — the pending requests by class carry each student's stored WhatsApp number, shared or
+  not (`null` without one), since only admins read them. In the app, the student's sheet on "Inscrições em aulas" and
+  a pending recipient's sheet on the class message screen show "Conversar por WhatsApp" with the number, or "Número não
+  compartilhado." without one.

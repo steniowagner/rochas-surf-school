@@ -151,7 +151,7 @@ Content-Type: application/json
 ###
 @adminToken = {{adminSession.response.body.accessToken}}
 
-### List the pending requests (expects 200 with { total, classes: [{ id, discipline, level, startsAt, endsAt, capacity, seatsTaken, location: { name }, requests: [{ id, requestedAt, student: { id, name, photoUrl } }] }] }, the requests in the order asked)
+### List the pending requests (expects 200 with { total, classes: [{ id, discipline, level, startsAt, endsAt, capacity, seatsTaken, location: { name }, requests: [{ id, requestedAt, student: { id, name, photoUrl, whatsappNumber } }] }] }, the requests in the order asked; whatsappNumber is the student's stored E.164 number, shared or not, or null)
 GET {{baseUrl}}/enrolments/pending
 Authorization: Bearer {{adminToken}}
 

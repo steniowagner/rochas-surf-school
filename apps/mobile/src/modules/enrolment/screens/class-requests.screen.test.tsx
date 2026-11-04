@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, userEvent, waitFor, within, act } from "@testing-library/react-native";
+import { Linking } from "react-native";
 
 import { hydrateSession } from "@/services/session/session.store";
 
@@ -44,12 +45,12 @@ const fetchMock = jest.fn();
 const ANA = {
   id: "r-ana",
   requestedAt: "2026-10-19T12:12:00.000Z",
-  student: { id: "s-ana", name: "Ana Souza", photoUrl: null },
+  student: { id: "s-ana", name: "Ana Souza", photoUrl: null, whatsappNumber: "+5585999998888" },
 };
 const BRUNO = {
   id: "r-bruno",
   requestedAt: "2026-10-19T13:40:00.000Z",
-  student: { id: "s-bruno", name: "Bruno Lima", photoUrl: null },
+  student: { id: "s-bruno", name: "Bruno Lima", photoUrl: null, whatsappNumber: null },
 };
 
 const surfClass = (overrides: Record<string, unknown> = {}) => ({
@@ -197,6 +198,34 @@ describe("ClassRequestsScreen list", () => {
     await user.press(screen.getByRole("button", { name: "Ana Souza" }));
 
     expect(await screen.findByText("Student")).toBeOnTheScreen();
+  });
+
+  it("shows the student's WhatsApp number in the details and opens the chat", async () => {
+    const openURL = jest.spyOn(Linking, "openURL").mockResolvedValue(true);
+    const user = userEvent.setup();
+    serve([surfClass()]);
+    await renderScreen();
+
+    await screen.findByText("Ana Souza");
+    await user.press(screen.getByRole("button", { name: "Ana Souza" }));
+
+    expect(await screen.findByText("+55 85 99999 8888")).toBeOnTheScreen();
+    expect(screen.queryByText("Number not shared.")).toBeNull();
+    await user.press(screen.getByRole("button", { name: "Chat on WhatsApp" }));
+    expect(openURL).toHaveBeenCalledWith("https://wa.me/5585999998888");
+    openURL.mockRestore();
+  });
+
+  it("says the number isn't shared when the student has none", async () => {
+    const user = userEvent.setup();
+    serve([surfClass()]);
+    await renderScreen();
+
+    await screen.findByText("Bruno Lima");
+    await user.press(screen.getByRole("button", { name: "Bruno Lima" }));
+
+    expect(await screen.findByText("Number not shared.")).toBeOnTheScreen();
+    expect(screen.queryByRole("button", { name: "Chat on WhatsApp" })).toBeNull();
   });
 
   it("opens the details of the class from its header", async () => {

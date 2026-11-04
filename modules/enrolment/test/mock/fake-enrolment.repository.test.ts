@@ -161,7 +161,7 @@ describe("FakeEnrolmentRepository decisions", () => {
       capacity: 8,
       seatsTaken: 0,
       location: { name: "Praia" },
-      requests: [{ id: "r1", requestedAt: NOW, student: { id: STUDENT.id, name: "Ana", photoUrl: null } }],
+      requests: [{ id: "r1", requestedAt: NOW, student: { id: STUDENT.id, name: "Ana", photoUrl: null, whatsappNumber: null } }],
     };
     repository.pendingClasses = [
       upcoming,

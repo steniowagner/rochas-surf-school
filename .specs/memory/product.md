@@ -322,7 +322,8 @@ Listed in the order people meet them.
   and accents) and filtered by any number of roles (a user with one of the chosen roles is listed; none chosen means
   everyone). Opening a person offers a WhatsApp chat, in WhatsApp on the viewer's own phone, whenever the viewer
   may see the number — so admins can chat with anyone who has a number. The same person sheet, with the same rule,
-  opens from a class's instructors and students on its details (spec 049); trial guests open none.
+  opens from a class's instructors and students on its details (spec 049), and for admins from the students of the
+  pending seat requests on "Inscrições em aulas" and on the class message screen (spec 086); trial guests open none.
 
 ## Main journeys
 
@@ -1458,7 +1459,13 @@ failure. "Recusar" keeps its reason sheet with no extra step, and a full class's
 app design and the admin user journeys AD-02, AD-04, AD-05 and AD-17 show the new step. All copy is in pt-BR, es-ES and
 en-US.
 
-Active specs: `081-staging-follow-ups` and `084-apple-token-revocation`, planned.
+**Admins reach seat requesters on WhatsApp** (spec `086-seat-request-whatsapp`) — on "Inscrições em aulas", tapping a
+student who asked for a seat opens their person sheet with "Conversar por WhatsApp" and the formatted number, which
+opens the chat in WhatsApp, as on the People screen; the same holds for a pending recipient on the class message
+screen. A student without a number shows "Número não compartilhado.". Admins see every number, shared or not, so the
+pending requests the backend sends them now carry each student's stored number.
+
+Active specs: `081-staging-follow-ups`, `084-apple-token-revocation` and `087-single-push-on-repeated-tap`, planned.
 
 ## Out of scope (future evolution, recorded in the specs)
 

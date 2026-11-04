@@ -370,12 +370,22 @@ describe("SendNoticeScreen", () => {
             {
               id: "r-1",
               requestedAt: "2026-10-26T10:00:00.000Z",
-              student: { id: "p-1", name: "Caio Dias", photoUrl: null },
+              student: {
+                id: "p-1",
+                name: "Caio Dias",
+                photoUrl: null,
+                whatsappNumber: "+5585999997777",
+              },
             },
             {
               id: "r-2",
               requestedAt: "2026-10-26T11:00:00.000Z",
-              student: { id: "p-2", name: "Dani Melo", photoUrl: null },
+              student: {
+                id: "p-2",
+                name: "Dani Melo",
+                photoUrl: null,
+                whatsappNumber: null,
+              },
             },
           ],
         },
@@ -476,6 +486,31 @@ describe("SendNoticeScreen", () => {
       expect(gets()).toEqual(
         expect.arrayContaining(["/classes/c-1", "/enrolments/pending"]),
       );
+    });
+
+    it("shows a pending recipient's WhatsApp number in their sheet", async () => {
+      const user = await openClass();
+      await user.press(await screen.findByText("5 people receive it"));
+
+      await user.press(screen.getByRole("button", { name: "Caio Dias" }));
+
+      expect(await screen.findByText("+55 85 99999 7777")).toBeOnTheScreen();
+      expect(
+        screen.getByRole("button", { name: "Chat on WhatsApp" }),
+      ).toBeOnTheScreen();
+      expect(screen.queryByText("Number not shared.")).not.toBeOnTheScreen();
+    });
+
+    it("says a pending recipient's number isn't shared when they have none", async () => {
+      const user = await openClass();
+      await user.press(await screen.findByText("5 people receive it"));
+
+      await user.press(screen.getByRole("button", { name: "Dani Melo" }));
+
+      expect(await screen.findByText("Number not shared.")).toBeOnTheScreen();
+      expect(
+        screen.queryByRole("button", { name: "Chat on WhatsApp" }),
+      ).not.toBeOnTheScreen();
     });
 
     it("says the class is loading, then says when it can't be loaded, keeping Send off", async () => {

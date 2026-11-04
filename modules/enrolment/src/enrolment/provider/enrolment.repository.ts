@@ -25,7 +25,13 @@ export interface PendingRequestsClass {
 export interface PendingRequest {
   id: string;
   requestedAt: Date;
-  student: { id: string; name: string; photoUrl: string | null };
+  /** `whatsappNumber` is the stored E.164 number, shared or not: only admins read this list. */
+  student: {
+    id: string;
+    name: string;
+    photoUrl: string | null;
+    whatsappNumber: string | null;
+  };
 }
 
 /** What approving a request came to. */

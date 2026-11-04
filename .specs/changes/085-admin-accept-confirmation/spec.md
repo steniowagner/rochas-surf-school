@@ -227,6 +227,10 @@ Each block has the keys `title`, `description`, `confirm` and `cancel`.
   > "confirmation sheet"` selects 14, `-t "cancel"` 3, `-t "confirm"` 17), `tsc --noEmit` and `eslint` clean;
   > deviations: the hook no longer returns `approve` (only the sheet sends an approval), so the existing approve
   > tests now go through the sheet.
+  > ✅ 2026-11-04 — fix found by the Verification Plan: `admin.screen.test.tsx` ("shows one less waiting after a
+  > decision") pressed the card's "Approve" only; it now confirms in the sheet too (commit `fix(spec-085): … (T-03)`);
+  > file: `apps/mobile/src/modules/admin/screens/admin.screen.test.tsx`; verified: `npx jest
+  > src/modules/admin/screens/admin.screen.test.tsx` (30 passed).
 
 - [x] **T-04** — "Reactivate accounts": the same change in `src/modules/admin/hooks/use-reactivations-screen.hook.ts`
   (and `.types.ts`) and `src/modules/admin/screens/reactivations.screen.tsx`, with `reactivations.approveSheet`;

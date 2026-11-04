@@ -3,7 +3,7 @@ id: "086"
 slug: seat-request-whatsapp
 title: Show the student's WhatsApp number on seat requests
 template: quick
-status: in-progress
+status: in-review
 created: 2026-11-04
 started: 2026-11-04
 base_commit: dcc32bec5ce43ed68df49ad5dcb97e7fd058e539

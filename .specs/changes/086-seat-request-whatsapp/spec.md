@@ -3,10 +3,11 @@ id: "086"
 slug: seat-request-whatsapp
 title: Show the student's WhatsApp number on seat requests
 template: quick
-status: in-review
+status: accepted
 created: 2026-11-04
 started: 2026-11-04
 base_commit: dcc32bec5ce43ed68df49ad5dcb97e7fd058e539
+reviewed_commit: 816fcafc17bcc7872a751b00461c956329a59376
 fronts: [backend, mobile]
 depends_on: []
 ---
@@ -222,3 +223,46 @@ number, so the sheet always says "Número não compartilhado".
   and `PersonSheet` is unchanged.
 - The ERs were verified through their component tests, which render the real `PersonSheet`; not exercised in the
   simulator.
+
+### Round 2 — 2026-11-04 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (modules/enrolment, apps/backend, apps/mobile: 29 tasks). The backend's lint
+  warnings (`require-array-sort-compare` in `enrolment-decisions.e2e-spec.ts` lines 338/352/434) are older than this
+  spec, in lines it doesn't touch.
+- related tests ✅ `RELATED TESTS PASSED`: apps/backend 206, apps/mobile 738, modules/enrolment 293 passed
+- coverage of the changed lines ✅ `COVERAGE OK`: 3 measured files at 100%; `enrolment.types.ts` and
+  `enrolment.repository.ts` have no runtime code; no coverage-ignore comments in the diff
+- e2e: backend ✅ `E2E PASSED`, 31 files, 866 passed (`enrolment-decisions` included)
+
+**Expected Results**
+
+- ER-01 ✅ — `npx jest test/enrolment/usecase/list-pending-requests.usecase.test.ts` (modules/enrolment, 6 passed:
+  a stored number and `null` come back as is, and non-admins are refused); `npm run test:e2e -- enrolment-decisions
+  -t "pending"` (5 passed): exact `student` objects for a hidden number, a shared one and none, order, `capacity` and
+  `seatsTaken` unchanged, and "refuses anyone but an approved admin" still gives 403 `user.role.notAdmin`.
+- ER-02 ✅ — `class-requests.screen.test.tsx`: tapping Ana shows "+55 85 99999 8888", and pressing "Chat on WhatsApp"
+  calls `Linking.openURL("https://wa.me/5585999998888")`; Bruno (`null`) shows "Number not shared." with no WhatsApp
+  button.
+- ER-03 ✅ — `npx jest src/modules/notices/screens`: the hook test gives the pending recipients' `sheetPerson`
+  `"+5585999997777"` and `null`; the screen tests show Caio's formatted number with "Chat on WhatsApp" and Dani's
+  "Number not shared."; the diff leaves the instructors' and seated students' entries alone.
+
+**Round 1 findings**
+
+- F-01 ✅ — `enrolment.integration.http` documents `student: { id, name, photoUrl, whatsappNumber }` on
+  `GET /enrolments/pending`; the round 1 grep finds nothing.
+
+**Findings**
+
+None.
+
+**Notes**
+
+- ER-01's `Verify by` still says `npx vitest run …` for `modules/enrolment`, which runs Jest. `spec-finish` (or
+  `/spec-plan --amend 086`) can fix the command.
+- D-01 and D-02 hold: the admin-only list returns the stored number without checking `whatsappVisible`, and nothing
+  under `apps/mobile/src/modules/people` changed. `## Memory Impact` matches what was built.
+- The mobile ERs were checked through their component tests, which render the real `PersonSheet`. They weren't run
+  in the simulator.

@@ -1,4 +1,5 @@
 import { AppIcon } from "@/modules/designs/components/app-icon";
+import { ConfirmSheet } from "@/modules/designs/components/confirm-sheet";
 import { DecisionCard } from "@/modules/designs/components/decision-card";
 import { DenySheet } from "@/modules/designs/components/deny-sheet";
 import { EmptyState } from "@/modules/designs/components/empty-state";
@@ -20,8 +21,8 @@ const DENY_REASON_MAX_LENGTH = 500;
 /** "Entrar na escola": the new accounts waiting for approval, each with its e-mail, to approve or deny. */
 export function RegistrationsScreen({ locale, state }: RegistrationsScreenProps) {
   const t = (key: string, params?: Record<string, string | number>) => appT(locale, key, params);
-  const listed = state === "ready" || state === "denySheet" || state === "personSheet";
-  const overPhone = state === "denySheet" || state === "personSheet";
+  const listed = state === "ready" || state === "denySheet" || state === "approveSheet" || state === "personSheet";
+  const overPhone = state === "denySheet" || state === "approveSheet" || state === "personSheet";
   const [first] = registrationRequests;
 
   return (
@@ -74,6 +75,16 @@ export function RegistrationsScreen({ locale, state }: RegistrationsScreenProps)
             backLabel={t("registrations.denySheet.back")}
             confirmLabel={t("registrations.denySheet.confirm")}
             maxLength={DENY_REASON_MAX_LENGTH}
+          />
+        ) : null}
+        {state === "approveSheet" && first ? (
+          <ConfirmSheet
+            title={t("registrations.approveSheet.title")}
+            description={t("registrations.approveSheet.description", { name: first.name })}
+            confirmLabel={t("registrations.approveSheet.confirm")}
+            confirmIcon={<AppIcon name="Feather:check" size={16} />}
+            confirmVariant="success"
+            cancelLabel={t("registrations.approveSheet.cancel")}
           />
         ) : null}
         {state === "personSheet" && first ? <PersonSheet locale={locale} name={first.name} role="student" whatsapp={null} email={first.email} /> : null}

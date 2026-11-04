@@ -1,4 +1,5 @@
 import { AppIcon } from "@/modules/designs/components/app-icon";
+import { ConfirmSheet } from "@/modules/designs/components/confirm-sheet";
 import { ClassRequestsGroup } from "@/modules/designs/components/class-requests-group";
 import { ClassRequestsSkeleton } from "@/modules/designs/components/class-requests-skeleton";
 import { DenySheet } from "@/modules/designs/components/deny-sheet";
@@ -27,7 +28,8 @@ export function ClassRequestsScreen({ locale, state }: ClassRequestsScreenProps)
   const groups = state === "emptyFiltered" ? pendingRequestGroups.filter((group) => group.discipline === "skate") : pendingRequestGroups;
   const shown = state === "filtered" ? groups.filter((group) => group.discipline === "surf") : state === "emptyFiltered" ? [] : state === "fullClass" ? groups.filter((group) => group.seatsTaken >= group.capacity) : groups;
   const total = groups.reduce((sum, group) => sum + group.requests.length, 0);
-  const overPhone = state === "denySheet" || state === "approved";
+  const overPhone = state === "denySheet" || state === "approveSheet" || state === "approved";
+  const firstRequest = pendingRequestGroups[0]?.requests[0];
   const discipline = state === "filtered" || state === "emptyFiltered" ? "surf" : "all";
 
   return (
@@ -91,6 +93,16 @@ export function ClassRequestsScreen({ locale, state }: ClassRequestsScreenProps)
             backLabel={t("classRequests.denySheet.back")}
             confirmLabel={t("classRequests.denySheet.confirm")}
             maxLength={DENY_REASON_MAX_LENGTH}
+          />
+        ) : null}
+        {state === "approveSheet" && firstRequest ? (
+          <ConfirmSheet
+            title={t("classRequests.approveSheet.title")}
+            description={t("classRequests.approveSheet.description", { name: firstRequest.name })}
+            confirmLabel={t("classRequests.approveSheet.confirm")}
+            confirmIcon={<AppIcon name="Feather:check" size={16} />}
+            confirmVariant="success"
+            cancelLabel={t("classRequests.approveSheet.cancel")}
           />
         ) : null}
         {state === "approved" ? <ScreenToast message={t("classRequests.approved", { name: "Gabriel Moura" })} tone="success" /> : null}

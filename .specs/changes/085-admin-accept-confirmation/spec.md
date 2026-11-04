@@ -313,7 +313,7 @@ Each block has the keys `title`, `description`, `confirm` and `cancel`.
   > run src/modules/designs/components/confirm-sheet` (2 passed), `eslint` clean; deviations: the icon is a
   > `ReactNode` (`confirmIcon`), as on mobile, rather than an icon name.
 
-- [ ] **T-08** — Add the state `approveSheet` to the `registrations-screen`, `reactivations-screen` and
+- [x] **T-08** — Add the state `approveSheet` to the `registrations-screen`, `reactivations-screen` and
   `class-requests-screen` mocks and `restoreSheet` to `removed-accounts-screen` (in `src/modules/designs/screens/admin/`,
   each drawing `ConfirmSheet` over its list for the first mock person, with the app's copy through `appT`); add the
   frames `AD-06-10` to `components/admin-app-class-requests` and `AD-07-16`–`AD-07-18` to `components/admin-app-accounts`,
@@ -321,6 +321,32 @@ Each block has the keys `title`, `description`, `confirm` and `cancel`.
   Update the screens' and sections' tests.
   Covers: ER-04 · Done when: `npx vitest run src/modules/designs` passes and `npx turbo run check-types
   --filter=@rochas-surf-school/web` exits 0.
+  > ✅ 2026-11-04 12:43 — added the states `approveSheet` to the registrations, reactivations and class-requests
+  > screen mocks and `restoreSheet` to the removed-accounts one, each drawing `ConfirmSheet` over its list for the
+  > first mock person (Renata Coelho, Fernanda Rocha, Gabriel Moura, Sérgio Matos) with the app copy through `appT`;
+  > frames `AD-06-10` (end of section 06) and `AD-07-16`–`AD-07-18` (end of section 07), their ids in
+  > `admin-app-ids.ts` (116 ids) and each entry's title and note in the three dictionaries; files:
+  > `apps/web/src/modules/designs/screens/admin/registrations-screen/registrations-screen.component.tsx`,
+  > `apps/web/src/modules/designs/screens/admin/registrations-screen/registrations-screen.types.ts`,
+  > `apps/web/src/modules/designs/screens/admin/registrations-screen/registrations-screen.component.test.tsx`,
+  > `apps/web/src/modules/designs/screens/admin/reactivations-screen/reactivations-screen.component.tsx`,
+  > `apps/web/src/modules/designs/screens/admin/reactivations-screen/reactivations-screen.types.ts`,
+  > `apps/web/src/modules/designs/screens/admin/reactivations-screen/reactivations-screen.component.test.tsx`,
+  > `apps/web/src/modules/designs/screens/admin/class-requests-screen/class-requests-screen.component.tsx`,
+  > `apps/web/src/modules/designs/screens/admin/class-requests-screen/class-requests-screen.types.ts`,
+  > `apps/web/src/modules/designs/screens/admin/class-requests-screen/class-requests-screen.component.test.tsx`,
+  > `apps/web/src/modules/designs/screens/admin/removed-accounts-screen/removed-accounts-screen.component.tsx`,
+  > `apps/web/src/modules/designs/screens/admin/removed-accounts-screen/removed-accounts-screen.types.ts`,
+  > `apps/web/src/modules/designs/screens/admin/removed-accounts-screen/removed-accounts-screen.component.test.tsx`,
+  > `apps/web/src/modules/designs/components/admin-app-accounts/admin-app-accounts.component.tsx`,
+  > `apps/web/src/modules/designs/components/admin-app-accounts/admin-app-accounts.component.test.tsx`,
+  > `apps/web/src/modules/designs/components/admin-app-class-requests/admin-app-class-requests.component.tsx`,
+  > `apps/web/src/modules/designs/components/admin-app-class-requests/admin-app-class-requests.component.test.tsx`,
+  > `apps/web/src/modules/designs/data/admin-app-ids.ts`,
+  > `apps/web/src/modules/designs/pages/admin-app/admin-app.page.test.tsx`, `apps/web/src/i18n/dictionaries/en.ts`,
+  > `apps/web/src/i18n/dictionaries/pt-br.ts`, `apps/web/src/i18n/dictionaries/es.ts`; verified: `npx vitest run
+  > src/modules/designs` (226 files, 733 tests passed), `npx turbo run check-types --filter=@rochas-surf-school/web`
+  > (4 successful), `eslint` clean; deviations: the admin app page test now expects 116 entries (was 112).
 
 - [ ] **T-09** — Update the admin rows AD-02, AD-04, AD-05 and AD-17 as D-08 says: `designIds` in
   `src/modules/user-journeys/data/user-journey-flows.ts` (adding `AD-07-16`, `AD-07-17`, `AD-07-18` and `AD-06-10`)

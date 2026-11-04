@@ -40,4 +40,22 @@ describe("RegistrationsScreen", () => {
     render(<RegistrationsScreen locale="pt-br" state="error" />);
     expect(screen.getByRole("heading", { name: "Não foi possível carregar os cadastros" })).toBeInTheDocument();
   });
+
+  it("AD-07-16: the approve confirmation sheet over the list, naming the first account", () => {
+    render(<RegistrationsScreen locale="pt-br" state="approveSheet" />);
+
+    expect(screen.getByTestId("phone-frame")).not.toHaveAttribute("data-tall");
+    const sheet = within(screen.getByRole("dialog"));
+    expect(sheet.getByRole("heading", { name: "Aprovar entrada?" })).toBeInTheDocument();
+    expect(sheet.getByText("Renata Coelho entra na escola e já pode reservar aulas. A pessoa recebe uma notificação push.")).toBeInTheDocument();
+    expect(sheet.getByRole("button", { name: "Aprovar" })).toHaveClass("bg-ok");
+    expect(sheet.getByRole("button", { name: "Cancelar" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Renata Coelho" })).toBeInTheDocument();
+  });
+
+  it("AD-07-16: the approve confirmation sheet in English", () => {
+    render(<RegistrationsScreen locale="en" state="approveSheet" />);
+
+    expect(within(screen.getByRole("dialog")).getByRole("heading", { name: "Approve entry?" })).toBeInTheDocument();
+  });
 });

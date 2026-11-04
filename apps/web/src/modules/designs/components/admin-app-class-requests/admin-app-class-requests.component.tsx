@@ -17,6 +17,7 @@ export function AdminAppClassRequests({ locale, text }: AdminAppClassRequestsPro
     { id: "AD-06-07", screen: <ClassRequestsScreen locale={locale} state="emptyFiltered" /> },
     { id: "AD-06-08", screen: <ClassRequestsScreen locale={locale} state="loading" /> },
     { id: "AD-06-09", screen: <ClassRequestsScreen locale={locale} state="error" /> },
+    { id: "AD-06-10", screen: <ClassRequestsScreen locale={locale} state="approveSheet" /> },
   ] as const;
 
   return (

@@ -14,11 +14,11 @@ describe("AdminAppPage", { timeout: 30_000 }, () => {
     const { container } = render(<AdminAppPage locale={locale} text={adminApp} schoolRules={authFlow.schoolRules} />);
 
     expect(container.querySelector("h1")).toHaveTextContent(adminApp.title);
-    expect(adminAppIds).toHaveLength(112);
+    expect(adminAppIds).toHaveLength(116);
     for (const id of adminAppIds) {
       expect(container.querySelector(`[data-design-id="${id}"]`), id).not.toBeNull();
     }
-    expect(container.querySelectorAll("[data-design-id]")).toHaveLength(112);
+    expect(container.querySelectorAll("[data-design-id]")).toHaveLength(116);
     expect(container.textContent).not.toMatch(/\{\{|<\/?[a-z]+>/);
   });
 

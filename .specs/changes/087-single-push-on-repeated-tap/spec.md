@@ -159,12 +159,21 @@ already in the stack, and a lint rule keeps new code on it.
   > "/admin/registrations"`, `"/admin/class/c-1"`); `grep -rn "router.push" src` outside tests finds only
   > `src/navigation/push-screen.ts`; `npx eslint` clean, `npx tsc --noEmit` clean, the changed lines 100% covered;
   > deviations: the hook's two push branches merged into one (both would have been `pushScreen(target)`)
-- [ ] **T-05** — Add a `no-restricted-syntax` rule to `apps/mobile/eslint.config.js` for
+- [x] **T-05** — Add a `no-restricted-syntax` rule to `apps/mobile/eslint.config.js` for
   `CallExpression[callee.object.name='router'][callee.property.name='push']`, message
   "Use pushScreen from @/navigation/push-screen so a repeated tap doesn't open the screen twice.", with
   `src/navigation/push-screen.ts` exempt.
   Covers: ER-02 · Done when: the stdin command in ER-02 exits 1 with that message and
   `npx turbo run lint --filter=@rochas-surf-school/mobile` passes.
+  > ✅ 2026-11-04 18:30 — `no-restricted-syntax` rule for `CallExpression[callee.object.name='router'][callee.property.name='push']`
+  > on `src/**/*.{js,jsx,ts,tsx}`, `src/navigation/push-screen.ts` ignored, with the spec's message; the four test calls
+  > that drove navigation with a direct `router.push` (two in `root-navigator.component.test.tsx`, the People tab
+  > checks in both role navigation tests) now call `pushScreen`; files: `apps/mobile/eslint.config.js`, `apps/mobile/src/modules/admin/admin-tabs.navigation.test.tsx`, `apps/mobile/src/modules/instructor/instructor-tabs.navigation.test.tsx`, `apps/mobile/src/navigation/root-navigator/root-navigator.component.test.tsx`; verified: the ER-02 stdin command exits 1
+  > with "Use pushScreen from @/navigation/push-screen so a repeated tap doesn't open the screen twice"; the same with
+  > `router.replace("/")` and `router.back()` exits 0; `npx eslint src` clean;
+  > `npx turbo run lint --filter=@rochas-surf-school/mobile` 3 successful; the three changed test files 106 passed;
+  > deviations: the four test calls above were not named by the task — the rule exempts only `push-screen.ts` (D-04),
+  > so tests had to move to `pushScreen` for the codebase to lint clean (ER-02)
 
 ### Verification
 

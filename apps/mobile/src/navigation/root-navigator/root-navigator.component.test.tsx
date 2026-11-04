@@ -31,6 +31,7 @@ import ReactivationLayout from "@/app/(reactivation)/reactivation/_layout";
 import ReactivationRoute from "@/app/(reactivation)/reactivation/index";
 import Index from "@/app/index";
 import { routes } from "@/constants/routes";
+import { pushScreen } from "@/navigation/push-screen";
 import type { SessionUser } from "@/navigation/resolve-flow.types";
 import { AlertMessageProvider } from "@/providers/alert-message";
 import { SessionProvider, useSession } from "@/providers/session";
@@ -407,7 +408,7 @@ describe("RootNavigator", () => {
       ).toBeOnTheScreen();
 
       await act(async () =>
-        router.push(
+        pushScreen(
           routes.auth.confirmCode({
             email: "ana.silva@gmail.com",
             name: "Ana Silva",
@@ -551,7 +552,7 @@ describe("RootNavigator", () => {
       await openApp(null);
       await navigate(routes.auth.createAccount());
       await act(async () =>
-        router.push(
+        pushScreen(
           routes.auth.confirmCode({
             email: "ana.silva@gmail.com",
             name: "Ana Silva",

@@ -293,7 +293,7 @@ describe("admin tabs", () => {
   it("/admin/people shows the people directory in its own tab", async () => {
     const app = await open();
 
-    await act(async () => router.push(routes.admin.people));
+    await act(async () => pushScreen(routes.admin.people));
 
     expect(app.getPathname()).toBe("/admin/people");
     expect(selectedTabLabel()).toBe("People");

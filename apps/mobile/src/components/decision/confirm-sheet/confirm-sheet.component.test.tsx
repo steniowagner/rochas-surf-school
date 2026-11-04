@@ -94,4 +94,22 @@ describe("ConfirmSheet", () => {
     expect(screen.queryByText("icon")).toBeNull();
     expect(sheet.onConfirm).not.toHaveBeenCalled();
   });
+
+  it("keeps the description it was open with while it closes, and shows the new one when it opens again", async () => {
+    const view = await render(<ConfirmSheet {...props()} />);
+
+    await view.rerender(
+      <ConfirmSheet
+        {...props({ visible: false, description: " joins the school." })}
+      />,
+    );
+    expect(screen.getByText("Ana Souza joins the school.")).toBeOnTheScreen();
+
+    await view.rerender(
+      <ConfirmSheet
+        {...props({ description: "Bruno Lima joins the school." })}
+      />,
+    );
+    expect(screen.getByText("Bruno Lima joins the school.")).toBeOnTheScreen();
+  });
 });

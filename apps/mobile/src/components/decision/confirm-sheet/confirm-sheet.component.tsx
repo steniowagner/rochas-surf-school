@@ -3,6 +3,7 @@ import { Text, View } from "react-native";
 import { BottomModal } from "@/components/ui/bottom-modal";
 import { Button } from "@/components/ui/button";
 
+import { useConfirmSheet } from "./confirm-sheet.hook";
 import { ConfirmSheetProps } from "./confirm-sheet.types";
 
 export function ConfirmSheet({
@@ -17,11 +18,16 @@ export function ConfirmSheet({
   onConfirm,
   onClose,
 }: ConfirmSheetProps) {
+  const { description: shownDescription } = useConfirmSheet({
+    visible,
+    description,
+  });
+
   return (
     <BottomModal visible={visible} onClose={onClose}>
       <View className="mb-4 gap-[4px]">
         <Text className="ds-text-sheet-title text-ink">{title}</Text>
-        <Text className="ds-text-body text-ink-2">{description}</Text>
+        <Text className="ds-text-body text-ink-2">{shownDescription}</Text>
       </View>
 
       <View className="gap-2.5">

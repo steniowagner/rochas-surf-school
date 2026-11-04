@@ -203,6 +203,16 @@ Each block has the keys `title`, `description`, `confirm` and `cancel`.
   > `apps/mobile/src/components/decision/confirm-sheet/index.ts`,
   > `apps/mobile/src/components/decision/confirm-sheet/confirm-sheet.component.test.tsx`; verified: `npx jest
   > src/components/decision/confirm-sheet` (5 passed, the component 100% covered); deviations: none.
+  > ✅ 2026-11-04 13:10 — fix found while following the journey (T-11): once a decision was confirmed or cancelled the
+  > screen let go of the item at once, so the sheet's description lost the name while it slid away ("  entra na
+  > escola…"). `ConfirmSheet` now keeps the description it was open with while it is closed (`useConfirmSheet`), for
+  > all four tools; files: `apps/mobile/src/components/decision/confirm-sheet/confirm-sheet.hook.ts` (new),
+  > `apps/mobile/src/components/decision/confirm-sheet/confirm-sheet.component.tsx`,
+  > `apps/mobile/src/components/decision/confirm-sheet/confirm-sheet.types.ts`,
+  > `apps/mobile/src/components/decision/confirm-sheet/confirm-sheet.component.test.tsx`; verified: `npx jest
+  > src/components/decision/confirm-sheet` (6 passed; the new test fails without the fix), `run-related-tests.mjs 085`
+  > (RELATED TESTS PASSED), `check-coverage.mjs 085` (COVERAGE OK, 13 files), `tsc --noEmit` and `eslint` clean; in
+  > the simulator the closing "Aprovar entrada?" still read "Dev Student entra na escola…".
 
 - [x] **T-03** — "Join the school": in `src/modules/admin/hooks/use-registrations-screen.hook.ts` (and its
   `.types.ts`) add `approving` (the registration whose sheet is open), `openApprove`, `closeApprove` and

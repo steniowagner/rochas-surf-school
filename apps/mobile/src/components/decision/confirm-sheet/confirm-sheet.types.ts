@@ -17,3 +17,8 @@ export type ConfirmSheetProps = {
   onConfirm: () => void;
   onClose: () => void;
 };
+
+export type UseConfirmSheetProps = Pick<
+  ConfirmSheetProps,
+  "visible" | "description"
+>;

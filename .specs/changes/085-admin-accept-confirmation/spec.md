@@ -389,18 +389,28 @@ Each block has the keys `title`, `description`, `confirm` and `cancel`.
 
 ### Verification
 
-- [ ] **T-11** — Run every command in the Verification Plan from the repo root; all pass. Follow the user journey in
+- [x] **T-11** — Run every command in the Verification Plan from the repo root; all pass. Follow the user journey in
   the iOS simulator. Record the output summary as evidence. Covers: all · Done when: every command exits 0 and the
   journey matches.
-  > ⛔ 2026-11-04 13:20 — every command passed: `node .specs/scripts/run-related-tests.mjs 085` (RELATED TESTS PASSED:
+  > ✅ 2026-11-04 13:06 — every command passed: `node .specs/scripts/run-related-tests.mjs 085` (RELATED TESTS PASSED:
   > mobile, web, app-messages; the first run caught `admin.screen.test.tsx`, fixed under T-03),
   > `node .specs/scripts/check-coverage.mjs 085` (COVERAGE OK, 12 files), `node .specs/scripts/run-e2e.mjs 085` (E2E
   > PASSED, web 78 passed; backend not affected), `npx turbo run lint check-types build` for app-messages, mobile and
-  > web (17 successful), `node .docs/designs/scripts/pack.mjs --check` (5 files match). Not done: the user journey in
-  > the iOS simulator. The booted iPhone 18 Pro runs the user's own session, signed in as a non-admin (Esrom), and
-  > following the journey needs signing it out and in as an admin (`admin01@test.com`) with a pending registration,
-  > reactivation request, class request and removed account in the local database. Unblocks with the user's go-ahead
-  > to do that, or the user following the Verification Plan's journey themselves.
+  > web (17 successful), `node .docs/designs/scripts/pack.mjs --check` (5 files match). Journey followed in the iOS
+  > simulator (iPhone 18 Pro, pt-BR, local backend), signed in as the local review admin `admin@example.com` (the
+  > Verification Plan's `admin01@test.com` is a staging account), with test data added to the local database (a class
+  > with a pending request, a deleted account asking to come back, a removed account): "Entrar na escola" → "Aprovar"
+  > opened "Aprovar entrada?" naming Nobody Seven, "Cancelar" closed it and the user stayed `pending`, "Aprovar" again
+  > then the sheet's "Aprovar" removed the card (4 → 3 waiting, user `approved`); "Recusar" still opened "Recusar
+  > entrada?" with the reason field. "Reativar contas" → "Reativar conta?" naming Lia Prado; the backdrop closed it
+  > sending nothing; confirming removed the card (user `approved`). "Inscrições em aulas" → "Inscrever nesta aula?"
+  > naming Zeca Barros; with the request deleted in the database first, confirming showed "Este pedido não existe
+  > mais." and the sheet stayed open with its button enabled (the "any other failure" path; the network itself was not
+  > turned off); with the request back, confirming spun the button, then showed "Zeca Barros inscrito · aluno
+  > avisado", closed the sheet and left the list empty (enrolment `approved`). "Contas removidas" (opened by deep link,
+  > the tab bar ignored the simulator's taps) → "Restaurar conta?" naming Rafa Mota, primary button with the refresh
+  > icon; confirming removed the row (user `approved`). Observed: as a sheet slides away after confirming, its
+  > description loses the name for the length of the animation; deviations: test account and data as above.
 
 ## Verification Plan
 

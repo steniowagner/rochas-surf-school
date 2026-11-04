@@ -362,6 +362,7 @@ _Implemented in spec 008-onboarding-whatsapp._
 _Implemented in spec 026-profile-tab._
 _Implemented in spec 027-people-directory._
 _Implemented in spec 049-class-details-people-design._
+_Implemented in spec 086-seat-request-whatsapp._
 
 Users SHALL choose whether other users can see their WhatsApp number, and the number SHALL be hidden by default. Admins SHALL always see every user's WhatsApp number.
 
@@ -372,8 +373,9 @@ Users SHALL choose whether other users can see their WhatsApp number, and the nu
 
 _Implemented in spec 027-people-directory._
 _Implemented in spec 049-class-details-people-design._
+_Implemented in spec 086-seat-request-whatsapp._
 
-Admins SHALL be able to open a WhatsApp chat with any user who has a number from that user's entry in the directory, or from the user's name among a class's instructors or students on its details, and every other user with any user who shares their number. The chat SHALL open in WhatsApp on the user's own phone; the app SHALL NOT send WhatsApp messages itself.
+Admins SHALL be able to open a WhatsApp chat with any user who has a number from that user's entry in the directory, from the user's name among a class's instructors or students on its details, or from a student's pending seat request (in the class requests tool and among a class message's recipients), and every other user with any user who shares their number. The chat SHALL open in WhatsApp on the user's own phone; the app SHALL NOT send WhatsApp messages itself.
 
 - _Admin contacts a user:_ When an admin taps the WhatsApp button on a user's directory entry, then WhatsApp opens on the admin's phone with a chat to that user's number.
 - _Number not shared:_ When a non-admin opens the entry of a user who doesn't share their number, then the WhatsApp button is disabled and says the number isn't shared.

@@ -3,13 +3,14 @@ id: "086"
 slug: seat-request-whatsapp
 title: Show the student's WhatsApp number on seat requests
 template: quick
-status: accepted
+status: finished
 created: 2026-11-04
 started: 2026-11-04
 base_commit: dcc32bec5ce43ed68df49ad5dcb97e7fd058e539
 reviewed_commit: 816fcafc17bcc7872a751b00461c956329a59376
 fronts: [backend, mobile]
 depends_on: []
+finished: 2026-11-04
 ---
 
 # 086 — Show the student's WhatsApp number on seat requests
@@ -60,7 +61,7 @@ number, so the sheet always says "Número não compartilhado".
 - **Edge and error cases:** a student who shares the number gets it too; a student without a number has
   `whatsappNumber: null`; a non-admin still gets 403 `user.role.notAdmin`; the rest of the answer (classes, order,
   `seatsTaken`, `total`) doesn't change.
-- **Verify by:** `npx vitest run test/enrolment/usecase/list-pending-requests.usecase.test.ts` (from
+- **Verify by:** `npx jest test/enrolment/usecase/list-pending-requests.usecase.test.ts` (from
   `modules/enrolment`) · `npm run test:e2e -- enrolment-decisions` (from `apps/backend`), the "lists pending" tests.
 
 ### ER-02 — The class requests sheet shows the number

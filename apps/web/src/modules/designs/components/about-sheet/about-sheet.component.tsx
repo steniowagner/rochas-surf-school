@@ -1,3 +1,5 @@
+import { assetSrc } from "@/modules/designs/assets/asset-src";
+import creatorAvatar from "@/modules/designs/assets/creator-avatar.jpg";
 import { appT } from "@/modules/designs/i18n/app-t";
 
 import { AppIcon, type AppIconName } from "../app-icon";
@@ -7,8 +9,7 @@ import { Button } from "../button";
 import type { AboutSheetProps } from "./about-sheet.types";
 
 const links: { labelKey: string; icon: AppIconName }[] = [
-  { labelKey: "about.repository", icon: "Ionicons:logo-github" },
-  { labelKey: "about.creatorGithub", icon: "Ionicons:logo-github" },
+  { labelKey: "about.creatorInstagram", icon: "Ionicons:logo-instagram" },
   { labelKey: "about.creatorLinkedin", icon: "Ionicons:logo-linkedin" },
 ];
 
@@ -29,8 +30,8 @@ export function AboutSheet({ locale }: AboutSheetProps) {
       </div>
       <p className="ds-text-body mb-4 text-ink-2">{t("about.description")}</p>
       <div className="mb-2 flex items-center gap-3 py-2">
-        <span className="flex size-11 items-center justify-center rounded-full bg-sand">
-          <span className="ds-text-list-title text-grape">SW</span>
+        <span className="size-11 overflow-hidden rounded-full bg-sand">
+          <img src={assetSrc(creatorAvatar)} alt="Stenio Wagner" className="size-full object-cover" />
         </span>
         <div className="flex flex-1 flex-col">
           <p className="ds-text-list-title text-ink">Stenio Wagner</p>

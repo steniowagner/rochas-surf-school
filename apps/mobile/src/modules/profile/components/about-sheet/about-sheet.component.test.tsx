@@ -31,29 +31,31 @@ describe("AboutSheet", () => {
       .mockResolvedValue({ type: "dismiss" } as never);
   });
 
-  it("shows the mocked app, version, description and creator", async () => {
+  it("shows the app, version, description and creator", async () => {
     await renderSheet();
 
     expect(screen.getByText("Rocha's Surf School")).toBeOnTheScreen();
     expect(screen.getByText("Version 0.9 · beta")).toBeOnTheScreen();
     expect(
-      screen.getByText(/A personal project to take class booking/),
+      screen.getByText(/Booking surf classes used to happen in WhatsApp groups/),
     ).toBeOnTheScreen();
+    expect(screen.queryByText(/personal project/i)).toBeNull();
     expect(screen.getByText("Stenio Wagner")).toBeOnTheScreen();
-    expect(screen.getByText("SW")).toBeOnTheScreen();
+    expect(screen.getByTestId("about-creator-photo")).toBeOnTheScreen();
+    expect(screen.queryByText("SW")).toBeNull();
     expect(screen.getByText("Design and development")).toBeOnTheScreen();
   });
 
-  it("has no privacy or terms link", async () => {
+  it("has no privacy, terms or GitHub link", async () => {
     await renderSheet();
 
+    expect(screen.queryByText(/GitHub|repository/i)).toBeNull();
     expect(screen.queryByText(/Privacy/i)).toBeNull();
     expect(screen.queryByText(/Terms/i)).toBeNull();
   });
 
   it.each([
-    ["App repository", "https://github.com/steniowagner/rochas-surf-school"],
-    ["Creator's GitHub", "https://github.com/steniowagner"],
+    ["Creator's Instagram", "https://www.instagram.com/steniowagnerr/"],
     ["Creator's LinkedIn", "https://www.linkedin.com/in/steniowagner"],
   ])("opens %s in the in-app browser", async (label, url) => {
     const user = await renderSheet();
@@ -67,7 +69,9 @@ describe("AboutSheet", () => {
     jest.mocked(openBrowserAsync).mockRejectedValue(new Error("no browser"));
     const user = await renderSheet();
 
-    await user.press(screen.getByRole("button", { name: "App repository" }));
+    await user.press(
+      screen.getByRole("button", { name: "Creator's Instagram" }),
+    );
 
     await waitFor(() =>
       expect(

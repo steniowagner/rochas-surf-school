@@ -1024,10 +1024,9 @@ const messages: Messages = {
   about: {
     version: "Versão {{version}}",
     description:
-      "Projeto pessoal para tirar a marcação de aulas dos grupos de WhatsApp: agenda da semana, pedidos de vaga e avisos num só lugar.",
+      "A marcação das aulas de surf acontecia em grupos de WhatsApp: horários perdidos na conversa, vagas confirmadas à mão e avisos que ninguém via. O app junta a agenda da semana, os pedidos de vaga e os avisos num só lugar.",
     creatorRole: "Design e desenvolvimento",
-    repository: "Repositório do app",
-    creatorGithub: "GitHub do criador",
+    creatorInstagram: "Instagram do criador",
     creatorLinkedin: "LinkedIn do criador",
     close: "Fechar",
   },

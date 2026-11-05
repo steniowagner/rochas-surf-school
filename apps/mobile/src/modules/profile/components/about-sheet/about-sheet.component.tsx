@@ -1,27 +1,25 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import { useTranslation } from "react-i18next";
 import { Pressable, Text, View } from "react-native";
 
 import { BottomModal } from "@/components/ui/bottom-modal";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/use-theme";
-import { getInitials } from "@/utils/get-initials";
 
 import { ABOUT } from "../../constants/about";
 import { useOpenUrl } from "../../hooks/use-open-url.hook";
 
 import { AboutSheetProps } from "./about-sheet.types";
 
+// The creator's photo, bundled at 3x of the 44 pt avatar so it works offline.
+const CREATOR_PHOTO = require("@/assets/images/creator-avatar.jpg");
+
 const LINKS = [
   {
-    labelKey: "about.repository",
-    url: ABOUT.links.repository,
-    icon: "logo-github",
-  },
-  {
-    labelKey: "about.creatorGithub",
-    url: ABOUT.links.creatorGithub,
-    icon: "logo-github",
+    labelKey: "about.creatorInstagram",
+    url: ABOUT.links.creatorInstagram,
+    icon: "logo-instagram",
   },
   {
     labelKey: "about.creatorLinkedin",
@@ -30,7 +28,7 @@ const LINKS = [
   },
 ] as const;
 
-/** The mocked About sheet (spec 026, D-13); its links open in the in-app browser. */
+/** The About sheet (spec 026, D-13); its links open in the in-app browser. */
 export function AboutSheet({ visible, onClose }: AboutSheetProps) {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -59,10 +57,13 @@ export function AboutSheet({ visible, onClose }: AboutSheetProps) {
       </Text>
 
       <View className="mb-2 flex-row items-center gap-3 py-2">
-        <View className="h-11 w-11 items-center justify-center rounded-full bg-sand">
-          <Text className="ds-text-list-title text-grape">
-            {getInitials(ABOUT.creatorName)}
-          </Text>
+        <View className="h-11 w-11 overflow-hidden rounded-full bg-sand">
+          <Image
+            testID="about-creator-photo"
+            source={CREATOR_PHOTO}
+            accessibilityLabel={ABOUT.creatorName}
+            style={{ width: "100%", height: "100%" }}
+          />
         </View>
         <View className="flex-1">
           <Text className="ds-text-list-title text-ink">

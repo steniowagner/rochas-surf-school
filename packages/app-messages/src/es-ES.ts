@@ -1039,10 +1039,9 @@ const messages: Messages = {
   about: {
     version: "Versión {{version}}",
     description:
-      "Proyecto personal para sacar la reserva de clases de los grupos de WhatsApp: agenda de la semana, solicitudes de plaza y avisos en un solo lugar.",
+      "La reserva de clases de surf se hacía en grupos de WhatsApp: horarios perdidos en el chat, plazas confirmadas a mano y avisos que nadie veía. La app reúne la agenda de la semana, las solicitudes de plaza y los avisos en un solo lugar.",
     creatorRole: "Diseño y desarrollo",
-    repository: "Repositorio de la app",
-    creatorGithub: "GitHub del creador",
+    creatorInstagram: "Instagram del creador",
     creatorLinkedin: "LinkedIn del creador",
     close: "Cerrar",
   },

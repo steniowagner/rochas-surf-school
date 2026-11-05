@@ -37,7 +37,9 @@ describe("AboutSheet", () => {
     expect(screen.getByText("Rocha's Surf School")).toBeOnTheScreen();
     expect(screen.getByText("Version 0.9 · beta")).toBeOnTheScreen();
     expect(
-      screen.getByText(/Booking surf classes used to happen in WhatsApp groups/),
+      screen.getByText(
+        /Every week the admins posted the schedule in the school.s WhatsApp group/,
+      ),
     ).toBeOnTheScreen();
     expect(screen.queryByText(/personal project/i)).toBeNull();
     expect(screen.getByText("Stenio Wagner")).toBeOnTheScreen();

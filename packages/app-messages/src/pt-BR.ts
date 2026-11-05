@@ -1024,7 +1024,7 @@ const messages: Messages = {
   about: {
     version: "Versão {{version}}",
     description:
-      "A marcação das aulas de surf acontecia em grupos de WhatsApp: horários perdidos na conversa, vagas confirmadas à mão e avisos que ninguém via. O app junta a agenda da semana, os pedidos de vaga e os avisos num só lugar.",
+      "Toda semana os administradores postavam a agenda no grupo de WhatsApp da escola. Para se inscrever numa aula, o aluno tinha que avisar no grupo que estava editando a lista, para ninguém editar ao mesmo tempo, copiar a última mensagem da agenda, colocar o nome e enviá-la de novo. O app troca tudo isso por uma agenda única e compartilhada, onde você pede sua vaga direto.",
     creatorRole: "Design e desenvolvimento",
     creatorInstagram: "Instagram do criador",
     creatorLinkedin: "LinkedIn do criador",

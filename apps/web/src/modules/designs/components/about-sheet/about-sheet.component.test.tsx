@@ -9,7 +9,7 @@ describe("AboutSheet", () => {
 
     expect(screen.getByRole("heading", { name: "Rocha's Surf School" })).toBeInTheDocument();
     expect(screen.getByText("Versão 0.9 · beta")).toBeInTheDocument();
-    expect(screen.getByText(/A marcação das aulas de surf acontecia em grupos de WhatsApp/)).toBeInTheDocument();
+    expect(screen.getByText(/Toda semana os administradores postavam a agenda no grupo de WhatsApp/)).toBeInTheDocument();
     expect(screen.queryByText(/Projeto pessoal/)).toBeNull();
     expect(screen.getByText("Stenio Wagner")).toBeInTheDocument();
     expect(screen.getByRole("img", { name: "Stenio Wagner" })).toBeInTheDocument();

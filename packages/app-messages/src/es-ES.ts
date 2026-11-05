@@ -1039,7 +1039,7 @@ const messages: Messages = {
   about: {
     version: "Versión {{version}}",
     description:
-      "La reserva de clases de surf se hacía en grupos de WhatsApp: horarios perdidos en el chat, plazas confirmadas a mano y avisos que nadie veía. La app reúne la agenda de la semana, las solicitudes de plaza y los avisos en un solo lugar.",
+      "Cada semana los administradores publicaban la agenda en el grupo de WhatsApp de la escuela. Para inscribirse en una clase, el alumno tenía que avisar al grupo de que estaba editando la lista, para que nadie más la editara a la vez, copiar el último mensaje de la agenda, añadir su nombre y volver a enviarlo. La app lo sustituye por una única agenda compartida donde pides tu plaza directamente.",
     creatorRole: "Diseño y desarrollo",
     creatorInstagram: "Instagram del creador",
     creatorLinkedin: "LinkedIn del creador",

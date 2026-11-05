@@ -1027,7 +1027,7 @@ const messages = {
   about: {
     version: "Version {{version}}",
     description:
-      "Booking surf classes used to happen in WhatsApp groups: schedules lost in the chat, seats confirmed by hand and notices nobody saw. The app brings the week's schedule, seat requests and notices together in one place.",
+      "Every week the admins posted the schedule in the school's WhatsApp group. To enrol in a class, a student had to tell the group they were editing the list, so no one else would edit it at the same time, then copy the latest schedule message, add their name and send it back. The app replaces all that with one shared schedule where you request your seat directly.",
     creatorRole: "Design and development",
     creatorInstagram: "Creator's Instagram",
     creatorLinkedin: "Creator's LinkedIn",

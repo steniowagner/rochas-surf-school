@@ -38,7 +38,7 @@ describe("AboutSheet", () => {
     expect(screen.getByText("Version 0.9 · beta")).toBeOnTheScreen();
     expect(
       screen.getByText(
-        /Every week the admins posted the schedule in the school.s WhatsApp group/,
+        /Booking a class used to be an extreme sport in the WhatsApp group/,
       ),
     ).toBeOnTheScreen();
     expect(screen.queryByText(/personal project/i)).toBeNull();

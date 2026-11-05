@@ -1024,7 +1024,7 @@ const messages: Messages = {
   about: {
     version: "Versão {{version}}",
     description:
-      "Toda semana os administradores postavam a agenda no grupo de WhatsApp da escola. Para se inscrever numa aula, o aluno tinha que avisar no grupo que estava editando a lista, para ninguém editar ao mesmo tempo, copiar a última mensagem da agenda, colocar o nome e enviá-la de novo. O app troca tudo isso por uma agenda única e compartilhada, onde você pede sua vaga direto.",
+      "Marcar aula era um esporte radical no grupo de WhatsApp: avisar “tô editando!”, copiar a última lista, torcer pra ninguém mandar outra ao mesmo tempo e reenviar. O app troca tudo isso por uma agenda única e compartilhada, onde você pede sua vaga direto.",
     creatorRole: "Design e desenvolvimento",
     creatorInstagram: "Instagram do criador",
     creatorLinkedin: "LinkedIn do criador",

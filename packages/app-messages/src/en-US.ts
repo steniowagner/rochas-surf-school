@@ -1027,7 +1027,7 @@ const messages = {
   about: {
     version: "Version {{version}}",
     description:
-      "Every week the admins posted the schedule in the school's WhatsApp group. To enrol in a class, a student had to tell the group they were editing the list, so no one else would edit it at the same time, then copy the latest schedule message, add their name and send it back. The app replaces all that with one shared schedule where you request your seat directly.",
+      "Booking a class used to be an extreme sport in the WhatsApp group: shout “editing!”, copy the latest list, pray nobody sends another one at the same time, and send it back. The app replaces all that with one shared schedule where you request your seat directly.",
     creatorRole: "Design and development",
     creatorInstagram: "Creator's Instagram",
     creatorLinkedin: "Creator's LinkedIn",

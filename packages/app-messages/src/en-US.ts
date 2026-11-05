@@ -1027,10 +1027,9 @@ const messages = {
   about: {
     version: "Version {{version}}",
     description:
-      "A personal project to take class booking out of WhatsApp groups: the week's schedule, seat requests and notices in one place.",
+      "Booking a class used to be an extreme sport in the WhatsApp group: shout “editing!”, copy the latest list, pray nobody sends another one at the same time, and send it back. The app replaces all that with one shared schedule where you request your seat directly.",
     creatorRole: "Design and development",
-    repository: "App repository",
-    creatorGithub: "Creator's GitHub",
+    creatorInstagram: "Creator's Instagram",
     creatorLinkedin: "Creator's LinkedIn",
     close: "Close",
   },

@@ -1039,10 +1039,9 @@ const messages: Messages = {
   about: {
     version: "Versión {{version}}",
     description:
-      "Proyecto personal para sacar la reserva de clases de los grupos de WhatsApp: agenda de la semana, solicitudes de plaza y avisos en un solo lugar.",
+      "Apuntarse a una clase era un deporte extremo en el grupo de WhatsApp: avisar “¡estoy editando!”, copiar la última lista, rezar para que nadie mandara otra a la vez y reenviarla. La app lo sustituye por una única agenda compartida donde pides tu plaza directamente.",
     creatorRole: "Diseño y desarrollo",
-    repository: "Repositorio de la app",
-    creatorGithub: "GitHub del creador",
+    creatorInstagram: "Instagram del creador",
     creatorLinkedin: "LinkedIn del creador",
     close: "Cerrar",
   },

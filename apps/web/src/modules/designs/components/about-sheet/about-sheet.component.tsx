@@ -1,3 +1,6 @@
+import appIcon from "@/modules/designs/assets/app-icon.png";
+import { assetSrc } from "@/modules/designs/assets/asset-src";
+import creatorAvatar from "@/modules/designs/assets/creator-avatar.jpg";
 import { appT } from "@/modules/designs/i18n/app-t";
 
 import { AppIcon, type AppIconName } from "../app-icon";
@@ -7,8 +10,7 @@ import { Button } from "../button";
 import type { AboutSheetProps } from "./about-sheet.types";
 
 const links: { labelKey: string; icon: AppIconName }[] = [
-  { labelKey: "about.repository", icon: "Ionicons:logo-github" },
-  { labelKey: "about.creatorGithub", icon: "Ionicons:logo-github" },
+  { labelKey: "about.creatorInstagram", icon: "Ionicons:logo-instagram" },
   { labelKey: "about.creatorLinkedin", icon: "Ionicons:logo-linkedin" },
 ];
 
@@ -19,8 +21,9 @@ export function AboutSheet({ locale }: AboutSheetProps) {
   return (
     <BottomModal>
       <div className="mb-4 flex items-center gap-3.5">
-        <span className="flex size-14 items-center justify-center rounded-card bg-sun text-on-color">
-          <AppIcon name="MaterialCommunityIcons:waves" size={30} />
+        <span className="size-14 overflow-hidden rounded-card bg-splash">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={assetSrc(appIcon)} alt="" className="size-full object-cover" />
         </span>
         <div className="flex flex-1 flex-col gap-0.5">
           <h3 className="ds-text-sheet-title text-ink">Rocha&apos;s Surf School</h3>
@@ -29,8 +32,9 @@ export function AboutSheet({ locale }: AboutSheetProps) {
       </div>
       <p className="ds-text-body mb-4 text-ink-2">{t("about.description")}</p>
       <div className="mb-2 flex items-center gap-3 py-2">
-        <span className="flex size-11 items-center justify-center rounded-full bg-sand">
-          <span className="ds-text-list-title text-grape">SW</span>
+        <span className="size-11 overflow-hidden rounded-full bg-sand">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={assetSrc(creatorAvatar)} alt="Stenio Wagner" className="size-full object-cover" />
         </span>
         <div className="flex flex-1 flex-col">
           <p className="ds-text-list-title text-ink">Stenio Wagner</p>

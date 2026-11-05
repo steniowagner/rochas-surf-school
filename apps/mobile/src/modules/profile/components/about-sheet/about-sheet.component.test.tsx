@@ -35,6 +35,7 @@ describe("AboutSheet", () => {
     await renderSheet();
 
     expect(screen.getByText("Rocha's Surf School")).toBeOnTheScreen();
+    expect(screen.getByTestId("about-app-icon")).toBeOnTheScreen();
     expect(screen.getByText("Version 0.9 · beta")).toBeOnTheScreen();
     expect(
       screen.getByText(

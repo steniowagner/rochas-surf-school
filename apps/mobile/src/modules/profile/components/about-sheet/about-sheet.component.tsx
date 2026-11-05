@@ -1,4 +1,4 @@
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useTranslation } from "react-i18next";
 import { Pressable, Text, View } from "react-native";
@@ -11,6 +11,9 @@ import { ABOUT } from "../../constants/about";
 import { useOpenUrl } from "../../hooks/use-open-url.hook";
 
 import { AboutSheetProps } from "./about-sheet.types";
+
+// The app icon (the logo on the splash background), as on the home screen.
+const APP_ICON = require("@/assets/images/icon.png");
 
 // The creator's photo, bundled at 3x of the 44 pt avatar so it works offline.
 const CREATOR_PHOTO = require("@/assets/images/creator-avatar.jpg");
@@ -37,11 +40,11 @@ export function AboutSheet({ visible, onClose }: AboutSheetProps) {
   return (
     <BottomModal visible={visible} onClose={onClose}>
       <View className="mb-4 flex-row items-center gap-3.5">
-        <View className="h-14 w-14 items-center justify-center rounded-card bg-sun">
-          <MaterialCommunityIcons
-            name="waves"
-            size={30}
-            color={theme.onColor}
+        <View className="h-14 w-14 overflow-hidden rounded-card bg-splash">
+          <Image
+            testID="about-app-icon"
+            source={APP_ICON}
+            style={{ width: "100%", height: "100%" }}
           />
         </View>
         <View className="flex-1 gap-0.5">

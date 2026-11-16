@@ -2392,9 +2392,14 @@ Maestro suite for mobile would be a spec of its own.
   shared-value-like objects for a closed keyboard. Tests that need a signed-in app seed the real store
   (`hydrateSession`) with an access token far in the future, since one close to expiry triggers a refresh;
   `fetch` is mocked per test.
-- End-to-end, per app: the suite below. It needs a Postgres reachable through `DATABASE_*` with the
-  migrations applied (locally: `npm run db:start --workspace apps/backend`, then
-  `npm run prisma:migrate:deploy --workspace apps/backend`; in CI the `backend` job provides both). The web
+- End-to-end, per app: the suite below. The backend suite needs a Postgres server reachable through `DATABASE_*`
+  (locally: `npm run db:start --workspace apps/backend`; in CI the `backend` job's service) but never uses the
+  database they name: `apps/backend/vitest.config.e2e.ts` points it (`DATABASE_URL`) at its own database,
+  `<DATABASE_NAME>_e2e` on the same server (`rochas_surf_school_e2e`), or `E2E_DATABASE_URL` when set, which may
+  not name the backend's own database. Its global setup (`apps/backend/test/global-setup.ts`) creates that database
+  through the maintenance database `postgres` when it's missing and runs `prisma migrate deploy` on it before the
+  files run, so a dev database's own classes (the suites read every class in their pinned week) never turn them
+  red and the suites never write to it. Nothing resets the e2e database; each suite deletes what it created. The web
   suite is **Playwright** (Chromium) in `apps/web/e2e/*.e2e.ts`: its `webServer` runs `next build && next start`
   on port 3100 (reusing a running server outside CI) and needs `apps/web/.env` with the build-time values; it
   checks every page in the three languages, the language redirect, the theme toggle and the language picker.
@@ -2422,7 +2427,7 @@ Maestro suite for mobile would be a spec of its own.
   hidden: the bottom-sheet mock keeps its content mounted. `expo-web-browser` is mocked per test.
 
 ```e2e
-apps/backend: npm run test:e2e --workspace apps/backend   # the API (Nest app + Prisma) against Postgres via DATABASE_*, migrations applied
+apps/backend: npm run test:e2e --workspace apps/backend   # the API (Nest app + Prisma) against its own <DATABASE_NAME>_e2e database, created and migrated by the suite
 apps/web: npm run test:e2e --workspace apps/web           # the public pages (Playwright, Chromium) against the built app on port 3100
 ```
 

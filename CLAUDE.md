@@ -26,7 +26,7 @@ Run from the repo root:
 
 Backend tests (Vitest), from `apps/backend`:
 
-- `npm test`: unit tests. `npm run test:e2e`: e2e tests
+- `npm test`: unit tests. `npm run test:e2e`: e2e tests, against their own database `<DATABASE_NAME>_e2e` on the `DATABASE_*` server (or `E2E_DATABASE_URL`), which the suite creates and migrates itself; they never touch the dev database. The Postgres server must be up (`npm run db:start`)
 - `npx vitest run src/app.controller.spec.ts`: a single file. Add `-t "<name>"` to run a single test
 
 Mobile component tests (Jest + `jest-expo` + React Native Testing Library), from `apps/mobile`:

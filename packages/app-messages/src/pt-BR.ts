@@ -1183,7 +1183,7 @@ const messages: Messages = {
     timeRanges: {
       label: "Horários",
       pickOne: "escolha pelo menos 1",
-      hint: "Sugeridos a partir das aulas da semana passada.",
+      hint: "Sugeridos a partir das aulas desta semana e da passada.",
       hintPast: "Os horários que já passaram não terão aula hoje.",
       hintOverlap: "Horários sobrepostos não podem ir no mesmo lote.",
       add: "Novo horário",

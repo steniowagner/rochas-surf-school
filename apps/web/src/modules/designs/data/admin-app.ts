@@ -105,7 +105,7 @@ export function rangeCalendar(locale: Locale, { start, end, excluded }: RangeSel
   };
 }
 
-/** The time ranges of last week's classes, the class form's suggestions. */
+/** The time ranges of this week's and last week's classes, the class form's suggestions. */
 const SUGGESTED_RANGES = ["06:30 – 08:00", "08:00 – 09:30", "09:00 – 10:30", "16:00 – 17:30", "17:30 – 19:00"];
 
 const minutes = (time: string) => Number(time.slice(0, 2)) * 60 + Number(time.slice(3, 5));

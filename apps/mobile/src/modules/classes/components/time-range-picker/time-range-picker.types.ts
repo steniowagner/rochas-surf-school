@@ -1,7 +1,7 @@
 import type { TimeRange } from "@rochas-surf-school/classes";
 
 export type TimeRangePickerProps = {
-  /** The ranges of last week's classes. */
+  /** The ranges of this week's and last week's classes, without cancelled ones. */
   suggestions: TimeRange[];
   /** The ranges added on the spot for this batch. */
   added: TimeRange[];

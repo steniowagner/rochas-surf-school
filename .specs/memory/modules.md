@@ -83,8 +83,8 @@ change applies to every class there, and they may tell the instructors of its up
 which archives them: no longer offered for new classes, still shown by the classes that used them. They create
 classes one at a time or in a batch — one class per chosen day and time range, all or
 nothing, never in the past — with the instructors who teach them, who are told once per batch. Time ranges are
-suggested from last week's classes. Every approved person browses the classes by week (Monday to Sunday,
-Fortaleza) or by month and reads each one; a class is not started, started or finished by the clock, unless an
+suggested from this week's and last week's classes, leaving out cancelled ones. Every approved person browses the
+classes by week (Monday to Sunday, Fortaleza) or by month and reads each one; a class is not started, started or finished by the clock, unless an
 admin cancelled it. Admins edit one class at a time — anything before it starts, only its instructors once started,
 nothing once finished or cancelled — and cancel a class until it finishes, with an optional message; it stays on
 the schedule marked as cancelled, for good. A class created by mistake is deleted instead — only before it

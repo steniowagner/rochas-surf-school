@@ -126,7 +126,8 @@ The classes themselves, and how a batch becomes classes.
   ended (at or before now, the module's clock) and aren't cancelled; a class under way isn't taught yet. Read one
   period at a time (a day to 42 days, as the student's history): a class belongs to the America/Fortaleza day its
   start falls on, newest first (start, then id), each as a card with the guests' names and no enrolment.
-- **Time-range suggestion** (not stored): a start–end pair taken from last week's classes.
+- **Time-range suggestion** (not stored): a start–end pair taken from this week's and last week's classes
+  that aren't cancelled.
 - **Class view** (not stored): a class as people read it — its fields, its location's name, address and point
   (none when the location has none; an archived location reads the same), its instructors' ids and names, its
   roster and the reader's enrolment.
@@ -167,9 +168,12 @@ Rules:
 - **Each assigned instructor is told once per batch**: one `class.assigned` notification with the number of
   classes and the discipline, through [Notifications](notifications.md); the admin who created the batch is
   not told, even when teaching it. A notification that fails never changes the answer or the stored classes.
-- **Suggestions come from last week**: the distinct start–end pairs, in Fortaleza time, of the classes starting
-  from last Monday 00:00 (inclusive) to this Monday 00:00 (exclusive), sorted by start then end; none →
-  an empty list. Ranges added on the spot are never kept.
+- **Suggestions come from last week and this week**: the distinct start–end pairs, in Fortaleza time, of the
+  classes starting from last Monday 00:00 (inclusive) to next Monday 00:00 (exclusive) — this week's classes that
+  haven't started yet included — that aren't cancelled, sorted by start then end; none → an empty list. A range
+  is still suggested when at least one class with it isn't cancelled. The use case leaves cancelled classes out,
+  not `findStartingBetween`, which the week view shares and which keeps them. Ranges added on the spot are never
+  kept.
 - **A week is Monday 00:00 to the next Monday 00:00, Fortaleza, by start**: any day of the week (`YYYY-MM-DD`)
   names it; the week answers its Monday and the classes starting in it, sorted by start, then end, then id; a
   week without classes is an empty list. A date that is missing, malformed or impossible is refused with
@@ -643,3 +647,6 @@ which stops that account from being erased while the link exists — a decision 
   and `ListClassMessages` (`GET /classes/:id/messages`) answers every approved account, with `visibleNumber` moved out
   of `GetClass` to share the rule. The notifier event `ClassMessage` is now `ClassMessageSent`. In the app, the "Mensagens
   desta aula" section of class details and `useClassMessages` (`["classes", "messages", id]`).
+- `088-time-range-suggestions-this-week` — the time-range suggestions read from last Monday to next Monday
+  (last week and this week) and skip cancelled classes in `ListTimeRangeSuggestions`; the app's hint names this
+  week and last week.

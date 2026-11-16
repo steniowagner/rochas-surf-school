@@ -1186,7 +1186,7 @@ const messages = {
     timeRanges: {
       label: "Times",
       pickOne: "pick at least 1",
-      hint: "Suggested from last week's classes.",
+      hint: "Suggested from this week's and last week's classes.",
       hintPast: "Times that already passed today have no class today.",
       hintOverlap: "Overlapping times can't go in the same batch.",
       add: "New time",

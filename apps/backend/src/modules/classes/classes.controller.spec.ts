@@ -226,7 +226,7 @@ describe('ClassesController', () => {
     expect(out).toEqual({ items: [] });
     expect(classRepository.findStartingBetween).toHaveBeenCalledWith(
       new Date('2026-10-05T03:00:00.000Z'),
-      new Date('2026-10-12T03:00:00.000Z'),
+      new Date('2026-10-19T03:00:00.000Z'),
     );
   });
 

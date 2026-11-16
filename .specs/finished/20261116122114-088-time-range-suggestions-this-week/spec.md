@@ -6,7 +6,7 @@ status: finished
 created: 2026-11-16
 started: 2026-11-16
 base_commit: a8946f87a7b73be5e258785c3332eab449c2705b
-reviewed_commit: d832120cc766a216f411176ecff4e80c45e41866
+reviewed_commit: 3aa12f58ff8e0dc2718165b6ac988ecd16b2e92a
 fronts: [classes, backend, app-messages, mobile, web, designs]
 depends_on: []
 finished: 2026-11-16
@@ -333,3 +333,36 @@ None.
   read as "the old hint is gone", it holds.
 - Simulator taps stopped registering after a scroll (as the executor saw); relaunching the app fixed it — not
   related to this change.
+
+### Round 2 — 2026-11-16 — accepted (self-review)
+
+Recorded after `spec-finish`: the pull request's backend CI job failed on
+`apps/backend/src/modules/classes/classes.controller.spec.ts` → "lists the suggestions for an admin", which still
+expected `findStartingBetween` to be called up to this Monday (`2026-10-12T03:00Z`) instead of next Monday
+(`2026-10-19T03:00Z`, D-01). Round 1's related-tests run didn't select that file. Commit `3aa12f58` changes only
+that expected date; no product code changed. The fix was written in the session that ran `spec-finish`, hence a
+self-review.
+
+**Checks**
+
+- lint ✅ · type check ✅ (`turbo run lint check-types --filter=@rochas-surf-school/backend`: 15 tasks successful)
+- related tests ✅ (`run-related-tests.mjs 088`: apps/backend — now with `classes.controller.spec.ts` —,
+  modules/classes, packages/app-messages, modules/enrolment → RELATED TESTS PASSED) · backend unit suite 915 passed
+- coverage of the changed lines ✅ COVERAGE OK — every changed line covered in 4 file(s)
+- e2e, build and user journeys: unchanged since round 1 (the change is one assertion in a unit test)
+
+**Expected Results**
+
+- ER-01 ✅ — as in round 1; the controller test now asserts the D-01 window (last Monday → next Monday)
+- ER-02 ✅ — as in round 1
+- ER-03 ✅ — as in round 1
+
+**Findings**
+
+None.
+
+**Notes**
+
+- The web CI job failed in the same run on `next/font/google` (`Can't resolve
+  '@vercel/turbopack-next/internal/font/google/font'`), a Google Fonts fetch during the build; this spec changes
+  no web build or font setup.

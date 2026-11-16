@@ -2,10 +2,11 @@
 id: "088"
 slug: time-range-suggestions-this-week
 title: Suggest this week's time ranges too, and skip cancelled classes
-status: in-review
+status: accepted
 created: 2026-11-16
 started: 2026-11-16
 base_commit: a8946f87a7b73be5e258785c3332eab449c2705b
+reviewed_commit: d832120cc766a216f411176ecff4e80c45e41866
 fronts: [classes, backend, app-messages, mobile, web, designs]
 depends_on: []
 ---
@@ -276,3 +277,58 @@ range. The hint under the chips says so, in the app and in the admin app design.
 ## Amendments
 
 ## Review
+
+### Round 1 — 2026-11-16 — accepted
+
+**Checks**
+
+- lint ✅ · type check ✅ · build ✅ (`turbo run lint check-types build` for classes, backend, app-messages, mobile,
+  web: 32 tasks successful)
+- related tests ✅ (`run-related-tests.mjs 088`: apps/backend, apps/mobile, apps/web, modules/classes,
+  packages/app-messages, modules/enrolment → RELATED TESTS PASSED)
+- coverage of the changed lines ✅ COVERAGE OK — 4 files measured, `list-time-range-suggestions.usecase.ts` 100%
+  (stmts 6/6, branches 1/1); no coverage-ignore comments in the diff
+- e2e ✅ on a clean database: backend 867 passed (31 files) · web Playwright 78 passed → E2E PASSED. Against the
+  default dev database (`rochas_surf_school`) the 5 suggestions tests fail, because it holds 12 dev classes on
+  2026-10-16..18, inside the suite's pinned window; see Notes
+- `pack.mjs --check` ✅ (5 design files match) · `grep -c "desta semana e da passada" admin-app.html` = 1, the old
+  "aulas da semana passada" = 0
+- User journeys (iOS simulator, iPhone 18 Pro, pt-BR, dev admin, local backend), with the window empty beforehand
+  and two classes on Thu 2026-11-19 at 06:00–07:00 and 08:00–09:00 seeded in the database rather than created
+  through the form (the batch flow isn't changed by this spec), removed afterwards: (1) "Nova aula" with no
+  classes in the window → no chips, no hint; with the two classes → both chips unselected and "Sugeridos a partir
+  das aulas desta semana e da passada." ✅ (2) after setting `cancelled_at` on the 06:00 class → only "08:00 – 09:00"
+  ✅ (3) "Editar aula" on the 08:00 class → "08:00 – 09:00" under "Início e fim" with the same hint ✅
+
+**Expected Results**
+
+- ER-01 ✅ — unit test file 10 passed (this week incl. not-yet-started classes, both-weeks range once, last
+  Monday 00:00 in / Sunday before out / this Sunday 23:59 in / next Monday 00:00 out, Monday-morning clock, empty
+  window); e2e "lists the distinct ranges of last week's and this week's classes", "ignores next week and two
+  weeks ago, and counts Sunday night", "is empty when no class is in the window" and the 403
+  `user.role.notAdmin` test pass; the fake repository applies the same `[from, to)` bounds as the Prisma query
+- ER-02 ✅ — `-t "cancelled"` selects 2 tests, both pass (cancelled only → empty; cancelled + non-cancelled across
+  both weeks → once); e2e "skips cancelled classes" passes; seen in the simulator (journey 2)
+- ER-03 ✅ — the three locales hold the D-03 texts exactly; mobile time-range-picker 9 passed, web picker + hint
+  3 passed; the regenerated design has the new hint; no old hint copy left in the named places (the only "last
+  week's classes" hits are inside the new en-US text itself; pt-BR/es-ES "Semana passada"/"Semana pasada" are
+  the week navigator's `previous` label, not time-range copy)
+
+**Findings**
+
+None.
+
+**Notes**
+
+- `## Memory Impact` misses `.specs/memory/modules.md` (line 86: "suggested from last week's classes");
+  `spec-finish` should update it too, along with the product.md lines 174, 414, 703 and 762 and
+  `modules/classes.md` line 494.
+- The backend e2e suggestions tests read every class in the database with exact equality, so they go red on any
+  local database holding classes between 2026-10-05 and 2026-10-18 (the dev DB does today). The exposure
+  existed for last week before; this spec widens it to two weeks. CI uses a fresh database, so it isn't a
+  defect of this change, but running the e2e suite against its own database by default would keep the local
+  run reliable.
+- ER-03's "no text containing 'last week's classes'" edge clashes literally with the en-US text D-03 mandates;
+  read as "the old hint is gone", it holds.
+- Simulator taps stopped registering after a scroll (as the executor saw); relaunching the app fixed it — not
+  related to this change.

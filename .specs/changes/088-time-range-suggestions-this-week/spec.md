@@ -164,10 +164,14 @@ range. The hint under the chips says so, in the app and in the admin app design.
 
 ### App messages (`packages/app-messages`)
 
-- [ ] **T-03** — Set `newClass.timeRanges.hint` to the D-03 texts in `src/pt-BR.ts`, `src/en-US.ts` and
+- [x] **T-03** — Set `newClass.timeRanges.hint` to the D-03 texts in `src/pt-BR.ts`, `src/en-US.ts` and
   `src/es-ES.ts`, then build the package.
   Covers: ER-03 · Done when: `npm run build -w @rochas-surf-school/app-messages` and `npx turbo run check-types
   --filter=@rochas-surf-school/app-messages` exit 0.
+  > ✅ 2026-11-16 — `newClass.timeRanges.hint` set to the D-03 texts; files: `packages/app-messages/src/pt-BR.ts`,
+  > `packages/app-messages/src/en-US.ts`, `packages/app-messages/src/es-ES.ts`; verified: `npm run build -w
+  > @rochas-surf-school/app-messages` and `npx turbo run check-types --filter=@rochas-surf-school/app-messages`
+  > (exit 0); deviations: none
 
 ### Mobile (`apps/mobile`)
 

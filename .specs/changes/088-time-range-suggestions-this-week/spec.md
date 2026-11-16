@@ -224,6 +224,13 @@ range. The hint under the chips says so, in the app and in the admin app design.
 - [ ] **T-07** — Run every command in the Verification Plan from the repo root; all pass. Follow the user journey in
   the iOS simulator. Record the output summary as evidence. Covers: all · Done when: every command exits 0 and the
   journey matches.
+  > ⛔ 2026-11-16 — every automated command passed (`run-related-tests.mjs 088` RELATED TESTS PASSED;
+  > `check-coverage.mjs 088` all changed lines covered; `run-e2e.mjs 088` E2E PASSED, backend + 78 web Playwright
+  > tests, backend against a scratch DB because the dev DB holds real classes in this week's window; `turbo run
+  > lint check-types build` for classes, backend, app-messages, mobile, web: 32 tasks successful; `pack.mjs
+  > --check` exit 0). The three iOS-simulator journeys of the Verification Plan were NOT followed: they need an
+  > iOS build, the local backend running and an approved admin signed in. Unblock: confirm I may build and run the
+  > app in the simulator, or run the three journeys yourself.
 
 ## Verification Plan
 

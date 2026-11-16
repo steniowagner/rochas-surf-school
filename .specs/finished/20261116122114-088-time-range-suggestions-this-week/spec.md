@@ -2,13 +2,14 @@
 id: "088"
 slug: time-range-suggestions-this-week
 title: Suggest this week's time ranges too, and skip cancelled classes
-status: accepted
+status: finished
 created: 2026-11-16
 started: 2026-11-16
 base_commit: a8946f87a7b73be5e258785c3332eab449c2705b
 reviewed_commit: d832120cc766a216f411176ecff4e80c45e41866
 fronts: [classes, backend, app-messages, mobile, web, designs]
 depends_on: []
+finished: 2026-11-16
 ---
 
 # 088 — Suggest this week's time ranges too, and skip cancelled classes

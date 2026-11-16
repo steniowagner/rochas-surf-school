@@ -91,7 +91,7 @@ Admins have full control over schedules, users and settings. An admin can also t
 - Skill level: beginner, advanced or expert. This is an informational label only.
 - Dates. When creating classes, the admin picks a date range on a calendar and can filter it by weekday. Editing a class changes only that class, and can move it to any future date.
 - Times. One or more time ranges, each with a start and an end. Classes usually last 1 hour, and surf trips can last all day.
-  - The form suggests the time ranges used by the previous week's classes. New ones can be added, and they aren't saved for later.
+  - The form suggests the time ranges used by the classes of the previous week and of the current week, cancelled ones left out. New ones can be added, and they aren't saved for later.
   - Each time range must end after it starts, and time ranges in one batch can't overlap. Classes from different batches can overlap.
 - Location. One location per class, chosen from saved locations. New locations are added with address suggestions and a map.
   - Editing a location changes every class that uses it, past ones included. If upcoming classes use it, the admin chooses whether to notify their students and instructors.

@@ -171,9 +171,9 @@ Listed in the order people meet them.
   guests, ratings, instructor comments and photos. Created one at a time or in a **batch** (a date range with
   single days removed, and one or more non-overlapping time ranges, each ending after it starts; one class per
   remaining day and time range, all sharing the other fields) — the batch only exists while creating: afterwards each class
-  is edited on its own. The form suggests the time ranges of the previous week's classes (Monday to Sunday,
-  distinct start–end pairs). No class starts in the past. Limits: capacity 1 to 20 (8 by default), at most 200
-  classes per batch; a batch is created whole or not at all. Lifecycle, by the clock:
+  is edited on its own. The form suggests the time ranges of this week's and last week's classes (Monday to
+  Sunday, distinct start–end pairs, cancelled classes left out). No class starts in the past. Limits: capacity 1
+  to 20 (8 by default), at most 200 classes per batch; a batch is created whole or not at all. Lifecycle, by the clock:
   - `not started` → `started` (at its start time) → `finished` (at its end time), with nobody acting.
   - `not started`: can be edited (never into the past), cancelled, or deleted — deleted only when nobody has
     an enrolment or a guest in it (instructors are notified). Capacity can't go below the seats taken.
@@ -411,7 +411,7 @@ Detailed in [user-journeys.md](../../.docs/user-journeys.md) and, area by area, 
 - **All times are America/Fortaleza, whatever the phone's time zone; weeks run Monday to Sunday.**
 - **The level is a label only**: it never restricts who can request a class.
 - **A batch isn't kept**: it only exists while creating classes; each class is edited on its own, and time
-  ranges are suggested from the previous week's classes rather than from a saved list.
+  ranges are suggested from this week's and last week's classes rather than from a saved list.
 - **A batch is all or nothing, and each instructor hears about it once**: "Criar N aulas" always creates
   exactly N classes, or none when any of them is refused (one in the past refuses the whole batch). The one
   exception is today's past times: when today is among the dates and a chosen time has already started, the app
@@ -700,9 +700,10 @@ location, the instructors, the capacity (a stepper from 1 to 20, 8 by default) a
 characters). Days are picked on a Monday-first calendar (no day before today): one day, or a range shown as a
 band from which single days are removed by pressing them (struck through, listed under "Dias removidos"; pressed
 again, they come back; pressing an end of the range clears it) — spec `029-batch-excluded-dates-skip-past`
-replaced the "Nos dias" weekday filter this way. Time ranges are chips suggested from last week's classes, plus any
-added with "Novo horário" for this batch only (end after start; a chip that overlaps a selected one is blocked). A
-time that has already started today stays selectable: when today is among the dates, its class today is skipped
+replaced the "Nos dias" weekday filter this way. Time ranges are chips suggested from this week's and last
+week's classes, cancelled ones left out ("Sugeridos a partir das aulas desta semana e da passada.", spec 088), plus
+any added with "Novo horário" for this batch only (end after start; a chip that overlaps a selected one is
+blocked). A time that has already started today stays selectable: when today is among the dates, its class today is skipped
 ("Os horários que já passaram não terão aula hoje.") and the other days are created (spec 029).
 A location is picked from the saved ones or added in place with "Novo local"
 (name and address; a name already used, ignoring case and accents, is refused). Instructors are the approved
@@ -759,8 +760,8 @@ change (a substitute); once it has finished nothing can. The capacity can't go b
 until enrolment exists). An edit can't leave a class without an instructor; a new instructor must be an approved
 instructor or admin, while the ones already on the class can stay whatever their role is now. The "Editar aula"
 screen starts from the class's values with the Nova aula sections, but one day ("Dia", no day before today) and
-one time range ("Início e fim": the class's own, last week's suggestions and any added with "Novo horário"; on
-today a time that has already started is blocked, except the class's own while it hasn't started); the
+one time range ("Início e fim": the class's own, the suggestions from this week's and last week's classes and any
+added with "Novo horário"; on today a time that has already started is blocked, except the class's own while it hasn't started); the
 instructor list also shows the class's instructors who no longer teach, so they can be removed. A started class
 shows "A aula já começou" / "Só dá para trocar os instrutores." and only the instructors. "Salvar e notificar"
 (with "Ao salvar, avisamos os instrutores da aula.", which since spec 047 also names the enrolled students and
@@ -1469,6 +1470,14 @@ pending requests the backend sends them now carry each student's stored number.
 list row or header button again before its screen finishes opening no longer opens a second copy of it, so one back
 always returns to where the person was; a screen already open further down the stack is brought back to the top
 instead of opened again. Two different items tapped very fast still both open.
+
+**Time ranges are suggested from this week too** (spec `088-time-range-suggestions-this-week`) — the "Horários"
+chips of "Nova aula" and the "Início e fim" chips of "Editar aula" now come from the classes of last week and of the
+whole current week (Monday to Sunday, Fortaleza), including this week's classes that haven't started yet, so an admin
+who just created this week's classes finds their time ranges when creating the next batch. A cancelled class no longer
+suggests its time range, unless another class in those two weeks that isn't cancelled has the same one. The hint under
+the chips reads "Sugeridos a partir das aulas desta semana e da passada.", in the app and in the admin app design. All
+copy is in pt-BR, es-ES and en-US.
 
 Active specs: `081-staging-follow-ups` and `084-apple-token-revocation`, planned.
 

@@ -714,11 +714,14 @@ Admins SHALL be able to create classes in a batch by choosing a date range, remo
 #### Time range suggestions
 
 _Implemented in spec 028-create-classes._
+_Implemented in spec 088-time-range-suggestions-this-week._
 
-When an admin creates a batch, the system SHALL suggest the time ranges used by the previous week's classes, and admins SHALL be able to add other time ranges. The system SHALL NOT keep a separate saved list of time ranges.
+When an admin creates a batch, the system SHALL suggest the time ranges used by the classes of the previous week and of the current week (Monday to Sunday), leaving out cancelled classes, and admins SHALL be able to add other time ranges. The system SHALL NOT keep a separate saved list of time ranges.
 
 - _Suggestions from last week:_ When an admin starts a batch and last week had classes from 08:00 to 09:00 and from 16:00 to 17:00, then both time ranges are suggested.
-- _New time range:_ When an admin adds a time range that no class used last week, then it is used for this batch only, and it is suggested later only if classes in the previous week use it.
+- _Suggestions from this week:_ When an admin starts a batch and classes from 06:00 to 07:00 were created for later this week, then that time range is suggested too.
+- _Cancelled classes:_ When the only class in those two weeks from 06:00 to 07:00 is cancelled, then that time range is not suggested.
+- _New time range:_ When an admin adds a time range that no class used in those two weeks, then it is used for this batch only, and it is suggested later only if classes in the previous or the current week use it.
 
 #### Valid time ranges
 

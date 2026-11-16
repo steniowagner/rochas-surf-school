@@ -1207,8 +1207,10 @@ guard's 401 `auth.token.invalid`.
   instructorIds, count, discipline })` for every instructor except the caller (skipped when none is left; a
   throwing notifier is swallowed in the use case and in the adapter).
 - `GET /classes/time-range-suggestions` (admins) → 200 `{ items: [{ start, end }] }`: distinct `HH:mm` pairs of the
-  classes starting in last week (Monday 00:00 inclusive to this Monday 00:00 exclusive, Fortaleza), sorted by start
-  then end (`SchoolClassRepository.findStartingBetween`).
+  classes starting from last Monday 00:00 (inclusive) to next Monday 00:00 (exclusive), Fortaleza — last week and
+  the whole current week (spec 088) — sorted by start then end (`SchoolClassRepository.findStartingBetween`).
+  Cancelled classes (`cancelledAt` set) are skipped in `ListTimeRangeSuggestions`, not in the query, because
+  `findStartingBetween` is shared with the week view, which keeps showing them.
 - `GET /classes?date=YYYY-MM-DD` (any approved account; spec 030, `ListWeekClasses`) → 200 `{ weekStart, items:
   ClassItem[] }`: the classes starting from the Monday 00:00 of the date's week (inclusive) to the next Monday
   00:00 (exclusive), Fortaleza, sorted by `startsAt`, `endsAt`, `id`. `ClassItem` is `{ id, discipline, level,

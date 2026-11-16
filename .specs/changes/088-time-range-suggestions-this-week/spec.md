@@ -208,12 +208,16 @@ range. The hint under the chips says so, in the app and in the admin app design.
 
 ### Designs (`.docs/designs`)
 
-- [ ] **T-06** — Regenerate `.docs/designs/admin-app.html` and its sources: build the web
+- [x] **T-06** — Regenerate `.docs/designs/admin-app.html` and its sources: build the web
   (`npx turbo run build --filter=@rochas-surf-school/web`), run `next start -p 3100` in `apps/web`, then
   `node .docs/designs/scripts/build-design.mjs admin-app` (and `node .docs/designs/scripts/pack.mjs admin-app` if it
   reports the `.html` stale). Commit the regenerated sources and `.html`.
   Covers: ER-03 · Done when: `node .docs/designs/scripts/pack.mjs --check` exits 0 and `grep -c "desta semana e da
   passada" .docs/designs/admin-app.html` is at least 1.
+  > ✅ 2026-11-16 — built the web, served it on :3100, regenerated the sources with `build-design.mjs admin-app`, then
+  > `pack.mjs admin-app`; files: `.docs/designs/admin-app.html`, `.docs/designs/src/admin-app/template.html`;
+  > verified: `pack.mjs --check` exit 0 (5 files match), `grep -c "desta semana e da passada"` = 1; deviations:
+  > none
 
 ### Verification
 

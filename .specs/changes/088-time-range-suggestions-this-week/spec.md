@@ -146,7 +146,7 @@ range. The hint under the chips says so, in the app and in the admin app design.
 
 ### Backend (`apps/backend`)
 
-- [ ] **T-02** — In `test/classes.e2e-spec.ts` → `describe('suggestions')`: let `seedClass` take an optional
+- [x] **T-02** — In `test/classes.e2e-spec.ts` → `describe('suggestions')`: let `seedClass` take an optional
   `cancelledAt`; rename the first test to "lists the distinct ranges of last week's and this week's classes" and seed
   one class this week too; replace "ignores this week and two weeks ago, and counts Sunday night" with "ignores next
   week and two weeks ago, and counts Sunday night" (a class next Monday 00:00 out, this Sunday 23:00 in); change "is
@@ -155,6 +155,12 @@ range. The hint under the chips says so, in the app and in the admin app design.
   build first so the e2e suite uses the new module code.
   Covers: ER-01, ER-02 · Done when: `npm run test:e2e -- test/classes.e2e-spec.ts -t "suggestions"` passes (from
   `apps/backend`, Postgres up).
+  > ✅ 2026-11-16 — `seedClass` takes an optional `cancelledAt`; suggestions tests renamed/rewritten for the new
+  > window, plus "skips cancelled classes" and an empty-window test; files:
+  > `apps/backend/test/classes.e2e-spec.ts`; verified: `DATABASE_NAME=rochas_e2e_088 npm run test:e2e --
+  > test/classes.e2e-spec.ts -t "suggestions"` (5 passed); deviations: the default dev DB holds real dev classes
+  > in this week's window (the suite's clock is pinned to 2026-10-14), so the suite ran against a scratch
+  > database `rochas_e2e_088` in the same Postgres container; the dev data was not touched
 
 ### App messages (`packages/app-messages`)
 

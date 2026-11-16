@@ -151,7 +151,7 @@ describe('Classes (e2e)', () => {
     });
   }
 
-  async function seedClass(creatorId: string, startsAt: string, endsAt: string) {
+  async function seedClass(creatorId: string, startsAt: string, endsAt: string, cancelledAt?: string) {
     await prisma.schoolClass.create({
       data: {
         id: randomUUID(),
@@ -162,6 +162,7 @@ describe('Classes (e2e)', () => {
         locationId,
         capacity: 8,
         createdBy: creatorId,
+        ...(cancelledAt ? { cancelledAt: new Date(cancelledAt) } : {}),
       },
     });
   }
@@ -540,37 +541,51 @@ describe('Classes (e2e)', () => {
   });
 
   describe('suggestions', () => {
-    it('lists the distinct time ranges of last week, sorted', async () => {
+    it("lists the distinct ranges of last week's and this week's classes", async () => {
       const admin = await account();
       await seedClass(admin.id, '2026-10-10T19:00:00.000Z', '2026-10-10T20:00:00.000Z');
       await seedClass(admin.id, '2026-10-06T11:00:00.000Z', '2026-10-06T12:00:00.000Z');
-      await seedClass(admin.id, '2026-10-08T11:00:00.000Z', '2026-10-08T12:00:00.000Z');
+      await seedClass(admin.id, '2026-10-16T11:00:00.000Z', '2026-10-16T12:00:00.000Z');
+      await seedClass(admin.id, '2026-10-16T09:00:00.000Z', '2026-10-16T10:00:00.000Z');
 
       const response = await suggestions(admin.accessToken);
 
       expect(response.status).toBe(200);
       expect(response.body).toEqual({
         items: [
+          { start: '06:00', end: '07:00' },
           { start: '08:00', end: '09:00' },
           { start: '16:00', end: '17:00' },
         ],
       });
     });
 
-    it('ignores this week and two weeks ago, and counts Sunday night', async () => {
+    it('ignores next week and two weeks ago, and counts Sunday night', async () => {
       const admin = await account();
-      await seedClass(admin.id, '2026-10-12T03:00:00.000Z', '2026-10-12T04:00:00.000Z');
+      await seedClass(admin.id, '2026-10-19T03:00:00.000Z', '2026-10-19T04:00:00.000Z');
       await seedClass(admin.id, '2026-09-29T11:00:00.000Z', '2026-09-29T12:00:00.000Z');
-      await seedClass(admin.id, '2026-10-12T02:00:00.000Z', '2026-10-12T02:30:00.000Z');
+      await seedClass(admin.id, '2026-10-19T02:00:00.000Z', '2026-10-19T02:30:00.000Z');
 
       const response = await suggestions(admin.accessToken);
 
       expect(response.body).toEqual({ items: [{ start: '23:00', end: '23:30' }] });
     });
 
-    it('is empty when nothing happened last week', async () => {
+    it('skips cancelled classes', async () => {
       const admin = await account();
-      await seedClass(admin.id, '2026-10-14T11:00:00.000Z', '2026-10-14T12:00:00.000Z');
+      const cancelledAt = '2026-10-13T12:00:00.000Z';
+      await seedClass(admin.id, '2026-10-15T09:00:00.000Z', '2026-10-15T10:00:00.000Z', cancelledAt);
+      await seedClass(admin.id, '2026-10-06T11:00:00.000Z', '2026-10-06T12:00:00.000Z', cancelledAt);
+      await seedClass(admin.id, '2026-10-15T11:00:00.000Z', '2026-10-15T12:00:00.000Z');
+
+      const response = await suggestions(admin.accessToken);
+
+      expect(response.body).toEqual({ items: [{ start: '08:00', end: '09:00' }] });
+    });
+
+    it('is empty when no class is in the window', async () => {
+      const admin = await account();
+      await seedClass(admin.id, '2026-10-20T11:00:00.000Z', '2026-10-20T12:00:00.000Z');
 
       const response = await suggestions(admin.accessToken);
 

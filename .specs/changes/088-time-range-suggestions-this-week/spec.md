@@ -175,13 +175,18 @@ range. The hint under the chips says so, in the app and in the admin app design.
 
 ### Mobile (`apps/mobile`)
 
-- [ ] **T-04** — Update the hint text asserted in
+- [x] **T-04** — Update the hint text asserted in
   `src/modules/classes/components/time-range-picker/time-range-picker.component.test.tsx` to "Suggested from this
   week's and last week's classes.", and the doc comments that say "last week's classes" in
   `time-range-picker.types.ts` and `src/modules/classes/hooks/use-time-range-suggestions.hook.ts` (this week's and
   last week's classes, without cancelled ones). Load the `vercel-react-native-skills` and
   `vercel-react-best-practices` skills first.
   Covers: ER-03 · Done when: `npx jest src/modules/classes/components/time-range-picker` passes (from `apps/mobile`).
+  > ✅ 2026-11-16 — hint text in the test and two doc comments updated; files:
+  > `apps/mobile/src/modules/classes/components/time-range-picker/time-range-picker.component.test.tsx`,
+  > `apps/mobile/src/modules/classes/components/time-range-picker/time-range-picker.types.ts`,
+  > `apps/mobile/src/modules/classes/hooks/use-time-range-suggestions.hook.ts`; verified: `npx jest
+  > src/modules/classes/components/time-range-picker` (9 passed); deviations: none
 
 ### Web (`apps/web`)
 

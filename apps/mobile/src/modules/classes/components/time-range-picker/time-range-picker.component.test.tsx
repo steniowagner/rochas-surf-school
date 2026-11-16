@@ -22,7 +22,7 @@ describe("TimeRangePicker", () => {
     expect(screen.getByRole("button", { name: "16:00 – 17:00" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "New time" })).toBeTruthy();
     expect(
-      screen.getByText("Suggested from last week's classes."),
+      screen.getByText("Suggested from this week's and last week's classes."),
     ).toBeTruthy();
     expect(
       screen.queryByText(
@@ -40,7 +40,7 @@ describe("TimeRangePicker", () => {
     expect(screen.getAllByRole("button")).toHaveLength(1);
     expect(screen.getByRole("button", { name: "New time" })).toBeTruthy();
     expect(
-      screen.queryByText("Suggested from last week's classes."),
+      screen.queryByText("Suggested from this week's and last week's classes."),
     ).toBeNull();
   });
 
@@ -140,7 +140,7 @@ describe("TimeRangePicker", () => {
         screen.queryByText("Overlapping times can't go in the same batch."),
       ).toBeNull();
       expect(
-        screen.getByText("Suggested from last week's classes."),
+        screen.getByText("Suggested from this week's and last week's classes."),
       ).toBeTruthy();
     });
 

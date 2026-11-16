@@ -4,7 +4,7 @@ import { apiGet } from "@/services/api";
 
 import { TimeRangeSuggestionsResponse } from "../classes.types";
 
-/** The time ranges of last week's classes; a failure just leaves the screen without suggestions. */
+/** The time ranges of this week's and last week's classes, without cancelled ones; a failure just leaves the screen without suggestions. */
 export const useTimeRangeSuggestions = () =>
   useQuery({
     queryKey: ["classes", "time-range-suggestions"],

@@ -1,5 +1,5 @@
 import { TZDate, tz } from "@date-fns/tz";
-import { format, startOfWeek, subWeeks } from "date-fns";
+import { addWeeks, format, startOfWeek, subWeeks } from "date-fns";
 import { UseCase } from "@rochas-surf-school/shared";
 import { ClassActor, assertCanManageClasses } from "../../access";
 import { CLASS_TIME_ZONE, TimeRange } from "../model";
@@ -13,6 +13,10 @@ export interface ListTimeRangeSuggestionsOut {
   items: TimeRange[];
 }
 
+/**
+ * Suggests the time ranges of the classes of last week and this week (Monday to
+ * Monday, Fortaleza), skipping cancelled ones.
+ */
 export class ListTimeRangeSuggestions
   implements UseCase<ListTimeRangeSuggestionsIn, ListTimeRangeSuggestionsOut>
 {
@@ -30,13 +34,16 @@ export class ListTimeRangeSuggestions
     const now = new TZDate(this.clockProvider.now(), CLASS_TIME_ZONE);
     const thisMonday = startOfWeek(now, { weekStartsOn: 1, in: zone });
     const lastMonday = subWeeks(thisMonday, 1);
+    const nextMonday = addWeeks(thisMonday, 1);
     const classes = await this.schoolClassRepository.findStartingBetween(
       new Date(lastMonday.getTime()),
-      new Date(thisMonday.getTime()),
+      new Date(nextMonday.getTime()),
     );
     const ranges = new Map<string, TimeRange>();
 
     for (const item of classes) {
+      if (item.cancelledAt) continue;
+
       const start = format(item.startsAt, "HH:mm", { in: zone });
       const end = format(item.endsAt, "HH:mm", { in: zone });
       ranges.set(`${start}-${end}`, { start, end });

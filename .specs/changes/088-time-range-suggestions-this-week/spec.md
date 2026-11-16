@@ -128,7 +128,7 @@ range. The hint under the chips says so, in the app and in the admin app design.
 
 ### Classes (`modules/classes`)
 
-- [ ] **T-01** — In `src/school-class/usecase/list-time-range-suggestions.usecase.ts`, end the window at next Monday
+- [x] **T-01** — In `src/school-class/usecase/list-time-range-suggestions.usecase.ts`, end the window at next Monday
   00:00 Fortaleza (`addWeeks(thisMonday, 1)`) instead of this Monday, and skip classes whose `cancelledAt` is set
   (D-01, D-02); update the class's doc comment. Rewrite
   `test/school-class/usecase/list-time-range-suggestions.usecase.test.ts` for ER-01 and ER-02: last week and this
@@ -137,6 +137,12 @@ range. The hint under the chips says so, in the app and in the admin app design.
   empty; cancelled + non-cancelled same range → once. Name the cancelled tests so `-t "cancelled"` selects them.
   Covers: ER-01, ER-02 · Done when: `npx jest test/school-class/usecase/list-time-range-suggestions.usecase.test.ts`
   passes (from `modules/classes`) and the use case file is 100% covered.
+  > ✅ 2026-11-16 — window now ends next Monday 00:00 and cancelled classes are skipped in the use case; tests
+  > rewritten (this week, edges, Monday morning, both weeks once, cancelled-only, cancelled + non-cancelled);
+  > files: `modules/classes/src/school-class/usecase/list-time-range-suggestions.usecase.ts`,
+  > `modules/classes/test/school-class/usecase/list-time-range-suggestions.usecase.test.ts`; verified:
+  > `npx jest test/school-class/usecase/list-time-range-suggestions.usecase.test.ts` (10 passed, use case 100%
+  > covered); deviations: none
 
 ### Backend (`apps/backend`)
 

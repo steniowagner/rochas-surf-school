@@ -11,7 +11,7 @@ export type TimeRangeChip = {
 export type TimeRangePickerProps = {
   locale: Locale;
   chips: TimeRangeChip[];
-  /** The ranges come from last week's classes. */
+  /** The ranges come from this week's and last week's classes. */
   showSuggestionsHint: boolean;
   /** Today is among the dates: the ranges that passed have no class today. */
   showPastHint: boolean;

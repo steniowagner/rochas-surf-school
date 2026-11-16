@@ -17,7 +17,7 @@ describe("TimeRangePicker", () => {
     expect(screen.getByRole("button", { name: "09:00 – 10:30" })).toBeDisabled();
     expect(screen.getByText("09:00 – 10:30")).toHaveClass("line-through");
     expect(screen.getByRole("button", { name: "Novo horário" })).toHaveClass("border-dashed");
-    expect(screen.getByText("Sugeridos a partir das aulas da semana passada.")).toBeInTheDocument();
+    expect(screen.getByText("Sugeridos a partir das aulas desta semana e da passada.")).toBeInTheDocument();
     expect(screen.getByText("Horários sobrepostos não podem ir no mesmo lote.")).toBeInTheDocument();
     expect(screen.queryByText("Os horários que já passaram não terão aula hoje.")).toBeNull();
   });
@@ -26,6 +26,6 @@ describe("TimeRangePicker", () => {
     render(<TimeRangePicker locale="pt-br" chips={[]} showSuggestionsHint={false} showPastHint showOverlapHint={false} />);
 
     expect(screen.getByText("Os horários que já passaram não terão aula hoje.")).toBeInTheDocument();
-    expect(screen.queryByText("Sugeridos a partir das aulas da semana passada.")).toBeNull();
+    expect(screen.queryByText("Sugeridos a partir das aulas desta semana e da passada.")).toBeNull();
   });
 });

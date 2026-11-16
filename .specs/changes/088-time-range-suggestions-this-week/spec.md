@@ -190,7 +190,7 @@ range. The hint under the chips says so, in the app and in the admin app design.
 
 ### Web (`apps/web`)
 
-- [ ] **T-05** — Update the pt-BR hint asserted in
+- [x] **T-05** — Update the pt-BR hint asserted in
   `src/modules/designs/components/time-range-picker/time-range-picker.component.test.tsx` and
   `src/modules/designs/components/time-range-hint/time-range-hint.component.test.tsx` to "Sugeridos a partir das
   aulas desta semana e da passada.", and the "last week" doc comments in
@@ -198,6 +198,13 @@ range. The hint under the chips says so, in the app and in the admin app design.
   `src/modules/designs/data/admin-app.ts` (the suggestions comment only).
   Covers: ER-03 · Done when: `npx vitest run src/modules/designs/components/time-range-picker
   src/modules/designs/components/time-range-hint` passes (from `apps/web`).
+  > ✅ 2026-11-16 — pt-BR hint in both tests and the "last week" doc comments updated; files:
+  > `apps/web/src/modules/designs/components/time-range-hint/time-range-hint.component.test.tsx`,
+  > `apps/web/src/modules/designs/components/time-range-picker/time-range-picker.component.test.tsx`,
+  > `apps/web/src/modules/designs/components/time-range-picker/time-range-picker.types.ts`,
+  > `apps/web/src/modules/designs/data/admin-app.ts`; verified: `npx vitest run
+  > src/modules/designs/components/time-range-picker src/modules/designs/components/time-range-hint` (3 passed);
+  > deviations: none
 
 ### Designs (`.docs/designs`)
 
